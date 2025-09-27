@@ -1,63 +1,101 @@
 import React from 'react'
 import { ScrollView, View } from 'react-native'
 import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-    Alert,
-    AlertDescription,
-    AlertTitle,
-    Avatar,
-    Badge,
-    Button,
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-    Checkbox,
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-    EnhancedPagination,
-    Input,
-    Label,
-    Progress,
-    RadioGroup,
-    RadioGroupItem,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    Separator,
-    Skeleton,
-    Slider,
-    Switch,
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-    Textarea,
-    Toast,
-    ToastDescription,
-    ToastTitle,
-    Toggle,
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Alert,
+  AlertDescription,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  AlertTitle,
+  AspectRatio,
+  Avatar,
+  Badge,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Checkbox,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  EnhancedPagination,
+  Input,
+  Label,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Progress,
+  RadioGroup,
+  RadioGroupItem,
+  ScrollArea,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  Separator,
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  Skeleton,
+  Slider,
+  Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Textarea,
+  Toast,
+  ToastDescription,
+  ToastTitle,
+  Toggle,
+  ToggleGroup,
+  ToggleGroupItem,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
 } from './index'
 
 export const UIDemo = () => {
@@ -71,6 +109,12 @@ export const UIDemo = () => {
   const [selectValue, setSelectValue] = React.useState('')
   const [toggleValue, setToggleValue] = React.useState(false)
   const [currentPage, setCurrentPage] = React.useState(1)
+  const [toggleGroupValue, setToggleGroupValue] = React.useState(['bold'])
+  const [collapsibleOpen, setCollapsibleOpen] = React.useState(false)
+  const [sheetOpen, setSheetOpen] = React.useState(false)
+  const [popoverOpen, setPopoverOpen] = React.useState(false)
+  const [alertDialogOpen, setAlertDialogOpen] = React.useState(false)
+  const [dropdownOpen, setDropdownOpen] = React.useState(false)
 
   return (
     <ScrollView style={{ flex: 1, padding: 16 }}>
@@ -480,6 +524,221 @@ export const UIDemo = () => {
               onPageChange={setCurrentPage}
               showItemCount={true}
             />
+          </View>
+        </CardContent>
+      </Card>
+
+      {/* ToggleGroup */}
+      <Card style={{ marginBottom: 16 }}>
+        <CardHeader>
+          <CardTitle>ToggleGroup</CardTitle>
+          <CardDescription>Toggle group component</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <View style={{ gap: 12 }}>
+            <ToggleGroup type="multiple" value={toggleGroupValue} onValueChange={setToggleGroupValue}>
+              <ToggleGroupItem value="bold">
+                <Text>Bold</Text>
+              </ToggleGroupItem>
+              <ToggleGroupItem value="italic">
+                <Text>Italic</Text>
+              </ToggleGroupItem>
+              <ToggleGroupItem value="underline">
+                <Text>Underline</Text>
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </View>
+        </CardContent>
+      </Card>
+
+      {/* Collapsible */}
+      <Card style={{ marginBottom: 16 }}>
+        <CardHeader>
+          <CardTitle>Collapsible</CardTitle>
+          <CardDescription>Collapsible component</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <View style={{ gap: 12 }}>
+            <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>
+              <CollapsibleTrigger>
+                <Text>Click to toggle</Text>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Text>This is the collapsible content that can be shown or hidden.</Text>
+              </CollapsibleContent>
+            </Collapsible>
+          </View>
+        </CardContent>
+      </Card>
+
+      {/* Sheet */}
+      <Card style={{ marginBottom: 16 }}>
+        <CardHeader>
+          <CardTitle>Sheet</CardTitle>
+          <CardDescription>Bottom sheet modal</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <View style={{ gap: 12 }}>
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+              <SheetTrigger>
+                <Button>Open Sheet</Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Sheet Title</SheetTitle>
+                  <SheetDescription>This is a sheet description.</SheetDescription>
+                </SheetHeader>
+                <View style={{ paddingVertical: 16 }}>
+                  <Text>Sheet content goes here...</Text>
+                </View>
+                <SheetFooter>
+                  <SheetClose>
+                    <Button variant="outline">Close</Button>
+                  </SheetClose>
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
+          </View>
+        </CardContent>
+      </Card>
+
+      {/* Popover */}
+      <Card style={{ marginBottom: 16 }}>
+        <CardHeader>
+          <CardTitle>Popover</CardTitle>
+          <CardDescription>Popover component</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <View style={{ gap: 12 }}>
+            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+              <PopoverTrigger>
+                <Button>Open Popover</Button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <Text>This is a popover content.</Text>
+              </PopoverContent>
+            </Popover>
+          </View>
+        </CardContent>
+      </Card>
+
+      {/* ScrollArea */}
+      <Card style={{ marginBottom: 16 }}>
+        <CardHeader>
+          <CardTitle>ScrollArea</CardTitle>
+          <CardDescription>Custom scroll area</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <View style={{ gap: 12 }}>
+            <ScrollArea style={{ height: 200, borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 8 }}>
+              <View style={{ padding: 16 }}>
+                {Array.from({ length: 20 }, (_, i) => (
+                  <Text key={i} style={{ paddingVertical: 8 }}>
+                    Scroll item {i + 1}
+                  </Text>
+                ))}
+              </View>
+            </ScrollArea>
+          </View>
+        </CardContent>
+      </Card>
+
+      {/* AlertDialog */}
+      <Card style={{ marginBottom: 16 }}>
+        <CardHeader>
+          <CardTitle>AlertDialog</CardTitle>
+          <CardDescription>Alert dialog for confirmations</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <View style={{ gap: 12 }}>
+            <AlertDialog open={alertDialogOpen} onOpenChange={setAlertDialogOpen}>
+              <AlertDialogTrigger>
+                <Button variant="destructive">Delete Item</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the item.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onPress={() => setAlertDialogOpen(false)}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction onPress={() => setAlertDialogOpen(false)}>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </View>
+        </CardContent>
+      </Card>
+
+      {/* Breadcrumb */}
+      <Card style={{ marginBottom: 16 }}>
+        <CardHeader>
+          <CardTitle>Breadcrumb</CardTitle>
+          <CardDescription>Navigation breadcrumb</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <View style={{ gap: 12 }}>
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink onPress={() => {}}>Home</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink onPress={() => {}}>Components</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>Breadcrumb</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </View>
+        </CardContent>
+      </Card>
+
+      {/* DropdownMenu */}
+      <Card style={{ marginBottom: 16 }}>
+        <CardHeader>
+          <CardTitle>DropdownMenu</CardTitle>
+          <CardDescription>Dropdown menu component</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <View style={{ gap: 12 }}>
+            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+              <DropdownMenuTrigger>
+                <Button variant="outline">Open Menu</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onPress={() => {}}>Profile</DropdownMenuItem>
+                <DropdownMenuItem onPress={() => {}}>Settings</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onPress={() => {}}>Logout</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </View>
+        </CardContent>
+      </Card>
+
+      {/* AspectRatio */}
+      <Card style={{ marginBottom: 16 }}>
+        <CardHeader>
+          <CardTitle>AspectRatio</CardTitle>
+          <CardDescription>Aspect ratio container</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <View style={{ gap: 12 }}>
+            <AspectRatio ratio={16 / 9} style={{ backgroundColor: '#f3f4f6', borderRadius: 8 }}>
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Text>16:9 Aspect Ratio</Text>
+              </View>
+            </AspectRatio>
           </View>
         </CardContent>
       </Card>
