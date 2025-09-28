@@ -7,16 +7,27 @@ import '../../global.css';
 
 import { useColorScheme } from '@hooks/useColorScheme';
 import { ReactQueryProvider } from '@libs/@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import SplashScreen from './splash';
 
 export default function RootLayout() {
+  const [isAppReady, setAppReady] = useState<boolean>(false);
+
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
+  useEffect(() => {
+    if (loaded) {
+      setTimeout(() => {
+        setAppReady(true);
+      }, 2000);
+    }
+  }, [loaded]);
+
+  if (!loaded || !isAppReady) {
+    return <SplashScreen />;
   }
 
   return (
