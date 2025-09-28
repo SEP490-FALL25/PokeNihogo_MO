@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import React from 'react';
+import { Platform } from 'react-native';
 
 // Khởi tạo một QueryClient instance
 const queryClient = new QueryClient({
@@ -34,7 +35,8 @@ export const ReactQueryProvider = ({ children }: { children: React.ReactNode }) 
     return (
         <QueryClientProvider client={queryClient}>
             {children}
-            <ReactQueryDevtools initialIsOpen={false} />
+            {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+            {Platform.OS === 'web' && <ReactQueryDevtools initialIsOpen={false} />}
         </QueryClientProvider>
     );
 };
