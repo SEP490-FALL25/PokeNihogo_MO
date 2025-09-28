@@ -1,5 +1,5 @@
-import React from 'react'
-import { ScrollView, View } from 'react-native'
+import React from "react";
+import { ScrollView, Text, View } from "react-native";
 import {
   Accordion,
   AccordionContent,
@@ -7,25 +7,9 @@ import {
   AccordionTrigger,
   Alert,
   AlertDescription,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
   AlertTitle,
-  AspectRatio,
   Avatar,
   Badge,
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
   Button,
   Card,
   CardContent,
@@ -33,88 +17,39 @@ import {
   CardHeader,
   CardTitle,
   Checkbox,
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  EnhancedPagination,
   Input,
   Label,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
   Progress,
   RadioGroup,
   RadioGroupItem,
-  ScrollArea,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
   Separator,
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
   Skeleton,
   Slider,
   Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
   Textarea,
-  Toast,
-  ToastDescription,
-  ToastTitle,
-  Toggle,
-  ToggleGroup,
-  ToggleGroupItem,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from './index'
+} from "./index";
 
 export const UIDemo = () => {
-  const [switchValue, setSwitchValue] = React.useState(false)
-  const [checkboxValue, setCheckboxValue] = React.useState(false)
-  const [radioValue, setRadioValue] = React.useState('option1')
-  const [sliderValue, setSliderValue] = React.useState([50])
-  const [tabValue, setTabValue] = React.useState('tab1')
-  const [accordionValue, setAccordionValue] = React.useState('item1')
-  const [dialogOpen, setDialogOpen] = React.useState(false)
-  const [selectValue, setSelectValue] = React.useState('')
-  const [toggleValue, setToggleValue] = React.useState(false)
-  const [currentPage, setCurrentPage] = React.useState(1)
-  const [toggleGroupValue, setToggleGroupValue] = React.useState(['bold'])
-  const [collapsibleOpen, setCollapsibleOpen] = React.useState(false)
-  const [sheetOpen, setSheetOpen] = React.useState(false)
-  const [popoverOpen, setPopoverOpen] = React.useState(false)
-  const [alertDialogOpen, setAlertDialogOpen] = React.useState(false)
-  const [dropdownOpen, setDropdownOpen] = React.useState(false)
+  const [switchValue, setSwitchValue] = React.useState(false);
+  const [checkboxValue, setCheckboxValue] = React.useState(false);
+  const [radioValue, setRadioValue] = React.useState("option1");
+  const [sliderValue, setSliderValue] = React.useState([50]);
+  const [tabValue, setTabValue] = React.useState("tab1");
+  const [accordionValue, setAccordionValue] = React.useState("item1");
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [selectValue, setSelectValue] = React.useState("");
+  const [toggleValue, setToggleValue] = React.useState(false);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [toggleGroupValue, setToggleGroupValue] = React.useState(["bold"]);
+  const [collapsibleOpen, setCollapsibleOpen] = React.useState(false);
+  const [sheetOpen, setSheetOpen] = React.useState(false);
+  const [popoverOpen, setPopoverOpen] = React.useState(false);
+  const [alertDialogOpen, setAlertDialogOpen] = React.useState(false);
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
   return (
     <ScrollView style={{ flex: 1, padding: 16 }}>
@@ -148,9 +83,21 @@ export const UIDemo = () => {
         <CardContent>
           <View style={{ gap: 12 }}>
             <Input label="Name" placeholder="Enter your name" />
-            <Input label="Email" placeholder="Enter your email" keyboardType="email-address" />
-            <Input label="Error State" placeholder="This has an error" error="This field is required" />
-            <Textarea label="Message" placeholder="Enter your message" rows={3} />
+            <Input
+              label="Email"
+              placeholder="Enter your email"
+              keyboardType="email-address"
+            />
+            <Input
+              label="Error State"
+              placeholder="This has an error"
+              error="This field is required"
+            />
+            <Textarea
+              label="Message"
+              placeholder="Enter your message"
+              rows={3}
+            />
           </View>
         </CardContent>
       </Card>
@@ -162,7 +109,7 @@ export const UIDemo = () => {
           <CardDescription>Status and label indicators</CardDescription>
         </CardHeader>
         <CardContent>
-          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+          <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
             <Badge variant="default">Default</Badge>
             <Badge variant="secondary">Secondary</Badge>
             <Badge variant="destructive">Destructive</Badge>
@@ -194,7 +141,7 @@ export const UIDemo = () => {
           <CardDescription>User profile pictures</CardDescription>
         </CardHeader>
         <CardContent>
-          <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View style={{ flexDirection: "row", gap: 12 }}>
             <Avatar size={40} fallback="John Doe" />
             <Avatar size={50} fallback="Jane Smith" />
             <Avatar size={60} fallback="Bob Wilson" />
@@ -209,7 +156,7 @@ export const UIDemo = () => {
           <CardDescription>Toggle switches</CardDescription>
         </CardHeader>
         <CardContent>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <Switch value={switchValue} onCheckedChange={setSwitchValue} />
             <Label>Enable notifications</Label>
           </View>
@@ -265,8 +212,13 @@ export const UIDemo = () => {
         </CardHeader>
         <CardContent>
           <View style={{ gap: 12 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <Checkbox checked={checkboxValue} onCheckedChange={setCheckboxValue} />
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+            >
+              <Checkbox
+                checked={checkboxValue}
+                onCheckedChange={setCheckboxValue}
+              />
               <Label>Accept terms and conditions</Label>
             </View>
           </View>
@@ -281,15 +233,31 @@ export const UIDemo = () => {
         </CardHeader>
         <CardContent>
           <RadioGroup value={radioValue} onValueChange={setRadioValue}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+                marginBottom: 8,
+              }}
+            >
               <RadioGroupItem value="option1" />
               <Label>Option 1</Label>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+                marginBottom: 8,
+              }}
+            >
               <RadioGroupItem value="option2" />
               <Label>Option 2</Label>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+            >
               <RadioGroupItem value="option3" />
               <Label>Option 3</Label>
             </View>
@@ -305,8 +273,8 @@ export const UIDemo = () => {
         </CardHeader>
         <CardContent>
           <View style={{ gap: 12 }}>
-            <Slider 
-              value={sliderValue} 
+            <Slider
+              value={sliderValue}
               onValueChange={setSliderValue}
               min={0}
               max={100}
@@ -324,7 +292,7 @@ export const UIDemo = () => {
           <CardDescription>Tab navigation</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={tabValue} onValueChange={setTabValue}>
+          <Tabs>
             <TabsList>
               <TabsTrigger value="tab1">Tab 1</TabsTrigger>
               <TabsTrigger value="tab2">Tab 2</TabsTrigger>
@@ -350,7 +318,14 @@ export const UIDemo = () => {
           <CardDescription>Collapsible content sections</CardDescription>
         </CardHeader>
         <CardContent>
-          <Accordion value={accordionValue} onValueChange={setAccordionValue}>
+          <Accordion
+            value={accordionValue}
+            onValueChange={(value) =>
+              setAccordionValue(
+                typeof value === "string" ? value : value[0] || "item1"
+              )
+            }
+          >
             <AccordionItem value="item1">
               <AccordionTrigger>Section 1</AccordionTrigger>
               <AccordionContent>
@@ -360,7 +335,9 @@ export const UIDemo = () => {
             <AccordionItem value="item2">
               <AccordionTrigger>Section 2</AccordionTrigger>
               <AccordionContent>
-                <Text>Content for section 2. This is also collapsible content.</Text>
+                <Text>
+                  Content for section 2. This is also collapsible content.
+                </Text>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -368,7 +345,7 @@ export const UIDemo = () => {
       </Card>
 
       {/* Table */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Table</CardTitle>
           <CardDescription>Data tables</CardDescription>
@@ -396,10 +373,10 @@ export const UIDemo = () => {
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Dialog */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Dialog</CardTitle>
           <CardDescription>Modal dialogs</CardDescription>
@@ -425,10 +402,10 @@ export const UIDemo = () => {
             </DialogContent>
           </Dialog>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Toast */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Toast</CardTitle>
           <CardDescription>Toast notifications</CardDescription>
@@ -445,10 +422,10 @@ export const UIDemo = () => {
             </Toast>
           </View>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Select */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Select</CardTitle>
           <CardDescription>Dropdown select component</CardDescription>
@@ -466,10 +443,10 @@ export const UIDemo = () => {
             </Select>
           </View>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Toggle */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Toggle</CardTitle>
           <CardDescription>Toggle button component</CardDescription>
@@ -486,10 +463,10 @@ export const UIDemo = () => {
             </View>
           </View>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Tooltip */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Tooltip</CardTitle>
           <CardDescription>Tooltip component</CardDescription>
@@ -506,10 +483,10 @@ export const UIDemo = () => {
             </Tooltip>
           </TooltipProvider>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Pagination */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Pagination</CardTitle>
           <CardDescription>Pagination component</CardDescription>
@@ -526,10 +503,10 @@ export const UIDemo = () => {
             />
           </View>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* ToggleGroup */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>ToggleGroup</CardTitle>
           <CardDescription>Toggle group component</CardDescription>
@@ -549,10 +526,10 @@ export const UIDemo = () => {
             </ToggleGroup>
           </View>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Collapsible */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Collapsible</CardTitle>
           <CardDescription>Collapsible component</CardDescription>
@@ -569,10 +546,10 @@ export const UIDemo = () => {
             </Collapsible>
           </View>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Sheet */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Sheet</CardTitle>
           <CardDescription>Bottom sheet modal</CardDescription>
@@ -600,10 +577,10 @@ export const UIDemo = () => {
             </Sheet>
           </View>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Popover */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Popover</CardTitle>
           <CardDescription>Popover component</CardDescription>
@@ -620,10 +597,10 @@ export const UIDemo = () => {
             </Popover>
           </View>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* ScrollArea */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>ScrollArea</CardTitle>
           <CardDescription>Custom scroll area</CardDescription>
@@ -641,10 +618,10 @@ export const UIDemo = () => {
             </ScrollArea>
           </View>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* AlertDialog */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>AlertDialog</CardTitle>
           <CardDescription>Alert dialog for confirmations</CardDescription>
@@ -674,10 +651,10 @@ export const UIDemo = () => {
             </AlertDialog>
           </View>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Breadcrumb */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Breadcrumb</CardTitle>
           <CardDescription>Navigation breadcrumb</CardDescription>
@@ -701,10 +678,10 @@ export const UIDemo = () => {
             </Breadcrumb>
           </View>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* DropdownMenu */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>DropdownMenu</CardTitle>
           <CardDescription>Dropdown menu component</CardDescription>
@@ -724,10 +701,10 @@ export const UIDemo = () => {
             </DropdownMenu>
           </View>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* AspectRatio */}
-      <Card style={{ marginBottom: 16 }}>
+      {/* <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>AspectRatio</CardTitle>
           <CardDescription>Aspect ratio container</CardDescription>
@@ -741,7 +718,7 @@ export const UIDemo = () => {
             </AspectRatio>
           </View>
         </CardContent>
-      </Card>
+      </Card> */}
     </ScrollView>
-  )
-}
+  );
+};
