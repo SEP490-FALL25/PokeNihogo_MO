@@ -5,28 +5,21 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import '../../global.css';
 
+import useAuth from '@hooks/useAuth';
 import { useColorScheme } from '@hooks/useColorScheme';
 import { ReactQueryProvider } from '@libs/@tanstack/react-query';
-import { useEffect, useState } from 'react';
 import SplashScreen from './splash';
 
 export default function RootLayout() {
-  const [isAppReady, setAppReady] = useState<boolean>(false);
 
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  useEffect(() => {
-    if (loaded) {
-      setTimeout(() => {
-        setAppReady(true);
-      }, 2000);
-    }
-  }, [loaded]);
+  const { isLoading: isAuthLoading } = useAuth();
 
-  if (!loaded || !isAppReady) {
+  if (!loaded || isAuthLoading) {
     return <SplashScreen />;
   }
 
@@ -34,7 +27,7 @@ export default function RootLayout() {
     <ReactQueryProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="redirect" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
