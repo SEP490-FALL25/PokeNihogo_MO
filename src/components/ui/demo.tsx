@@ -1,5 +1,6 @@
 import React from "react";
 import { ScrollView, Text, View } from "react-native";
+import { DialogDebug } from "./DialogDebug";
 import {
   Accordion,
   AccordionContent,
@@ -17,6 +18,14 @@ import {
   CardHeader,
   CardTitle,
   Checkbox,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
   Input,
   Label,
   Progress,
@@ -26,6 +35,12 @@ import {
   Skeleton,
   Slider,
   Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
   Tabs,
   TabsContent,
   TabsList,
@@ -53,6 +68,17 @@ export const UIDemo = () => {
 
   return (
     <ScrollView style={{ flex: 1, padding: 16 }}>
+      {/* Dialog Debug */}
+      <Card style={{ marginBottom: 16 }}>
+        <CardHeader>
+          <CardTitle>Dialog Debug</CardTitle>
+          <CardDescription>Debug Dialog component</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DialogDebug />
+        </CardContent>
+      </Card>
+
       {/* Button Examples */}
       <Card style={{ marginBottom: 16 }}>
         <CardHeader>
@@ -345,7 +371,7 @@ export const UIDemo = () => {
       </Card>
 
       {/* Table */}
-      {/* <Card style={{ marginBottom: 16 }}>
+      <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Table</CardTitle>
           <CardDescription>Data tables</CardDescription>
@@ -373,10 +399,10 @@ export const UIDemo = () => {
             </TableBody>
           </Table>
         </CardContent>
-      </Card> */}
+      </Card>
 
       {/* Dialog */}
-      {/* <Card style={{ marginBottom: 16 }}>
+      <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Dialog</CardTitle>
           <CardDescription>Modal dialogs</CardDescription>
@@ -402,7 +428,7 @@ export const UIDemo = () => {
             </DialogContent>
           </Dialog>
         </CardContent>
-      </Card> */}
+      </Card>
 
       {/* Toast */}
       {/* <Card style={{ marginBottom: 16 }}>

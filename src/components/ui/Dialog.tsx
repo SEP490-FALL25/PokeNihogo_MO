@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react'
 import {
-    Animated,
-    Modal,
-    Text,
-    TouchableOpacity,
-    View,
-    ViewProps
+  Animated,
+  Modal,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewProps
 } from 'react-native'
 
 interface DialogProps {
@@ -45,7 +45,7 @@ interface DialogCloseProps extends ViewProps {
 
 const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
   const [internalOpen, setInternalOpen] = React.useState(false)
-  const isOpen = open ?? internalOpen
+  const isOpen = open !== undefined ? open : internalOpen
 
   const handleOpenChange = (newOpen: boolean) => {
     if (open === undefined) {
@@ -69,10 +69,10 @@ const Dialog = ({ open, onOpenChange, children }: DialogProps) => {
   )
 }
 
-const DialogTrigger = React.forwardRef<TouchableOpacity, DialogTriggerProps & { isOpen?: boolean; onOpenChange?: (open: boolean) => void }>(
+const DialogTrigger = React.forwardRef<View, DialogTriggerProps & { isOpen?: boolean; onOpenChange?: (open: boolean) => void }>(
   ({ children, isOpen, onOpenChange, ...props }, ref) => (
     <TouchableOpacity
-      ref={ref}
+      ref={ref as any}
       onPress={() => onOpenChange?.(true)}
       activeOpacity={0.8}
       {...props}
@@ -119,7 +119,7 @@ const DialogContent = React.forwardRef<View, DialogContentProps & { isOpen?: boo
           }),
         ]).start()
       }
-    }, [isOpen])
+    }, [isOpen, scale, opacity])
 
     if (!isOpen) return null
 
@@ -254,7 +254,7 @@ const DialogTitle = React.forwardRef<Text, DialogTitleProps>(
           fontWeight: '600',
           color: '#111827',
           lineHeight: 24,
-        },
+        } as any,
         style,
       ]}
       {...props}
@@ -275,7 +275,7 @@ const DialogDescription = React.forwardRef<Text, DialogDescriptionProps>(
           fontSize: 14,
           color: '#6b7280',
           lineHeight: 20,
-        },
+        } as any,
         style,
       ]}
       {...props}
@@ -287,10 +287,10 @@ const DialogDescription = React.forwardRef<Text, DialogDescriptionProps>(
 
 DialogDescription.displayName = 'DialogDescription'
 
-const DialogClose = React.forwardRef<TouchableOpacity, DialogCloseProps & { onOpenChange?: (open: boolean) => void }>(
+const DialogClose = React.forwardRef<View, DialogCloseProps & { onOpenChange?: (open: boolean) => void }>(
   ({ children, onOpenChange, ...props }, ref) => (
     <TouchableOpacity
-      ref={ref}
+      ref={ref as any}
       onPress={() => onOpenChange?.(false)}
       activeOpacity={0.8}
       {...props}
@@ -303,9 +303,9 @@ const DialogClose = React.forwardRef<TouchableOpacity, DialogCloseProps & { onOp
 DialogClose.displayName = 'DialogClose'
 
 export {
-    Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger
+  Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger
 }
 export type {
-    DialogCloseProps, DialogContentProps, DialogDescriptionProps, DialogFooterProps, DialogHeaderProps, DialogProps, DialogTitleProps, DialogTriggerProps
+  DialogCloseProps, DialogContentProps, DialogDescriptionProps, DialogFooterProps, DialogHeaderProps, DialogProps, DialogTitleProps, DialogTriggerProps
 }
 
