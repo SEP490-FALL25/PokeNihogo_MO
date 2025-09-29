@@ -21,7 +21,7 @@
     "@tanstack/react-query-devtools": "^5.87.4",
     "axios": "^1.10.0",
     "clsx": "^2.1.1",
-    "expo": "~53.0.23",
+    "expo": "^53.0.0",
     "expo-blur": "~14.1.5",
     "expo-constants": "~17.1.7",
     "expo-font": "~13.3.2",

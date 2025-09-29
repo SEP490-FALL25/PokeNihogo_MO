@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react'
-import { PanGestureHandler, PanGestureHandlerGestureEvent, View, ViewProps } from 'react-native'
+import { View, ViewProps } from 'react-native'
+import { PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler'
 
 interface SliderProps extends ViewProps {
   value?: number[]
@@ -30,7 +31,7 @@ const Slider = React.forwardRef<View, SliderProps>(
     const handleGesture = (event: PanGestureHandlerGestureEvent) => {
       if (disabled) return
 
-      const { translationX, absoluteX } = event.nativeEvent
+      const { absoluteX } = event.nativeEvent
       const progress = Math.max(0, Math.min(1, absoluteX / containerWidth.current))
       const newValue = min + progress * (max - min)
       const steppedValue = Math.round(newValue / step) * step

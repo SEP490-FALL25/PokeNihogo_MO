@@ -78,6 +78,8 @@ const Accordion = ({
   )
 }
 
+Accordion.displayName = 'Accordion'
+
 const AccordionItem = React.forwardRef<View, AccordionItemProps & { isOpen?: boolean; onToggle?: (value: string) => void }>(
   ({ value, children, isOpen, onToggle, ...props }, ref) => (
     <View
@@ -107,7 +109,7 @@ const AccordionItem = React.forwardRef<View, AccordionItemProps & { isOpen?: boo
 
 AccordionItem.displayName = 'AccordionItem'
 
-const AccordionTrigger = React.forwardRef<TouchableOpacity, AccordionTriggerProps & { value?: string; isOpen?: boolean; onToggle?: (value: string) => void }>(
+const AccordionTrigger = React.forwardRef<React.ElementRef<typeof TouchableOpacity>, AccordionTriggerProps & { value?: string; isOpen?: boolean; onToggle?: (value: string) => void }>(
   ({ children, value, isOpen, onToggle, style, ...props }, ref) => {
     const rotation = React.useRef(new Animated.Value(0)).current
 
@@ -185,10 +187,6 @@ const AccordionContent = React.forwardRef<View, AccordionContentProps & { value?
       }).start()
     }, [isOpen])
 
-    const animatedHeight = height.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, 200], // Adjust max height as needed
-    })
 
     if (!isOpen) {
       return null

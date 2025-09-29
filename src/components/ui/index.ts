@@ -56,17 +56,11 @@ export type { AccordionContentProps, AccordionItemProps, AccordionProps, Accordi
 export { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from './Table'
 export type { TableBodyProps, TableCaptionProps, TableCellProps, TableFooterProps, TableHeaderProps, TableHeadProps, TableProps, TableRowProps } from './Table'
 
-// Overlay components
-export { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './Dialog'
-export type { DialogCloseProps, DialogContentProps, DialogDescriptionProps, DialogFooterProps, DialogHeaderProps, DialogProps, DialogTitleProps, DialogTriggerProps } from './Dialog'
-
 // Notification components
 export { Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport } from './Toast'
 export type { ToastCloseProps, ToastDescriptionProps, ToastProps, ToastTitleProps } from './Toast'
 
 // Additional components
-export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from './Select'
-export type { SelectContentProps, SelectItemProps, SelectLabelProps, SelectProps, SelectSeparatorProps, SelectTriggerProps, SelectValueProps } from './Select'
 
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './Tooltip'
 export type { TooltipContentProps, TooltipProps, TooltipProviderProps, TooltipTriggerProps } from './Tooltip'
