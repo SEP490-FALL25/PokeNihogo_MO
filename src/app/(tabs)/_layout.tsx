@@ -3,10 +3,10 @@ import React from 'react';
 import { Platform } from 'react-native';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { HapticTab } from '@components/HapticTab';
-import BlurTabBarBackground from '@components/ui/TabBarBackground.ios';
 import { IconSymbol } from '@components/ui/IconSymbol';
+import BlurTabBarBackground from '@components/ui/TabBarBackground.ios';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -37,6 +37,13 @@ export default function TabLayout() {
         name="explore"
         options={{
           title: 'Explore',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="demo"
+        options={{
+          title: 'demo',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
       />

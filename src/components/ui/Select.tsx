@@ -1,303 +1,216 @@
-import React, { useState } from 'react'
-import { Modal, ScrollView, Text, TouchableOpacity, View, ViewProps } from 'react-native'
+"use client"
 
-interface SelectProps {
-  value?: string
-  defaultValue?: string
-  onValueChange?: (value: string) => void
-  children: React.ReactNode
-}
+import type React from "react"
+import { useRef, useState } from "react"
+import { Animated, Dimensions, FlatList, Modal, Pressable, StyleSheet, Text, View } from "react-native"
 
-interface SelectTriggerProps extends ViewProps {
-  children: React.ReactNode
-  placeholder?: string
-}
-
-interface SelectContentProps extends ViewProps {
-  children: React.ReactNode
-}
-
-interface SelectItemProps extends ViewProps {
+interface SelectOption {
+  label: string
   value: string
-  children: React.ReactNode
 }
 
-interface SelectLabelProps extends ViewProps {
-  children: React.ReactNode
-}
-
-interface SelectSeparatorProps extends ViewProps {}
-
-interface SelectValueProps {
+interface CustomSelectProps {
+  options: SelectOption[]
   placeholder?: string
+  onSelect: (option: SelectOption) => void
+  selectedValue?: string
+  style?: any
 }
 
-const Select = ({ value, defaultValue, onValueChange, children }: SelectProps) => {
-  const [internalValue, setInternalValue] = useState(defaultValue || '')
-  const currentValue = value ?? internalValue
+const CustomSelect: React.FC<CustomSelectProps> = ({
+  options,
+  placeholder = "Choose an option",
+  onSelect,
+  selectedValue,
+  style,
+}) => {
+  const [isVisible, setIsVisible] = useState(false)
+  const fadeAnim = useRef(new Animated.Value(0)).current
+  const scaleAnim = useRef(new Animated.Value(0.8)).current
 
-  const handleValueChange = (newValue: string) => {
-    if (value === undefined) {
-      setInternalValue(newValue)
-    }
-    onValueChange?.(newValue)
+  const selectedOption = options.find((option) => option.value === selectedValue)
+
+  const openModal = () => {
+    setIsVisible(true)
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 100,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+    ]).start()
   }
+
+  const closeModal = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 0.8,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setIsVisible(false)
+    })
+  }
+
+  const handleSelect = (option: SelectOption) => {
+    onSelect(option)
+    closeModal()
+  }
+
+  const renderOption = ({ item }: { item: SelectOption }) => (
+    <Pressable
+      style={[styles.option, selectedValue === item.value && styles.selectedOption]}
+      onPress={() => handleSelect(item)}
+    >
+      <Text style={[styles.optionText, selectedValue === item.value && styles.selectedOptionText]}>{item.label}</Text>
+    </Pressable>
+  )
 
   return (
     <>
-      {React.Children.map(children, (child) => {
-        if (React.isValidElement(child)) {
-          return React.cloneElement(child, {
-            currentValue,
-            onValueChange: handleValueChange,
-          } as any)
-        }
-        return child
-      })}
+      <Pressable style={[styles.trigger, style]} onPress={openModal}>
+        <Text style={[styles.triggerText, !selectedOption && styles.placeholderText]}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </Text>
+        <Text style={styles.arrow}>▼</Text>
+      </Pressable>
+
+      <Modal visible={isVisible} transparent animationType="none" onRequestClose={closeModal}>
+        <Pressable style={styles.overlay} onPress={closeModal}>
+          <Animated.View
+            style={[
+              styles.modalContent,
+              {
+                opacity: fadeAnim,
+                transform: [{ scale: scaleAnim }],
+              },
+            ]}
+          >
+            <Pressable onPress={() => {}}>
+              <View style={styles.header}>
+                <Text style={styles.headerText}>Select an option</Text>
+                <Pressable onPress={closeModal} style={styles.closeButton}>
+                  <Text style={styles.closeButtonText}>✕</Text>
+                </Pressable>
+              </View>
+
+              <FlatList
+                data={options}
+                renderItem={renderOption}
+                keyExtractor={(item) => item.value}
+                style={styles.optionsList}
+                showsVerticalScrollIndicator={false}
+              />
+            </Pressable>
+          </Animated.View>
+        </Pressable>
+      </Modal>
     </>
   )
 }
 
-const SelectTrigger = React.forwardRef<TouchableOpacity, SelectTriggerProps & { currentValue?: string; onValueChange?: (value: string) => void }>(
-  ({ children, placeholder, currentValue, onValueChange, style, ...props }, ref) => {
-    const [isOpen, setIsOpen] = useState(false)
+const { width } = Dimensions.get("window")
 
-    const handlePress = () => {
-      setIsOpen(true)
-    }
+const styles = StyleSheet.create({
+  trigger: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#f9fafb",
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    borderRadius: 8,
+    minHeight: 48,
+  },
+  triggerText: {
+    fontSize: 16,
+    color: "#374151",
+    flex: 1,
+  },
+  placeholderText: {
+    color: "#9ca3af",
+  },
+  arrow: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginLeft: 8,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    width: width * 0.85,
+    maxHeight: "70%",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  closeButton: {
+    padding: 4,
+  },
+  closeButtonText: {
+    fontSize: 18,
+    color: "#6b7280",
+    fontWeight: "bold",
+  },
+  optionsList: {
+    maxHeight: 300,
+  },
+  option: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  selectedOption: {
+    backgroundColor: "#dbeafe",
+  },
+  optionText: {
+    fontSize: 16,
+    color: "#374151",
+  },
+  selectedOptionText: {
+    color: "#1d4ed8",
+    fontWeight: "500",
+  },
+})
 
-    return (
-      <>
-        <TouchableOpacity
-          ref={ref}
-          style={[
-            {
-              height: 40,
-              borderWidth: 1,
-              borderColor: '#d1d5db',
-              borderRadius: 6,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-              backgroundColor: '#ffffff',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            },
-            style,
-          ]}
-          onPress={handlePress}
-          activeOpacity={0.8}
-          {...props}
-        >
-          <Text
-            style={{
-              fontSize: 16,
-              color: currentValue ? '#111827' : '#9ca3af',
-              flex: 1,
-            }}
-          >
-            {currentValue || placeholder}
-          </Text>
-          <Text
-            style={{
-              fontSize: 16,
-              color: '#6b7280',
-            }}
-          >
-            ▼
-          </Text>
-        </TouchableOpacity>
-
-        {/* Modal for dropdown */}
-        <SelectContent
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
-          currentValue={currentValue}
-          onValueChange={onValueChange}
-        >
-          {children}
-        </SelectContent>
-      </>
-    )
-  }
-)
-
-SelectTrigger.displayName = 'SelectTrigger'
-
-const SelectContent = React.forwardRef<View, SelectContentProps & { isOpen?: boolean; onClose?: () => void; currentValue?: string; onValueChange?: (value: string) => void }>(
-  ({ children, isOpen, onClose, currentValue, onValueChange, style, ...props }, ref) => {
-    if (!isOpen) return null
-
-    return (
-      <Modal
-        visible={isOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={onClose}
-      >
-        <TouchableOpacity
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          activeOpacity={1}
-          onPress={onClose}
-        >
-          <View
-            ref={ref}
-            style={[
-              {
-                backgroundColor: '#ffffff',
-                borderRadius: 8,
-                minWidth: 200,
-                maxHeight: 300,
-                shadowColor: '#000',
-                shadowOffset: {
-                  width: 0,
-                  height: 4,
-                },
-                shadowOpacity: 0.25,
-                shadowRadius: 12,
-                elevation: 8,
-              },
-              style,
-            ]}
-            {...props}
-          >
-            <ScrollView style={{ maxHeight: 300 }}>
-              {React.Children.map(children, (child) => {
-                if (React.isValidElement(child)) {
-                  return React.cloneElement(child, {
-                    currentValue,
-                    onValueChange: (value: string) => {
-                      onValueChange?.(value)
-                      onClose?.()
-                    },
-                  } as any)
-                }
-                return child
-              })}
-            </ScrollView>
-          </View>
-        </TouchableOpacity>
-      </Modal>
-    )
-  }
-)
-
-SelectContent.displayName = 'SelectContent'
-
-const SelectItem = React.forwardRef<TouchableOpacity, SelectItemProps & { currentValue?: string; onValueChange?: (value: string) => void }>(
-  ({ value, children, currentValue, onValueChange, style, ...props }, ref) => {
-    const isSelected = currentValue === value
-
-    const handlePress = () => {
-      onValueChange?.(value)
-    }
-
-    return (
-      <TouchableOpacity
-        ref={ref}
-        style={[
-          {
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: isSelected ? '#f3f4f6' : 'transparent',
-          },
-          style,
-        ]}
-        onPress={handlePress}
-        activeOpacity={0.7}
-        {...props}
-      >
-        {isSelected && (
-          <Text
-            style={{
-              fontSize: 16,
-              color: '#3b82f6',
-              marginRight: 8,
-            }}
-          >
-            ✓
-          </Text>
-        )}
-        <Text
-          style={{
-            fontSize: 16,
-            color: '#111827',
-            flex: 1,
-          }}
-        >
-          {children}
-        </Text>
-      </TouchableOpacity>
-    )
-  }
-)
-
-SelectItem.displayName = 'SelectItem'
-
-const SelectLabel = React.forwardRef<Text, SelectLabelProps>(
-  ({ children, style, ...props }, ref) => (
-    <Text
-      ref={ref}
-      style={[
-        {
-          fontSize: 14,
-          fontWeight: '600',
-          color: '#374151',
-          paddingHorizontal: 16,
-          paddingVertical: 8,
-        },
-        style,
-      ]}
-      {...props}
-    >
-      {children}
-    </Text>
-  )
-)
-
-SelectLabel.displayName = 'SelectLabel'
-
-const SelectSeparator = React.forwardRef<View, SelectSeparatorProps>(
-  ({ style, ...props }, ref) => (
-    <View
-      ref={ref}
-      style={[
-        {
-          height: 1,
-          backgroundColor: '#e5e7eb',
-          marginHorizontal: 16,
-          marginVertical: 4,
-        },
-        style,
-      ]}
-      {...props}
-    />
-  )
-)
-
-SelectSeparator.displayName = 'SelectSeparator'
-
-const SelectValue = ({ placeholder }: SelectValueProps) => {
-  return <Text>{placeholder}</Text>
-}
-
-const SelectGroup = ({ children }: { children: React.ReactNode }) => {
-  return <>{children}</>
-}
-
-export {
-    Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue
-}
-export type {
-    SelectContentProps,
-    SelectItemProps,
-    SelectLabelProps, SelectProps, SelectSeparatorProps, SelectTriggerProps, SelectValueProps
-}
-
+export default CustomSelect
