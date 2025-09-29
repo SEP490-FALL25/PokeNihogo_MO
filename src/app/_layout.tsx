@@ -26,10 +26,10 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-     <ReactQueryProvider>
+      <ReactQueryProvider>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="redirect" />
+            <Stack.Screen name="index" />
             <Stack.Screen name="+not-found" />
           </Stack>
           <StatusBar style="auto" />

@@ -1,8 +1,8 @@
-import PushableButton from '@components/atoms/ShadowPressable';
+import BounceButton from '@components/ui/BounceButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const WelcomeScreen = () => {
@@ -11,7 +11,7 @@ const WelcomeScreen = () => {
   return (
     <LinearGradient
       colors={['#79B4C4', '#85C3C3', '#9BC7B9']}
-      className='flex-1'
+      style={{ flex: 1 }}
     >
       <StatusBar barStyle="light-content" />
       <SafeAreaView className='flex-1'>
@@ -23,24 +23,9 @@ const WelcomeScreen = () => {
             </Text>
           </View>
 
-          <View className='gap-4'>
-            <PushableButton
-              className='w-full bg-white p-4 rounded-lg items-center'
-              borderColor="#059669"
-              borderBottomWidth={3}
-              withHaptics
-            // onPress={() => router.push('/(auth)/language-selection')}
-            >
-              <Text className='text-green-500 text-lg font-bold'>{t('common.start')}</Text>
-            </PushableButton>
-
-
-            <TouchableOpacity
-              className='bg-transparent p-4 rounded-lg items-center border border-b-2 border-white'
-            // onPress={() => router.push('/(auth)/login')}
-            >
-              <Text className='text-white text-lg font-bold'>{t('common.i-already-have-an-account')}</Text>
-            </TouchableOpacity>
+          <View className='gap-5'>
+            <BounceButton>{t('common.start')}</BounceButton>
+            <BounceButton variant={'ghost'}>{t('common.i-already-have-an-account')}</BounceButton>
           </View>
         </View>
       </SafeAreaView>
