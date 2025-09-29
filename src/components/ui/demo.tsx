@@ -80,14 +80,15 @@ export const UIDemo = () => {
       {/* BounceButton Examples */}
       <Card style={{ marginBottom: 16 }}>
         <CardHeader>
-          <CardTitle>Bounce Buttons</CardTitle>
+          <CardTitle>Bounce Buttons (with Haptic)</CardTitle>
           <CardDescription>
-            Buttons with bounce animation effects
+            Buttons with bounce animation effects and haptic feedback
           </CardDescription>
         </CardHeader>
         <CardContent>
           <View style={{ gap: 16, alignItems: "center" }}>
             <BounceButton
+              withHaptics
               title="BẮT ĐẦU NGAY"
               onPress={() => console.log("Bounce button pressed!")}
             />

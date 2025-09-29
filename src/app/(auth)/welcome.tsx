@@ -1,5 +1,6 @@
 import PushableButton from '@components/atoms/ShadowPressable';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -34,6 +35,15 @@ const WelcomeScreen = () => {
               <Text className='text-green-500 text-lg font-bold'>{t('common.start')}</Text>
             </PushableButton>
 
+            <PushableButton
+              className='w-full bg-yellow-400 p-4 rounded-lg items-center'
+              borderColor="#D97706"
+              borderBottomWidth={3}
+              withHaptics
+              onPress={() => router.push('/(tabs)/demo')}
+            >
+              <Text className='text-orange-600 text-lg font-bold'>DEMO</Text>
+            </PushableButton>
 
             <TouchableOpacity
               className='bg-transparent p-4 rounded-lg items-center border border-b-2 border-white'

@@ -1,25 +1,42 @@
 import React, { useRef } from "react";
-import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+    Animated,
+    Pressable,
+    StyleSheet,
+    Text,
+    Vibration,
+    View,
+} from "react-native";
 
 interface BounceButtonProps {
   title: string;
   onPress?: () => void;
+  withHaptics?: boolean;
 }
 
-export default function BounceButton({ title, onPress }: BounceButtonProps) {
+export default function BounceButton({
+  title,
+  onPress,
+  withHaptics = false,
+}: BounceButtonProps) {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const shadowOpacity = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
+    if (withHaptics) {
+      Vibration.vibrate(10);
+    }
+    onPress?.();
+
     Animated.parallel([
       Animated.timing(animatedValue, {
         toValue: 6,
-        duration: 100,
+        duration: 25,
         useNativeDriver: true,
       }),
       Animated.timing(shadowOpacity, {
         toValue: 0,
-        duration: 100,
+        duration: 25,
         useNativeDriver: true, // opacity supports native driver
       }),
     ]).start();
@@ -29,12 +46,12 @@ export default function BounceButton({ title, onPress }: BounceButtonProps) {
     Animated.parallel([
       Animated.timing(animatedValue, {
         toValue: 0,
-        duration: 150,
+        duration: 50,
         useNativeDriver: true,
       }),
       Animated.timing(shadowOpacity, {
         toValue: 1,
-        duration: 150,
+        duration: 50,
         useNativeDriver: true, // opacity supports native driver
       }),
     ]).start();
