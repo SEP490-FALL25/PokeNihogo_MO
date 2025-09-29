@@ -2,6 +2,7 @@ import * as Localization from 'expo-localization';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+import { useLanguageSelector } from '@stores/global/global.selectors';
 import en from './en.json';
 import vi from './vi.json';
 
@@ -10,7 +11,8 @@ const resources = {
     vi: { translation: vi },
 };
 
-const locale = Localization.getLocales()[0]?.languageCode; // Lấy ngôn ngữ mặc định của thiết bị (ví dụ: 'en-US')
+const language = useLanguageSelector();
+const locale = Localization.getLocales()[0]?.languageCode || language;
 
 i18n
     .use(initReactI18next)

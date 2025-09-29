@@ -1,7 +1,8 @@
+import BounceButton from '@components/ui/BounceButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const WelcomeScreen = () => {
@@ -22,15 +23,9 @@ const WelcomeScreen = () => {
             </Text>
           </View>
 
-          <View className='gap-4'>
-
-
-            <TouchableOpacity
-              className='bg-transparent p-4 rounded-lg items-center border border-b-2 border-white'
-            // onPress={() => router.push('/(auth)/login')}
-            >
-              <Text className='text-white text-lg font-bold'>{t('common.i-already-have-an-account')}</Text>
-            </TouchableOpacity>
+          <View className='gap-5'>
+            <BounceButton>{t('common.start')}</BounceButton>
+            <BounceButton variant={'ghost'}>{t('common.i-already-have-an-account')}</BounceButton>
           </View>
         </View>
       </SafeAreaView>
