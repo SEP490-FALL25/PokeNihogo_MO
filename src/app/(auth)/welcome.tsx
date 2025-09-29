@@ -27,15 +27,12 @@ const WelcomeScreen = () => {
 
           <View className='gap-4'>
 
-            <PushableButton
-              className='w-full bg-yellow-400 p-4 rounded-lg items-center'
-              borderColor="#D97706"
-              borderBottomWidth={3}
-              withHaptics
+            <TouchableOpacity
+              className='bg-white p-4 rounded-lg items-center'
               onPress={() => router.push('/(tabs)/demo')}
             >
-              <Text className='text-orange-600 text-lg font-bold'>DEMO</Text>
-            </PushableButton>
+              <Text className='text-[#79B4C4] text-lg font-bold'>{t('common.demo')}</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
               className='bg-transparent p-4 rounded-lg items-center border border-b-2 border-white'

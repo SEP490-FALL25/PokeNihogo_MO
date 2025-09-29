@@ -11,6 +11,7 @@ enum TABS {
     ROOT = '/(tabs)',
     HOME = '/(tabs)/index',
     EXPLORE = '/(tabs)/explore',
+    DEMO = '/(tabs)/demo',
 }
 
 

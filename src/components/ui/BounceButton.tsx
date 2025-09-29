@@ -1,32 +1,38 @@
 import React, { useRef } from "react";
 import {
-    Animated,
-    Pressable,
-    StyleSheet,
-    Text,
-    Vibration,
-    View,
+  ActivityIndicator,
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  Vibration,
+  View,
 } from "react-native";
 
 interface BounceButtonProps {
   title: string;
   onPress?: () => void;
   withHaptics?: boolean;
+  disabled?: boolean;
+  loading?: boolean;
 }
 
 export default function BounceButton({
   title,
   onPress,
   withHaptics = false,
+  disabled = false,
+  loading = false,
 }: BounceButtonProps) {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const shadowOpacity = useRef(new Animated.Value(1)).current;
+  const isDisabled = disabled || loading;
 
   const handlePressIn = () => {
+    if (isDisabled) return;
     if (withHaptics) {
       Vibration.vibrate(10);
     }
-    onPress?.();
 
     Animated.parallel([
       Animated.timing(animatedValue, {
@@ -43,6 +49,7 @@ export default function BounceButton({
   };
 
   const handlePressOut = () => {
+    if (isDisabled) return;
     Animated.parallel([
       Animated.timing(animatedValue, {
         toValue: 0,
@@ -78,6 +85,7 @@ export default function BounceButton({
                 translateY: animatedValue,
               },
             ],
+            opacity: isDisabled ? 0.6 : 1,
           },
         ]}
       >
@@ -86,8 +94,13 @@ export default function BounceButton({
           onPressOut={handlePressOut}
           onPress={onPress}
           style={styles.pressable}
+          disabled={isDisabled}
         >
-          <Text style={styles.buttonText}>{title}</Text>
+          {loading ? (
+            <ActivityIndicator size="small" color="#374151" />
+          ) : (
+            <Text style={styles.buttonText}>{title}</Text>
+          )}
         </Pressable>
       </Animated.View>
     </View>
