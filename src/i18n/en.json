@@ -1,0 +1,12 @@
+{
+    "common": {
+        "start": "GET STARTED",
+        "i-already-have-an-account": "I ALREADY HAVE AN ACCOUNT",
+        "learn": "Learn",
+        "learn-again": "Learn again",
+        "learn-forever": "Learn forever",
+        "home": "Home",
+        "explore": "Explore",
+        "welcome": "Welcome"
+    }
+}
