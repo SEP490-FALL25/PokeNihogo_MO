@@ -98,23 +98,30 @@ export const UIDemo = () => {
           <View style={{ gap: 16, alignItems: "center" }}>
             <BounceButton
               withHaptics
-              title="BẮT ĐẦU NGAY"
               onPress={() => console.log("Bounce button pressed!")}
-            />
+            >
+              BẮT ĐẦU NGAY
+            </BounceButton>
             <BounceButton
-              title="DEMO BUTTON"
+              withHaptics
               onPress={() => console.log("Demo button pressed!")}
-            />
+            >
+              DEMO BUTTON
+            </BounceButton>
             <BounceButton
-              title="Loading button"
+              withHaptics
               loading
               onPress={() => console.log("Demo button pressed!")}
-            />
+            >
+              Loading button
+            </BounceButton>
             <BounceButton
-              title="Disabled button"
+              withHaptics
               disabled
               onPress={() => console.log("Demo button pressed!")}
-            />
+            >
+              Disabled button
+            </BounceButton>
           </View>
         </CardContent>
       </Card>

@@ -1,6 +1,7 @@
 import { cva, VariantProps } from "class-variance-authority";
+import * as Haptics from "expo-haptics";
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -75,8 +76,11 @@ const shadowVariants = cva("absolute top-1.5 left-0 right-0 h-16 rounded-xl", {
 });
 
 interface BounceButtonProps extends VariantProps<typeof bounceButtonVariants> {
-  children: string;
+  children?: React.ReactNode;
   onPress?: () => void;
+  withHaptics?: boolean;
+  loading?: boolean;
+  disabled?: boolean;
   className?: string;
 }
 
@@ -85,19 +89,34 @@ export default function BounceButton({
   onPress,
   variant,
   size,
+  withHaptics = false,
+  loading = false,
+  disabled = false,
   className,
 }: BounceButtonProps) {
+  const isDisabled = disabled || loading;
   const translateY = useSharedValue(0);
   const shadowOpacity = useSharedValue(1);
 
   const handlePressIn = () => {
+    if (isDisabled) return;
     translateY.value = withTiming(6, { duration: 100 });
     shadowOpacity.value = withTiming(0, { duration: 100 });
   };
 
   const handlePressOut = () => {
+    if (isDisabled) return;
     translateY.value = withTiming(0, { duration: 150 });
     shadowOpacity.value = withTiming(1, { duration: 150 });
+  };
+
+  const handlePress = () => {
+    if (isDisabled) return;
+    if (withHaptics) {
+      // Light impact to feel responsive without being intrusive
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    }
+    onPress?.();
   };
 
   const animatedButtonStyle = useAnimatedStyle(() => {
@@ -113,7 +132,10 @@ export default function BounceButton({
   });
 
   return (
-    <View className="relative self-center w-full">
+    <View
+      className="relative self-center w-full"
+      style={{ opacity: isDisabled ? 0.5 : 1 }}
+    >
       <Animated.View
         className={`${shadowVariants({ variant })}`}
         style={animatedShadowStyle}
@@ -125,12 +147,58 @@ export default function BounceButton({
         <Pressable
           onPressIn={handlePressIn}
           onPressOut={handlePressOut}
-          onPress={onPress}
+          onPress={handlePress}
+          disabled={isDisabled}
+          accessibilityState={{ disabled: isDisabled, busy: loading }}
           className="w-full h-full justify-center items-center"
         >
-          <Text className={textVariants({ variant, size })}>{children}</Text>
+          {loading ? (
+            <LoadingContent variant={variant} size={size}>
+              {children}
+            </LoadingContent>
+          ) : (
+            <Text className={textVariants({ variant, size })}>{children}</Text>
+          )}
         </Pressable>
       </Animated.View>
+    </View>
+  );
+}
+
+function getSpinnerColor(
+  variant?: VariantProps<typeof bounceButtonVariants>["variant"]
+) {
+  switch (variant) {
+    case "destructive":
+    case "secondary":
+      return "#ffffff"; // dark backgrounds
+    case "default":
+    case "outline":
+    case "ghost":
+    case "link":
+    default:
+      return "#374151"; // gray-700 on light backgrounds
+  }
+}
+
+function LoadingContent({
+  children,
+  variant,
+  size,
+}: {
+  children?: React.ReactNode;
+  variant?: VariantProps<typeof bounceButtonVariants>["variant"];
+  size?: VariantProps<typeof bounceButtonVariants>["size"];
+}) {
+  const spinnerColor = getSpinnerColor(variant);
+  return (
+    <View className="flex-row items-center">
+      <ActivityIndicator color={spinnerColor} />
+      {children ? (
+        <Text className={`${textVariants({ variant, size })} opacity-80 ml-2`}>
+          {children}
+        </Text>
+      ) : null}
     </View>
   );
 }
