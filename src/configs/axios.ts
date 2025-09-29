@@ -1,7 +1,9 @@
-import * as SecureStore from 'expo-secure-store';
 import { decodeToken } from '@utils/decode';
+import * as SecureStore from 'expo-secure-store';
 
+import { ROUTES } from '@routes/routes';
 import axios, { AxiosError } from 'axios';
+import { router } from 'expo-router';
 
 const axiosClient = axios.create({
     baseURL: process.env.EXPO_PUBLIC_API_URL,
@@ -44,10 +46,14 @@ axiosPrivate.interceptors.request.use(
 
 axiosPrivate.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
         if (error.response?.status === 401) {
             // Xử lý khi bị unauthorized
-            console.error('Unauthorized! Redirecting to login...');
+            console.error('Unauthorized! Token expired or invalid. Logging out...');
+            await SecureStore.deleteItemAsync('token');
+            await SecureStore.deleteItemAsync('refreshToken');
+            router.replace(ROUTES.AUTH.WELCOME);
+            alert('Token expired or invalid. Logging out...');
         }
         return Promise.reject(error);
     },
