@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import BounceButton from "./BounceButton";
 import {
@@ -42,6 +42,7 @@ import {
   ToastDescription,
   ToastTitle,
 } from "./index";
+import CustomSelect from "./Select";
 
 export const UIDemo = () => {
   const [switchValue, setSwitchValue] = React.useState(false);
@@ -60,6 +61,19 @@ export const UIDemo = () => {
   const [popoverOpen, setPopoverOpen] = React.useState(false);
   const [alertDialogOpen, setAlertDialogOpen] = React.useState(false);
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
+  const selectOptions = [
+    { label: "Apple", value: "apple" },
+    { label: "Banana", value: "banana" },
+    { label: "Orange", value: "orange" },
+    { label: "Grape", value: "grape" },
+    { label: "Mango", value: "mango" },
+  ];
+  const [selectedFruit, setSelectedFruit] = useState<string>("");
+
+  const handleSelectChange = (option: { label: string; value: string }) => {
+    setSelectedFruit(option.value);
+    console.log("Selected", `You chose: ${option.label}`);
+  };
 
   return (
     <ScrollView style={{ flex: 1, padding: 16 }}>
@@ -430,25 +444,22 @@ export const UIDemo = () => {
       </Card>
 
       {/* Select */}
-      {/* <Card style={{ marginBottom: 16 }}>
+      <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Select</CardTitle>
           <CardDescription>Dropdown select component</CardDescription>
         </CardHeader>
         <CardContent>
           <View style={{ gap: 12 }}>
-            <Select value={selectValue} onValueChange={setSelectValue}>
-              <SelectTrigger placeholder="Choose an option">
-                <SelectContent>
-                  <SelectItem value="option1">Option 1</SelectItem>
-                  <SelectItem value="option2">Option 2</SelectItem>
-                  <SelectItem value="option3">Option 3</SelectItem>
-                </SelectContent>
-              </SelectTrigger>
-            </Select>
+            <CustomSelect
+              options={selectOptions}
+              placeholder="Choose a fruit"
+              onSelect={handleSelectChange}
+              selectedValue={selectedFruit}
+            />
           </View>
         </CardContent>
-      </Card> */}
+      </Card>
 
       {/* Toggle */}
       {/* <Card style={{ marginBottom: 16 }}>

@@ -61,8 +61,6 @@ export { Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastVi
 export type { ToastCloseProps, ToastDescriptionProps, ToastProps, ToastTitleProps } from './Toast'
 
 // Additional components
-export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue } from './Select'
-export type { SelectContentProps, SelectItemProps, SelectLabelProps, SelectProps, SelectSeparatorProps, SelectTriggerProps, SelectValueProps } from './Select'
 
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './Tooltip'
 export type { TooltipContentProps, TooltipProps, TooltipProviderProps, TooltipTriggerProps } from './Tooltip'
