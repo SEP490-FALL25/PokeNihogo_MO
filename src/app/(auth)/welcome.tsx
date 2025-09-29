@@ -6,8 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const WelcomeScreen = () => {
   const { t } = useTranslation();
-  console.log('WelcomeScreen');
-
 
   return (
     <LinearGradient
