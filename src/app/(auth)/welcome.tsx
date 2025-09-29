@@ -28,7 +28,6 @@ const WelcomeScreen = () => {
               {t('common.learn')} - {t('common.learn-again')} - {t('common.learn-forever')}!
             </Text>
           </View>
-
           <View className='gap-5'>
             <BounceButton onPress={handleTabs}>{t('common.start')}</BounceButton>
             <BounceButton variant={'ghost'} onPress={handleLogin}>{t('common.i-already-have-an-account')}</BounceButton>

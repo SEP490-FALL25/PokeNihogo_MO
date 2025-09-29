@@ -28,7 +28,7 @@ interface DropdownMenuItemProps extends ViewProps {
   disabled?: boolean;
 }
 
-interface DropdownMenuSeparatorProps extends ViewProps {}
+type DropdownMenuSeparatorProps = ViewProps;
 
 interface DropdownMenuLabelProps extends TextProps {
   children: React.ReactNode;
