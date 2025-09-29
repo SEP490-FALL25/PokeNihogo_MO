@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/PokeNihongoLogo.png",
-    "scheme": "Poke Nihongo",
+    "scheme": "pokenihongo",
     "userInterfaceStyle": "automatic",
     "backgroundColor": "#FFFFFF",
     "newArchEnabled": true,

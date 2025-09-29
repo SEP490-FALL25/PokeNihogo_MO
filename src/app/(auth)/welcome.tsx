@@ -1,4 +1,3 @@
-import PushableButton from '@components/atoms/ShadowPressable';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
@@ -8,11 +7,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const WelcomeScreen = () => {
   const { t } = useTranslation();
+  console.log('WelcomeScreen');
+
 
   return (
     <LinearGradient
       colors={['#79B4C4', '#85C3C3', '#9BC7B9']}
-      className='flex-1'
+      style={{ flex: 1 }}
     >
       <StatusBar barStyle="light-content" />
       <SafeAreaView className='flex-1'>
@@ -25,15 +26,6 @@ const WelcomeScreen = () => {
           </View>
 
           <View className='gap-4'>
-            <PushableButton
-              className='w-full bg-white p-4 rounded-lg items-center'
-              borderColor="#059669"
-              borderBottomWidth={3}
-              withHaptics
-            // onPress={() => router.push('/(auth)/language-selection')}
-            >
-              <Text className='text-green-500 text-lg font-bold'>{t('common.start')}</Text>
-            </PushableButton>
 
             <PushableButton
               className='w-full bg-yellow-400 p-4 rounded-lg items-center'
