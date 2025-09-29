@@ -1,6 +1,6 @@
 import React from "react";
 import { ScrollView, Text, View } from "react-native";
-import { DialogDebug } from "./DialogDebug";
+import BounceButton from "./BounceButton";
 import {
   Accordion,
   AccordionContent,
@@ -18,14 +18,6 @@ import {
   CardHeader,
   CardTitle,
   Checkbox,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
   Input,
   Label,
   Progress,
@@ -46,6 +38,9 @@ import {
   TabsList,
   TabsTrigger,
   Textarea,
+  Toast,
+  ToastDescription,
+  ToastTitle,
 } from "./index";
 
 export const UIDemo = () => {
@@ -68,14 +63,25 @@ export const UIDemo = () => {
 
   return (
     <ScrollView style={{ flex: 1, padding: 16 }}>
-      {/* Dialog Debug */}
+      {/* BounceButton Examples */}
       <Card style={{ marginBottom: 16 }}>
         <CardHeader>
-          <CardTitle>Dialog Debug</CardTitle>
-          <CardDescription>Debug Dialog component</CardDescription>
+          <CardTitle>Bounce Buttons</CardTitle>
+          <CardDescription>
+            Buttons with bounce animation effects
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <DialogDebug />
+          <View style={{ gap: 16, alignItems: "center" }}>
+            <BounceButton
+              title="BẮT ĐẦU NGAY"
+              onPress={() => console.log("Bounce button pressed!")}
+            />
+            <BounceButton
+              title="DEMO BUTTON"
+              onPress={() => console.log("Demo button pressed!")}
+            />
+          </View>
         </CardContent>
       </Card>
 
@@ -401,37 +407,8 @@ export const UIDemo = () => {
         </CardContent>
       </Card>
 
-      {/* Dialog */}
-      <Card style={{ marginBottom: 16 }}>
-        <CardHeader>
-          <CardTitle>Dialog</CardTitle>
-          <CardDescription>Modal dialogs</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger>
-              <Button>Open Dialog</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Dialog Title</DialogTitle>
-                <DialogDescription>
-                  This is a dialog description. You can put any content here.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <DialogClose>
-                  <Button variant="outline">Cancel</Button>
-                </DialogClose>
-                <Button>Confirm</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </CardContent>
-      </Card>
-
       {/* Toast */}
-      {/* <Card style={{ marginBottom: 16 }}>
+      <Card style={{ marginBottom: 16 }}>
         <CardHeader>
           <CardTitle>Toast</CardTitle>
           <CardDescription>Toast notifications</CardDescription>
@@ -440,7 +417,9 @@ export const UIDemo = () => {
           <View style={{ gap: 12 }}>
             <Toast variant="default">
               <ToastTitle>Success!</ToastTitle>
-              <ToastDescription>Operation completed successfully.</ToastDescription>
+              <ToastDescription>
+                Operation completed successfully.
+              </ToastDescription>
             </Toast>
             <Toast variant="destructive">
               <ToastTitle>Error</ToastTitle>
@@ -448,7 +427,7 @@ export const UIDemo = () => {
             </Toast>
           </View>
         </CardContent>
-      </Card> */}
+      </Card>
 
       {/* Select */}
       {/* <Card style={{ marginBottom: 16 }}>

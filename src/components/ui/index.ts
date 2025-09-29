@@ -56,10 +56,6 @@ export type { AccordionContentProps, AccordionItemProps, AccordionProps, Accordi
 export { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from './Table'
 export type { TableBodyProps, TableCaptionProps, TableCellProps, TableFooterProps, TableHeaderProps, TableHeadProps, TableProps, TableRowProps } from './Table'
 
-// Overlay components
-export { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './Dialog'
-export type { DialogCloseProps, DialogContentProps, DialogDescriptionProps, DialogFooterProps, DialogHeaderProps, DialogProps, DialogTitleProps, DialogTriggerProps } from './Dialog'
-
 // Notification components
 export { Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport } from './Toast'
 export type { ToastCloseProps, ToastDescriptionProps, ToastProps, ToastTitleProps } from './Toast'
