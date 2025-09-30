@@ -20,5 +20,15 @@
         "forgot-your-password": "Quên mật khẩu?",
         "dont-have-an-account": "Không có tài khoản?",
         "sign-up": "Đăng ký"
+    },
+    "zod": {
+        "errors": {
+            "invalid_string": {
+                "email": "Email không hợp lệ"
+            },
+            "too_small": {
+                "string": "Mật khẩu phải có ít nhất {{minimum}} ký tự"
+            }
+        }
     }
 }

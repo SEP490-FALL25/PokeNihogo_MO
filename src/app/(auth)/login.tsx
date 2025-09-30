@@ -6,7 +6,7 @@ import { ILoginFormDataRequest, loginFormDataRequest } from '@models/user/user.r
 import { ROUTES } from '@routes/routes';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,11 +15,13 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { z } from 'zod';
+import { makeZodI18nMap } from 'zod-i18n-map';
 
 export default function LoginScreen() {
     const { t } = useTranslation();
+    z.setErrorMap(makeZodI18nMap({ t }));
 
-    const [showPassword, setShowPassword] = useState(false);
     const {
         control,
         handleSubmit,

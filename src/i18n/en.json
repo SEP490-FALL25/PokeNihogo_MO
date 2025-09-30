@@ -20,5 +20,15 @@
         "forgot-your-password": "Forgot your password?",
         "dont-have-an-account": "Don't have an account?",
         "sign-up": "Sign up"
+    },
+    "zod": {
+        "errors": {
+            "invalid_string": {
+                "email": "Email is invalid"
+            },
+            "too_small": {
+                "string": "Password must be at least {{minimum}} characters"
+            }
+        }
     }
 }

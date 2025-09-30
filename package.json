@@ -55,6 +55,7 @@
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
     "zod": "^3.25.74",
+    "zod-i18n-map": "^2.27.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
