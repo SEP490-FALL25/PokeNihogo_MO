@@ -138,17 +138,17 @@ export default function LoginScreen() {
                     </BounceButton>
                 </View>
 
-                <View className="p-5 border-t border-white/20 gap-4">
+                <View className="p-5 border-t border-white/20 flex-row items-center justify-center">
+                    <Text className="text-base text-white/80 items-center justify-center">
+                        {t('auth.dont-have-an-account')} {' '}
+                    </Text>
                     <TouchableOpacity
-                        className="items-center"
+                        className="items-center justify-center"
                     >
-                        <Text className="text-base text-white/80">
-                            {t('auth.dont-have-an-account')} {' '}
-                            <Text className="text-white font-bold">{t('auth.sign-up')}</Text>
-                        </Text>
+                        <Text className="text-white font-bold">{t('auth.sign-up')}</Text>
                     </TouchableOpacity>
                 </View>
-            </View>
+            </View >
         </AuthScreenLayout >
     );
 }
