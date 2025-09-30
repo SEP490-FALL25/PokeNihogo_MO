@@ -1,10 +1,9 @@
 enum AUTH {
     WELCOME = '/(auth)/welcome',
     EMAIL = '/(auth)/email',
-    REGISTER = '/(auth)/register',
+    OTP = '/(auth)/otp',
     FORGOT_PASSWORD = '/(auth)/forgot-password',
     RESET_PASSWORD = '/(auth)/reset-password',
-    OTP = '/(auth)/otp',
 }
 
 enum TABS {

@@ -27,7 +27,16 @@
         "create-account": "Tạo tài khoản",
         "confirm-password": "Xác nhận mật khẩu",
         "name": "Tên",
-        "enter-your-name": "Nhập tên"
+        "enter-your-name": "Nhập tên",
+        "enter-code": "Nhập mã",
+        "we-sent-a-6-digit-code-to": "Chúng tôi đã gửi mã 6 chữ số đến",
+        "didnt-receive-a-code": "Không nhận được mã?",
+        "resend": "Gửi lại",
+        "verify": "Xác nhận",
+        "logged-in-successfully": "Đăng nhập thành công!",
+        "invalid-otp-please-try-again": "Mã OTP không hợp lệ. Vui lòng thử lại.",
+        "an-unexpected-error-occurred": "Đã xảy ra lỗi không mong muốn.",
+        "a-new-code-has-been-sent-to-your-email": "Một mã mới đã được gửi đến email của bạn."
     },
     "zod": {
         "errors": {
