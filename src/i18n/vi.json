@@ -9,5 +9,16 @@
         "explore": "Khám phá",
         "welcome": "Chào mừng",
         "demo": "DEMO"
+    },
+    "auth": {
+        "email": "Email",
+        "password": "Mật khẩu",
+        "enter-your-email": "Nhập email",
+        "enter-your-password": "Nhập mật khẩu",
+        "log-in": "Đăng nhập",
+        "welcome-back": "Chào mừng trở lại!",
+        "forgot-your-password": "Quên mật khẩu?",
+        "dont-have-an-account": "Không có tài khoản?",
+        "sign-up": "Đăng ký"
     }
 }

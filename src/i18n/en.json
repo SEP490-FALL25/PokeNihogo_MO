@@ -9,5 +9,16 @@
         "explore": "Explore",
         "welcome": "Welcome",
         "demo": "DEMO"
+    },
+    "auth": {
+        "email": "Email",
+        "password": "Password",
+        "enter-your-email": "Enter your email",
+        "enter-your-password": "Enter your password",
+        "log-in": "Log in",
+        "welcome-back": "Welcome back!",
+        "forgot-your-password": "Forgot your password?",
+        "dont-have-an-account": "Don't have an account?",
+        "sign-up": "Sign up"
     }
 }
