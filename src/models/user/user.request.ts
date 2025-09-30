@@ -3,9 +3,8 @@ import z from "zod";
 /**
  * Login form data request
  */
-export const loginFormDataRequest = z.object({
+export const EmailFormDataRequest = z.object({
     email: z.string().email(),
-    password: z.string().min(6),
 });
-export type ILoginFormDataRequest = z.infer<typeof loginFormDataRequest>;
+export type IEmailFormDataRequest = z.infer<typeof EmailFormDataRequest>;
 //-----------------End-Login-Request-----------------//

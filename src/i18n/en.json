@@ -22,7 +22,12 @@
         "sign-up": "Sign up",
         "login-success": "Logged in successfully",
         "login-failed": "Login failed",
-        "sign-in-with-google": "Sign in with Google"
+        "sign-in-with-google": "Sign in with Google",
+        "already-have-an-account": "Already have an account?",
+        "create-account": "Create account",
+        "confirm-password": "Confirm password",
+        "name": "Name",
+        "enter-your-name": "Enter your name"
     },
     "zod": {
         "errors": {

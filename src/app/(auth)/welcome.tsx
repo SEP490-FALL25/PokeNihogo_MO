@@ -10,7 +10,7 @@ const WelcomeScreen = () => {
   const { t } = useTranslation();
 
   const handleLogin = () => {
-    router.push(ROUTES.AUTH.LOGIN);
+    router.push(ROUTES.AUTH.EMAIL);
   }
 
   const handleTabs = () => {

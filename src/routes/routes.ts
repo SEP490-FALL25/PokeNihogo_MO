@@ -1,6 +1,6 @@
 enum AUTH {
     WELCOME = '/(auth)/welcome',
-    LOGIN = '/(auth)/login',
+    EMAIL = '/(auth)/email',
     REGISTER = '/(auth)/register',
     FORGOT_PASSWORD = '/(auth)/forgot-password',
     RESET_PASSWORD = '/(auth)/reset-password',
