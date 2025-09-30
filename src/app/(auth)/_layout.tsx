@@ -14,6 +14,9 @@ export default function AuthLayout() {
             }}
             >
                 <Stack.Screen name="welcome" />
+                <Stack.Screen name="select-level" />
+                <Stack.Screen name="placement-test" />
+                <Stack.Screen name="choose-starter" />
                 {/* <Stack.Screen name="login" /> */}
             </Stack>
         </LinearGradient>
