@@ -1,11 +1,11 @@
 import AuthScreenLayout from '@components/layouts/AuthScreenLayout';
 import BounceButton from '@components/ui/BounceButton';
 import { Input } from '@components/ui/Input';
+import { useToast } from '@components/ui/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ILoginFormDataRequest, loginFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
 import { router } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -18,9 +18,11 @@ import {
 import { z } from 'zod';
 import { makeZodI18nMap } from 'zod-i18n-map';
 
+
 export default function LoginScreen() {
     const { t } = useTranslation();
     z.setErrorMap(makeZodI18nMap({ t }));
+    const { toast } = useToast();
 
     const {
         control,
@@ -38,6 +40,7 @@ export default function LoginScreen() {
         return new Promise((resolve) => {
             console.log(data);
             setTimeout(() => {
+                toast({ title: t('auth.log-in'), description: t('auth.welcome-back') });
                 router.replace(ROUTES.TABS.ROOT);
                 resolve(true);
             }, 2000);
@@ -47,17 +50,6 @@ export default function LoginScreen() {
     return (
         <AuthScreenLayout>
             <View className="flex-1">
-                <View className="flex-row items-center justify-between px-5 py-4 border-b border-white/20">
-                    <TouchableOpacity
-                        className="p-2"
-                        onPress={() => router.back()}
-                    >
-                        <ArrowLeft size={24} color="white" />
-                    </TouchableOpacity>
-                    <Text className="text-xl font-semibold text-white">{t('auth.log-in')}</Text>
-                    <View className="w-10" />
-                </View>
-
                 <View className="flex-1 px-5">
                     <View className="items-center mt-10 mb-6">
                         <Image source={require('../../../assets/images/PokeNihongoLogo.png')} className="w-60 h-36 object-contain mb-4" />
@@ -127,6 +119,23 @@ export default function LoginScreen() {
                         </Text>
                     </BounceButton>
 
+                    <View className="flex-row items-center my-6">
+                        <View className="flex-1 h-px bg-white/20" />
+                        <Text className="mx-4 text-white/60">OR</Text>
+                        <View className="flex-1 h-px bg-white/20" />
+                    </View>
+
+                    <BounceButton
+                        // onPress={handleGoogleLogin}
+                        variant="default"
+                    >
+                        <View className="flex-row items-center justify-center gap-3">
+                            <Image source={require('../../../assets/images/google.png')} className="w-5 h-5" />
+                            <Text className="text-gray-700 font-semibold text-lg">
+                                {t('auth.sign-in-with-google')}
+                            </Text>
+                        </View>
+                    </BounceButton>
                 </View>
 
                 <View className="p-5 border-t border-white/20 gap-4">

@@ -19,7 +19,10 @@
         "welcome-back": "Chào mừng trở lại!",
         "forgot-your-password": "Quên mật khẩu?",
         "dont-have-an-account": "Không có tài khoản?",
-        "sign-up": "Đăng ký"
+        "sign-up": "Đăng ký",
+        "login-success": "Đăng nhập thành công",
+        "login-failed": "Đăng nhập thất bại",
+        "sign-in-with-google": "Đăng nhập với Google"
     },
     "zod": {
         "errors": {

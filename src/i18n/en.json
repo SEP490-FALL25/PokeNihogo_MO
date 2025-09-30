@@ -19,7 +19,10 @@
         "welcome-back": "Welcome back!",
         "forgot-your-password": "Forgot your password?",
         "dont-have-an-account": "Don't have an account?",
-        "sign-up": "Sign up"
+        "sign-up": "Sign up",
+        "login-success": "Logged in successfully",
+        "login-failed": "Login failed",
+        "sign-in-with-google": "Sign in with Google"
     },
     "zod": {
         "errors": {
