@@ -48,7 +48,7 @@ export default function OTPScreen() {
             const isSuccess = await verifyOtpApi(email, otp);
             if (isSuccess) {
                 toast({ title: "Success", description: t('auth.logged-in-successfully') });
-                router.replace(ROUTES.AUTH.CREATE_ACCOUNT);
+                router.replace(ROUTES.AUTH.RESET_PASSWORD);
             } else {
                 toast({ variant: 'destructive', title: "Error", description: t('auth.invalid-otp-please-try-again') });
             }
@@ -69,7 +69,7 @@ export default function OTPScreen() {
     return (
         <AuthScreenLayout>
             <View className="flex-1">
-                <BackScreen />
+                <BackScreen title={t('auth.enter-code')} />
 
                 <View className="flex-1 px-5 pt-16">
                     <View className="absolute inset-0 justify-center items-center -z-10">
