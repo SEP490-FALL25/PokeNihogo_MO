@@ -1,6 +1,8 @@
+import BackScreen from "@components/mocules/Back";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { Button } from "@components/ui/Button";
+import { Progress } from "@components/ui/Progress";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
 import * as Haptics from "expo-haptics";
@@ -8,6 +10,7 @@ import { router } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import questionsData from "../../../mock-data/placement-questions.json";
 
 type Difficulty = "N5" | "N4" | "N3";
@@ -88,7 +91,14 @@ export default function PlacementTestScreen() {
 
   if (recommended) {
     return (
-      <ThemedView style={{ flex: 1, paddingHorizontal: 20, paddingTop: 80 }}>
+      <ThemedView style={{ flex: 1 }}>
+        <SafeAreaView edges={["top"]} style={{ paddingHorizontal: 20, paddingTop: 4 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <BackScreen noWrapper />
+          <View style={{ flex: 1 }}>
+            <Progress value={100} />
+          </View>
+        </View>
         <ThemedText type="title" style={{ marginBottom: 12 }}>
           {t("auth.placement_test.recommended_title")}
         </ThemedText>
@@ -98,31 +108,25 @@ export default function PlacementTestScreen() {
         <Button onPress={onFinish}>
           {t("auth.placement_test.choose_starter")}
         </Button>
+        </SafeAreaView>
       </ThemedView>
     );
   }
 
   const progress = (currentIndex + 1) / questions.length;
   return (
-    <ThemedView style={{ flex: 1, paddingHorizontal: 20, paddingTop: 60 }}>
-      <View
-        style={{
-          height: 8,
-          backgroundColor: "rgba(0,0,0,0.1)",
-          borderRadius: 9999,
-          overflow: "hidden",
-          marginBottom: 16,
-        }}
-      >
-        <View
-          style={{
-            width: `${progress * 100}%`,
-            backgroundColor: "#3b82f6",
-            height: "100%",
-          }}
-        />
+    <ThemedView style={{ flex: 1 }}>
+      <SafeAreaView edges={["top"]} style={{ paddingHorizontal: 20, paddingTop: 4 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <BackScreen noWrapper />
+        <View style={{ flex: 1 }}>
+          <Progress value={66} />
+        </View>
       </View>
       <View style={{ marginBottom: 12 }}>
+        <View style={{ height: 6, backgroundColor: '#e5e7eb', borderRadius: 9999, overflow: 'hidden', marginBottom: 6 }}>
+          <View style={{ width: `${progress * 100}%`, backgroundColor: '#3b82f6', height: '100%' }} />
+        </View>
         <ThemedText>
           {t("auth.placement_test.progress", {
             current: currentIndex + 1,
@@ -160,6 +164,7 @@ export default function PlacementTestScreen() {
       <Button disabled={selectedIndex == null} onPress={onNext}>
         {isLast ? t("common.finish") : t("common.next")}
       </Button>
+      </SafeAreaView>
     </ThemedView>
   );
 }
