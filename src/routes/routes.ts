@@ -5,6 +5,9 @@ enum AUTH {
     CREATE_ACCOUNT = '/(auth)/create-account',
     FORGOT_PASSWORD = '/(auth)/forgot-password',
     RESET_PASSWORD = '/(auth)/reset-password',
+    SELECT_LEVEL = '/(auth)/select-level',
+    PLACEMENT_TEST = '/(auth)/placement-test',
+    CHOOSE_STARTER = '/(auth)/choose-starter'
 }
 
 enum TABS {

@@ -8,7 +8,10 @@
         "home": "Home",
         "explore": "Explore",
         "welcome": "Welcome",
-        "demo": "DEMO"
+        "demo": "DEMO",
+        "continue": "Continue",
+        "next": "Next",
+        "finish": "Finish"
     },
     "auth": {
         "email": "Email",
@@ -39,7 +42,24 @@
         "a-new-code-has-been-sent-to-your-email": "A new code has been sent to your email.",
         "complete-profile": "Complete profile",
         "whats-your-name": "What's your name?",
-        "next": "Next"
+        "next": "Next",
+      "select_level": {
+            "title": "What is your current level?",
+            "n5": "N5 (Beginner)",
+            "n4": "N4 (Elementary)",
+            "n3": "N3 (Intermediate)",
+            "take_test": "I'm not sure, give me a test!"
+        },
+        "placement_test": {
+            "no_questions": "No questions available.",
+            "recommended_title": "Your recommended level",
+            "recommended_desc": "Based on your answers, we recommend: {{level}}",
+            "choose_starter": "Choose Starter Pokémon",
+            "progress": "Question {{current}} of {{total}}"
+        },
+        "choose_starter": {
+            "title": "Choose your Partner!",
+            "confirm": "Confirm"
     },
     "zod": {
         "errors": {

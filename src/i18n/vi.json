@@ -8,7 +8,10 @@
         "home": "Trang chủ",
         "explore": "Khám phá",
         "welcome": "Chào mừng",
-        "demo": "DEMO"
+        "demo": "DEMO",
+        "continue": "Tiếp tục",
+        "next": "Tiếp theo",
+        "finish": "Hoàn tất"
     },
     "auth": {
         "email": "Email",
@@ -39,7 +42,24 @@
         "a-new-code-has-been-sent-to-your-email": "Một mã mới đã được gửi đến email của bạn.",
         "complete-profile": "Hoàn thành hồ sơ",
         "whats-your-name": "Tên của bạn là gì?",
-        "next": "Tiếp tục"
+        "next": "Tiếp tục",
+        "select_level": {
+            "title": "Trình độ hiện tại của bạn là gì?",
+            "n5": "N5 (Sơ cấp)",
+            "n4": "N4 (Sơ trung cấp)",
+            "n3": "N3 (Trung cấp)",
+            "take_test": "Tôi không chắc, hãy kiểm tra trình độ!"
+        },
+        "placement_test": {
+            "no_questions": "Không có câu hỏi nào.",
+            "recommended_title": "Trình độ đề xuất của bạn",
+            "recommended_desc": "Dựa trên câu trả lời, đề xuất: {{level}}",
+            "choose_starter": "Chọn Pokémon khởi đầu",
+            "progress": "Câu hỏi {{current}} trên {{total}}"
+        },
+        "choose_starter": {
+            "title": "Chọn Đồng hành của bạn!",
+            "confirm": "Xác nhận"
     },
     "zod": {
         "errors": {

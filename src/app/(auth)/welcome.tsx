@@ -14,7 +14,7 @@ const WelcomeScreen = () => {
   }
 
   const handleTabs = () => {
-    router.replace(ROUTES.TABS.ROOT);
+    router.push(ROUTES.AUTH.SELECT_LEVEL);
   }
 
   return (
