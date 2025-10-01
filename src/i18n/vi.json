@@ -72,11 +72,19 @@
     },
     "zod": {
         "errors": {
-            "invalid_string": {
-                "email": "Email không hợp lệ"
-            },
-            "too_small": {
-                "string": "Mật khẩu phải có ít nhất {{minimum}} ký tự"
+            "auth": {
+                "too_small": {
+                    "string": "Mật khẩu phải có ít nhất {{minimum}} ký tự"
+                },
+                "invalid_email": {
+                    "email": "Email không hợp lệ"
+                },
+                "invalid_password": {
+                    "password": "Mật khẩu không hợp lệ"
+                },
+                "invalid_otp": {
+                    "otp": "OTP không hợp lệ"
+                }
             }
         }
     }

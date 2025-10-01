@@ -72,11 +72,19 @@
     },
     "zod": {
         "errors": {
-            "invalid_string": {
-                "email": "Email is invalid"
-            },
-            "too_small": {
-                "string": "Password must be at least {{minimum}} characters"
+            "auth": {
+                "too_small": {
+                    "string": "Password must be at least {{minimum}} characters"
+                },
+                "invalid_email": {
+                    "email": "Email is invalid"
+                },
+                "invalid_password": {
+                    "password": "Password is invalid"
+                },
+                "invalid_otp": {
+                    "otp": "OTP is invalid"
+                }
             }
         }
     }

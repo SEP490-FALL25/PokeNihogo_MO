@@ -1,9 +1,9 @@
 import { router } from 'expo-router'
 import { ArrowLeft } from 'lucide-react-native'
 import React from 'react'
-import { StyleSheet, TouchableOpacity, View, Text } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
-const BackScreen = ({ title }: { title: string }) => {
+const BackScreen = ({ title }: { title?: string }) => {
     return (
         <View className="flex-row items-center justify-between px-5 py-4">
             <TouchableOpacity className="p-2" onPress={() => router.back()}>
