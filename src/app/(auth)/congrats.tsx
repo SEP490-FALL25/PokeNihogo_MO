@@ -1,3 +1,4 @@
+import { HelloWave } from "@components/HelloWave";
 import BackScreen from "@components/mocules/Back";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
@@ -60,7 +61,7 @@ export default function CongratsScreen() {
             type="title"
             style={{ textAlign: "center", marginBottom: 8 }}
           >
-            Welcome 👋
+            Welcome <HelloWave />
           </ThemedText>
           <ThemedText style={{ textAlign: "center", color: "#6b7280" }}>
             Your profile has been created successfully.
