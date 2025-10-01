@@ -1,16 +1,12 @@
+import EyeShowPassword from '@components/atoms/EyeShowPassword';
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
 import { Text, TextInput, type TextInputProps, TouchableOpacity, View, type ViewProps } from 'react-native';
 
-// Assuming you have an EyeShowPassword component, if not, you can create one
-// or use an icon library like @expo/vector-icons.
-// import { EyeShowPassword } from '@components/icons/EyeShowPassword';
-import EyeShowPassword from '@components/atoms/EyeShowPassword';
-
 import { cn } from '../../utils/cn';
 
 const inputContainerVariants = cva(
-  'flex-row items-center rounded-xl border',
+  'flex-row items-center rounded-xl border h-16',
   {
     variants: {
       variant: {
