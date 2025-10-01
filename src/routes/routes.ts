@@ -1,5 +1,6 @@
 enum AUTH {
     WELCOME = '/(auth)/welcome',
+    CONGRATS = '/(auth)/congrats',
     EMAIL = '/(auth)/email',
     OTP = '/(auth)/otp',
     CREATE_ACCOUNT = '/(auth)/create-account',

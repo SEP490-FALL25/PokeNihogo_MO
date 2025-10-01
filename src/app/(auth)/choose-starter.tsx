@@ -179,7 +179,7 @@ export default function ChooseStarterScreen() {
     setStarterId(selected);
     setIsFirstTimeLogin(true);
     await authService.selectStarter(selected);
-    router.replace(ROUTES.AUTH.WELCOME);
+    router.replace(ROUTES.AUTH.CONGRATS);
   };
 
   return (
@@ -188,7 +188,7 @@ export default function ChooseStarterScreen() {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <BackScreen noWrapper />
         <View style={{ flex: 1 }}>
-          <Progress value={66} />
+          <Progress value={100} />
         </View>
       </View>
       <ThemedText type="title" style={{ marginBottom: 16 }}>

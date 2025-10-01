@@ -120,10 +120,13 @@ export default function PlacementTestScreen() {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <BackScreen noWrapper />
         <View style={{ flex: 1 }}>
-          <Progress value={100 * progress} />
+          <Progress value={66} />
         </View>
       </View>
       <View style={{ marginBottom: 12 }}>
+        <View style={{ height: 6, backgroundColor: '#e5e7eb', borderRadius: 9999, overflow: 'hidden', marginBottom: 6 }}>
+          <View style={{ width: `${progress * 100}%`, backgroundColor: '#3b82f6', height: '100%' }} />
+        </View>
         <ThemedText>
           {t("auth.placement_test.progress", {
             current: currentIndex + 1,
