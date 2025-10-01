@@ -9,6 +9,7 @@ export default function AuthLayout() {
             <Stack.Screen name="email" />
             <Stack.Screen name="otp" />
             <Stack.Screen name="create-account" />
+            <Stack.Screen name="password" />
             <Stack.Screen name="choose-starter" />
             <Stack.Screen name="select-level" />
             <Stack.Screen name="placement-test" />

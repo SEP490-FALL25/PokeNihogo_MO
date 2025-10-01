@@ -43,6 +43,14 @@
         "complete-profile": "Complete profile",
         "whats-your-name": "What's your name?",
         "next": "Next",
+        "reset-your-password": "Reset your password",
+        "create-new-password": "Create new password",
+        "new-password-description": "Enter your new password.",
+        "new-password": "New password",
+        "confirm-new-password": "Confirm new password",
+        "enter-new-password": "Enter new password",
+        "enter-confirm-new-password": "Enter confirm new password",
+        "save-password": "Save password",
         "select_level": {
             "title": "What is your current level?",
             "n5": "N5 (Beginner)",
@@ -64,11 +72,19 @@
     },
     "zod": {
         "errors": {
-            "invalid_string": {
-                "email": "Email is invalid"
-            },
-            "too_small": {
-                "string": "Password must be at least {{minimum}} characters"
+            "auth": {
+                "too_small": {
+                    "string": "Password must be at least {{minimum}} characters"
+                },
+                "invalid_email": {
+                    "email": "Email is invalid"
+                },
+                "invalid_password": {
+                    "password": "Password is invalid"
+                },
+                "invalid_otp": {
+                    "otp": "OTP is invalid"
+                }
             }
         }
     }

@@ -3,6 +3,7 @@ enum AUTH {
     CONGRATS = '/(auth)/congrats',
     EMAIL = '/(auth)/email',
     OTP = '/(auth)/otp',
+    PASSWORD = '/(auth)/password',
     CREATE_ACCOUNT = '/(auth)/create-account',
     FORGOT_PASSWORD = '/(auth)/forgot-password',
     RESET_PASSWORD = '/(auth)/reset-password',
