@@ -7,7 +7,7 @@ import { useEmailSelector } from '@stores/user/user.selectors';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // Giả lập hàm API
 const verifyOtpApi = async (email: string, otp: string): Promise<boolean> => {
@@ -72,6 +72,10 @@ export default function OTPScreen() {
                 <BackScreen />
 
                 <View className="flex-1 px-5 pt-16">
+                    <View className="absolute inset-0 justify-center items-center -z-10">
+                        <Image source={require('../../../assets/images/PokeNihongoLogo.png')} className='w-80 h-52 object-contain opacity-20' />
+                    </View>
+
                     <Text className="text-3xl font-bold text-white mb-2">{t('auth.enter-code')}</Text>
                     <Text className="text-base text-white/80 mb-12">
                         {t('auth.we-sent-a-6-digit-code-to')} {'\n'}
