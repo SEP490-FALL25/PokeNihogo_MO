@@ -70,7 +70,6 @@ export default function ResetPasswordScreen() {
                             <Text className="text-base text-white/80 mb-8">{t('auth.new-password-description')}</Text>
 
                             <View className="gap-5">
-                                <View></View>
                                 {/* New Password Input */}
                                 <View className="gap-2">
                                     <Text className="text-base font-medium text-white">{t('auth.new-password')}</Text>
@@ -93,20 +92,22 @@ export default function ResetPasswordScreen() {
                                 {/* Confirm New Password Input */}
                                 <View className="gap-2">
                                     <Text className="text-base font-medium text-white">{t('auth.confirm-new-password')}</Text>
-                                    <Controller
-                                        control={control}
-                                        name="confirmPassword"
-                                        render={({ field: { onChange, onBlur, value } }) => (
-                                            <Input
-                                                value={value}
-                                                onBlur={onBlur}
-                                                onChangeText={onChange}
-                                                placeholder={t('auth.enter-your-password')}
-                                                isPassword={true}
-                                                error={errors.confirmPassword?.message}
-                                            />
-                                        )}
-                                    />
+                                    <View>
+                                        <Controller
+                                            control={control}
+                                            name="confirmPassword"
+                                            render={({ field: { onChange, onBlur, value } }) => (
+                                                <Input
+                                                    value={value}
+                                                    onBlur={onBlur}
+                                                    onChangeText={onChange}
+                                                    placeholder={t('auth.enter-your-password')}
+                                                    isPassword={true}
+                                                    error={errors.confirmPassword?.message}
+                                                />
+                                            )}
+                                        />
+                                    </View>
                                 </View>
                             </View>
 
