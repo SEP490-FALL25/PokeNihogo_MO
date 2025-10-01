@@ -55,6 +55,8 @@ export default function PasswordScreen() {
                 </View>
 
                 <View className="flex-1 px-5 pt-16">
+            
+
                     <Text className="text-3xl font-bold text-white mb-2">{t('auth.welcome-back')}</Text>
                     <Text className="text-base text-white/80 mb-8">{email}</Text>
 
