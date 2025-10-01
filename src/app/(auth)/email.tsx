@@ -15,10 +15,19 @@ import z from 'zod';
 import { makeZodI18nMap } from 'zod-i18n-map';
 
 export default function EmailScreen() {
+    /**
+     * Define variables
+     */
     const { t } = useTranslation();
     const setEmail = useUserSetEmail();
     z.setErrorMap(makeZodI18nMap({ t }));
+    //-----------------------End-----------------------//
 
+
+    /**
+     * Handle form validation
+     * Handle next step
+     */
     const { control, handleSubmit, formState: { errors, isValid } } = useForm<IEmailFormDataRequest>({
         resolver: zodResolver(EmailFormDataRequest),
         defaultValues: { email: '' },
@@ -26,14 +35,58 @@ export default function EmailScreen() {
     });
 
     const handleNextStep = (data: IEmailFormDataRequest) => {
-        setEmail(data.email);
-        router.push(ROUTES.AUTH.PASSWORD);
+
+        enum UserStatus {
+            NewUser,
+            ExistingUserSafeDevice,
+            ExistingUserNewDevice,
+        }
+
+        const checkUserStatus = (email: string): { status: UserStatus, deviceToken?: string } => {
+            const emailWithAccountAndDevice = 'user.safe@gmail.com';
+            const emailWithAccountOnly = 'user.unsafe@gmail.com';
+
+            if (email === emailWithAccountAndDevice) {
+                return {
+                    status: UserStatus.ExistingUserSafeDevice,
+                    deviceToken: 'a-very-long-and-secure-device-token-12345'
+                };
+            }
+            if (email === emailWithAccountOnly) {
+                return { status: UserStatus.ExistingUserNewDevice };
+            }
+            return { status: UserStatus.NewUser };
+        };
+
+        const { status, deviceToken } = checkUserStatus(data.email);
+
+        const res = {
+            statusCode: 200,
+            email: data.email,
+            userExists: status !== UserStatus.NewUser,
+            deviceToken: deviceToken || null,
+        };
+
+        switch (status) {
+            case UserStatus.ExistingUserSafeDevice:
+                router.push(ROUTES.AUTH.PASSWORD);
+                break;
+
+            case UserStatus.ExistingUserNewDevice:
+            case UserStatus.NewUser:
+            default:
+                router.push(ROUTES.AUTH.OTP);
+                break;
+        }
+
+        console.log('API Response:', res);
     };
+    //-----------------------End-----------------------//
 
     return (
         <AuthScreenLayout>
             <View className="flex-1">
-                <BackScreen />
+                <BackScreen title={t('auth.log-in')} />
 
                 <View className="flex-1 px-5">
                     <View className="absolute inset-0 justify-center items-center -z-10">
