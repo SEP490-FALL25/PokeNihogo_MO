@@ -63,6 +63,7 @@
             "recommended_title": "Trình độ đề xuất của bạn",
             "recommended_desc": "Dựa trên câu trả lời, đề xuất: {{level}}",
             "choose_starter": "Chọn Pokémon khởi đầu",
+            "progress_title": "Kiểm tra trình độ",
             "progress": "Câu hỏi {{current}} trên {{total}}"
         },
         "choose_starter": {

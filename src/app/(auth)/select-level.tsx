@@ -216,8 +216,13 @@ export default function SelectLevelScreen() {
   return (
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView
-        edges={["top"]}
-        style={{ flex: 1, paddingHorizontal: 20, paddingTop: 4 }}
+        edges={["top", "bottom", "left", "right"]}
+        style={{
+          flex: 1,
+          paddingHorizontal: 20,
+          paddingTop: 4,
+          paddingBottom: 12,
+        }}
       >
         <View
           style={{
@@ -328,7 +333,7 @@ export default function SelectLevelScreen() {
           {t("auth.select_level.title")}
         </ThemedText>
 
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, justifyContent: "space-between" }}>
           <View style={{ gap: 12 }}>
             <LevelOption level="N5" label={t("auth.select_level.n5")} />
             <LevelOption level="N4" label={t("auth.select_level.n4")} />
@@ -344,7 +349,6 @@ export default function SelectLevelScreen() {
                 borderWidth: 1,
                 borderColor: "#e5e7eb",
                 backgroundColor: "#ffffff",
-                marginTop: 4,
               }}
             >
               <ThemedText style={{ color: "#0ea5e9", fontWeight: "600" }}>

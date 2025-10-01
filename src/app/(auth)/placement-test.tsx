@@ -1,12 +1,16 @@
 import BackScreen from "@components/mocules/Back";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
+import BounceButton from "@components/ui/BounceButton";
 import { Button } from "@components/ui/Button";
+// removed Card in favor of MascotBubble
+import MascotBubble from "@components/ui/MascotBubble";
 import { Progress } from "@components/ui/Progress";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
+import * as Speech from "expo-speech";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { TouchableOpacity, View } from "react-native";
@@ -92,78 +96,169 @@ export default function PlacementTestScreen() {
   if (recommended) {
     return (
       <ThemedView style={{ flex: 1 }}>
-        <SafeAreaView edges={["top"]} style={{ paddingHorizontal: 20, paddingTop: 4 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
-          <BackScreen noWrapper />
-          <View style={{ flex: 1 }}>
-            <Progress value={100} />
+        <SafeAreaView
+          edges={["top"]}
+          style={{ paddingHorizontal: 20, paddingTop: 4 }}
+        >
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 12,
+            }}
+          >
+            <BackScreen noWrapper />
+            <View style={{ flex: 1 }}>
+              <Progress value={100} />
+            </View>
           </View>
-        </View>
-        <ThemedText type="title" style={{ marginBottom: 12 }}>
-          {t("auth.placement_test.recommended_title")}
-        </ThemedText>
-        <ThemedText style={{ marginBottom: 24 }}>
-          {t("auth.placement_test.recommended_desc", { level: recommended })}
-        </ThemedText>
-        <Button onPress={onFinish}>
-          {t("auth.placement_test.choose_starter")}
-        </Button>
+          <ThemedText type="title" style={{ marginBottom: 12 }}>
+            {t("auth.placement_test.recommended_title")}
+          </ThemedText>
+          <ThemedText style={{ marginBottom: 24 }}>
+            {t("auth.placement_test.recommended_desc", { level: recommended })}
+          </ThemedText>
+          <Button onPress={onFinish}>
+            {t("auth.placement_test.choose_starter")}
+          </Button>
         </SafeAreaView>
       </ThemedView>
     );
   }
 
   const progress = (currentIndex + 1) / questions.length;
+  const maxOptionsForGrid = 4;
+  const maxLenPerOption = 22;
+  const shouldUseGrid =
+    !!current &&
+    Array.isArray(current.options) &&
+    current.options.length <= maxOptionsForGrid &&
+    current.options.every((o) => (o ?? "").length <= maxLenPerOption);
   return (
     <ThemedView style={{ flex: 1 }}>
-      <SafeAreaView edges={["top"]} style={{ paddingHorizontal: 20, paddingTop: 4 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <BackScreen noWrapper />
+      <SafeAreaView
+        edges={["top", "bottom"]}
+        style={{
+          flex: 1,
+          paddingHorizontal: 20,
+          paddingTop: 4,
+          paddingBottom: 12,
+        }}
+      >
         <View style={{ flex: 1 }}>
-          <Progress value={66} />
-        </View>
-      </View>
-      <View style={{ marginBottom: 12 }}>
-        <View style={{ height: 6, backgroundColor: '#e5e7eb', borderRadius: 9999, overflow: 'hidden', marginBottom: 6 }}>
-          <View style={{ width: `${progress * 100}%`, backgroundColor: '#3b82f6', height: '100%' }} />
-        </View>
-        <ThemedText>
-          {t("auth.placement_test.progress", {
-            current: currentIndex + 1,
-            total: questions.length,
-          })}
-        </ThemedText>
-      </View>
-      <ThemedText type="title" style={{ marginBottom: 16 }}>
-        {current.question}
-      </ThemedText>
-      <View style={{ gap: 10, marginBottom: 20 }}>
-        {current.options.map((opt, idx) => {
-          const isActive = selectedIndex === idx;
-          return (
-            <TouchableOpacity
-              key={idx}
-              onPress={() => onChoose(idx)}
-              activeOpacity={0.8}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 12,
+            }}
+          >
+            <BackScreen noWrapper />
+            <View style={{ flex: 1 }}>
+              <Progress value={66} />
+            </View>
+          </View>
+          <View style={{ marginBottom: 12 }}>
+            <ThemedText
+              type="defaultSemiBold"
+              style={{ marginBottom: 6, fontSize: 30 }}
+            >
+              {t("auth.placement_test.progress_title")}
+            </ThemedText>
+            <View
               style={{
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-                borderRadius: 10,
-                borderWidth: isActive ? 2 : 1,
-                borderColor: isActive ? "#3b82f6" : "#e5e7eb",
-                backgroundColor: isActive
-                  ? "rgba(59,130,246,0.1)"
-                  : "rgba(255,255,255,0.2)",
+                height: 6,
+                backgroundColor: "#e5e7eb",
+                borderRadius: 9999,
+                overflow: "hidden",
+                marginBottom: 6,
               }}
             >
-              <ThemedText type="defaultSemiBold">{opt}</ThemedText>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-      <Button disabled={selectedIndex == null} onPress={onNext}>
-        {isLast ? t("common.finish") : t("common.next")}
-      </Button>
+              <View
+                style={{
+                  width: `${progress * 100}%`,
+                  backgroundColor: "#3b82f6",
+                  height: "100%",
+                }}
+              />
+            </View>
+          </View>
+          <View style={{ marginBottom: 24 }}>
+            <MascotBubble
+              bubbleStyle={{ paddingHorizontal: 24, paddingVertical: 100 }}
+              titleTextStyle={{ fontSize: 16 }}
+              contentTextStyle={{ fontSize: 20, lineHeight: 30 }}
+              mascotImageStyle={{ width: 84, height: 84 }}
+              action={
+                <TouchableOpacity
+                  onPress={() =>
+                    Speech.speak(current.question, { language: "ja-JP" })
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel="Speak question"
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 9999,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderWidth: 1,
+                    borderColor: "#e5e7eb",
+                    backgroundColor: "#ffffff",
+                  }}
+                >
+                  <ThemedText style={{ fontSize: 18 }}>🔊</ThemedText>
+                </TouchableOpacity>
+              }
+            >
+              {current.question}
+            </MascotBubble>
+          </View>
+          <View
+            style={{
+              gap: 12,
+              marginBottom: 24,
+              flexDirection: shouldUseGrid ? "row" : "column",
+              flexWrap: shouldUseGrid ? "wrap" : "nowrap",
+              justifyContent: shouldUseGrid ? "space-between" : "flex-start",
+            }}
+          >
+            {current.options.map((opt, idx) => {
+              const isActive = selectedIndex === idx;
+              return (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => onChoose(idx)}
+                  activeOpacity={0.8}
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 16,
+                    borderRadius: 16,
+                    borderWidth: isActive ? 2 : 1,
+                    borderColor: isActive ? "#3b82f6" : "#e5e7eb",
+                    backgroundColor: isActive
+                      ? "rgba(59,130,246,0.1)"
+                      : "#ffffff",
+                    flexBasis: shouldUseGrid ? "48%" : "100%",
+                    minWidth: shouldUseGrid ? "48%" : "100%",
+                  }}
+                >
+                  <ThemedText type="defaultSemiBold">{`${String.fromCharCode(65 + idx)}. ${opt}`}</ThemedText>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+        <BounceButton
+          variant="solid"
+          disabled={selectedIndex == null}
+          onPress={onNext}
+        >
+          {isLast ? t("common.finish") : t("common.next")}
+        </BounceButton>
       </SafeAreaView>
     </ThemedView>
   );
