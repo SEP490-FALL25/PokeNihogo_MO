@@ -1,6 +1,8 @@
+import BackScreen from "@components/mocules/Back";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { Button } from "@components/ui/Button";
+import { Progress } from "@components/ui/Progress";
 import { ROUTES } from "@routes/routes";
 import authService from "@services/auth";
 import { useUserStore } from "@stores/user/user.config";
@@ -9,13 +11,14 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Image, TouchableOpacity, View } from "react-native";
 import Animated, {
-    Easing,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withSequence,
-    withTiming,
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 import starters from "../../../mock-data/starters.json";
 
 type Starter = { id: string; name: string; type: string[]; image: string };
@@ -180,7 +183,14 @@ export default function ChooseStarterScreen() {
   };
 
   return (
-    <ThemedView style={{ flex: 1, paddingHorizontal: 20, paddingTop: 60 }}>
+    <ThemedView style={{ flex: 1 }}>
+      <SafeAreaView edges={["top"]} style={{ paddingHorizontal: 20, paddingTop: 4 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <BackScreen noWrapper />
+        <View style={{ flex: 1 }}>
+          <Progress value={66} />
+        </View>
+      </View>
       <ThemedText type="title" style={{ marginBottom: 16 }}>
         {t("auth.choose_starter.title")}
       </ThemedText>
@@ -204,6 +214,7 @@ export default function ChooseStarterScreen() {
       <Button disabled={!selected} onPress={onConfirm}>
         {t("auth.choose_starter.confirm")}
       </Button>
+      </SafeAreaView>
     </ThemedView>
   );
 }

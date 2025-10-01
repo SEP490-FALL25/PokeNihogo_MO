@@ -1,6 +1,10 @@
+import BackScreen from "@components/mocules/Back";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
-import { Button } from "@components/ui/Button";
+// import { Button } from "@components/ui/Button";
+import BounceButton from "@components/ui/BounceButton";
+import { Progress } from "@components/ui/Progress";
+import { TypingText } from "@components/ui/TypingText";
 import { ROUTES } from "@routes/routes";
 import authService from "@services/auth";
 import { useUserStore } from "@stores/user/user.config";
@@ -8,7 +12,8 @@ import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Image, TouchableOpacity, View } from "react-native";
+import { Animated, Image, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type Level = "N5" | "N4" | "N3";
 
@@ -49,19 +54,76 @@ const pokemonMascots = [
     color: "#3b82f6",
     message: "Chọn level và bắt đầu hành trình!",
   },
+  {
+    name: "Jigglypuff",
+    imageUrl:
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/39.png",
+    color: "#f472b6",
+    message: "Âm nhạc sẽ giúp bạn tập trung!",
+  },
+  {
+    name: "Meowth",
+    imageUrl:
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/52.png",
+    color: "#a78bfa",
+    message: "Đừng lo, chúng ta sẽ học từ từ!",
+  },
+  {
+    name: "Psyduck",
+    imageUrl:
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/54.png",
+    color: "#60a5fa",
+    message: "Chọn level rồi cùng giải đố nhé!",
+  },
+  {
+    name: "Snorlax",
+    imageUrl:
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png",
+    color: "#94a3b8",
+    message: "Đừng vội, chọn level phù hợp nhất với bạn!",
+  },
+  {
+    name: "Mew",
+    imageUrl:
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png",
+    color: "#fb7185",
+    message: "Cùng bay vào thế giới tiếng Nhật!",
+  },
+  {
+    name: "Togepi",
+    imageUrl:
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/175.png",
+    color: "#f59e0b",
+    message: "Bước nhỏ hôm nay, thành công ngày mai!",
+  },
 ];
 
 export default function SelectLevelScreen() {
   const { t } = useTranslation();
   const [selected, setSelected] = React.useState<Level | null>(null);
   const [mascot, setMascot] = React.useState(pokemonMascots[0]);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const translateY = React.useRef(new Animated.Value(12)).current;
   const setLevel = useUserStore((s) => (s as any).setLevel);
 
   // Random mascot selection
   React.useEffect(() => {
     const randomIndex = Math.floor(Math.random() * pokemonMascots.length);
     setMascot(pokemonMascots[randomIndex]);
-  }, []);
+    // Gentle entrance animation
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, translateY]);
 
   const onContinue = async () => {
     if (!selected) return;
@@ -70,43 +132,44 @@ export default function SelectLevelScreen() {
     router.push(ROUTES.AUTH.CHOOSE_STARTER as any);
   };
 
-  const getLevelColors = (level: Level) => {
+  // Color + icon meta per JLPT level
+  const getLevelMeta = (level: Level) => {
     switch (level) {
       case "N5":
         return {
-          border: "#10b981", // green
-          background: "rgba(16,185,129,0.1)",
-          activeBorder: "#059669",
-          activeBackground: "rgba(16,185,129,0.2)"
+          border: "#10b981",
+          active: "#059669",
+          fill: "rgba(16,185,129,0.35)",
+          icon: "🇯🇵",
         };
       case "N4":
         return {
-          border: "#f59e0b", // amber
-          background: "rgba(245,158,11,0.1)",
-          activeBorder: "#d97706",
-          activeBackground: "rgba(245,158,11,0.2)"
+          border: "#f59e0b",
+          active: "#d97706",
+          fill: "rgba(245,158,11,0.35)",
+          icon: "🇯🇵",
         };
       case "N3":
         return {
-          border: "#ef4444", // red
-          background: "rgba(239,68,68,0.1)",
-          activeBorder: "#dc2626",
-          activeBackground: "rgba(239,68,68,0.2)"
+          border: "#ef4444",
+          active: "#dc2626",
+          fill: "rgba(239,68,68,0.28)",
+          icon: "🇯🇵",
         };
       default:
         return {
           border: "#e5e7eb",
-          background: "rgba(255,255,255,0.2)",
-          activeBorder: "#3b82f6",
-          activeBackground: "rgba(59,130,246,0.1)"
+          active: "#3b82f6",
+          fill: "rgba(59,130,246,0.12)",
+          icon: "🇯🇵",
         };
     }
   };
 
   const LevelOption = ({ level, label }: { level: Level; label: string }) => {
     const isActive = selected === level;
-    const colors = getLevelColors(level);
-    
+    const meta = getLevelMeta(level);
+
     return (
       <TouchableOpacity
         onPress={() => {
@@ -115,121 +178,193 @@ export default function SelectLevelScreen() {
         }}
         activeOpacity={0.8}
         style={{
-          paddingHorizontal: 16,
+          paddingHorizontal: 14,
           paddingVertical: 14,
-          borderRadius: 10,
+          borderRadius: 16,
           borderWidth: isActive ? 2 : 1,
-          borderColor: isActive ? colors.activeBorder : colors.border,
-          backgroundColor: isActive ? colors.activeBackground : colors.background,
+          borderColor: isActive ? meta.active : meta.border,
+          backgroundColor: isActive ? meta.fill : "#ffffff",
           marginBottom: 12,
+          shadowColor: isActive ? meta.active : undefined,
+          shadowOpacity: 0,
+          shadowRadius: 0,
+          shadowOffset: { width: 0, height: 0 },
+          elevation: isActive ? 0 : 0,
+          flexDirection: "row",
+          alignItems: "center",
+          overflow: "hidden",
         }}
       >
-        <ThemedText type="defaultSemiBold">{label}</ThemedText>
+        <View
+          style={{
+            width: 28,
+            height: 20,
+            borderRadius: 6,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ThemedText style={{ fontSize: 16 }}>{meta.icon}</ThemedText>
+        </View>
+        <ThemedText type="defaultSemiBold" style={{ marginLeft: 10 }}>
+          {label}
+        </ThemedText>
       </TouchableOpacity>
     );
   };
 
   return (
-    <ThemedView style={{ flex: 1, paddingHorizontal: 20, paddingTop: 60 }}>
-      {/* Pokémon Mascot and Speech Bubble */}
-      <View style={{ 
-        flexDirection: 'row', 
-        alignItems: 'flex-start', 
-        marginBottom: 30,
-        position: 'relative'
-      }}>
-        {/* Speech Bubble */}
-        <View style={{
-          flex: 1,
-          backgroundColor: mascot.color,
-          borderRadius: 20,
-          padding: 16,
-          marginRight: 10,
-          position: 'relative',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 3,
-        }}>
-          <ThemedText style={{ 
-            color: 'white', 
-            fontSize: 16, 
-            fontWeight: '600',
-            textAlign: 'center'
-          }}>
-            {mascot.message}
-          </ThemedText>
-          {/* Speech bubble tail */}
-          <View style={{
-            position: 'absolute',
-            right: -10,
-            bottom: 20,
-            width: 0,
-            height: 0,
-            borderLeftWidth: 15,
-            borderLeftColor: mascot.color,
-            borderTopWidth: 10,
-            borderTopColor: 'transparent',
-            borderBottomWidth: 10,
-            borderBottomColor: 'transparent',
-          }} />
-        </View>
-
-        {/* Pokémon Mascot Image */}
-        <View style={{
-          width: 90,
-          height: 90,
-          backgroundColor: mascot.color,
-          borderRadius: 16,
-          justifyContent: 'center',
-          alignItems: 'center',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.2,
-          shadowRadius: 4,
-          elevation: 5,
-          overflow: 'hidden'
-        }}>
-          <Image
-            source={{ uri: mascot.imageUrl }}
-            style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
-          />
-        </View>
-      </View>
-
-      <ThemedText type="title" style={{ marginBottom: 24, textAlign: 'center' }}>
-        {t("auth.select_level.title")}
-      </ThemedText>
-
-      <View style={{ gap: 8 }}>
-        <LevelOption level="N5" label={t("auth.select_level.n5")} />
-        <LevelOption level="N4" label={t("auth.select_level.n4")} />
-        <LevelOption level="N3" label={t("auth.select_level.n3")} />
-
-        <TouchableOpacity
-          onPress={() => router.push(ROUTES.AUTH.PLACEMENT_TEST as any)}
-          activeOpacity={0.8}
+    <ThemedView style={{ flex: 1 }}>
+      <SafeAreaView
+        edges={["top"]}
+        style={{ flex: 1, paddingHorizontal: 20, paddingTop: 4 }}
+      >
+        <View
           style={{
-            paddingHorizontal: 16,
-            paddingVertical: 14,
-            borderRadius: 10,
-            borderWidth: 1,
-            borderColor: "#e5e7eb",
-            backgroundColor: "transparent",
-            marginTop: 8,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 12,
           }}
         >
-          <ThemedText type="link">
-            {t("auth.select_level.take_test")}
-          </ThemedText>
-        </TouchableOpacity>
-      </View>
+          <BackScreen noWrapper />
+          <View style={{ flex: 1 }}>
+            <Progress value={33} />
+          </View>
+        </View>
+        {/* Mascot + speech bubble on top */}
+        <Animated.View
+          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            marginBottom: 16,
+            opacity: fadeAnim,
+            transform: [{ translateY }],
+          }}
+        >
+          {/* Mascot Image */}
+          <View style={{ alignItems: "center", marginRight: 12 }}>
+            <View
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: 16,
+                justifyContent: "center",
+                alignItems: "center",
+                overflow: "hidden",
+              }}
+            >
+              <Image
+                source={{ uri: mascot.imageUrl }}
+                style={{ width: "100%", height: "100%", resizeMode: "contain" }}
+              />
+            </View>
+          </View>
 
-      <View style={{ paddingTop: 20 }} />
-      <Button disabled={!selected} onPress={onContinue}>
-        {t("common.continue")}
-      </Button>
+          {/* Speech Bubble with mascot color */}
+          <View style={{ flex: 1, position: "relative" }}>
+            <View
+              style={{
+                backgroundColor: mascot.color,
+                borderRadius: 16,
+                paddingVertical: 12,
+                paddingHorizontal: 14,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 4,
+                elevation: 3,
+              }}
+            >
+              <TypingText
+                messages={[mascot.message]}
+                typingSpeedMs={35}
+                deletingSpeedMs={20}
+                pauseBeforeStartMs={150}
+                pauseBetweenMessagesMs={1000}
+                loop={false}
+                showCursor
+                cursorChar="|"
+                containerStyle={{}}
+                textStyle={{
+                  color: "#ffffff",
+                  fontSize: 14,
+                  fontWeight: "700",
+                }}
+              />
+            </View>
+            {/* Tail pointing left to mascot */}
+            <View
+              style={{
+                position: "absolute",
+                left: -8,
+                top: 18,
+                width: 0,
+                height: 0,
+                borderRightWidth: 10,
+                borderRightColor: mascot.color,
+                borderTopWidth: 8,
+                borderTopColor: "transparent",
+                borderBottomWidth: 8,
+                borderBottomColor: "transparent",
+              }}
+            />
+          </View>
+        </Animated.View>
+
+        {/* Divider */}
+        <View
+          style={{
+            height: 1,
+            backgroundColor: "rgba(0,0,0,0.06)",
+            marginBottom: 16,
+          }}
+        />
+
+        <ThemedText
+          type="title"
+          style={{ marginBottom: 12, textAlign: "center" }}
+        >
+          {t("auth.select_level.title")}
+        </ThemedText>
+
+        <View style={{ flex: 1 }}>
+          <View style={{ gap: 12 }}>
+            <LevelOption level="N5" label={t("auth.select_level.n5")} />
+            <LevelOption level="N4" label={t("auth.select_level.n4")} />
+            <LevelOption level="N3" label={t("auth.select_level.n3")} />
+
+            <TouchableOpacity
+              onPress={() => router.push(ROUTES.AUTH.PLACEMENT_TEST as any)}
+              activeOpacity={0.8}
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 16,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: "#e5e7eb",
+                backgroundColor: "#ffffff",
+                marginTop: 4,
+              }}
+            >
+              <ThemedText style={{ color: "#0ea5e9", fontWeight: "600" }}>
+                {t("auth.select_level.take_test")}
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ paddingTop: 12 }} />
+          <BounceButton
+            variant="solid"
+            size="full"
+            withHaptics
+            disabled={!selected}
+            onPress={onContinue}
+          >
+            {t("common.continue")}
+          </BounceButton>
+        </View>
+      </SafeAreaView>
     </ThemedView>
   );
 }

@@ -17,7 +17,7 @@ const Progress = React.forwardRef<View, ProgressProps>(
           {
             width: '100%',
             height: 8,
-            backgroundColor: '#f3f4f6',
+            backgroundColor: '#d1d5db',
             borderRadius: 9999,
             overflow: 'hidden',
           },
