@@ -43,7 +43,7 @@
         "complete-profile": "Complete profile",
         "whats-your-name": "What's your name?",
         "next": "Next",
-      "select_level": {
+        "select_level": {
             "title": "What is your current level?",
             "n5": "N5 (Beginner)",
             "n4": "N4 (Elementary)",
@@ -60,6 +60,7 @@
         "choose_starter": {
             "title": "Choose your Partner!",
             "confirm": "Confirm"
+        }
     },
     "zod": {
         "errors": {

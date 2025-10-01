@@ -60,6 +60,7 @@
         "choose_starter": {
             "title": "Chọn Đồng hành của bạn!",
             "confirm": "Xác nhận"
+        }
     },
     "zod": {
         "errors": {
