@@ -27,7 +27,7 @@ export default function EmailScreen() {
 
     const handleNextStep = (data: IEmailFormDataRequest) => {
         setEmail(data.email);
-        router.push(ROUTES.AUTH.OTP);
+        router.push(ROUTES.AUTH.PASSWORD);
     };
 
     return (
