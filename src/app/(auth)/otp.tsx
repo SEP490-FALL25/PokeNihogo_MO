@@ -48,7 +48,7 @@ export default function OTPScreen() {
             const isSuccess = await verifyOtpApi(email, otp);
             if (isSuccess) {
                 toast({ title: "Success", description: t('auth.logged-in-successfully') });
-                router.replace(ROUTES.TABS.ROOT);
+                router.replace(ROUTES.AUTH.CREATE_ACCOUNT);
             } else {
                 toast({ variant: 'destructive', title: "Error", description: t('auth.invalid-otp-please-try-again') });
             }
@@ -63,7 +63,7 @@ export default function OTPScreen() {
         if (timer > 0) return;
         await resendOtpApi(email);
         setTimer(60); // Reset đồng hồ
-        toast({ title: "Sent", description: "A new code has been sent to your email." });
+        toast({ title: "Sent", description: t('auth.a-new-code-has-been-sent-to-your-email') });
     };
 
     return (

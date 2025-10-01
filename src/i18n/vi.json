@@ -36,7 +36,10 @@
         "logged-in-successfully": "Đăng nhập thành công!",
         "invalid-otp-please-try-again": "Mã OTP không hợp lệ. Vui lòng thử lại.",
         "an-unexpected-error-occurred": "Đã xảy ra lỗi không mong muốn.",
-        "a-new-code-has-been-sent-to-your-email": "Một mã mới đã được gửi đến email của bạn."
+        "a-new-code-has-been-sent-to-your-email": "Một mã mới đã được gửi đến email của bạn.",
+        "complete-profile": "Hoàn thành hồ sơ",
+        "whats-your-name": "Tên của bạn là gì?",
+        "next": "Tiếp tục"
     },
     "zod": {
         "errors": {

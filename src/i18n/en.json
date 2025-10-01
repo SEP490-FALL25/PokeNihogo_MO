@@ -36,7 +36,10 @@
         "logged-in-successfully": "Logged in successfully!",
         "invalid-otp-please-try-again": "Invalid OTP. Please try again.",
         "an-unexpected-error-occurred": "An unexpected error occurred.",
-        "a-new-code-has-been-sent-to-your-email": "A new code has been sent to your email."
+        "a-new-code-has-been-sent-to-your-email": "A new code has been sent to your email.",
+        "complete-profile": "Complete profile",
+        "whats-your-name": "What's your name?",
+        "next": "Next"
     },
     "zod": {
         "errors": {
