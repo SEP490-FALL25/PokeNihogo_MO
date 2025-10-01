@@ -1,24 +1,17 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { Stack } from 'expo-router';
 import React from 'react';
 
 export default function AuthLayout() {
     return (
-        <LinearGradient
-            colors={['#79B4C4', '#85C3C3', '#9BC7B9']}
-            style={{ flex: 1 }}
-        >
-            <Stack screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: 'transparent' }
-            }}
-            >
-                <Stack.Screen name="welcome" />
-                <Stack.Screen name="select-level" />
-                <Stack.Screen name="placement-test" />
-                <Stack.Screen name="choose-starter" />
-                {/* <Stack.Screen name="login" /> */}
-            </Stack>
-        </LinearGradient>
+        <Stack screenOptions={{ headerShown: false }}>
+
+            <Stack.Screen name="welcome" />
+            <Stack.Screen name="email" />
+            <Stack.Screen name="otp" />
+            <Stack.Screen name="create-account" />
+            <Stack.Screen name="choose-starter" />
+            <Stack.Screen name="select-level" />
+            <Stack.Screen name="placement-test" />
+        </Stack>
     );
 }

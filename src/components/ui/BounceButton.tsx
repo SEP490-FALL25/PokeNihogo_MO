@@ -17,8 +17,10 @@ const bounceButtonVariants = cva(
         destructive: "bg-destructive",
         outline: "border border-input bg-background",
         secondary: "bg-secondary",
-        ghost: "bg-transparent border border-green-600",
+        ghost: "bg-transparent border border-secondary-dark",
         link: "text-primary underline",
+        translucent: "bg-white/20 border border-white/50",
+        solid: "bg-secondary",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -38,12 +40,14 @@ const bounceButtonVariants = cva(
 const textVariants = cva("text-center font-bold", {
   variants: {
     variant: {
-      default: "text-green-700",
+      default: "text-secondary-dark",
       destructive: "text-white",
       outline: "text-gray-700",
       secondary: "text-white",
-      ghost: "text-gray-50",
+      ghost: "text-secondary",
       link: "text-primary",
+      translucent: "text-white [text-shadow:0px_1px_2px_rgba(0,0,0,0.25)]",
+      solid: "text-white [text-shadow:0px_1px_1px_rgba(0,0,0,0.3)]",
     },
     size: {
       default: "text-lg",
@@ -62,18 +66,21 @@ const textVariants = cva("text-center font-bold", {
 const shadowVariants = cva("absolute top-1.5 left-0 right-0 h-16 rounded-xl", {
   variants: {
     variant: {
-      default: "bg-green-600",
+      default: "bg-secondary-dark",
       destructive: "bg-red-800",
       outline: "border-2 border-gray-300",
       secondary: "bg-gray-500",
-      ghost: "bg-transparent border-b-8 border-green-600",
+      ghost: "bg-transparent border-b-4 -mt-1 border-secondary-dark",
       link: "bg-transparent",
+      translucent: "bg-black/10",
+      solid: "bg-secondary-dark",
     },
   },
   defaultVariants: {
     variant: "default",
   },
 });
+
 
 interface BounceButtonProps extends VariantProps<typeof bounceButtonVariants> {
   children?: React.ReactNode;
@@ -113,8 +120,7 @@ export default function BounceButton({
   const handlePress = () => {
     if (isDisabled) return;
     if (withHaptics) {
-      // Light impact to feel responsive without being intrusive
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
     }
     onPress?.();
   };
@@ -136,10 +142,13 @@ export default function BounceButton({
       className="relative self-center w-full"
       style={{ opacity: isDisabled ? 0.5 : 1 }}
     >
-      <Animated.View
-        className={`${shadowVariants({ variant })}`}
-        style={animatedShadowStyle}
-      />
+      {!disabled ? (
+        <Animated.View
+          className={`${shadowVariants({ variant })}`}
+          style={animatedShadowStyle}
+        />
+      ) : <></>}
+
       <Animated.View
         className={`${bounceButtonVariants({ variant, size, className })} h-16`}
         style={animatedButtonStyle}
@@ -153,9 +162,7 @@ export default function BounceButton({
           className="w-full h-full justify-center items-center"
         >
           {loading ? (
-            <LoadingContent variant={variant} size={size}>
-              {children}
-            </LoadingContent>
+            <LoadingContent variant={variant} size={size} />
           ) : (
             <Text className={textVariants({ variant, size })}>{children}</Text>
           )}
@@ -171,13 +178,15 @@ function getSpinnerColor(
   switch (variant) {
     case "destructive":
     case "secondary":
-      return "#ffffff"; // dark backgrounds
+    case "translucent":
+    case "solid":
+      return "#ffffff";
     case "default":
     case "outline":
     case "ghost":
     case "link":
     default:
-      return "#374151"; // gray-700 on light backgrounds
+      return "#374151";
   }
 }
 

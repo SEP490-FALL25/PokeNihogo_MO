@@ -1,26 +1,66 @@
-import React from 'react'
-import {
-    Text,
-    TextInput,
-    TextInputProps,
-    View,
-    ViewProps
-} from 'react-native'
+import EyeShowPassword from '@components/atoms/EyeShowPassword';
+import { cva, type VariantProps } from 'class-variance-authority';
+import * as React from 'react';
+import { Text, TextInput, type TextInputProps, TouchableOpacity, View, type ViewProps } from 'react-native';
 
-interface InputProps extends TextInputProps {
-  label?: string
-  error?: string
-  containerStyle?: ViewProps['style']
+import { cn } from '../../utils/cn';
+
+const inputContainerVariants = cva(
+  'flex-row items-center rounded-xl border h-16',
+  {
+    variants: {
+      variant: {
+        default: 'bg-white/20 border-white/50',
+        destructive: 'bg-white/20 border-red-500',
+        original: 'bg-white border-[#d1d5db]',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+    },
+  }
+);
+
+const textInputVariants = cva(
+  'flex-1 p-5',
+  {
+    variants: {
+      variant: {
+        default: 'text-white',
+        destructive: 'text-white',
+        original: 'text-[#111827]',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+    },
+  }
+);
+
+interface InputProps extends TextInputProps, VariantProps<typeof inputContainerVariants> {
+  label?: string;
+  error?: string;
+  containerStyle?: ViewProps['style'];
+  isPassword?: boolean;
 }
 
 const Input = React.forwardRef<TextInput, InputProps>(
-  ({ 
-    label, 
-    error, 
-    containerStyle, 
-    style, 
-    ...props 
-  }, ref) => {
+  (
+    {
+      label,
+      error,
+      containerStyle,
+      style,
+      variant,
+      className,
+      isPassword,
+      ...props
+    },
+    ref
+  ) => {
+    const [showPassword, setShowPassword] = React.useState(false);
+    const activeVariant = error ? 'destructive' : variant;
+
     return (
       <View style={[{ marginBottom: 16 }, containerStyle]}>
         {label && (
@@ -35,25 +75,24 @@ const Input = React.forwardRef<TextInput, InputProps>(
             {label}
           </Text>
         )}
-        <TextInput
-          ref={ref}
-          style={[
-            {
-              height: 40,
-              borderWidth: 1,
-              borderColor: error ? '#ef4444' : '#d1d5db',
-              borderRadius: 6,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-              fontSize: 16,
-              color: '#111827',
-              backgroundColor: '#ffffff',
-            },
-            style,
-          ]}
-          placeholderTextColor="#9ca3af"
-          {...props}
-        />
+        <View className={cn(inputContainerVariants({ variant: activeVariant, className }))}>
+          <TextInput
+            ref={ref}
+            className={cn(textInputVariants({ variant: activeVariant }))}
+            style={[{ fontSize: 16 }, style]}
+            secureTextEntry={isPassword && !showPassword}
+            placeholderTextColor={variant === 'original' ? '#9ca3af' : '#FFFFFF99'}
+            {...props}
+          />
+          {isPassword && (
+            <TouchableOpacity
+              className="p-4"
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <EyeShowPassword showPassword={showPassword} size={20} color="white" />
+            </TouchableOpacity>
+          )}
+        </View>
         {error && (
           <Text
             style={{
@@ -66,12 +105,12 @@ const Input = React.forwardRef<TextInput, InputProps>(
           </Text>
         )}
       </View>
-    )
+    );
   }
-)
+);
 
-Input.displayName = 'Input'
+Input.displayName = 'Input';
 
-export { Input }
-export type { InputProps }
+export { Input, inputContainerVariants as inputVariants };
+export type { InputProps };
 

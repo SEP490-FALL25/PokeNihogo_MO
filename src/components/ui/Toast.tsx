@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { Animated, Text, TouchableOpacity, View, ViewProps } from 'react-native'
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { Animated, Text, TextProps, TouchableOpacity, View, ViewProps } from 'react-native'
 
 interface ToastProps extends ViewProps {
   variant?: 'default' | 'destructive'
@@ -8,12 +8,12 @@ interface ToastProps extends ViewProps {
   onDismiss?: () => void
 }
 
-interface ToastTitleProps extends ViewProps {
+interface ToastTitleProps extends TextProps {
   children: React.ReactNode
   variant?: 'default' | 'destructive'
 }
 
-interface ToastDescriptionProps extends ViewProps {
+interface ToastDescriptionProps extends TextProps {
   children: React.ReactNode
   variant?: 'default' | 'destructive'
 }
@@ -203,7 +203,7 @@ const ToastDescription = React.forwardRef<Text, ToastDescriptionProps>(
 
 ToastDescription.displayName = 'ToastDescription'
 
-const ToastClose = React.forwardRef<TouchableOpacity, ToastCloseProps>(
+const ToastClose = React.forwardRef<React.ElementRef<typeof TouchableOpacity>, ToastCloseProps>(
   ({ onPress, style, ...props }, ref) => (
     <TouchableOpacity
       ref={ref}
@@ -244,8 +244,66 @@ interface ToastProviderProps {
   children: React.ReactNode
 }
 
+type ToastVariant = 'default' | 'destructive'
+
+interface ToastItem {
+  id: string
+  title?: string
+  description?: string
+  variant?: ToastVariant
+  duration?: number
+}
+
+interface ToastContextValue {
+  toasts: ToastItem[]
+  toast: (item: Omit<ToastItem, 'id'> & { id?: string }) => string
+  dismiss: (id?: string) => void
+}
+
+const ToastContext = createContext<ToastContextValue | undefined>(undefined)
+
+const generateId = () => Math.random().toString(36).slice(2)
+
 const ToastProvider = ({ children }: ToastProviderProps) => {
-  return <>{children}</>
+  const [toasts, setToasts] = useState<ToastItem[]>([])
+  const timersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+
+  const dismiss = useCallback((id?: string) => {
+    setToasts((prev) => (id ? prev.filter((t) => t.id !== id) : []))
+    if (id) {
+      if (timersRef.current[id]) {
+        clearTimeout(timersRef.current[id])
+        delete timersRef.current[id]
+      }
+    } else {
+      Object.values(timersRef.current).forEach(clearTimeout)
+      timersRef.current = {}
+    }
+  }, [])
+
+  const toast = useCallback<ToastContextValue['toast']>((item) => {
+    const id = item.id ?? generateId()
+    const duration = item.duration ?? 4000
+    setToasts((prev) => [{ id, ...item, duration }, ...prev])
+    timersRef.current[id] = setTimeout(() => dismiss(id), duration + 600)
+    return id
+  }, [dismiss])
+
+  const value = useMemo<ToastContextValue>(() => ({ toasts, toast, dismiss }), [toasts, toast, dismiss])
+
+  return (
+    <ToastContext.Provider value={value}>
+      {children}
+    </ToastContext.Provider>
+  )
+}
+
+const useToast = () => {
+  const ctx = useContext(ToastContext)
+  if (!ctx) {
+    throw new Error('useToast must be used within a ToastProvider')
+  }
+  return ctx
 }
 
 // Toast Viewport for positioning toasts
@@ -278,7 +336,31 @@ const ToastViewport = React.forwardRef<View, ToastViewportProps>(
 ToastViewport.displayName = 'ToastViewport'
 
 export {
-    Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport
+  Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport, useToast
 }
 export type { ToastCloseProps, ToastDescriptionProps, ToastProps, ToastTitleProps }
 
+export const Toaster = () => {
+  const { toasts, dismiss } = useToast()
+
+  if (!toasts.length) return null
+
+  return (
+    <ToastViewport>
+      {toasts.map((t) => (
+        <Toast
+          key={t.id}
+          variant={t.variant}
+          duration={t.duration}
+          onDismiss={() => dismiss(t.id)}
+        >
+          {t.title ? (
+            <ToastTitle variant={t.variant}>{t.title}</ToastTitle>
+          ) : (
+            <ToastDescription variant={t.variant}>{t.description ?? ''}</ToastDescription>
+          )}
+        </Toast>
+      ))}
+    </ToastViewport>
+  )
+}

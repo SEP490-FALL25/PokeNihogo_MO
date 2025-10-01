@@ -3,9 +3,8 @@ import z from "zod";
 /**
  * Login form data request
  */
-export const loginFormDataRequest = z.object({
-    email: z.string().email('Email không hợp lệ'),
-    password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
+export const EmailFormDataRequest = z.object({
+    email: z.string().email(),
 });
-export type ILoginFormDataRequest = z.infer<typeof loginFormDataRequest>;
+export type IEmailFormDataRequest = z.infer<typeof EmailFormDataRequest>;
 //-----------------End-Login-Request-----------------//

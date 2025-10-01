@@ -1,13 +1,13 @@
 enum AUTH {
     WELCOME = '/(auth)/welcome',
-    SELECT_LEVEL = '/(auth)/select-level',
-    PLACEMENT_TEST = '/(auth)/placement-test',
-    CHOOSE_STARTER = '/(auth)/choose-starter',
-    LOGIN = '/(auth)/login',
-    REGISTER = '/(auth)/register',
+    EMAIL = '/(auth)/email',
+    OTP = '/(auth)/otp',
+    CREATE_ACCOUNT = '/(auth)/create-account',
     FORGOT_PASSWORD = '/(auth)/forgot-password',
     RESET_PASSWORD = '/(auth)/reset-password',
-    OTP = '/(auth)/otp',
+    SELECT_LEVEL = '/(auth)/select-level',
+    PLACEMENT_TEST = '/(auth)/placement-test',
+    CHOOSE_STARTER = '/(auth)/choose-starter'
 }
 
 enum TABS {

@@ -1,3 +1,4 @@
+import { ToastProvider, Toaster } from '@components/ui/Toast';
 import useAuth from '@hooks/useAuth';
 import { useColorScheme } from '@hooks/useColorScheme';
 import '@i18n/i18n';
@@ -27,13 +28,16 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ReactQueryProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="auto" />
-        </ThemeProvider>
+        <ToastProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="index" />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="auto" />
+            <Toaster />
+          </ThemeProvider>
+        </ToastProvider>
       </ReactQueryProvider>
     </GestureHandlerRootView>
   );
