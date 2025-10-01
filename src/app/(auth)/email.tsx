@@ -69,12 +69,14 @@ export default function EmailScreen() {
 
         switch (status) {
             case UserStatus.ExistingUserSafeDevice:
+                setEmail(data.email);
                 router.push(ROUTES.AUTH.PASSWORD);
                 break;
 
             case UserStatus.ExistingUserNewDevice:
             case UserStatus.NewUser:
             default:
+                setEmail(data.email);
                 router.push(ROUTES.AUTH.OTP);
                 break;
         }
