@@ -15,7 +15,7 @@ import { makeZodI18nMap } from 'zod-i18n-map';
 
 export default function PasswordScreen() {
     const { t } = useTranslation();
-    const email = useEmailSelector(); // Lấy email đã được lưu từ bước trước
+    const email = useEmailSelector();
     z.setErrorMap(makeZodI18nMap({ t }));
 
     const passwordSchema = z.object({
@@ -55,7 +55,7 @@ export default function PasswordScreen() {
                 </View>
 
                 <View className="flex-1 px-5 pt-16">
-            
+
 
                     <Text className="text-3xl font-bold text-white mb-2">{t('auth.welcome-back')}</Text>
                     <Text className="text-base text-white/80 mb-8">{email}</Text>
@@ -78,7 +78,7 @@ export default function PasswordScreen() {
                             />
                         )}
                     />
-                    <TouchableOpacity className="items-end mt-4">
+                    <TouchableOpacity className="items-end mt-4" onPress={() => router.push(ROUTES.AUTH.OTP)}>
                         <Text className="text-base font-semibold text-white">{t('auth.forgot-your-password')}</Text>
                     </TouchableOpacity>
 
