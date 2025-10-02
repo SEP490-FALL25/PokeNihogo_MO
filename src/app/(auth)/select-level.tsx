@@ -1,9 +1,6 @@
-import BackScreen from "@components/mocules/Back";
+import StarterScreenLayout from "@components/layouts/StarterScreenLayout";
 import { ThemedText } from "@components/ThemedText";
-import { ThemedView } from "@components/ThemedView";
-// import { Button } from "@components/ui/Button";
 import BounceButton from "@components/ui/BounceButton";
-import { Progress } from "@components/ui/Progress";
 import { TypingText } from "@components/ui/TypingText";
 import { ROUTES } from "@routes/routes";
 import authService from "@services/auth";
@@ -13,7 +10,6 @@ import { router } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, Image, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 type Level = "N5" | "N4" | "N3";
 
@@ -214,150 +210,138 @@ export default function SelectLevelScreen() {
   };
 
   return (
-    <ThemedView style={{ flex: 1 }}>
-      <SafeAreaView
-        edges={["top", "bottom", "left", "right"]}
+    <StarterScreenLayout progress={33}>
+      {/* Mascot + speech bubble on top */}
+      <Animated.View
         style={{
-          flex: 1,
+          flexDirection: "row",
+          alignItems: "flex-start",
+          marginBottom: 16,
+          opacity: fadeAnim,
+          transform: [{ translateY }],
           paddingHorizontal: 20,
-          paddingTop: 4,
-          paddingBottom: 12,
         }}
       >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 8,
-            marginBottom: 12,
-          }}
-        >
-          <BackScreen noWrapper />
-          <View style={{ flex: 1 }}>
-            <Progress value={33} />
+        {/* Mascot Image */}
+        <View style={{ alignItems: "center", marginRight: 12 }}>
+          <View
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 16,
+              justifyContent: "center",
+              alignItems: "center",
+              overflow: "hidden",
+            }}
+          >
+            <Image
+              source={{ uri: mascot.imageUrl }}
+              style={{ width: "100%", height: "100%", resizeMode: "contain" }}
+            />
           </View>
         </View>
-        {/* Mascot + speech bubble on top */}
-        <Animated.View
-          style={{
-            flexDirection: "row",
-            alignItems: "flex-start",
-            marginBottom: 16,
-            opacity: fadeAnim,
-            transform: [{ translateY }],
-          }}
-        >
-          {/* Mascot Image */}
-          <View style={{ alignItems: "center", marginRight: 12 }}>
-            <View
-              style={{
-                width: 72,
-                height: 72,
-                borderRadius: 16,
-                justifyContent: "center",
-                alignItems: "center",
-                overflow: "hidden",
-              }}
-            >
-              <Image
-                source={{ uri: mascot.imageUrl }}
-                style={{ width: "100%", height: "100%", resizeMode: "contain" }}
-              />
-            </View>
-          </View>
 
-          {/* Speech Bubble with mascot color */}
-          <View style={{ flex: 1, position: "relative" }}>
-            <View
-              style={{
-                backgroundColor: mascot.color,
-                borderRadius: 16,
-                paddingVertical: 12,
-                paddingHorizontal: 14,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 4,
-                elevation: 3,
-              }}
-            >
-              <TypingText
-                messages={[mascot.message]}
-                typingSpeedMs={35}
-                deletingSpeedMs={20}
-                pauseBeforeStartMs={150}
-                pauseBetweenMessagesMs={1000}
-                loop={false}
-                showCursor
-                cursorChar="|"
-                containerStyle={{}}
-                textStyle={{
-                  color: "#ffffff",
-                  fontSize: 14,
-                  fontWeight: "700",
-                }}
-              />
-            </View>
-            {/* Tail pointing left to mascot */}
-            <View
-              style={{
-                position: "absolute",
-                left: -8,
-                top: 18,
-                width: 0,
-                height: 0,
-                borderRightWidth: 10,
-                borderRightColor: mascot.color,
-                borderTopWidth: 8,
-                borderTopColor: "transparent",
-                borderBottomWidth: 8,
-                borderBottomColor: "transparent",
+        {/* Speech Bubble with mascot color */}
+        <View style={{ flex: 1, position: "relative" }}>
+          <View
+            style={{
+              backgroundColor: mascot.color,
+              borderRadius: 16,
+              paddingVertical: 12,
+              paddingHorizontal: 14,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: 4,
+              elevation: 3,
+            }}
+          >
+            <TypingText
+              messages={[mascot.message]}
+              typingSpeedMs={35}
+              deletingSpeedMs={20}
+              pauseBeforeStartMs={150}
+              pauseBetweenMessagesMs={1000}
+              loop={false}
+              showCursor
+              cursorChar="|"
+              containerStyle={{}}
+              textStyle={{
+                color: "#ffffff",
+                fontSize: 14,
+                fontWeight: "700",
               }}
             />
           </View>
-        </Animated.View>
+          {/* Tail pointing left to mascot */}
+          <View
+            style={{
+              position: "absolute",
+              left: -8,
+              top: 18,
+              width: 0,
+              height: 0,
+              borderRightWidth: 10,
+              borderRightColor: mascot.color,
+              borderTopWidth: 8,
+              borderTopColor: "transparent",
+              borderBottomWidth: 8,
+              borderBottomColor: "transparent",
+            }}
+          />
+        </View>
+      </Animated.View>
 
-        {/* Divider */}
-        <View
-          style={{
-            height: 1,
-            backgroundColor: "rgba(0,0,0,0.06)",
-            marginBottom: 16,
-          }}
-        />
+      {/* Divider */}
+      <View
+        style={{
+          height: 1,
+          backgroundColor: "rgba(0,0,0,0.06)",
+          marginBottom: 16,
+          marginHorizontal: 20,
+        }}
+      />
 
+      <View style={{ paddingHorizontal: 20 }}>
         <ThemedText
           type="title"
           style={{ marginBottom: 12, textAlign: "center" }}
         >
           {t("auth.select_level.title")}
         </ThemedText>
+      </View>
 
-        <View style={{ flex: 1, justifyContent: "space-between" }}>
-          <View style={{ gap: 12 }}>
-            <LevelOption level="N5" label={t("auth.select_level.n5")} />
-            <LevelOption level="N4" label={t("auth.select_level.n4")} />
-            <LevelOption level="N3" label={t("auth.select_level.n3")} />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "space-between",
+          paddingHorizontal: 20,
+        }}
+      >
+        <View style={{ gap: 12 }}>
+          <LevelOption level="N5" label={t("auth.select_level.n5")} />
+          <LevelOption level="N4" label={t("auth.select_level.n4")} />
+          <LevelOption level="N3" label={t("auth.select_level.n3")} />
 
-            <TouchableOpacity
-              onPress={() => router.push(ROUTES.AUTH.PLACEMENT_TEST as any)}
-              activeOpacity={0.8}
-              style={{
-                paddingHorizontal: 16,
-                paddingVertical: 16,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: "#e5e7eb",
-                backgroundColor: "#ffffff",
-              }}
-            >
-              <ThemedText style={{ color: "#0ea5e9", fontWeight: "600" }}>
-                {t("auth.select_level.take_test")}
-              </ThemedText>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={() => router.push(ROUTES.AUTH.PLACEMENT_TEST as any)}
+            activeOpacity={0.8}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 16,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: "#e5e7eb",
+              backgroundColor: "#ffffff",
+            }}
+          >
+            <ThemedText style={{ color: "#0ea5e9", fontWeight: "600" }}>
+              {t("auth.select_level.take_test")}
+            </ThemedText>
+          </TouchableOpacity>
+        </View>
 
-          <View style={{ paddingTop: 12 }} />
+        <View style={{ paddingTop: 12 }}>
           <BounceButton
             variant="solid"
             size="full"
@@ -368,7 +352,7 @@ export default function SelectLevelScreen() {
             {t("common.continue")}
           </BounceButton>
         </View>
-      </SafeAreaView>
-    </ThemedView>
+      </View>
+    </StarterScreenLayout>
   );
 }

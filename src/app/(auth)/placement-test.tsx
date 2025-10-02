@@ -1,11 +1,9 @@
-import BackScreen from "@components/mocules/Back";
+import StarterScreenLayout from "@components/layouts/StarterScreenLayout";
 import { ThemedText } from "@components/ThemedText";
-import { ThemedView } from "@components/ThemedView";
 import BounceButton from "@components/ui/BounceButton";
 import { Button } from "@components/ui/Button";
 // removed Card in favor of MascotBubble
 import MascotBubble from "@components/ui/MascotBubble";
-import { Progress } from "@components/ui/Progress";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
 import * as Haptics from "expo-haptics";
@@ -13,8 +11,7 @@ import { router } from "expo-router";
 import * as Speech from "expo-speech";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Animated, TouchableOpacity, View } from "react-native";
 import questionsData from "../../../mock-data/placement-questions.json";
 
 type Difficulty = "N5" | "N4" | "N3";
@@ -46,6 +43,8 @@ export default function PlacementTestScreen() {
   const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
   const [answers, setAnswers] = React.useState<number[]>([]);
   const [recommended, setRecommended] = React.useState<Difficulty | null>(null);
+  const [isSpeaking, setIsSpeaking] = React.useState(false);
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const setLevel = useUserStore((s) => (s as any).setLevel);
 
@@ -56,6 +55,63 @@ export default function PlacementTestScreen() {
     Haptics.selectionAsync();
     setSelectedIndex(idx);
   };
+
+  const handleSpeak = () => {
+    if (isSpeaking) {
+      Speech.stop();
+      setIsSpeaking(false);
+      return;
+    }
+
+    setIsSpeaking(true);
+    Speech.speak(current.question, { 
+      language: "ja-JP",
+      onDone: () => {
+        setIsSpeaking(false);
+      },
+      onStopped: () => {
+        setIsSpeaking(false);
+      },
+      onError: () => {
+        setIsSpeaking(false);
+      }
+    });
+  };
+
+  // Animation effect khi đang speak
+  React.useEffect(() => {
+    if (isSpeaking) {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(scaleAnim, {
+            toValue: 1.2,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scaleAnim, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      loop.start();
+      return () => loop.stop();
+    } else {
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [isSpeaking, scaleAnim]);
+
+  // Cleanup khi component unmount
+  React.useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
 
   const onNext = () => {
     if (selectedIndex == null) return;
@@ -80,39 +136,25 @@ export default function PlacementTestScreen() {
 
   if (questions.length === 0) {
     return (
-      <ThemedView
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 20,
-        }}
-      >
-        <ThemedText>{t("auth.placement_test.no_questions")}</ThemedText>
-      </ThemedView>
+      <StarterScreenLayout progress={66}>
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <ThemedText>{t("auth.placement_test.no_questions")}</ThemedText>
+        </View>
+      </StarterScreenLayout>
     );
   }
 
   if (recommended) {
     return (
-      <ThemedView style={{ flex: 1 }}>
-        <SafeAreaView
-          edges={["top"]}
-          style={{ paddingHorizontal: 20, paddingTop: 4 }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
-              marginBottom: 12,
-            }}
-          >
-            <BackScreen noWrapper />
-            <View style={{ flex: 1 }}>
-              <Progress value={100} />
-            </View>
-          </View>
+      <StarterScreenLayout progress={100}>
+        <View style={{ paddingHorizontal: 20 }}>
           <ThemedText type="title" style={{ marginBottom: 12 }}>
             {t("auth.placement_test.recommended_title")}
           </ThemedText>
@@ -122,136 +164,122 @@ export default function PlacementTestScreen() {
           <Button onPress={onFinish}>
             {t("auth.placement_test.choose_starter")}
           </Button>
-        </SafeAreaView>
-      </ThemedView>
+        </View>
+      </StarterScreenLayout>
     );
   }
 
   const progress = (currentIndex + 1) / questions.length;
   const maxOptionsForGrid = 4;
-  const maxLenPerOption = 22;
+  const maxLenPerOption = 15; // Giảm từ 22 xuống 15 để dễ hiển thị 2x2
   const shouldUseGrid =
     !!current &&
     Array.isArray(current.options) &&
-    current.options.length <= maxOptionsForGrid &&
+    current.options.length === maxOptionsForGrid && // Chỉ dùng grid khi có đúng 4 options
     current.options.every((o) => (o ?? "").length <= maxLenPerOption);
   return (
-    <ThemedView style={{ flex: 1 }}>
-      <SafeAreaView
-        edges={["top", "bottom"]}
-        style={{
-          flex: 1,
-          paddingHorizontal: 20,
-          paddingTop: 4,
-          paddingBottom: 12,
-        }}
-      >
-        <View style={{ flex: 1 }}>
-          <View
+    <StarterScreenLayout progress={66}>
+      <View style={{ flex: 1 }}>
+        <View style={{ marginBottom: 12, paddingHorizontal: 20 }}>
+          <ThemedText
+            type="defaultSemiBold"
+            style={{ marginBottom: 6, fontSize: 30 }}
+          >
+            {t("auth.placement_test.progress_title")}
+          </ThemedText>
+          {/* <View
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
-              marginBottom: 12,
+              height: 6,
+              backgroundColor: "#e5e7eb",
+              borderRadius: 9999,
+              overflow: "hidden",
+              marginBottom: 6,
             }}
           >
-            <BackScreen noWrapper />
-            <View style={{ flex: 1 }}>
-              <Progress value={66} />
-            </View>
-          </View>
-          <View style={{ marginBottom: 12 }}>
-            <ThemedText
-              type="defaultSemiBold"
-              style={{ marginBottom: 6, fontSize: 30 }}
-            >
-              {t("auth.placement_test.progress_title")}
-            </ThemedText>
             <View
               style={{
-                height: 6,
-                backgroundColor: "#e5e7eb",
-                borderRadius: 9999,
-                overflow: "hidden",
-                marginBottom: 6,
+                width: `${progress * 100}%`,
+                backgroundColor: "#3b82f6",
+                height: "100%",
               }}
-            >
-              <View
-                style={{
-                  width: `${progress * 100}%`,
-                  backgroundColor: "#3b82f6",
-                  height: "100%",
-                }}
-              />
-            </View>
-          </View>
-          <View style={{ marginBottom: 24 }}>
-            <MascotBubble
-              bubbleStyle={{ paddingHorizontal: 24, paddingVertical: 100 }}
-              titleTextStyle={{ fontSize: 16 }}
-              contentTextStyle={{ fontSize: 20, lineHeight: 30 }}
-              mascotImageStyle={{ width: 84, height: 84 }}
-              action={
-                <TouchableOpacity
-                  onPress={() =>
-                    Speech.speak(current.question, { language: "ja-JP" })
-                  }
-                  accessibilityRole="button"
-                  accessibilityLabel="Speak question"
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 9999,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderWidth: 1,
-                    borderColor: "#e5e7eb",
-                    backgroundColor: "#ffffff",
-                  }}
-                >
-                  <ThemedText style={{ fontSize: 18 }}>🔊</ThemedText>
-                </TouchableOpacity>
-              }
-            >
-              {current.question}
-            </MascotBubble>
-          </View>
-          <View
-            style={{
-              gap: 12,
-              marginBottom: 24,
-              flexDirection: shouldUseGrid ? "row" : "column",
-              flexWrap: shouldUseGrid ? "wrap" : "nowrap",
-              justifyContent: shouldUseGrid ? "space-between" : "flex-start",
-            }}
-          >
-            {current.options.map((opt, idx) => {
-              const isActive = selectedIndex === idx;
-              return (
-                <TouchableOpacity
-                  key={idx}
-                  onPress={() => onChoose(idx)}
-                  activeOpacity={0.8}
-                  style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 16,
-                    borderRadius: 16,
-                    borderWidth: isActive ? 2 : 1,
-                    borderColor: isActive ? "#3b82f6" : "#e5e7eb",
-                    backgroundColor: isActive
-                      ? "rgba(59,130,246,0.1)"
-                      : "#ffffff",
-                    flexBasis: shouldUseGrid ? "48%" : "100%",
-                    minWidth: shouldUseGrid ? "48%" : "100%",
-                  }}
-                >
-                  <ThemedText type="defaultSemiBold">{`${String.fromCharCode(65 + idx)}. ${opt}`}</ThemedText>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+            />
+          </View> */}
         </View>
+        <View style={{ marginBottom: 24, paddingHorizontal: 20 }}>
+          <MascotBubble
+            bubbleStyle={{ paddingHorizontal: 24, paddingVertical: 100 }}
+            titleTextStyle={{ fontSize: 16 }}
+            contentTextStyle={{ fontSize: 20, lineHeight: 30 }}
+            mascotImageStyle={{ width: 84, height: 84 }}
+            action={
+              <TouchableOpacity
+                onPress={handleSpeak}
+                accessibilityRole="button"
+                accessibilityLabel={isSpeaking ? "Stop speaking" : "Speak question"}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 9999,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 1,
+                  borderColor: isSpeaking ? "#3b82f6" : "#e5e7eb",
+                  backgroundColor: isSpeaking ? "rgba(59,130,246,0.1)" : "#ffffff",
+                }}
+              >
+                <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                  <ThemedText style={{ fontSize: 18 }}>
+                    {isSpeaking ? "🔊" : "🔊"}
+                  </ThemedText>
+                </Animated.View>
+              </TouchableOpacity>
+            }
+          >
+            {current.question}
+          </MascotBubble>
+        </View>
+        <View
+          style={{
+            gap: 12,
+            marginBottom: 24,
+            marginTop: 20,
+            flexDirection: shouldUseGrid ? "row" : "column",
+            flexWrap: shouldUseGrid ? "wrap" : "nowrap",
+            justifyContent: shouldUseGrid ? "space-between" : "flex-start",
+            paddingHorizontal: 20,
+          }}
+        >
+          {current.options.map((opt, idx) => {
+            const isActive = selectedIndex === idx;
+            return (
+              <TouchableOpacity
+                key={idx}
+                onPress={() => onChoose(idx)}
+                activeOpacity={0.8}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 16,
+                  borderRadius: 16,
+                  borderWidth: isActive ? 2 : 1,
+                  borderColor: isActive ? "#3b82f6" : "#e5e7eb",
+                  backgroundColor: "#ffffff",
+                  width: shouldUseGrid ? "48%" : "100%",
+                  minHeight: 56,
+                }}
+              >
+                <ThemedText
+                  type="defaultSemiBold"
+                  style={{ textAlign: "center" }}
+                >
+                  {`${String.fromCharCode(65 + idx)}. ${opt}`}
+                </ThemedText>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+      <View style={{ paddingHorizontal: 20, paddingBottom: 12 }}>
         <BounceButton
           variant="solid"
           disabled={selectedIndex == null}
@@ -259,11 +287,12 @@ export default function PlacementTestScreen() {
         >
           {isLast ? t("common.finish") : t("common.next")}
         </BounceButton>
-      </SafeAreaView>
-    </ThemedView>
+      </View>
+    </StarterScreenLayout>
   );
 }
 
+//fake caculation
 function computeRecommendation(
   questions: Question[],
   answers: number[]
