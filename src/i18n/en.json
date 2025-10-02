@@ -63,6 +63,7 @@
             "recommended_title": "Your recommended level",
             "recommended_desc": "Based on your answers, we recommend: {{level}}",
             "choose_starter": "Choose Starter Pokémon",
+            "progress_title": "Placement Test",
             "progress": "Question {{current}} of {{total}}"
         },
         "choose_starter": {

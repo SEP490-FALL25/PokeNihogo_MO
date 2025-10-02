@@ -1,11 +1,5 @@
 [
   {
-    "id": "bulbasaur",
-    "name": "Bulbasaur",
-    "type": ["Grass", "Poison"],
-    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png"
-  },
-  {
     "id": "charmander",
     "name": "Charmander",
     "type": ["Fire"],
@@ -16,6 +10,54 @@
     "name": "Squirtle",
     "type": ["Water"],
     "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png"
+  },
+  {
+    "id": "bulbasaur",
+    "name": "Bulbasaur",
+    "type": ["Grass"],
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png"
+  },
+  {
+    "id": "pikachu",
+    "name": "Pikachu",
+    "type": ["Electric"],
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png"
+  },
+  {
+    "id": "cubone",
+    "name": "Cubone",
+    "type": ["Ground"],
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/104.png"
+  },
+  {
+    "id": "geodude",
+    "name": "Geodude",
+    "type": ["Rock"],
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/74.png"
+  },
+  {
+    "id": "pidgey",
+    "name": "Pidgey",
+    "type": ["Flying"],
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/16.png"
+  },
+  {
+    "id": "seel",
+    "name": "Seel",
+    "type": ["Ice"],
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/86.png"
+  },
+  {
+    "id": "vulpix",
+    "name": "Vulpix",
+    "type": ["Fire"],
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/37.png"
+  },
+  {
+    "id": "psyduck",
+    "name": "Psyduck",
+    "type": ["Water"],
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/54.png"
   }
 ]
 
