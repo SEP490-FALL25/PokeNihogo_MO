@@ -30,3 +30,16 @@ export const OtpFormDataRequest = z.object({
 });
 export type IOtpFormDataRequest = z.infer<typeof OtpFormDataRequest>;
 //-----------------End-Otp-Request-----------------//
+
+
+/**
+ * Create account form data request
+ */
+export const CreateAccountFormDataRequest = z.object({
+    name: z.string().min(1),
+    email: z.string().email(),
+    password: z.string().min(6),
+    confirmPassword: z.string().min(6),
+});
+export type ICreateAccountFormDataRequest = z.infer<typeof CreateAccountFormDataRequest>;
+//-----------------End-Create-Account-Request-----------------//

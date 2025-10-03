@@ -69,7 +69,8 @@ const handleError = (error: AxiosError) => {
             return Promise.reject(new Error(serverErrorMessage));
         }
     } else if (error.request) {
-        console.error('No Response:', error.request);
+        console.error('No Response from server:', error.request);
+        alert('Không thể kết nối với server. Vui lòng kiểm tra lại mạng của bạn');
     } else {
         console.error('Error:', error.message);
     }

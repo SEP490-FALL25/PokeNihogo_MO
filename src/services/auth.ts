@@ -1,5 +1,5 @@
 import { axiosClient } from "@configs/axios"
-import { IOtpFormDataRequest } from "@models/user/user.request"
+import { ICreateAccountFormDataRequest, IOtpFormDataRequest } from "@models/user/user.request"
 
 const authService = {
     checkEmail: async (email: string) => {
@@ -13,6 +13,9 @@ const authService = {
     },
     login: async (data: any) => {
         return axiosClient.post('/auth/login', data)
+    },
+    register: async (data: ICreateAccountFormDataRequest) => {
+        return axiosClient.post(`/auth/register`, data)
     },
     // mock API for setting user level
     setUserLevel: async (level: 'N5' | 'N4' | 'N3') => {
