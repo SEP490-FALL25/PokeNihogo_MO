@@ -12,3 +12,7 @@ export async function getValueForSecureStorage(key: string) {
         return null;
     }
 }
+
+export async function deleteSecureStorage(key: string) {
+    await SecureStore.deleteItemAsync(key);
+}

@@ -44,11 +44,14 @@ export default function EmailScreen() {
                 setEmail(data.email)
                 router.push({ pathname: ROUTES.AUTH.OTP, params: { type: res.data.data.type } })
                 break;
+            //Đã lưu IP máy dưới
             case 201:
                 setEmail(data.email)
-                router.push({ pathname: ROUTES.AUTH.OTP, params: { type: res.data.data.type } })
+                router.push({ pathname: ROUTES.AUTH.PASSWORD, params: { type: res.data.data.type } })
                 break;
-            case 400:
+            case 200:
+                setEmail(data.email)
+                router.push({ pathname: ROUTES.AUTH.OTP, params: { type: res.data.data.type } })
                 break;
 
 
