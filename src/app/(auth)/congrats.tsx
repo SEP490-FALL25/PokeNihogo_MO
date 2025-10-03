@@ -35,7 +35,7 @@ const CONFETTI_CONFIG = {
   autoStart: false,
   colors: CONFETTI_COLORS,
   explosionSpeed: 350,
-  fallSpeed: 2300,
+  fallSpeed: 2000,
 };
 
 const CONFETTI_DELAY = 500;
@@ -122,7 +122,7 @@ const CongratsScreen = React.memo(() => {
   }, []);
 
   return (
-    <StarterScreenLayout showBack={false}>
+    <StarterScreenLayout>
       <ConfettiCannon ref={confettiRef} {...CONFETTI_CONFIG} />
       <View style={containerStyle}>
         <View style={badgeStyle}>

@@ -1,7 +1,6 @@
 import StarterScreenLayout from "@components/layouts/StarterScreenLayout";
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
-import { Button } from "@components/ui/Button";
 // removed Card in favor of MascotBubble
 import MascotBubble from "@components/ui/MascotBubble";
 import { ROUTES } from "@routes/routes";
@@ -42,7 +41,6 @@ export default function PlacementTestScreen() {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
   const [answers, setAnswers] = React.useState<number[]>([]);
-  const [recommended, setRecommended] = React.useState<Difficulty | null>(null);
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -121,22 +119,17 @@ export default function PlacementTestScreen() {
     setSelectedIndex(null);
     if (isLast) {
       const rec = computeRecommendation(questions, nextAnswers);
-      setRecommended(rec);
+      setLevel(rec);
+      router.push(ROUTES.AUTH.SELECT_LEVEL as any);
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setCurrentIndex((i) => i + 1);
     }
   };
 
-  const onFinish = () => {
-    if (!recommended) return;
-    setLevel(recommended);
-    router.push(ROUTES.AUTH.CHOOSE_STARTER as any);
-  };
-
   if (questions.length === 0) {
     return (
-      <StarterScreenLayout progress={66}>
+      <StarterScreenLayout currentStep={1} totalSteps={2}>
         <View
           style={{
             flex: 1,
@@ -151,25 +144,6 @@ export default function PlacementTestScreen() {
     );
   }
 
-  if (recommended) {
-    return (
-      <StarterScreenLayout progress={100}>
-        <View style={{ paddingHorizontal: 20 }}>
-          <ThemedText type="title" style={{ marginBottom: 12 }}>
-            {t("auth.placement_test.recommended_title")}
-          </ThemedText>
-          <ThemedText style={{ marginBottom: 24 }}>
-            {t("auth.placement_test.recommended_desc", { level: recommended })}
-          </ThemedText>
-          <Button onPress={onFinish}>
-            {t("auth.placement_test.choose_starter")}
-          </Button>
-        </View>
-      </StarterScreenLayout>
-    );
-  }
-
-  const progress = (currentIndex + 1) / questions.length;
   const maxOptionsForGrid = 4;
   const maxLenPerOption = 15; // Giảm từ 22 xuống 15 để dễ hiển thị 2x2
   const shouldUseGrid =
@@ -178,7 +152,7 @@ export default function PlacementTestScreen() {
     current.options.length === maxOptionsForGrid && // Chỉ dùng grid khi có đúng 4 options
     current.options.every((o) => (o ?? "").length <= maxLenPerOption);
   return (
-    <StarterScreenLayout progress={66}>
+    <StarterScreenLayout currentStep={1} totalSteps={2}>
       <View style={{ flex: 1 }}>
         <View style={{ marginBottom: 12, paddingHorizontal: 20 }}>
           {/* <ThemedText
@@ -216,7 +190,9 @@ export default function PlacementTestScreen() {
                 onPress={handleSpeak}
                 accessibilityRole="button"
                 accessibilityLabel={
-                  isSpeaking ? "Stop speaking" : "Speak question"
+                  isSpeaking
+                    ? t("auth.placement_test.stop_speaking")
+                    : t("auth.placement_test.speak_question")
                 }
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 style={{

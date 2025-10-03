@@ -101,6 +101,16 @@ export default function SelectLevelScreen() {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const translateY = React.useRef(new Animated.Value(12)).current;
   const setLevel = useUserStore((s) => (s as any).setLevel);
+  const userLevel = useUserStore((s) => (s as any).level);
+  const [showTestResult, setShowTestResult] = React.useState(false);
+
+  // Check if user has completed placement test
+  React.useEffect(() => {
+    if (userLevel) {
+      setSelected(userLevel);
+      setShowTestResult(true);
+    }
+  }, [userLevel]);
 
   // Random mascot selection
   React.useEffect(() => {
@@ -164,6 +174,7 @@ export default function SelectLevelScreen() {
 
   const LevelOption = ({ level, label }: { level: Level; label: string }) => {
     const isActive = selected === level;
+    const isRecommended = showTestResult && userLevel === level;
     const meta = getLevelMeta(level);
 
     return (
@@ -189,6 +200,7 @@ export default function SelectLevelScreen() {
           flexDirection: "row",
           alignItems: "center",
           overflow: "hidden",
+          position: "relative",
         }}
       >
         <View
@@ -202,15 +214,27 @@ export default function SelectLevelScreen() {
         >
           <ThemedText style={{ fontSize: 16 }}>{meta.icon}</ThemedText>
         </View>
-        <ThemedText type="defaultSemiBold" style={{ marginLeft: 10 }}>
-          {label}
-        </ThemedText>
+        <View style={{ flex: 1, marginLeft: 10 }}>
+          <ThemedText type="defaultSemiBold">{label}</ThemedText>
+          {isRecommended && (
+            <ThemedText
+              style={{
+                fontSize: 12,
+                color: "#059669",
+                fontWeight: "600",
+                marginTop: 2,
+              }}
+            >
+              {t("auth.select_level.recommended_from_test")}
+            </ThemedText>
+          )}
+        </View>
       </TouchableOpacity>
     );
   };
 
   return (
-    <StarterScreenLayout progress={33}>
+    <StarterScreenLayout currentStep={1} totalSteps={2}>
       {/* Mascot + speech bubble on top */}
       <Animated.View
         style={{
@@ -309,6 +333,40 @@ export default function SelectLevelScreen() {
         >
           {t("auth.select_level.title")}
         </ThemedText>
+
+        {showTestResult && userLevel && (
+          <View
+            style={{
+              backgroundColor: "rgba(16, 185, 129, 0.1)",
+              borderWidth: 1,
+              borderColor: "#10b981",
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 16,
+              alignItems: "center",
+            }}
+          >
+            <ThemedText
+              style={{
+                color: "#059669",
+                fontWeight: "600",
+                fontSize: 16,
+                marginBottom: 4,
+              }}
+            >
+              {t("auth.select_level.test_result_title")}
+            </ThemedText>
+            <ThemedText
+              style={{
+                color: "#047857",
+                fontSize: 14,
+                textAlign: "center",
+              }}
+            >
+              {t("auth.select_level.test_result_desc", { level: userLevel })}
+            </ThemedText>
+          </View>
+        )}
       </View>
 
       <View

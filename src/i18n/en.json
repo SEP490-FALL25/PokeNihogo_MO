@@ -56,7 +56,10 @@
             "n5": "N5 (Beginner)",
             "n4": "N4 (Elementary)",
             "n3": "N3 (Intermediate)",
-            "take_test": "I'm not sure, give me a test!"
+            "take_test": "I'm not sure, give me a test!",
+            "test_result_title": "🎉 Placement Test Result",
+            "test_result_desc": "Based on the test results, we recommend you start with level {{level}}",
+            "recommended_from_test": "✨ Recommended from test"
         },
         "placement_test": {
             "no_questions": "No questions available.",
@@ -64,7 +67,9 @@
             "recommended_desc": "Based on your answers, we recommend: {{level}}",
             "choose_starter": "Choose Starter Pokémon",
             "progress_title": "Placement Test",
-            "progress": "Question {{current}} of {{total}}"
+            "progress": "Question {{current}} of {{total}}",
+            "speak_question": "Speak question",
+            "stop_speaking": "Stop speaking"
         },
         "choose_starter": {
             "title": "Choose your Partner!",

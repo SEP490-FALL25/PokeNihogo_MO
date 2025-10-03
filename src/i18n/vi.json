@@ -56,7 +56,10 @@
             "n5": "N5 (Sơ cấp)",
             "n4": "N4 (Sơ trung cấp)",
             "n3": "N3 (Trung cấp)",
-            "take_test": "Tôi không chắc, hãy kiểm tra trình độ!"
+            "take_test": "Tôi không chắc, hãy kiểm tra trình độ!",
+            "test_result_title": "🎉 Kết quả Placement Test",
+            "test_result_desc": "Dựa trên kết quả test, chúng tôi đề xuất bạn bắt đầu với level {{level}}",
+            "recommended_from_test": "✨ Được đề xuất từ test"
         },
         "placement_test": {
             "no_questions": "Không có câu hỏi nào.",
@@ -64,7 +67,9 @@
             "recommended_desc": "Dựa trên câu trả lời, đề xuất: {{level}}",
             "choose_starter": "Chọn Pokémon khởi đầu",
             "progress_title": "Kiểm tra trình độ",
-            "progress": "Câu hỏi {{current}} trên {{total}}"
+            "progress": "Câu hỏi {{current}} trên {{total}}",
+            "speak_question": "Đọc câu hỏi",
+            "stop_speaking": "Dừng đọc"
         },
         "choose_starter": {
             "title": "Chọn Đồng hành của bạn!",
