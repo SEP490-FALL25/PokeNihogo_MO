@@ -2,6 +2,7 @@ import StarterScreenLayout from "@components/layouts/StarterScreenLayout";
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
 // removed Card in favor of MascotBubble
+import AudioPlayer from "@components/ui/AudioPlayer";
 import MascotBubble from "@components/ui/MascotBubble";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
@@ -14,12 +15,15 @@ import { Animated, TouchableOpacity, View } from "react-native";
 import questionsData from "../../../mock-data/placement-questions.json";
 
 type Difficulty = "N5" | "N4" | "N3";
+type QuestionType = "text" | "audio";
 type Question = {
   id: string;
+  type: QuestionType;
   question: string;
   options: string[];
   answerIndex: number;
   difficulty: Difficulty;
+  audioUrl?: string; // URL của audio file (chỉ dành cho type "audio")
 };
 
 function shuffle<T>(array: T[]): T[] {
@@ -35,7 +39,12 @@ export default function PlacementTestScreen() {
   const { t } = useTranslation();
   const [questions] = React.useState<Question[]>(() => {
     const all = questionsData as Question[];
-    const shuffled = shuffle(all);
+    // Đảm bảo tất cả questions có type, mặc định là "text"
+    const normalizedQuestions = all.map(q => ({
+      ...q,
+      type: q.type || "text" as QuestionType
+    }));
+    const shuffled = shuffle(normalizedQuestions);
     return shuffled.slice(0, Math.min(10, shuffled.length));
   });
   const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -45,6 +54,7 @@ export default function PlacementTestScreen() {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const setLevel = useUserStore((s) => (s as any).setLevel);
+  const setHasCompletedPlacementTest = useUserStore((s) => (s as any).setHasCompletedPlacementTest);
 
   const current = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
@@ -120,7 +130,8 @@ export default function PlacementTestScreen() {
     if (isLast) {
       const rec = computeRecommendation(questions, nextAnswers);
       setLevel(rec);
-      router.push(ROUTES.AUTH.SELECT_LEVEL as any);
+      setHasCompletedPlacementTest(true);
+      router.replace(ROUTES.AUTH.SELECT_LEVEL as any);
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setCurrentIndex((i) => i + 1);
@@ -186,34 +197,41 @@ export default function PlacementTestScreen() {
             contentTextStyle={{ fontSize: 20, lineHeight: 30 }}
             mascotImageStyle={{ width: 84, height: 84 }}
             action={
-              <TouchableOpacity
-                onPress={handleSpeak}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  isSpeaking
-                    ? t("auth.placement_test.stop_speaking")
-                    : t("auth.placement_test.speak_question")
-                }
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 9999,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderWidth: 1,
-                  borderColor: isSpeaking ? "#3b82f6" : "#e5e7eb",
-                  backgroundColor: isSpeaking
-                    ? "rgba(59,130,246,0.1)"
-                    : "#ffffff",
-                }}
-              >
-                <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-                  <ThemedText style={{ fontSize: 18 }}>
-                    {isSpeaking ? "🔊" : "🔊"}
-                  </ThemedText>
-                </Animated.View>
-              </TouchableOpacity>
+              current.type === "audio" ? (
+                <AudioPlayer
+                  audioUrl={current.audioUrl || ""}
+                  style={{ alignItems: "center" }}
+                />
+              ) : (
+                <TouchableOpacity
+                  onPress={handleSpeak}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    isSpeaking
+                      ? t("auth.placement_test.stop_speaking")
+                      : t("auth.placement_test.speak_question")
+                  }
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 9999,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderWidth: 1,
+                    borderColor: isSpeaking ? "#3b82f6" : "#e5e7eb",
+                    backgroundColor: isSpeaking
+                      ? "rgba(59,130,246,0.1)"
+                      : "#ffffff",
+                  }}
+                >
+                  <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                    <ThemedText style={{ fontSize: 18 }}>
+                      {isSpeaking ? "🔊" : "🔊"}
+                    </ThemedText>
+                  </Animated.View>
+                </TouchableOpacity>
+              )
             }
           >
             {current.question}

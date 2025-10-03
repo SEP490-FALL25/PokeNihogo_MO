@@ -1,6 +1,7 @@
 [
   {
     "id": "q1",
+    "type": "text",
     "question": "Choose the correct Hiragana for 'a'.",
     "options": ["あ", "い", "う", "え"],
     "answerIndex": 0,
@@ -8,6 +9,7 @@
   },
   {
     "id": "q2",
+    "type": "text",
     "question": "What is the meaning of '食べる' (taberu)?",
     "options": ["to drink", "to eat", "to go", "to see"],
     "answerIndex": 1,
@@ -15,6 +17,7 @@
   },
   {
     "id": "q3",
+    "type": "text",
     "question": "Which particle marks the topic of a sentence?",
     "options": ["を", "が", "に", "は"],
     "answerIndex": 3,
@@ -22,20 +25,25 @@
   },
   {
     "id": "q4",
-    "question": "Choose the correct Kanji for 'water'.",
-    "options": ["火", "木", "水", "土"],
+    "type": "audio",
+    "question": "Listen to the audio and choose the correct meaning.",
+    "options": ["fire", "tree", "water", "earth"],
     "answerIndex": 2,
-    "difficulty": "N5"
+    "difficulty": "N5",
+    "audioUrl": "https://example.com/audio/water.mp3"
   },
   {
     "id": "q5",
-    "question": "What does '昨日' (kinou) mean?",
+    "type": "audio",
+    "question": "Listen to the audio and choose the correct meaning.",
     "options": ["today", "tomorrow", "yesterday", "last week"],
     "answerIndex": 2,
-    "difficulty": "N4"
+    "difficulty": "N4",
+    "audioUrl": "https://example.com/audio/yesterday.mp3"
   },
   {
     "id": "q6",
+    "type": "text",
     "question": "Select the correct form: 先生に 本を ___ ました (I gave).",
     "options": ["くれ", "あげ", "やり", "さし"],
     "answerIndex": 1,
@@ -43,6 +51,7 @@
   },
   {
     "id": "q7",
+    "type": "text",
     "question": "What is the polite past form of 行く?",
     "options": ["行きます", "行った", "行きました", "行って"],
     "answerIndex": 2,
@@ -50,13 +59,16 @@
   },
   {
     "id": "q8",
-    "question": "Choose the correct JLPT N3 grammar: ___ かぎり",
+    "type": "audio",
+    "question": "Listen to the audio and choose the correct grammar form.",
     "options": ["見る", "見た", "見るに", "見ている"],
     "answerIndex": 2,
-    "difficulty": "N3"
+    "difficulty": "N3",
+    "audioUrl": "https://res.cloudinary.com/dwewjjysv/video/upload/v1757170836/ngon-qua-ha-linda_oufiwi.mp3"
   },
   {
     "id": "q9",
+    "type": "text",
     "question": "The meaning of '一方だ' is closest to:",
     "options": ["be about to", "keep on", "as soon as", "while"],
     "answerIndex": 1,
@@ -64,6 +76,7 @@
   },
   {
     "id": "q10",
+    "type": "text",
     "question": "Select the best synonym for '必要' (hitsuyou).",
     "options": ["不要", "大切", "必要性", "可能"],
     "answerIndex": 2,
@@ -71,6 +84,7 @@
   },
   {
     "id": "q11",
+    "type": "text",
     "question": "Pick the correct reading for '川'.",
     "options": ["かわ", "やま", "はな", "かわい"],
     "answerIndex": 0,
@@ -78,6 +92,7 @@
   },
   {
     "id": "q12",
+    "type": "text",
     "question": "Which particle expresses purpose with motion verbs?",
     "options": ["を", "が", "に", "へ"],
     "answerIndex": 2,

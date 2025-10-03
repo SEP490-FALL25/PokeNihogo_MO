@@ -14,5 +14,7 @@ declare namespace ZUSTAND {
         setStarterId: (starterId: string) => void;
         isFirstTimeLogin?: boolean;
         setIsFirstTimeLogin: (value: boolean) => void;
+        hasCompletedPlacementTest: boolean;
+        setHasCompletedPlacementTest: (value: boolean) => void;
     }
 }
