@@ -3,8 +3,10 @@ import BackScreen from '@components/mocules/Back';
 import BounceButton from '@components/ui/BounceButton';
 import { Input } from '@components/ui/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { IBackendResponse } from '@models/backend/common';
 import { EmailFormDataRequest, IEmailFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
+import authService from '@services/auth';
 import { useUserSetEmail } from '@stores/user/user.selectors';
 import { router } from 'expo-router';
 import React from 'react';
@@ -34,54 +36,25 @@ export default function EmailScreen() {
         mode: 'onChange',
     });
 
-    const handleNextStep = (data: IEmailFormDataRequest) => {
+    const handleNextStep = async (data: IEmailFormDataRequest) => {
+        const res = await authService.checkEmail(data.email) as IBackendResponse<any>
 
-        enum UserStatus {
-            NewUser,
-            ExistingUserSafeDevice,
-            ExistingUserNewDevice,
-        }
-
-        const checkUserStatus = (email: string): { status: UserStatus, deviceToken?: string } => {
-            const emailWithAccountAndDevice = 'user.safe@gmail.com';
-            const emailWithAccountOnly = 'user.unsafe@gmail.com';
-
-            if (email === emailWithAccountAndDevice) {
-                return {
-                    status: UserStatus.ExistingUserSafeDevice,
-                    deviceToken: 'a-very-long-and-secure-device-token-12345'
-                };
-            }
-            if (email === emailWithAccountOnly) {
-                return { status: UserStatus.ExistingUserNewDevice };
-            }
-            return { status: UserStatus.NewUser };
-        };
-
-        const { status, deviceToken } = checkUserStatus(data.email);
-
-        const res = {
-            statusCode: 200,
-            email: data.email,
-            userExists: status !== UserStatus.NewUser,
-            deviceToken: deviceToken || null,
-        };
-
-        switch (status) {
-            case UserStatus.ExistingUserSafeDevice:
-                setEmail(data.email);
-                router.push(ROUTES.AUTH.PASSWORD);
+        switch (res.data.statusCode) {
+            case 401:
+                setEmail(data.email)
+                router.push({ pathname: ROUTES.AUTH.OTP, params: { type: res.data.data.type } })
+                break;
+            case 201:
+                setEmail(data.email)
+                router.push({ pathname: ROUTES.AUTH.OTP, params: { type: res.data.data.type } })
+                break;
+            case 400:
                 break;
 
-            case UserStatus.ExistingUserNewDevice:
-            case UserStatus.NewUser:
+
             default:
-                setEmail(data.email);
-                router.push(ROUTES.AUTH.OTP);
                 break;
         }
-
-        console.log('API Response:', res);
     };
     //-----------------------End-----------------------//
 

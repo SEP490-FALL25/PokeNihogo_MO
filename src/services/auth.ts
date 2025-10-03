@@ -1,6 +1,16 @@
 import { axiosClient } from "@configs/axios"
+import { IOtpFormDataRequest } from "@models/user/user.request"
 
 const authService = {
+    checkEmail: async (email: string) => {
+        return axiosClient.get(`/auth/check-email/${email}`)
+    },
+    verifyOtp: async (data: IOtpFormDataRequest) => {
+        return axiosClient.post(`/auth/verify-otp`, data)
+    },
+    resendOtp: async (email: string) => {
+        return axiosClient.post(`/auth/resend-verified-email/${email}`)
+    },
     login: async (data: any) => {
         return axiosClient.post('/auth/login', data)
     },

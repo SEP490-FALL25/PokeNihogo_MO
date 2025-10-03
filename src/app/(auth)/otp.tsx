@@ -3,35 +3,29 @@ import BackScreen from '@components/mocules/Back';
 import BounceButton from '@components/ui/BounceButton';
 import { useToast } from '@components/ui/Toast';
 import { ROUTES } from '@routes/routes';
+import authService from '@services/auth';
 import { useEmailSelector } from '@stores/user/user.selectors';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-// Giả lập hàm API
-const verifyOtpApi = async (email: string, otp: string): Promise<boolean> => {
-    console.log(`Verifying OTP ${otp} for email ${email}`);
-    // Giả lập: OTP đúng là '123456'
-    return new Promise(resolve => setTimeout(() => resolve(otp === '123456'), 1000));
-};
-
-const resendOtpApi = async (email: string) => {
-    console.log(`Resending OTP for email ${email}`);
-    return new Promise(resolve => setTimeout(resolve, 1000));
-};
-
-
 export default function OTPScreen() {
+    /**
+     * Define variables
+     */
     const { t } = useTranslation();
     const { toast } = useToast();
-    const email = useEmailSelector(); // Lấy email từ Zustand store
+    const email = useEmailSelector();
+    const { type } = useLocalSearchParams<{ type: string }>();
+    //-----------------------End-----------------------//
 
-    const [otp, setOtp] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [timer, setTimer] = useState(60);
 
-    // Effect để chạy đồng hồ đếm ngược
+    const [timer, setTimer] = useState<number>(60);
+
+    /**
+     * Handle timer
+     */
     useEffect(() => {
         if (timer === 0) return;
         const interval = setInterval(() => {
@@ -39,21 +33,30 @@ export default function OTPScreen() {
         }, 1000);
         return () => clearInterval(interval);
     }, [timer]);
+    //-----------------------End-----------------------//
+
+
+    /**
+     * Handle verify OTP
+     * Handle resend OTP
+     */
+    const [code, setCode] = useState<string>('');
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
     const handleVerify = async () => {
-        if (otp.length !== 6) return;
+        if (code.length !== 6) return;
 
         setIsSubmitting(true);
         try {
-            const isSuccess = await verifyOtpApi(email, otp);
-            if (isSuccess) {
-                toast({ title: "Success", description: t('auth.logged-in-successfully') });
-                router.replace(ROUTES.AUTH.RESET_PASSWORD);
-            } else {
-                toast({ variant: 'destructive', title: "Error", description: t('auth.invalid-otp-please-try-again') });
+            const res = await authService.verifyOtp({ email, code, type });
+            console.log(res);
+
+            if (res.data.statusCode === 201) {
+                toast({ title: 'Success', description: res.data.message });
+                router.replace(ROUTES.AUTH.CREATE_ACCOUNT);
             }
-        } catch (error) {
-            toast({ variant: 'destructive', title: "Error", description: t('auth.an-unexpected-error-occurred') });
+        } catch (error: any) {
+            toast({ variant: 'destructive', description: error.message });
         } finally {
             setIsSubmitting(false);
         }
@@ -61,10 +64,20 @@ export default function OTPScreen() {
 
     const handleResend = async () => {
         if (timer > 0) return;
-        await resendOtpApi(email);
-        setTimer(60); // Reset đồng hồ
-        toast({ title: "Sent", description: t('auth.a-new-code-has-been-sent-to-your-email') });
+        try {
+            const res = await authService.resendOtp(email);
+            console.log(res);
+
+            if (res.data.statusCode === 201) {
+                toast({ description: res.data.data.message });
+                setTimer(60);
+            }
+        } catch (error: any) {
+            toast({ variant: 'destructive', description: error.message });
+            setTimer(60);
+        }
     };
+    //-----------------------End-----------------------//
 
     return (
         <AuthScreenLayout>
@@ -84,8 +97,8 @@ export default function OTPScreen() {
 
                     {/* Ô nhập OTP */}
                     <TextInput
-                        value={otp}
-                        onChangeText={setOtp}
+                        value={code}
+                        onChangeText={setCode}
                         className="text-white text-4xl text-center font-bold tracking-[16px]"
                         maxLength={6}
                         keyboardType="number-pad"
@@ -109,7 +122,7 @@ export default function OTPScreen() {
                             variant="solid"
                             loading={isSubmitting}
                             // Nút bị vô hiệu hóa khi chưa nhập đủ 6 số
-                            disabled={otp.length !== 6 || isSubmitting}
+                            disabled={code.length !== 6 || isSubmitting}
                             onPress={handleVerify}
                         >
                             <Text className="text-white font-bold text-lg">{t('auth.verify')}</Text>

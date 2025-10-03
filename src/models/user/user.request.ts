@@ -25,7 +25,8 @@ export type IPasswordFormDataRequest = z.infer<typeof PasswordFormDataRequest>;
  */
 export const OtpFormDataRequest = z.object({
     email: z.string().email(),
-    otp: z.string().min(6),
+    code: z.string().min(6),
+    type: z.string(),
 });
 export type IOtpFormDataRequest = z.infer<typeof OtpFormDataRequest>;
 //-----------------End-Otp-Request-----------------//
