@@ -102,15 +102,20 @@ export default function SelectLevelScreen() {
   const translateY = React.useRef(new Animated.Value(12)).current;
   const setLevel = useUserStore((s) => (s as any).setLevel);
   const userLevel = useUserStore((s) => (s as any).level);
+  const hasCompletedPlacementTest = useUserStore((s) => (s as any).hasCompletedPlacementTest);
+  const setHasCompletedPlacementTest = useUserStore((s) => (s as any).setHasCompletedPlacementTest);
   const [showTestResult, setShowTestResult] = React.useState(false);
 
   // Check if user has completed placement test
   React.useEffect(() => {
-    if (userLevel) {
+    if (userLevel && hasCompletedPlacementTest) {
       setSelected(userLevel);
       setShowTestResult(true);
+    } else if (userLevel) {
+      setSelected(userLevel);
+      setShowTestResult(false);
     }
-  }, [userLevel]);
+  }, [userLevel, hasCompletedPlacementTest]);
 
   // Random mascot selection
   React.useEffect(() => {
@@ -174,7 +179,7 @@ export default function SelectLevelScreen() {
 
   const LevelOption = ({ level, label }: { level: Level; label: string }) => {
     const isActive = selected === level;
-    const isRecommended = showTestResult && userLevel === level;
+    const isRecommended = showTestResult && hasCompletedPlacementTest && userLevel === level;
     const meta = getLevelMeta(level);
 
     return (
@@ -182,6 +187,8 @@ export default function SelectLevelScreen() {
         onPress={() => {
           Haptics.selectionAsync();
           setSelected(level);
+          // Reset flag khi user chọn level trực tiếp (không qua test)
+          setHasCompletedPlacementTest(false);
         }}
         activeOpacity={0.8}
         style={{

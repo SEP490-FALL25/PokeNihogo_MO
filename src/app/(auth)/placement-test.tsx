@@ -45,6 +45,7 @@ export default function PlacementTestScreen() {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const setLevel = useUserStore((s) => (s as any).setLevel);
+  const setHasCompletedPlacementTest = useUserStore((s) => (s as any).setHasCompletedPlacementTest);
 
   const current = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
@@ -120,7 +121,8 @@ export default function PlacementTestScreen() {
     if (isLast) {
       const rec = computeRecommendation(questions, nextAnswers);
       setLevel(rec);
-      router.push(ROUTES.AUTH.SELECT_LEVEL as any);
+      setHasCompletedPlacementTest(true);
+      router.replace(ROUTES.AUTH.SELECT_LEVEL as any);
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setCurrentIndex((i) => i + 1);
