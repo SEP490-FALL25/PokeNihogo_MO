@@ -1,13 +1,17 @@
 import * as SecureStore from 'expo-secure-store';
 
 import { ROUTES } from '@routes/routes';
+import { useLanguageSelector } from '@stores/global/global.selectors';
 import axios, { AxiosError } from 'axios';
 import { router } from 'expo-router';
+
+const locale = useLanguageSelector();
 
 const axiosClient = axios.create({
     baseURL: process.env.EXPO_PUBLIC_API_URL,
     headers: {
         'Content-Type': 'application/json',
+        'Accept-Language': locale,
     },
 });
 
@@ -15,6 +19,7 @@ const axiosPrivate = axios.create({
     baseURL: process.env.EXPO_PUBLIC_API_URL,
     headers: {
         'Content-Type': 'application/json',
+        'Accept-Language': locale,
     },
     withCredentials: true,
 });
