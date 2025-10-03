@@ -64,7 +64,7 @@ export default function PlacementTestScreen() {
     }
 
     setIsSpeaking(true);
-    Speech.speak(current.question, { 
+    Speech.speak(current.question, {
       language: "ja-JP",
       onDone: () => {
         setIsSpeaking(false);
@@ -74,7 +74,7 @@ export default function PlacementTestScreen() {
       },
       onError: () => {
         setIsSpeaking(false);
-      }
+      },
     });
   };
 
@@ -181,12 +181,12 @@ export default function PlacementTestScreen() {
     <StarterScreenLayout progress={66}>
       <View style={{ flex: 1 }}>
         <View style={{ marginBottom: 12, paddingHorizontal: 20 }}>
-          <ThemedText
+          {/* <ThemedText
             type="defaultSemiBold"
             style={{ marginBottom: 6, fontSize: 30 }}
           >
             {t("auth.placement_test.progress_title")}
-          </ThemedText>
+          </ThemedText> */}
           {/* <View
             style={{
               height: 6,
@@ -215,7 +215,9 @@ export default function PlacementTestScreen() {
               <TouchableOpacity
                 onPress={handleSpeak}
                 accessibilityRole="button"
-                accessibilityLabel={isSpeaking ? "Stop speaking" : "Speak question"}
+                accessibilityLabel={
+                  isSpeaking ? "Stop speaking" : "Speak question"
+                }
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 style={{
                   width: 40,
@@ -225,7 +227,9 @@ export default function PlacementTestScreen() {
                   justifyContent: "center",
                   borderWidth: 1,
                   borderColor: isSpeaking ? "#3b82f6" : "#e5e7eb",
-                  backgroundColor: isSpeaking ? "rgba(59,130,246,0.1)" : "#ffffff",
+                  backgroundColor: isSpeaking
+                    ? "rgba(59,130,246,0.1)"
+                    : "#ffffff",
                 }}
               >
                 <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
