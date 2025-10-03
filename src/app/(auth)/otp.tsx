@@ -52,7 +52,7 @@ export default function OTPScreen() {
             console.log(res);
 
             if (res.data.statusCode === 201) {
-                toast({ title: 'Success', description: res.data.message });
+                toast({ variant: 'Success', description: res.data.message });
                 router.replace(ROUTES.AUTH.CREATE_ACCOUNT);
             }
         } catch (error: any) {

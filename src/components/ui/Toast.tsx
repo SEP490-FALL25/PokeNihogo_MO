@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { Animated, Text, TextProps, TouchableOpacity, View, ViewProps } from 'react-native'
 
 interface ToastProps extends ViewProps {
-  variant?: 'default' | 'destructive'
+  variant?: 'default' | 'destructive' | 'Success'
   children: React.ReactNode
   duration?: number
   onDismiss?: () => void
@@ -10,12 +10,12 @@ interface ToastProps extends ViewProps {
 
 interface ToastTitleProps extends TextProps {
   children: React.ReactNode
-  variant?: 'default' | 'destructive'
+  variant?: 'default' | 'destructive' | 'Success'
 }
 
 interface ToastDescriptionProps extends TextProps {
   children: React.ReactNode
-  variant?: 'default' | 'destructive'
+  variant?: 'default' | 'destructive' | 'Success'
 }
 
 interface ToastCloseProps extends ViewProps {
@@ -29,7 +29,7 @@ const ToastIcon = ({ variant }: { variant?: string }) => {
     borderRadius: 16,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
-    backgroundColor: variant === 'destructive' ? '#fecaca' : '#bbf7d0',
+    backgroundColor: variant === 'destructive' ? '#fecaca' : variant === 'Success' ? '#d1fae5' : '#bbf7d0',
   }
 
   return (
@@ -37,11 +37,11 @@ const ToastIcon = ({ variant }: { variant?: string }) => {
       <Text
         style={{
           fontSize: 16,
-          color: variant === 'destructive' ? '#dc2626' : '#16a34a',
+          color: variant === 'destructive' ? '#dc2626' : variant === 'Success' ? '#10b981' : '#16a34a',
           fontWeight: 'bold',
         }}
       >
-        {variant === 'destructive' ? '✕' : '✓'}
+        {variant === 'destructive' ? '✕' : variant === 'Success' ? '✓' : '✓'}
       </Text>
     </View>
   )
@@ -110,6 +110,12 @@ const Toast = React.forwardRef<View, ToastProps>(
             borderColor: '#fecaca',
             borderWidth: 1,
           }
+        case 'Success':
+          return {
+            backgroundColor: '#d1fae5',
+            borderColor: '#10b981',
+            borderWidth: 1,
+          }
         default:
           return {
             backgroundColor: '#f0fdf4',
@@ -164,7 +170,7 @@ const ToastTitle = React.forwardRef<Text, ToastTitleProps>(
           {
             fontSize: 16,
             fontWeight: '700',
-            color: variant === 'destructive' ? '#b91c1c' : '#15803d',
+            color: variant === 'destructive' ? '#b91c1c' : variant === 'Success' ? '#10b981' : '#15803d',
             flex: 1,
           },
           style,
@@ -188,7 +194,7 @@ const ToastDescription = React.forwardRef<Text, ToastDescriptionProps>(
         style={[
           {
             fontSize: 14,
-            color: variant === 'destructive' ? '#dc2626' : '#16a34a',
+            color: variant === 'destructive' ? '#dc2626' : variant === 'Success' ? '#10b981' : '#16a34a',
             flex: 1,
           },
           style,
@@ -244,7 +250,7 @@ interface ToastProviderProps {
   children: React.ReactNode
 }
 
-type ToastVariant = 'default' | 'destructive'
+type ToastVariant = 'default' | 'destructive' | 'Success'
 
 interface ToastItem {
   id: string
@@ -355,7 +361,9 @@ export const Toaster = () => {
           onDismiss={() => dismiss(t.id)}
         >
 
-          <ToastTitle variant={t.variant}>{t.title}</ToastTitle>
+          {t.title && (
+            <ToastTitle variant={t.variant}>{t.title}</ToastTitle>
+          )}
           <ToastDescription variant={t.variant}>{t.description ?? ''}</ToastDescription>
 
         </Toast>
