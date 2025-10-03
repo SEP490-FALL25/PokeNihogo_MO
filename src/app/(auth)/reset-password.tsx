@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { IResetPasswordFormDataRequest, ResetPasswordFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
+import { useEmailSelector } from '@stores/user/user.selectors';
 import { router } from 'expo-router';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -21,6 +22,7 @@ export default function ResetPasswordScreen() {
      */
     const { t } = useTranslation();
     const { toast } = useToast();
+    const email = useEmailSelector();
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
 
@@ -36,7 +38,7 @@ export default function ResetPasswordScreen() {
     } = useForm<IResetPasswordFormDataRequest>({
         resolver: zodResolver(ResetPasswordFormDataRequest),
         defaultValues: {
-            email: '',
+            email: email,
             newPassword: '',
             confirmNewPassword: ''
         },
@@ -47,7 +49,7 @@ export default function ResetPasswordScreen() {
         try {
             const res = await authService.resetPassword(data);
 
-            if (res.data.statusCode === 200) {
+            if (res.data.statusCode === 201) {
                 toast({ variant: 'Success', description: res.data.message });
                 router.replace(ROUTES.AUTH.PASSWORD);
             }
