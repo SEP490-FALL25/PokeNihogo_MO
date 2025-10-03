@@ -30,3 +30,36 @@ export const OtpFormDataRequest = z.object({
 });
 export type IOtpFormDataRequest = z.infer<typeof OtpFormDataRequest>;
 //-----------------End-Otp-Request-----------------//
+
+
+export const LoginFormDataRequest = z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+});
+export type ILoginFormDataRequest = z.infer<typeof LoginFormDataRequest>;
+//-----------------End-Login-Request-----------------//
+
+
+/**
+ * Create account form data request
+ */
+export const CreateAccountFormDataRequest = z.object({
+    name: z.string().min(1),
+    email: z.string().email(),
+    password: z.string().min(6),
+    confirmPassword: z.string().min(6),
+});
+export type ICreateAccountFormDataRequest = z.infer<typeof CreateAccountFormDataRequest>;
+//-----------------End-Create-Account-Request-----------------//
+
+
+/**
+ * Reset password form data request
+ */
+export const ResetPasswordFormDataRequest = z.object({
+    email: z.string().email(),
+    newPassword: z.string().min(6),
+    confirmNewPassword: z.string().min(6),
+});
+export type IResetPasswordFormDataRequest = z.infer<typeof ResetPasswordFormDataRequest>;
+//-----------------End-Reset-Password-Request-----------------//

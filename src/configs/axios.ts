@@ -1,4 +1,3 @@
-import { decodeToken } from '@utils/decode';
 import * as SecureStore from 'expo-secure-store';
 
 import { ROUTES } from '@routes/routes';
@@ -24,16 +23,16 @@ const axiosPrivate = axios.create({
 axiosPrivate.interceptors.request.use(
     async (config) => {
 
-        const token = await SecureStore.getItemAsync('token');
-        const decodedToken = await decodeToken();
-        const userRole = decodedToken?.role;
+        const token = await SecureStore.getItemAsync('accessToken');
+        // const decodedToken = await decodeToken();
+        // const userRole = decodedToken?.role;
 
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
-        if (userRole) {
-            config.headers['X-User-Role'] = userRole; // Gửi role trong header (tuỳ backend có cần hay không)
-        }
+        // if (userRole) {
+        //     config.headers['X-User-Role'] = userRole; // Gửi role trong header (tuỳ backend có cần hay không)
+        // }
         // if (userRole) {
         //     config.headers['X-User-Role'] = userRole;
         // }
@@ -50,7 +49,7 @@ axiosPrivate.interceptors.response.use(
         if (error.response?.status === 401) {
             // Xử lý khi bị unauthorized
             console.error('Unauthorized! Token expired or invalid. Logging out...');
-            await SecureStore.deleteItemAsync('token');
+            await SecureStore.deleteItemAsync('accessToken');
             await SecureStore.deleteItemAsync('refreshToken');
             router.replace(ROUTES.AUTH.WELCOME);
             alert('Token expired or invalid. Logging out...');
@@ -69,7 +68,8 @@ const handleError = (error: AxiosError) => {
             return Promise.reject(new Error(serverErrorMessage));
         }
     } else if (error.request) {
-        console.error('No Response:', error.request);
+        console.error('No Response from server:', error.request);
+        alert('Không thể kết nối với server. Vui lòng kiểm tra lại mạng của bạn');
     } else {
         console.error('Error:', error.message);
     }
