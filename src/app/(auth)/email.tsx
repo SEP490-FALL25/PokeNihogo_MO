@@ -38,8 +38,6 @@ export default function EmailScreen() {
 
     const handleNextStep = async (data: IEmailFormDataRequest) => {
         const res = await authService.checkEmail(data.email) as IBackendResponse<any>
-        console.log(">>>>>>>>>>>>>>.", res);
-
 
         switch (res.data.statusCode) {
             case 401:
@@ -55,7 +53,6 @@ export default function EmailScreen() {
                 setEmail(data.email)
                 router.push({ pathname: ROUTES.AUTH.PASSWORD, params: { type: res.data.data.type } })
                 break;
-
 
             default:
                 break;

@@ -17,6 +17,9 @@ const authService = {
     register: async (data: ICreateAccountFormDataRequest) => {
         return axiosClient.post(`/auth/register`, data)
     },
+    forgotPassword: async ({ email }: { email: string }) => {
+        return axiosClient.post(`/auth/forgot-password`, { email })
+    },
     // mock API for setting user level
     setUserLevel: async (level: 'N5' | 'N4' | 'N3') => {
         // mock: simulate network latency

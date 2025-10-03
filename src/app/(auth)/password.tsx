@@ -27,6 +27,11 @@ export default function PasswordScreen() {
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
 
+
+    /**
+     * Handle form validation
+     * Handle login
+     */
     const {
         control,
         handleSubmit,
@@ -53,6 +58,27 @@ export default function PasswordScreen() {
             toast({ variant: 'destructive', description: error.message });
         }
     };
+    //-----------------------End-----------------------//
+
+
+    /**
+     * Handle forgot password
+     */
+    const handleForgotPassword = async () => {
+        try {
+            const res = await authService.forgotPassword({ email });
+
+            console.log(res);
+
+            if (res.data.statusCode === 200) {
+                toast({ variant: 'Success', description: res.data.message });
+                router.push({ pathname: ROUTES.AUTH.OTP, params: { type: res.data.data.type } });
+            }
+        } catch (error: any) {
+            toast({ variant: 'destructive', description: error.message });
+        }
+    };
+    //-----------------------End-----------------------//
 
     return (
         <AuthScreenLayout>
@@ -89,7 +115,7 @@ export default function PasswordScreen() {
                         )}
                     />
                     <View className="items-end mt-4">
-                        <TouchableOpacity onPress={() => router.push(ROUTES.AUTH.OTP)}>
+                        <TouchableOpacity onPress={handleForgotPassword}>
                             <Text className="text-base font-semibold text-white">{t('auth.forgot-your-password')}</Text>
                         </TouchableOpacity>
                     </View>

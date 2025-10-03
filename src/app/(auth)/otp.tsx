@@ -54,6 +54,9 @@ export default function OTPScreen() {
             if (res.data.statusCode === 201) {
                 toast({ variant: 'Success', description: res.data.message });
                 router.replace(ROUTES.AUTH.CREATE_ACCOUNT);
+            } else if (res.data.statusCode === 200) {
+                toast({ variant: 'Success', description: res.data.message });
+                router.replace(ROUTES.AUTH.RESET_PASSWORD);
             }
         } catch (error: any) {
             toast({ variant: 'destructive', description: error.message });
