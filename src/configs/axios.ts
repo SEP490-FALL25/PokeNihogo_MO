@@ -1,4 +1,3 @@
-import { decodeToken } from '@utils/decode';
 import * as SecureStore from 'expo-secure-store';
 
 import { ROUTES } from '@routes/routes';
@@ -25,15 +24,15 @@ axiosPrivate.interceptors.request.use(
     async (config) => {
 
         const token = await SecureStore.getItemAsync('accessToken');
-        const decodedToken = await decodeToken();
-        const userRole = decodedToken?.role;
+        // const decodedToken = await decodeToken();
+        // const userRole = decodedToken?.role;
 
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
-        if (userRole) {
-            config.headers['X-User-Role'] = userRole; // Gửi role trong header (tuỳ backend có cần hay không)
-        }
+        // if (userRole) {
+        //     config.headers['X-User-Role'] = userRole; // Gửi role trong header (tuỳ backend có cần hay không)
+        // }
         // if (userRole) {
         //     config.headers['X-User-Role'] = userRole;
         // }

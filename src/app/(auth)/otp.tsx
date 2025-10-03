@@ -5,6 +5,7 @@ import { useToast } from '@components/ui/Toast';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
 import { useEmailSelector } from '@stores/user/user.selectors';
+import { saveSecureStorage } from '@utils/secure-storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -56,6 +57,7 @@ export default function OTPScreen() {
                 router.replace(ROUTES.AUTH.CREATE_ACCOUNT);
             } else if (res.data.statusCode === 200) {
                 toast({ variant: 'Success', description: res.data.message });
+                saveSecureStorage('accessToken', res.data.data.accessToken);
                 router.replace(ROUTES.AUTH.RESET_PASSWORD);
             }
         } catch (error: any) {

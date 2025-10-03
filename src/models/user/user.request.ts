@@ -51,3 +51,15 @@ export const CreateAccountFormDataRequest = z.object({
 });
 export type ICreateAccountFormDataRequest = z.infer<typeof CreateAccountFormDataRequest>;
 //-----------------End-Create-Account-Request-----------------//
+
+
+/**
+ * Reset password form data request
+ */
+export const ResetPasswordFormDataRequest = z.object({
+    email: z.string().email(),
+    newPassword: z.string().min(6),
+    confirmNewPassword: z.string().min(6),
+});
+export type IResetPasswordFormDataRequest = z.infer<typeof ResetPasswordFormDataRequest>;
+//-----------------End-Reset-Password-Request-----------------//
