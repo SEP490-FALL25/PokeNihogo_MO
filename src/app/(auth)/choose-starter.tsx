@@ -39,7 +39,7 @@ export default function ChooseStarterScreen() {
   }, [selected, setStarterId, setIsFirstTimeLogin]);
 
   return (
-    <StarterScreenLayout progress={100}>
+    <StarterScreenLayout currentStep={2} totalSteps={2}>
       <View style={{ paddingHorizontal: 20 }}>
         <ThemedText type="title" style={{ marginBottom: 16 }}>
           {t("auth.choose_starter.title")}
@@ -50,8 +50,11 @@ export default function ChooseStarterScreen() {
         data={list}
         numColumns={2}
         keyExtractor={(item) => item.id}
-        style={{ flex: 1, paddingHorizontal: 20 }}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        style={{
+          height: 432, // Increased height: (200 + 16) * 2 = 432px for 2 rows
+          paddingHorizontal: 20,
+        }}
+        contentContainerStyle={{ paddingBottom: 0 }}
         columnWrapperStyle={{ justifyContent: "space-between" }}
         showsVerticalScrollIndicator={false}
         removeClippedSubviews={true}
