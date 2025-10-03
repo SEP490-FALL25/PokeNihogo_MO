@@ -62,7 +62,12 @@ axiosPrivate.interceptors.response.use(
 // Xử lý lỗi toàn cục
 const handleError = (error: AxiosError) => {
     if (error.response) {
-        console.error('Server Error:', error.response.data);
+        const serverErrorData = error.response.data as { message?: string };
+        const serverErrorMessage = serverErrorData?.message;
+
+        if (serverErrorMessage) {
+            return Promise.reject(new Error(serverErrorMessage));
+        }
     } else if (error.request) {
         console.error('No Response:', error.request);
     } else {

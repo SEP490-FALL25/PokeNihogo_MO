@@ -354,11 +354,10 @@ export const Toaster = () => {
           duration={t.duration}
           onDismiss={() => dismiss(t.id)}
         >
-          {t.title ? (
-            <ToastTitle variant={t.variant}>{t.title}</ToastTitle>
-          ) : (
-            <ToastDescription variant={t.variant}>{t.description ?? ''}</ToastDescription>
-          )}
+
+          <ToastTitle variant={t.variant}>{t.title}</ToastTitle>
+          <ToastDescription variant={t.variant}>{t.description ?? ''}</ToastDescription>
+
         </Toast>
       ))}
     </ToastViewport>
