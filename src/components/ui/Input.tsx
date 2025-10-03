@@ -1,4 +1,4 @@
-import EyeShowPassword from '@components/atoms/EyeShowPassword';
+import EyeShowPassword from '@components/atoms/EyeShowPassword'; // Giả định bạn có component này
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
 import { Text, TextInput, type TextInputProps, TouchableOpacity, View, type ViewProps } from 'react-native';
@@ -6,7 +6,7 @@ import { Text, TextInput, type TextInputProps, TouchableOpacity, View, type View
 import { cn } from '../../utils/cn';
 
 const inputContainerVariants = cva(
-  'flex-row items-center rounded-xl border h-16',
+  'rounded-xl border h-16', // Loại bỏ flex-row và items-center ở đây
   {
     variants: {
       variant: {
@@ -22,7 +22,7 @@ const inputContainerVariants = cva(
 );
 
 const textInputVariants = cva(
-  'flex-1 p-5',
+  'flex-1 h-full', // Đảm bảo TextInput chiếm toàn bộ chiều cao
   {
     variants: {
       variant: {
@@ -75,23 +75,27 @@ const Input = React.forwardRef<TextInput, InputProps>(
             {label}
           </Text>
         )}
+        {/* View container chính với bo viền và màu nền */}
         <View className={cn(inputContainerVariants({ variant: activeVariant, className }))}>
-          <TextInput
-            ref={ref}
-            className={cn(textInputVariants({ variant: activeVariant }))}
-            style={[{ fontSize: 16 }, style]}
-            secureTextEntry={isPassword && !showPassword}
-            placeholderTextColor={variant === 'original' ? '#9ca3af' : '#FFFFFF99'}
-            {...props}
-          />
-          {isPassword && (
-            <TouchableOpacity
-              className="p-4"
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              <EyeShowPassword showPassword={showPassword} size={20} color="white" />
-            </TouchableOpacity>
-          )}
+          {/* Thêm một View bao bọc bên trong để xử lý lỗi trên iOS */}
+          <View className="flex-1 flex-row items-center px-5">
+            <TextInput
+              ref={ref}
+              className={cn(textInputVariants({ variant: activeVariant }))}
+              style={[{ fontSize: 16 }, style]}
+              secureTextEntry={isPassword && !showPassword}
+              placeholderTextColor={variant === 'original' ? '#9ca3af' : '#FFFFFF99'}
+              {...props}
+            />
+            {isPassword && (
+              <TouchableOpacity
+                className="p-4 -mr-4" // Điều chỉnh padding để không ảnh hưởng layout
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <EyeShowPassword showPassword={showPassword} size={20} color="white" />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
         {error && (
           <Text
@@ -113,4 +117,3 @@ Input.displayName = 'Input';
 
 export { Input, inputContainerVariants as inputVariants };
 export type { InputProps };
-

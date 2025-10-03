@@ -1,5 +1,5 @@
 import { axiosClient } from "@configs/axios"
-import { ICreateAccountFormDataRequest, IOtpFormDataRequest } from "@models/user/user.request"
+import { ICreateAccountFormDataRequest, ILoginFormDataRequest, IOtpFormDataRequest } from "@models/user/user.request"
 
 const authService = {
     checkEmail: async (email: string) => {
@@ -11,7 +11,7 @@ const authService = {
     resendOtp: async (email: string) => {
         return axiosClient.post(`/auth/resend-verified-email/${email}`)
     },
-    login: async (data: any) => {
+    login: async (data: ILoginFormDataRequest) => {
         return axiosClient.post('/auth/login', data)
     },
     register: async (data: ICreateAccountFormDataRequest) => {

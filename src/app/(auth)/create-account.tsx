@@ -45,17 +45,17 @@ export default function CreateAccountScreen() {
     });
 
     const handleCompleteRegistration = async (data: ICreateAccountFormDataRequest) => {
-        const res = await authService.register(data);
-        console.log(">>>>>>>>>>>>>>.", res);
+        try {
+            const res = await authService.register(data);
 
-        if (res.data.statusCode === 201) {
-            toast({ variant: 'Success', description: res.data.message });
-            saveSecureStorage('accessToken', res.data.data.accessToken);
-            saveSecureStorage('refreshToken', res.data.data.refreshToken);
-            saveSecureStorage('deviceToken', res.data.data.device.deviceToken);
-            router.replace(ROUTES.TABS.ROOT);
-        } else {
-            toast({ variant: 'destructive', description: res.data.message });
+            if (res.data.statusCode === 201) {
+                toast({ variant: 'Success', description: res.data.message });
+                saveSecureStorage('accessToken', res.data.data.accessToken);
+                saveSecureStorage('refreshToken', res.data.data.refreshToken);
+                router.replace(ROUTES.AUTH.SELECT_LEVEL);
+            }
+        } catch (error: any) {
+            toast({ variant: 'destructive', description: error.message });
         }
     };
 

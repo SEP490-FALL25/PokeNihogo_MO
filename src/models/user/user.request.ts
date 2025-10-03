@@ -32,6 +32,14 @@ export type IOtpFormDataRequest = z.infer<typeof OtpFormDataRequest>;
 //-----------------End-Otp-Request-----------------//
 
 
+export const LoginFormDataRequest = z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+});
+export type ILoginFormDataRequest = z.infer<typeof LoginFormDataRequest>;
+//-----------------End-Login-Request-----------------//
+
+
 /**
  * Create account form data request
  */

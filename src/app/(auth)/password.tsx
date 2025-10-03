@@ -5,7 +5,9 @@ import { useToast } from '@components/ui/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IPasswordFormDataRequest, PasswordFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
+import authService from '@services/auth';
 import { useEmailSelector } from '@stores/user/user.selectors';
+import { saveSecureStorage } from '@utils/secure-storage';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import React from 'react';
@@ -35,11 +37,20 @@ export default function PasswordScreen() {
         mode: 'onChange',
     });
 
-    const handleLogin = (data: IPasswordFormDataRequest) => {
-        if (data.password === '123456') {
-            router.push(ROUTES.TABS.ROOT);
-        } else {
-            toast({ variant: 'destructive', title: t('auth.invalid-password'), description: t('auth.invalid-password-description') });
+    const handleLogin = async (data: IPasswordFormDataRequest) => {
+        try {
+            const res = await authService.login(data);
+
+            if (res.data.statusCode === 200) {
+                saveSecureStorage('accessToken', res.data.data.accessToken);
+                saveSecureStorage('refreshToken', res.data.data.refreshToken);
+                if (res.data.data.level !== null) {
+                    router.replace(ROUTES.TABS.ROOT);
+                }
+                router.replace(ROUTES.AUTH.SELECT_LEVEL);
+            }
+        } catch (error: any) {
+            toast({ variant: 'destructive', description: error.message });
         }
     };
 
