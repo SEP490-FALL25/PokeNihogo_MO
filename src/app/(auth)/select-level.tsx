@@ -142,7 +142,7 @@ export default function SelectLevelScreen() {
         return {
           border: "#f59e0b",
           active: "#d97706",
-          fill: "rgba(245,158,11,0.35)",
+          fill: "rgba(235, 155, 66,0.35)",
           icon: "🇯🇵",
         };
       case "N3":
