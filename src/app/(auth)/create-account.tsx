@@ -9,6 +9,7 @@ import { CreateAccountFormDataRequest, ICreateAccountFormDataRequest } from '@mo
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
 import { useEmailSelector } from '@stores/user/user.selectors';
+import { saveSecureStorage } from '@utils/secure-storage';
 import { router } from 'expo-router';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -16,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { Image, Text, View } from 'react-native';
 import { z } from 'zod';
 import { makeZodI18nMap } from 'zod-i18n-map';
+
 
 export default function CreateAccountScreen() {
     /**
@@ -48,6 +50,9 @@ export default function CreateAccountScreen() {
 
         if (res.data.statusCode === 201) {
             toast({ variant: 'Success', description: res.data.message });
+            saveSecureStorage('accessToken', res.data.data.accessToken);
+            saveSecureStorage('refreshToken', res.data.data.refreshToken);
+            saveSecureStorage('deviceToken', res.data.data.device.deviceToken);
             router.replace(ROUTES.TABS.ROOT);
         } else {
             toast({ variant: 'destructive', description: res.data.message });

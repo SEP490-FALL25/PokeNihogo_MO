@@ -24,7 +24,7 @@ const axiosPrivate = axios.create({
 axiosPrivate.interceptors.request.use(
     async (config) => {
 
-        const token = await SecureStore.getItemAsync('token');
+        const token = await SecureStore.getItemAsync('accessToken');
         const decodedToken = await decodeToken();
         const userRole = decodedToken?.role;
 
@@ -50,7 +50,7 @@ axiosPrivate.interceptors.response.use(
         if (error.response?.status === 401) {
             // Xử lý khi bị unauthorized
             console.error('Unauthorized! Token expired or invalid. Logging out...');
-            await SecureStore.deleteItemAsync('token');
+            await SecureStore.deleteItemAsync('accessToken');
             await SecureStore.deleteItemAsync('refreshToken');
             router.replace(ROUTES.AUTH.WELCOME);
             alert('Token expired or invalid. Logging out...');
