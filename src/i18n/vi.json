@@ -69,7 +69,10 @@
             "progress_title": "Kiểm tra trình độ",
             "progress": "Câu hỏi {{current}} trên {{total}}",
             "speak_question": "Đọc câu hỏi",
-            "stop_speaking": "Dừng đọc"
+            "stop_speaking": "Dừng đọc",
+            "play_audio": "Phát audio",
+            "pause_audio": "Tạm dừng audio",
+            "audio_question_instruction": "Nghe audio và chọn đáp án đúng"
         },
         "choose_starter": {
             "title": "Chọn Đồng hành của bạn!",
