@@ -122,7 +122,7 @@ const CongratsScreen = React.memo(() => {
   }, []);
 
   return (
-    <StarterScreenLayout>
+    <StarterScreenLayout showBack={false}>
       <ConfettiCannon ref={confettiRef} {...CONFETTI_CONFIG} />
       <View style={containerStyle}>
         <View style={badgeStyle}>

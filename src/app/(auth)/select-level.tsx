@@ -20,77 +20,66 @@ const pokemonMascots = [
     imageUrl:
       "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
     color: "#fbbf24",
-    message: "Hãy chọn level phù hợp với bạn!",
   },
   {
     name: "Eevee",
     imageUrl:
       "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png",
     color: "#f59e0b",
-    message: "Mỗi level sẽ có thử thách khác nhau!",
   },
   {
     name: "Bulbasaur",
     imageUrl:
       "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png",
     color: "#10b981",
-    message: "Bắt đầu từ N5 để học từ cơ bản!",
   },
   {
     name: "Charmander",
     imageUrl:
       "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png",
     color: "#ef4444",
-    message: "N3 sẽ là thử thách lớn nhất!",
   },
   {
     name: "Squirtle",
     imageUrl:
       "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png",
     color: "#3b82f6",
-    message: "Chọn level và bắt đầu hành trình!",
   },
   {
     name: "Jigglypuff",
     imageUrl:
       "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/39.png",
     color: "#f472b6",
-    message: "Âm nhạc sẽ giúp bạn tập trung!",
   },
   {
     name: "Meowth",
     imageUrl:
       "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/52.png",
     color: "#a78bfa",
-    message: "Đừng lo, chúng ta sẽ học từ từ!",
   },
   {
     name: "Psyduck",
     imageUrl:
       "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/54.png",
     color: "#60a5fa",
-    message: "Chọn level rồi cùng giải đố nhé!",
   },
   {
     name: "Snorlax",
     imageUrl:
       "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png",
     color: "#94a3b8",
-    message: "Đừng vội, chọn level phù hợp nhất với bạn!",
   },
   {
     name: "Mew",
     imageUrl:
       "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png",
     color: "#fb7185",
-    message: "Cùng bay vào thế giới tiếng Nhật!",
   },
   {
     name: "Togepi",
     imageUrl:
       "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/175.png",
     color: "#f59e0b",
-    message: "Bước nhỏ hôm nay, thành công ngày mai!",
   },
 ];
 
@@ -98,12 +87,24 @@ export default function SelectLevelScreen() {
   const { t } = useTranslation();
   const [selected, setSelected] = React.useState<Level | null>(null);
   const [mascot, setMascot] = React.useState(pokemonMascots[0]);
+  const [isProcessing, setIsProcessing] = React.useState(false);
+
+  // Custom back handler - go to Home instead of previous screen
+  const handleBack = () => {
+    router.replace(ROUTES.AUTH.WELCOME as any);
+  };
+
+  // Get mascot messages using i18n
+  const getMascotMessage = (mascotName: string) => {
+    return t(`auth.mascots.${mascotName.toLowerCase()}`);
+  };
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const translateY = React.useRef(new Animated.Value(12)).current;
   const setLevel = useUserStore((s) => (s as any).setLevel);
   const userLevel = useUserStore((s) => (s as any).level);
-  const hasCompletedPlacementTest = useUserStore((s) => (s as any).hasCompletedPlacementTest);
-  const setHasCompletedPlacementTest = useUserStore((s) => (s as any).setHasCompletedPlacementTest);
+  const hasCompletedPlacementTest = useUserStore(
+    (s) => (s as any).hasCompletedPlacementTest
+  );
   const [showTestResult, setShowTestResult] = React.useState(false);
 
   // Check if user has completed placement test
@@ -137,10 +138,17 @@ export default function SelectLevelScreen() {
   }, [fadeAnim, translateY]);
 
   const onContinue = async () => {
-    if (!selected) return;
-    setLevel(selected);
-    await authService.setUserLevel(selected);
-    router.push(ROUTES.AUTH.CHOOSE_STARTER as any);
+    if (!selected || isProcessing) return;
+    
+    try {
+      setIsProcessing(true);
+      setLevel(selected);
+      await authService.setUserLevel(selected);
+      router.replace(ROUTES.AUTH.CHOOSE_STARTER as any);
+    } catch (error) {
+      console.error("Error setting user level:", error);
+      setIsProcessing(false);
+    }
   };
 
   // Color + icon meta per JLPT level
@@ -179,16 +187,17 @@ export default function SelectLevelScreen() {
 
   const LevelOption = ({ level, label }: { level: Level; label: string }) => {
     const isActive = selected === level;
-    const isRecommended = showTestResult && hasCompletedPlacementTest && userLevel === level;
+    // Always show recommendation tag on the recommended level, regardless of user's current selection
+    const isRecommended = hasCompletedPlacementTest && userLevel === level;
     const meta = getLevelMeta(level);
 
     return (
       <TouchableOpacity
         onPress={() => {
+          if (isProcessing) return;
           Haptics.selectionAsync();
           setSelected(level);
-          // Reset flag khi user chọn level trực tiếp (không qua test)
-          setHasCompletedPlacementTest(false);
+          // Don't reset hasCompletedPlacementTest to keep recommendation visible
         }}
         activeOpacity={0.8}
         style={{
@@ -241,7 +250,7 @@ export default function SelectLevelScreen() {
   };
 
   return (
-    <StarterScreenLayout currentStep={1} totalSteps={2}>
+    <StarterScreenLayout currentStep={1} totalSteps={2} onBack={handleBack}>
       {/* Mascot + speech bubble on top */}
       <Animated.View
         style={{
@@ -288,7 +297,7 @@ export default function SelectLevelScreen() {
             }}
           >
             <TypingText
-              messages={[mascot.message]}
+              messages={[getMascotMessage(mascot.name)]}
               typingSpeedMs={35}
               deletingSpeedMs={20}
               pauseBeforeStartMs={150}
@@ -411,10 +420,10 @@ export default function SelectLevelScreen() {
             variant="solid"
             size="full"
             withHaptics
-            disabled={!selected}
+            disabled={!selected || isProcessing}
             onPress={onContinue}
           >
-            {t("common.continue")}
+            {isProcessing ? t("common.processing") || "Processing..." : t("common.continue")}
           </BounceButton>
         </View>
       </View>
