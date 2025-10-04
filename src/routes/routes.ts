@@ -15,13 +15,27 @@ enum AUTH {
 
 enum TABS {
     ROOT = '/(tabs)',
-    HOME = '/(tabs)/index',
+    HOME = '/(tabs)/home',
+    LEARN = '/(tabs)/learn',
+    READING = '/(tabs)/reading',
+    LISTENING = '/(tabs)/listening',
+    BATTLE = '/(tabs)/battle',
     EXPLORE = '/(tabs)/explore',
     DEMO = '/(tabs)/demo',
+    PROFILE = '/(tabs)/profile',
+}
+
+enum MAIN_NAVIGATION {
+    LEARN = '/learn',
+    READING = '/reading',
+    LISTENING = '/listening',
+    BATTLE = '/battle',
+    OTHER = '/other',
 }
 
 
 export const ROUTES = {
     AUTH,
     TABS,
+    MAIN_NAVIGATION,
 };

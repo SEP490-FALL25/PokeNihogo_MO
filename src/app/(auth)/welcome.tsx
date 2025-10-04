@@ -18,7 +18,7 @@ const WelcomeScreen = () => {
   }
 
 const handleDemo =() => {
-  router.push("/(auth)/home");
+  router.push(ROUTES.TABS.HOME);
 }
 
   return (
