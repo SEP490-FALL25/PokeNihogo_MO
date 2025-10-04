@@ -11,7 +11,8 @@
         "demo": "DEMO",
         "continue": "Continue",
         "next": "Next",
-        "finish": "Finish"
+        "finish": "Finish",
+        "processing": "Processing..."
     },
     "auth": {
         "email": "Email",
@@ -77,6 +78,19 @@
         "choose_starter": {
             "title": "Choose your Partner!",
             "confirm": "Confirm"
+        },
+        "mascots": {
+            "pikachu": "Please choose the level that suits you!",
+            "eevee": "Each level will have different challenges!",
+            "bulbasaur": "Start with N5 to learn from basics!",
+            "charmander": "N3 will be the biggest challenge!",
+            "squirtle": "Choose your level and start the journey!",
+            "jigglypuff": "Music will help you focus!",
+            "meowth": "Don't worry, we'll learn step by step!",
+            "psyduck": "Choose your level and let's solve puzzles together!",
+            "snorlax": "Take your time, choose the level that suits you best!",
+            "mew": "Let's fly into the Japanese world together!",
+            "togepi": "Small steps today, success tomorrow!"
         }
     },
     "zod": {

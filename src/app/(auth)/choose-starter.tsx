@@ -15,6 +15,7 @@ import { Starter } from "../../types/starter.types";
 export default function ChooseStarterScreen() {
   const { t } = useTranslation();
   const [selected, setSelected] = React.useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = React.useState(false);
   const setStarterId = useUserStore((s) => s.setStarterId);
   const setIsFirstTimeLogin = useUserStore((s) => s.setIsFirstTimeLogin);
 
@@ -25,21 +26,30 @@ export default function ChooseStarterScreen() {
   }, []);
 
   const onConfirm = useCallback(async () => {
-    if (!selected) return;
+    if (!selected || isProcessing) return;
 
     try {
+      setIsProcessing(true);
       setStarterId(selected);
       setIsFirstTimeLogin(true);
       await authService.selectStarter(selected);
       router.replace(ROUTES.AUTH.CONGRATS);
     } catch (error) {
       console.error("Error selecting starter:", error);
+      setIsProcessing(false);
       // Handle error appropriately
     }
-  }, [selected, setStarterId, setIsFirstTimeLogin]);
+  }, [selected, isProcessing, setStarterId, setIsFirstTimeLogin]);
+
+  // Custom back handler - disable back when processing
+  const handleBack = useCallback(() => {
+    if (!isProcessing) {
+      router.back();
+    }
+  }, [isProcessing]);
 
   return (
-    <StarterScreenLayout currentStep={2} totalSteps={2}>
+    <StarterScreenLayout currentStep={2} totalSteps={2} onBack={handleBack}>
       <View style={{ paddingHorizontal: 20 }}>
         <ThemedText type="title" style={{ marginBottom: 16 }}>
           {t("auth.choose_starter.title")}
@@ -83,8 +93,8 @@ export default function ChooseStarterScreen() {
           backgroundColor: "transparent",
         }}
       >
-        <BounceButton variant="solid" disabled={!selected} onPress={onConfirm}>
-          {t("auth.choose_starter.confirm")}
+        <BounceButton variant="solid" disabled={!selected || isProcessing} onPress={onConfirm}>
+          {isProcessing ? t("common.processing") || "Processing..." : t("auth.choose_starter.confirm")}
         </BounceButton>
       </View>
     </StarterScreenLayout>

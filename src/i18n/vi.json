@@ -11,7 +11,9 @@
         "demo": "DEMO",
         "continue": "Tiếp tục",
         "next": "Tiếp theo",
-        "finish": "Hoàn tất"
+        "finish": "Hoàn tất",
+        "processing": "Đang xử lý..."
+
     },
     "auth": {
         "email": "Email",
@@ -77,6 +79,19 @@
         "choose_starter": {
             "title": "Chọn Đồng hành của bạn!",
             "confirm": "Xác nhận"
+        },
+        "mascots": {
+            "pikachu": "Hãy chọn level phù hợp với bạn!",
+            "eevee": "Mỗi level sẽ có thử thách khác nhau!",
+            "bulbasaur": "Bắt đầu từ N5 để học từ cơ bản!",
+            "charmander": "N3 sẽ là thử thách lớn nhất!",
+            "squirtle": "Chọn level và bắt đầu hành trình!",
+            "jigglypuff": "Âm nhạc sẽ giúp bạn tập trung!",
+            "meowth": "Đừng lo, chúng ta sẽ học từ từ!",
+            "psyduck": "Chọn level rồi cùng giải đố nhé!",
+            "snorlax": "Đừng vội, chọn level phù hợp nhất với bạn!",
+            "mew": "Cùng bay vào thế giới tiếng Nhật!",
+            "togepi": "Bước nhỏ hôm nay, thành công ngày mai!"
         }
     },
     "zod": {
