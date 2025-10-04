@@ -1,11 +1,12 @@
 import React from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface UserAvatarProps {
   name: string;
   avatar?: string;
   size?: "small" | "large";
   style?: any;
+  onPress?: () => void;
 }
 
 export default function UserAvatar({
@@ -13,12 +14,13 @@ export default function UserAvatar({
   avatar,
   size = "small",
   style,
+  onPress,
 }: UserAvatarProps) {
   const isLarge = size === "large";
   const avatarSize = isLarge ? 96 : 40;
   const fontSize = isLarge ? 40 : 18;
 
-  return (
+  const AvatarContent = () => (
     <View
       style={[
         styles.container,
@@ -56,6 +58,16 @@ export default function UserAvatar({
       )}
     </View>
   );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+        <AvatarContent />
+      </TouchableOpacity>
+    );
+  }
+
+  return <AvatarContent />;
 }
 
 const styles = StyleSheet.create({
