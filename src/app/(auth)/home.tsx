@@ -6,7 +6,6 @@ import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { ROUTES } from "@routes/routes";
 
-// Sample user data - in real app, this would come from user store
 const sampleUser = {
   name: "Ash Ketchum",
   level: 15,
