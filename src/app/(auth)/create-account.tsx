@@ -2,10 +2,14 @@ import AuthScreenLayout from '@components/layouts/AuthScreenLayout';
 import BackScreen from '@components/mocules/Back';
 import BounceButton from '@components/ui/BounceButton';
 import { Input } from '@components/ui/Input';
+import { useToast } from '@components/ui/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { CreateAccountFormDataRequest, ICreateAccountFormDataRequest } from '@models/user/user.request';
 // import { IRegisterFormDataRequest, RegisterFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
+import authService from '@services/auth';
 import { useEmailSelector } from '@stores/user/user.selectors';
+import { saveSecureStorage } from '@utils/secure-storage';
 import { router } from 'expo-router';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -14,34 +18,45 @@ import { Image, Text, View } from 'react-native';
 import { z } from 'zod';
 import { makeZodI18nMap } from 'zod-i18n-map';
 
+
 export default function CreateAccountScreen() {
+    /**
+     * Define variables
+     */
     const { t } = useTranslation();
     const email = useEmailSelector();
+    const { toast } = useToast();
     z.setErrorMap(makeZodI18nMap({ t }));
+    //-----------------------End-----------------------//
 
     const {
         control,
         handleSubmit,
         formState: { errors, isSubmitting, isValid },
-    } = useForm<any>({
-        resolver: zodResolver(z.any()),
+    } = useForm<ICreateAccountFormDataRequest>({
+        resolver: zodResolver(CreateAccountFormDataRequest),
         defaultValues: {
             name: '',
-            email: email, // Lấy email từ store
+            email: email,
             password: '',
             confirmPassword: '',
         },
         mode: 'onChange',
     });
 
-    const handleCompleteRegistration = (data: any) => {
-        return new Promise((resolve) => {
-            console.log("Completing registration for:", data);
-            setTimeout(() => {
-                router.replace(ROUTES.TABS.ROOT);
-                resolve(true);
-            }, 2000);
-        });
+    const handleCompleteRegistration = async (data: ICreateAccountFormDataRequest) => {
+        try {
+            const res = await authService.register(data);
+
+            if (res.data.statusCode === 201) {
+                toast({ variant: 'Success', description: res.data.message });
+                saveSecureStorage('accessToken', res.data.data.accessToken);
+                saveSecureStorage('refreshToken', res.data.data.refreshToken);
+                router.replace(ROUTES.AUTH.SELECT_LEVEL);
+            }
+        } catch (error: any) {
+            toast({ variant: 'destructive', description: error.message });
+        }
     };
 
     return (

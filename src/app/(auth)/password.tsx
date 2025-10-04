@@ -5,7 +5,9 @@ import { useToast } from '@components/ui/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IPasswordFormDataRequest, PasswordFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
+import authService from '@services/auth';
 import { useEmailSelector } from '@stores/user/user.selectors';
+import { saveSecureStorage } from '@utils/secure-storage';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import React from 'react';
@@ -25,6 +27,11 @@ export default function PasswordScreen() {
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
 
+
+    /**
+     * Handle form validation
+     * Handle login
+     */
     const {
         control,
         handleSubmit,
@@ -35,13 +42,43 @@ export default function PasswordScreen() {
         mode: 'onChange',
     });
 
-    const handleLogin = (data: IPasswordFormDataRequest) => {
-        if (data.password === '123456') {
-            router.push(ROUTES.TABS.ROOT);
-        } else {
-            toast({ variant: 'destructive', title: t('auth.invalid-password'), description: t('auth.invalid-password-description') });
+    const handleLogin = async (data: IPasswordFormDataRequest) => {
+        try {
+            const res = await authService.login(data);
+
+            if (res.data.statusCode === 200) {
+                saveSecureStorage('accessToken', res.data.data.accessToken);
+                saveSecureStorage('refreshToken', res.data.data.refreshToken);
+                if (res.data.data.level !== null) {
+                    router.replace(ROUTES.TABS.ROOT);
+                }
+                router.replace(ROUTES.AUTH.SELECT_LEVEL);
+            }
+        } catch (error: any) {
+            toast({ variant: 'destructive', description: error.message });
         }
     };
+    //-----------------------End-----------------------//
+
+
+    /**
+     * Handle forgot password
+     */
+    const handleForgotPassword = async () => {
+        try {
+            const res = await authService.forgotPassword({ email });
+
+            console.log(res);
+
+            if (res.data.statusCode === 200) {
+                toast({ variant: 'Success', description: res.data.message });
+                router.push({ pathname: ROUTES.AUTH.OTP, params: { type: res.data.data.type } });
+            }
+        } catch (error: any) {
+            toast({ variant: 'destructive', description: error.message });
+        }
+    };
+    //-----------------------End-----------------------//
 
     return (
         <AuthScreenLayout>
@@ -78,7 +115,7 @@ export default function PasswordScreen() {
                         )}
                     />
                     <View className="items-end mt-4">
-                        <TouchableOpacity onPress={() => router.push(ROUTES.AUTH.OTP)}>
+                        <TouchableOpacity onPress={handleForgotPassword}>
                             <Text className="text-base font-semibold text-white">{t('auth.forgot-your-password')}</Text>
                         </TouchableOpacity>
                     </View>
