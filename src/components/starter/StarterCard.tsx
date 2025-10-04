@@ -55,9 +55,17 @@ const StarterCard: React.FC<StarterCardProps> = ({
             right: 0,
             bottom: 0,
             borderRadius: 16,
-            borderWidth: 1,
+            borderWidth: 3,
             borderColor: typeColor,
             shadowColor: typeColor,
+            shadowOffset: {
+              width: 0,
+              height: 0,
+            },
+            shadowOpacity: 0.8,
+            shadowRadius: 8,
+            elevation: 12,
+
           }}
         />
       )}
@@ -83,9 +91,9 @@ const StarterCard: React.FC<StarterCardProps> = ({
           <Image
             source={{ uri: starter.image }}
             style={{
-              width: 160,
-              height: 160,
-              marginBottom:30
+              width: 80,
+              height: 80,
+              marginBottom:60
             }}
             contentFit="contain"
           />
