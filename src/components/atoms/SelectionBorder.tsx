@@ -44,15 +44,12 @@ const styles = StyleSheet.create({
   border: {
     position: "absolute",
     top: 0,
-    left: 2,
+    left: 2.5,
     right: 0,
     bottom: 0,
     shadowOffset: {
       width: 0,
       height: 0,
     },
-    shadowOpacity: 0.8,
-    shadowRadius: 8,
-    elevation: 12,
   },
 });

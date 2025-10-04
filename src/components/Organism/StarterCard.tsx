@@ -34,10 +34,13 @@ const StarterCard: React.FC<StarterCardProps> = ({
         source={require("../../../assets/images/list_pokemon_bg.png")}
         style={styles.backgroundImage}
         contentFit="cover"
+        cachePolicy="memory-disk"
+        priority="high"
+        placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
       />
 
       {/* Selection Border */}
-      <SelectionBorder visible={selected} color={typeColor} width={165} />
+      <SelectionBorder visible={selected} color={typeColor} />
 
       {/* Content Container */}
       <View style={styles.contentContainer}>
@@ -67,14 +70,13 @@ const styles = StyleSheet.create({
   },
   backgroundImage: {
     position: "absolute",
-    width: "101.5%",
-    left: "-0.75%",
+    width: "102%",
     height: "100%",
     borderRadius: 24,
   },
   contentContainer: {
     flex: 1,
-    padding: 24,
+    padding: 30,
     justifyContent: "space-between",
   },
 });
