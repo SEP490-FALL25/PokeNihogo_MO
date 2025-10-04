@@ -13,10 +13,6 @@ export default function AuthLayout() {
             <Stack.Screen name="choose-starter" />
             <Stack.Screen name="select-level" />
             <Stack.Screen name="placement-test" />
-            <Stack.Screen name="home" />
-            <Stack.Screen name="congrats" />
-            <Stack.Screen name="profile" />
-            <Stack.Screen name="reset-password" />
         </Stack>
     );
 }
