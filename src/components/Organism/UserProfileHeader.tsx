@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Modal, Pressable, Animated, StyleSheet } from "react-native";
+import { Animated, Modal, Pressable, StyleSheet } from "react-native";
 import CompactHeader from "../molecules/CompactHeader";
 import ExpandedContent from "../molecules/ExpandedContent";
 
@@ -73,7 +73,7 @@ export default function UserProfileHeaderAtomic({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    backgroundColor: "rgba(121, 180, 196, 0.8)",
     justifyContent: "flex-start",
     paddingTop: 60,
   },

@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import ExpProgressBar from '@/components/atoms/ExpProgressBar';
 import LevelBadge from '@/components/atoms/LevelBadge';
 import UserAvatar from '@/components/atoms/UserAvatar';
-import ExpProgressBar from '@/components/atoms/ExpProgressBar';
+import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 
 interface User {
@@ -25,7 +25,7 @@ export default function ExpandedContent({ user, onClose, style }: ExpandedConten
     <View style={[styles.container, style]}>
       <Pressable onPress={(e) => e.stopPropagation()}>
         <LinearGradient
-          colors={['#6366f1', '#8b5cf6', '#a855f7']}
+          colors={['#79B4C4', '#85C3C3', '#9BC7B9']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.card}

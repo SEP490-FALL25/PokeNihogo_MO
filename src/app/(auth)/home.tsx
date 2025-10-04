@@ -7,7 +7,7 @@ import { ThemedView } from "@components/ThemedView";
 import { ROUTES } from "@routes/routes";
 
 const sampleUser = {
-  name: "Ash Ketchum",
+  name: "Skibido ",
   level: 15,
   currentExp: 2450,
   expToNextLevel: 3000,

@@ -1,8 +1,8 @@
-import React from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import LevelBadge from "../atoms/LevelBadge";
+import React from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import ExpProgressBar from "../atoms/ExpProgressBar";
+import LevelBadge from "../atoms/LevelBadge";
 import UserAvatar from "../atoms/UserAvatar";
 
 interface User {
@@ -27,7 +27,7 @@ export default function CompactHeader({ user, onPress, style }: CompactHeaderPro
       style={[styles.container, style]}
     >
       <LinearGradient
-        colors={["#6366f1", "#8b5cf6"]}
+        colors={["#79B4C4", "#85C3C3", "#9BC7B9"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.gradient}
