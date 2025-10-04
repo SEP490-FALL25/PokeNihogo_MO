@@ -9,7 +9,8 @@ enum AUTH {
     RESET_PASSWORD = '/(auth)/reset-password',
     SELECT_LEVEL = '/(auth)/select-level',
     PLACEMENT_TEST = '/(auth)/placement-test',
-    CHOOSE_STARTER = '/(auth)/choose-starter'
+    CHOOSE_STARTER = '/(auth)/choose-starter',
+    USER_PROFILE = '/(auth)/profile',
 }
 
 enum TABS {

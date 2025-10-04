@@ -1,4 +1,4 @@
-import BackScreen from "@components/mocules/Back";
+import BackScreen from "@components/molecules/Back";
 import { StepProgress } from "@components/ui/StepProgress";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";

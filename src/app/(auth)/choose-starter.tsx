@@ -1,5 +1,5 @@
 import StarterScreenLayout from "@components/layouts/StarterScreenLayout";
-import StarterCard from "@components/starter/StarterCard";
+import StarterCard from "@components/Organism/StarterCard";
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
 import { ROUTES } from "@routes/routes";

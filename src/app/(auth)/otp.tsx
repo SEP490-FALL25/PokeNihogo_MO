@@ -1,5 +1,5 @@
 import AuthScreenLayout from '@components/layouts/AuthScreenLayout';
-import BackScreen from '@components/mocules/Back';
+import BackScreen from '@components/molecules/Back';
 import BounceButton from '@components/ui/BounceButton';
 import { useToast } from '@components/ui/Toast';
 import { ROUTES } from '@routes/routes';
