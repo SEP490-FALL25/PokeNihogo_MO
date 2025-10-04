@@ -1,7 +1,5 @@
-import BackScreen from "@components/mocules/Back";
+import BackScreen from "@components/molecules/Back";
 import { StepProgress } from "@components/ui/StepProgress";
-import { UserProfileHeaderDemo } from "@components/UserProfileHeader.demo";
-import { UserProfileHeaderV2Demo } from "@components/UserProfileHeaderV2.demo";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StatusBar, View } from "react-native";
@@ -29,8 +27,6 @@ export default function StarterScreenLayout({
     >
       <StatusBar barStyle="light-content" />
       <SafeAreaView style={{ flex: 1 }}>
-          <UserProfileHeaderDemo/>
-          <UserProfileHeaderV2Demo/>
         {/* Header với nút back và thanh tiến trình */}
         <View style={{ paddingHorizontal: 20, paddingTop: 4 }}>
           <View
@@ -40,7 +36,7 @@ export default function StarterScreenLayout({
               justifyContent: "space-between",
               marginBottom: 12,
             }}
-            >
+          >
             {/* Nút back */}
             <View style={{ width: 40 }}>
               {showBack && <BackScreen noWrapper onPress={onBack} />}
