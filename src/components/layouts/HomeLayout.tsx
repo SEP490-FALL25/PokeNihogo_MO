@@ -1,4 +1,6 @@
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
+import AnimatedPokemonOverlay from "@components/ui/AnimatedPokemonOverlay";
+import { useUserStore } from "@stores/user/user.config";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
@@ -28,6 +30,8 @@ interface HomeLayoutProps {
 
 export default function HomeLayout({ children, user }: HomeLayoutProps) {
   const currentUser = user || sampleUser;
+  const { isFirstTimeLogin } = useUserStore();
+  
   return (
     <LinearGradient
       colors={["#dbeafe", "#ffffff", "#e0e7ff"]} // bg-gradient-to-br from-blue-50 via-white to-indigo-100
@@ -38,11 +42,20 @@ export default function HomeLayout({ children, user }: HomeLayoutProps) {
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          scrollEnabled={!isFirstTimeLogin}
         >
           {/* User Profile Header */}
           <View style={styles.profileSection}>
             <UserProfileHeaderAtomic user={currentUser} />
           </View>
+
+          {/* Animated Pokemon Overlay - Only show during tour guide */}
+          <AnimatedPokemonOverlay
+            visible={isFirstTimeLogin === true}
+            imageUri="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
+            imageSize={100}
+          />
+
 
           {/* Main Content Area */}
           <View style={styles.contentSection}>{children}</View>
