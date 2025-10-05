@@ -16,5 +16,9 @@ declare namespace ZUSTAND {
         setIsFirstTimeLogin: (value: boolean) => void;
         hasCompletedPlacementTest: boolean;
         setHasCompletedPlacementTest: (value: boolean) => void;
+        showWelcomeModal: boolean;
+        setShowWelcomeModal: (value: boolean) => void;
+        isTourGuideActive: boolean;
+        setIsTourGuideActive: (value: boolean) => void;
     }
 }

@@ -1,6 +1,7 @@
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { IconSymbol } from "@components/ui/IconSymbol";
+import { TourStep } from "@components/ui/TourGuide";
 import { ROUTES } from "@routes/routes";
 import { router } from "expo-router";
 import React from "react";
@@ -80,12 +81,18 @@ const MainNavigation: React.FC = () => {
       </ThemedText>
 
       <View style={styles.grid}>
-        <NavigationButton
-          title="Learn"
-          icon="book.fill"
-          onPress={handleLearn}
-          color="#10b981"
-        />
+        <TourStep
+          name="LearnButton"
+          text="Start your journey here!"
+          zone={3}
+        >
+          <NavigationButton
+            title="Learn"
+            icon="book.fill"
+            onPress={handleLearn}
+            color="#10b981"
+          />
+        </TourStep>
         <NavigationButton
           title="Reading"
           icon="book.fill"

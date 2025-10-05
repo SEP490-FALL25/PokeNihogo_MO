@@ -2,12 +2,16 @@ import HomeLayout from "@components/layouts/HomeLayout";
 import MainNavigation from "@components/MainNavigation";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
+import TourGuide from "@components/ui/TourGuide";
+import { useUserStore } from "@stores/user/user.config";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 
 
 export default function HomeScreen() {
+  const { isFirstTimeLogin, setIsFirstTimeLogin } = useUserStore();
+
   const handleContinueLearning = () => {
     // Navigate to learning screen
     console.log("Continue Learning pressed");
@@ -23,90 +27,109 @@ export default function HomeScreen() {
     console.log("Start Lesson pressed");
   };
 
+  const handleTestTourGuide = () => {
+    setIsFirstTimeLogin(true);
+  };
+
   return (
-    <HomeLayout >
-      {/* Custom content for home screen */}
-      <View style={styles.customContent}>
-        <ThemedText type="subtitle" style={styles.welcomeTitle}>
-          Welcome back, ! 👋
-        </ThemedText>
-
-        <ThemedText style={styles.welcomeSubtitle}>
-          Ready to continue your Japanese learning journey?
-        </ThemedText>
-
-        {/* Quick Start Section */}
-        <ThemedView style={styles.quickStartCard}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>
-            🚀 Quick Start
+    <TourGuide>
+      <HomeLayout >
+        {/* Custom content for home screen */}
+        <View style={styles.customContent}>
+          <ThemedText type="subtitle" style={styles.welcomeTitle}>
+            Welcome back, ! 👋
           </ThemedText>
 
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={handleStartLesson}
-            activeOpacity={0.8}
-          >
-            <ThemedText style={styles.primaryButtonText}>
-              Start New Lesson
-            </ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
-
-        {/* Learning Path Section */}
-        <ThemedView style={styles.learningPathCard}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>
-            📚 Your Learning Path
+          <ThemedText style={styles.welcomeSubtitle}>
+            Ready to continue your Japanese learning journey?
           </ThemedText>
 
-          <View style={styles.pathItem}>
-            <ThemedText style={styles.pathItemTitle}>
-              Current Level: N5
-            </ThemedText>
-            <ThemedText style={styles.pathItemSubtitle}>
-              Basic Japanese - Hiragana & Katakana
-            </ThemedText>
-          </View>
+          {/* Test Tour Guide Button - Only show when not in tour mode */}
+          {!isFirstTimeLogin && (
+            <TouchableOpacity
+              style={styles.testButton}
+              onPress={handleTestTourGuide}
+              activeOpacity={0.8}
+            >
+              <ThemedText style={styles.testButtonText}>
+                🎯 Test Tour Guide
+              </ThemedText>
+            </TouchableOpacity>
+          )}
 
-          <View style={styles.pathItem}>
-            <ThemedText style={styles.pathItemTitle}>Next Goal: N4</ThemedText>
-            <ThemedText style={styles.pathItemSubtitle}>
-              Intermediate Japanese - Kanji & Grammar
+          {/* Quick Start Section */}
+          <ThemedView style={styles.quickStartCard}>
+            <ThemedText type="subtitle" style={styles.cardTitle}>
+              🚀 Quick Start
             </ThemedText>
-          </View>
-        </ThemedView>
 
-        {/* Main Navigation Section */}
-        <MainNavigation />
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={handleStartLesson}
+              activeOpacity={0.8}
+            >
+              <ThemedText style={styles.primaryButtonText}>
+                Start New Lesson
+              </ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
 
-        {/* Recent Activity Section */}
-        <ThemedView style={styles.recentActivityCard}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>
-            📈 Recent Activity
-          </ThemedText>
-
-          <View style={styles.activityItem}>
-            <ThemedText style={styles.activityText}>
-              ✅ Completed &quot;Basic Greetings&quot; lesson
+          {/* Learning Path Section */}
+          <ThemedView style={styles.learningPathCard}>
+            <ThemedText type="subtitle" style={styles.cardTitle}>
+              📚 Your Learning Path
             </ThemedText>
-            <ThemedText style={styles.activityTime}>2 hours ago</ThemedText>
-          </View>
 
-          <View style={styles.activityItem}>
-            <ThemedText style={styles.activityText}>
-              🎯 Achieved 95% accuracy in vocabulary quiz
-            </ThemedText>
-            <ThemedText style={styles.activityTime}>Yesterday</ThemedText>
-          </View>
+            <View style={styles.pathItem}>
+              <ThemedText style={styles.pathItemTitle}>
+                Current Level: N5
+              </ThemedText>
+              <ThemedText style={styles.pathItemSubtitle}>
+                Basic Japanese - Hiragana & Katakana
+              </ThemedText>
+            </View>
 
-          <View style={styles.activityItem}>
-            <ThemedText style={styles.activityText}>
-              🔥 7-day streak maintained!
+            <View style={styles.pathItem}>
+              <ThemedText style={styles.pathItemTitle}>Next Goal: N4</ThemedText>
+              <ThemedText style={styles.pathItemSubtitle}>
+                Intermediate Japanese - Kanji & Grammar
+              </ThemedText>
+            </View>
+          </ThemedView>
+
+          {/* Main Navigation Section */}
+          <MainNavigation />
+
+          {/* Recent Activity Section */}
+          <ThemedView style={styles.recentActivityCard}>
+            <ThemedText type="subtitle" style={styles.cardTitle}>
+              📈 Recent Activity
             </ThemedText>
-            <ThemedText style={styles.activityTime}>3 days ago</ThemedText>
-          </View>
-        </ThemedView>
-      </View>
-    </HomeLayout>
+
+            <View style={styles.activityItem}>
+              <ThemedText style={styles.activityText}>
+                ✅ Completed &quot;Basic Greetings&quot; lesson
+              </ThemedText>
+              <ThemedText style={styles.activityTime}>2 hours ago</ThemedText>
+            </View>
+
+            <View style={styles.activityItem}>
+              <ThemedText style={styles.activityText}>
+                🎯 Achieved 95% accuracy in vocabulary quiz
+              </ThemedText>
+              <ThemedText style={styles.activityTime}>Yesterday</ThemedText>
+            </View>
+
+            <View style={styles.activityItem}>
+              <ThemedText style={styles.activityText}>
+                🔥 7-day streak maintained!
+              </ThemedText>
+              <ThemedText style={styles.activityTime}>3 days ago</ThemedText>
+            </View>
+          </ThemedView>
+        </View>
+      </HomeLayout>
+    </TourGuide>
   );
 }
 
@@ -224,5 +247,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#9ca3af",
     marginLeft: 12,
+  },
+  testButton: {
+    backgroundColor: "#10b981",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 16,
+    shadowColor: "#10b981",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  testButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
