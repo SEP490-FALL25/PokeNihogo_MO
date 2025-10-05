@@ -1,9 +1,9 @@
 "use client"
 
-import { usePathname, useRouter } from "expo-router"
-import { useState, useEffect } from "react"
-import { Platform, StyleSheet, TouchableOpacity, View, Animated, Text } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
+import { usePathname, useRouter } from "expo-router"
+import { useEffect, useState } from "react"
+import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 
 const CustomTabBar = () => {
   const router = useRouter()
@@ -14,21 +14,21 @@ const CustomTabBar = () => {
       name: "learn",
       icon: "book" as keyof typeof Ionicons.glyphMap,
       label: "Learn",
-      route: "/(tabs)/learn" as const,
+      route: "/(app)/(tabs)/learn",
       color: "#10b981",
     },
     {
       name: "reading",
       icon: "text" as keyof typeof Ionicons.glyphMap,
       label: "Reading",
-      route: "/(tabs)/reading" as const,
+      route: "/(app)/(tabs)/reading",
       color: "#f59e0b",
     },
     {
       name: "home",
       icon: "home" as keyof typeof Ionicons.glyphMap,
       label: "Home",
-      route: "/(tabs)/home" as const,
+      route: "/(app)/(tabs)/home",
       color: "#3b82f6",
       isCenter: true,
     },
@@ -36,14 +36,14 @@ const CustomTabBar = () => {
       name: "listening",
       icon: "volume-high" as keyof typeof Ionicons.glyphMap,
       label: "Listening",
-      route: "/(tabs)/listening" as const,
+      route: "/(app)/(tabs)/listening",
       color: "#8b5cf6",
     },
     {
       name: "battle",
       icon: "game-controller" as keyof typeof Ionicons.glyphMap,
       label: "Battle",
-      route: "/(tabs)/battle" as const,
+      route: "/(app)/(tabs)/battle",
       color: "#ef4444",
     },
   ]
@@ -57,10 +57,10 @@ const CustomTabBar = () => {
           const active = isActive(tab.route)
 
           if (tab.isCenter) {
-            return <CenterButton key={tab.name} tab={tab} active={active} onPress={() => router.push(tab.route)} />
+            return <CenterButton key={tab.name} tab={tab} active={active} onPress={() => router.push(tab.route as any)} />
           }
 
-          return <RegularButton key={tab.name} tab={tab} active={active} onPress={() => router.push(tab.route)} />
+          return <RegularButton key={tab.name} tab={tab} active={active} onPress={() => router.push(tab.route as any)} />
         })}
       </View>
     </View>

@@ -5,6 +5,7 @@ import { ROUTES } from "@routes/routes";
 import { router } from "expo-router";
 import React from "react";
 import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
+import { TourStep } from "./ui/HomeTourGuide";
 
 const { width } = Dimensions.get("window");
 
@@ -63,7 +64,7 @@ const MainNavigation: React.FC = () => {
   const handleUserInfo = () => {
     // Navigate to user info screen
     console.log("User Info pressed");
-    router.push(ROUTES.AUTH.USER_PROFILE);
+    router.push(ROUTES.APP.PROFILE);
   };
 
   const handleOther = () => {
@@ -80,12 +81,20 @@ const MainNavigation: React.FC = () => {
       </ThemedText>
 
       <View style={styles.grid}>
-        <NavigationButton
-          title="Learn"
-          icon="book.fill"
-          onPress={handleLearn}
-          color="#10b981"
-        />
+        {/* Main Navigation Section */}
+        <TourStep
+          stepIndex={2}
+          title="Start Learning"
+          description="Start your journey here!"
+        >
+          <NavigationButton
+            title="Learn"
+            icon="book.fill"
+            onPress={handleLearn}
+            color="#10b981"
+          />
+        </TourStep>
+
         <NavigationButton
           title="Reading"
           icon="book.fill"

@@ -15,7 +15,7 @@ import * as Speech from "expo-speech";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, TouchableOpacity, View } from "react-native";
-import questionsData from "../../../mock-data/placement-questions.json";
+import questionsData from "../../../../mock-data/placement-questions.json";
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -187,7 +187,7 @@ export default function PlacementTestScreen() {
       const rec = computeRecommendation(questions, nextAnswers);
       setLevel(rec);
       setHasCompletedPlacementTest(true);
-      router.replace(ROUTES.AUTH.SELECT_LEVEL as any);
+      router.replace(ROUTES.STARTER.SELECT_LEVEL as any);
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       setCurrentIndex((i) => i + 1);

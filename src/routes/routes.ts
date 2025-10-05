@@ -1,31 +1,39 @@
+enum APP {
+  PROFILE = "/(app)/profile",
+}
+
 enum AUTH {
   WELCOME = "/(auth)/welcome",
-  CONGRATS = "/(auth)/congrats",
   EMAIL = "/(auth)/email",
   OTP = "/(auth)/otp",
   PASSWORD = "/(auth)/password",
   CREATE_ACCOUNT = "/(auth)/create-account",
   FORGOT_PASSWORD = "/(auth)/forgot-password",
   RESET_PASSWORD = "/(auth)/reset-password",
-  SELECT_LEVEL = "/(auth)/select-level",
-  PLACEMENT_TEST = "/(auth)/placement-test",
-  CHOOSE_STARTER = "/(auth)/choose-starter",
-  USER_PROFILE = "/(auth)/profile",
+}
+
+enum STARTER {
+  CHOOSE_STARTER = "/(app)/(starter)/choose-starter",
+  SELECT_LEVEL = "/(app)/(starter)/select-level",
+  PLACEMENT_TEST = "/(app)/(starter)/placement-test",
+  CONGRATS = "/(app)/(starter)/congrats",
 }
 
 enum TABS {
-  ROOT = "/(tabs)",
-  HOME = "/(tabs)/home",
-  LEARN = "/(tabs)/learn",
-  READING = "/(tabs)/reading",
-  LISTENING = "/(tabs)/listening",
-  BATTLE = "/(tabs)/battle",
-  EXPLORE = "/(tabs)/explore",
-  DEMO = "/(tabs)/demo",
-  PROFILE = "/(tabs)/profile",
+  ROOT = "/(app)/(tabs)",
+  HOME = "/(app)/(tabs)/home",
+  LEARN = "/(app)/(tabs)/learn",
+  READING = "/(app)/(tabs)/reading",
+  LISTENING = "/(app)/(tabs)/listening",
+  BATTLE = "/(app)/(tabs)/battle",
+  EXPLORE = "/(app)/(tabs)/explore",
+  DEMO = "/(app)/(tabs)/demo",
+  PROFILE = "/(app)/(tabs)/profile",
 }
 
 export const ROUTES = {
   AUTH,
   TABS,
+  STARTER,
+  APP,
 };
