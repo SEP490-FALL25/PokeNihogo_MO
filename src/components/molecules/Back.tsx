@@ -11,22 +11,29 @@ type BackScreenProps = {
 };
 
 const BackScreen: React.FC<BackScreenProps> = ({
-  color = "#111827",
+  color = "white",
   onPress,
   noWrapper,
   title,
 }) => {
   const Button = (
-    <View className="flex-row items-center justify-between px-4 py-3">
-      <TouchableOpacity
-        accessibilityLabel="Go back"
-        className="p-2"
-        onPress={onPress ?? (() => router.back())}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <ArrowLeft size={22} color={color} />
-      </TouchableOpacity>
-      <Text className="text-xl font-semibold text-white">{title}</Text>
+    <View className="flex-row w-full items-center py-3">
+      <View className="w-12 items-start">
+        <TouchableOpacity
+          accessibilityLabel="Go back"
+          className="p-2"
+          onPress={onPress ?? (() => router.back())}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <ArrowLeft size={22} color={color} />
+        </TouchableOpacity>
+      </View>
+
+      <View className="flex-1">
+        <Text className="text-xl text-center font-semibold text-white">{title}</Text>
+      </View>
+
+      <View className="w-12" />
     </View>
   );
 
@@ -36,5 +43,3 @@ const BackScreen: React.FC<BackScreenProps> = ({
 };
 
 export default BackScreen;
-
-// no styles
