@@ -9,7 +9,6 @@ interface StarterScreenLayoutProps {
   children: React.ReactNode;
   currentStep?: number;
   totalSteps?: number;
-  showBack?: boolean;
   onBack?: () => void;
 }
 
@@ -17,8 +16,7 @@ export default function StarterScreenLayout({
   children,
   currentStep,
   totalSteps = 3,
-  showBack = true,
-  onBack,
+  onBack ,
 }: StarterScreenLayoutProps) {
   return (
     <LinearGradient
@@ -39,7 +37,7 @@ export default function StarterScreenLayout({
           >
             {/* Nút back */}
             <View style={{ width: 40 }}>
-              {showBack && <BackScreen noWrapper onPress={onBack} />}
+              {onBack && <BackScreen noWrapper onPress={onBack} />}
             </View>
 
             {/* StepProgress ở giữa */}

@@ -144,7 +144,7 @@ export default function SelectLevelScreen() {
       setIsProcessing(true);
       setLevel(selected);
       await authService.setUserLevel(selected);
-      router.replace(ROUTES.AUTH.CHOOSE_STARTER as any);
+      router.push(ROUTES.AUTH.CHOOSE_STARTER as any);
     } catch (error) {
       console.error("Error setting user level:", error);
       setIsProcessing(false);
@@ -250,7 +250,7 @@ export default function SelectLevelScreen() {
   };
 
   return (
-    <StarterScreenLayout currentStep={1} totalSteps={2} onBack={handleBack}>
+    <StarterScreenLayout currentStep={1} totalSteps={2}>
       {/* Mascot + speech bubble on top */}
       <Animated.View
         style={{

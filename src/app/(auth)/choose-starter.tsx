@@ -41,7 +41,6 @@ export default function ChooseStarterScreen() {
     }
   }, [selected, isProcessing, setStarterId, setIsFirstTimeLogin]);
 
-  // Custom back handler - disable back when processing
   const handleBack = useCallback(() => {
     if (!isProcessing) {
       router.back();
