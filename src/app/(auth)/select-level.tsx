@@ -1,113 +1,133 @@
+// ============================================================================
+// IMPORTS
+// ============================================================================
 import StarterScreenLayout from "@components/layouts/StarterScreenLayout";
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
 import { TypingText } from "@components/ui/TypingText";
+import { useFocusEffect } from "@react-navigation/native";
 import { ROUTES } from "@routes/routes";
 import authService from "@services/auth";
 import { useUserStore } from "@stores/user/user.config";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
-import React from "react";
+import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, Image, TouchableOpacity, View } from "react-native";
 
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
 type Level = "N5" | "N4" | "N3";
 
-// Pokémon mascot data
+// ============================================================================
+// CONSTANTS & DATA
+// ============================================================================
+/**
+ * Pokémon mascot data for random selection
+ * Each mascot has a name, image URL, and associated color theme
+ */
 const pokemonMascots = [
   {
     name: "Pikachu",
     imageUrl:
-      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif",
     color: "#fbbf24",
   },
   {
     name: "Eevee",
     imageUrl:
-      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png",
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/133.gif",
     color: "#f59e0b",
   },
   {
     name: "Bulbasaur",
     imageUrl:
-      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png",
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/1.gif",
     color: "#10b981",
   },
   {
     name: "Charmander",
     imageUrl:
-      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png",
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/4.gif",
     color: "#ef4444",
   },
   {
     name: "Squirtle",
     imageUrl:
-      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png",
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/7.gif",
     color: "#3b82f6",
   },
   {
     name: "Jigglypuff",
     imageUrl:
-      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/39.png",
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/39.gif",
     color: "#f472b6",
   },
   {
     name: "Meowth",
     imageUrl:
-      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/52.png",
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/52.gif",
     color: "#a78bfa",
   },
   {
     name: "Psyduck",
     imageUrl:
-      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/54.png",
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/54.gif",
     color: "#60a5fa",
   },
   {
     name: "Snorlax",
     imageUrl:
-      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png",
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/143.gif",
     color: "#94a3b8",
   },
   {
     name: "Mew",
     imageUrl:
-      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png",
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/151.gif",
     color: "#fb7185",
   },
   {
     name: "Togepi",
     imageUrl:
-      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/175.png",
+      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/175.gif",
     color: "#f59e0b",
   },
 ];
 
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 export default function SelectLevelScreen() {
+  // ============================================================================
+  // HOOKS & STATE
+  // ============================================================================
   const { t } = useTranslation();
+
+  // UI state
   const [selected, setSelected] = React.useState<Level | null>(null);
   const [mascot, setMascot] = React.useState(pokemonMascots[0]);
   const [isProcessing, setIsProcessing] = React.useState(false);
+  const [showTestResult, setShowTestResult] = React.useState(false);
 
-  // Custom back handler - go to Home instead of previous screen
-  const handleBack = () => {
-    router.replace(ROUTES.AUTH.WELCOME as any);
-  };
-
-  // Get mascot messages using i18n
-  const getMascotMessage = (mascotName: string) => {
-    return t(`auth.mascots.${mascotName.toLowerCase()}`);
-  };
+  // Animation refs
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const translateY = React.useRef(new Animated.Value(12)).current;
+
+  // Store selectors
   const setLevel = useUserStore((s) => (s as any).setLevel);
   const userLevel = useUserStore((s) => (s as any).level);
   const hasCompletedPlacementTest = useUserStore(
     (s) => (s as any).hasCompletedPlacementTest
   );
-  const [showTestResult, setShowTestResult] = React.useState(false);
 
-  // Check if user has completed placement test
+  // ============================================================================
+  // EFFECTS
+  // ============================================================================
+  /**
+   * Effect to handle placement test results and pre-select level
+   */
   React.useEffect(() => {
     if (userLevel && hasCompletedPlacementTest) {
       setSelected(userLevel);
@@ -118,7 +138,18 @@ export default function SelectLevelScreen() {
     }
   }, [userLevel, hasCompletedPlacementTest]);
 
-  // Random mascot selection
+  /**
+   * Reset processing state when screen is focused (when back from other screens)
+   */
+  useFocusEffect(
+    useCallback(() => {
+      setIsProcessing(false);
+    }, [])
+  );
+
+  /**
+   * Random mascot selection with entrance animation
+   */
   React.useEffect(() => {
     const randomIndex = Math.floor(Math.random() * pokemonMascots.length);
     setMascot(pokemonMascots[randomIndex]);
@@ -137,6 +168,12 @@ export default function SelectLevelScreen() {
     ]).start();
   }, [fadeAnim, translateY]);
 
+  // ============================================================================
+  // EVENT HANDLERS
+  // ============================================================================
+  /**
+   * Handles continue action - sets user level and navigates to starter selection
+   */
   const onContinue = async () => {
     if (!selected || isProcessing) return;
 
@@ -144,14 +181,31 @@ export default function SelectLevelScreen() {
       setIsProcessing(true);
       setLevel(selected);
       await authService.setUserLevel(selected);
-      router.replace(ROUTES.AUTH.CHOOSE_STARTER as any);
+      setIsProcessing(false); // Reset processing state before navigation
+      router.push(ROUTES.AUTH.CHOOSE_STARTER as any);
     } catch (error) {
       console.error("Error setting user level:", error);
       setIsProcessing(false);
     }
   };
 
-  // Color + icon meta per JLPT level
+  /**
+   * Get mascot messages using i18n
+   * @param mascotName - Name of the mascot
+   * @returns Translated message for the mascot
+   */
+  const getMascotMessage = (mascotName: string) => {
+    return t(`auth.mascots.${mascotName.toLowerCase()}`);
+  };
+
+  // ============================================================================
+  // UTILITY FUNCTIONS
+  // ============================================================================
+  /**
+   * Get color and icon metadata for each JLPT level
+   * @param level - The JLPT level
+   * @returns Object containing border, active, fill colors and icon
+   */
   const getLevelMeta = (level: Level) => {
     switch (level) {
       case "N5":
@@ -185,6 +239,14 @@ export default function SelectLevelScreen() {
     }
   };
 
+  // ============================================================================
+  // SUB-COMPONENTS
+  // ============================================================================
+  /**
+   * Level option component for each JLPT level
+   * @param level - The JLPT level
+   * @param label - Display label for the level
+   */
   const LevelOption = ({ level, label }: { level: Level; label: string }) => {
     const isActive = selected === level;
     // Always show recommendation tag on the recommended level, regardless of user's current selection
@@ -249,9 +311,12 @@ export default function SelectLevelScreen() {
     );
   };
 
+  // ============================================================================
+  // RENDER
+  // ============================================================================
   return (
-    <StarterScreenLayout currentStep={1} totalSteps={2} onBack={handleBack}>
-      {/* Mascot + speech bubble on top */}
+    <StarterScreenLayout currentStep={1} totalSteps={2}>
+      {/* Mascot + Speech Bubble Section */}
       <Animated.View
         style={{
           flexDirection: "row",
@@ -342,6 +407,7 @@ export default function SelectLevelScreen() {
         }}
       />
 
+      {/* Title and Test Result Section */}
       <View style={{ paddingHorizontal: 20 }}>
         <ThemedText
           type="title"
@@ -385,6 +451,7 @@ export default function SelectLevelScreen() {
         )}
       </View>
 
+      {/* Level Selection and Actions Section */}
       <View
         style={{
           flex: 1,
@@ -397,6 +464,7 @@ export default function SelectLevelScreen() {
           <LevelOption level="N4" label={t("auth.select_level.n4")} />
           <LevelOption level="N3" label={t("auth.select_level.n3")} />
 
+          {/* Take Placement Test Button */}
           <TouchableOpacity
             onPress={() => router.push(ROUTES.AUTH.PLACEMENT_TEST as any)}
             activeOpacity={0.8}
@@ -415,6 +483,7 @@ export default function SelectLevelScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Continue Button Section */}
         <View style={{ paddingTop: 12 }}>
           <BounceButton
             variant="solid"

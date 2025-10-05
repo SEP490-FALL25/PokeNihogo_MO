@@ -1,3 +1,6 @@
+// ============================================================================
+// IMPORTS
+// ============================================================================
 import { HelloWave } from "@components/HelloWave";
 import StarterScreenLayout from "@components/layouts/StarterScreenLayout";
 import { ThemedText } from "@components/ThemedText";
@@ -6,19 +9,28 @@ import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
 import { router } from "expo-router";
 import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
 } from "react";
 import { Image, View } from "react-native";
 import ConfettiCannon from "react-native-confetti-cannon";
 import starters from "../../../mock-data/starters.json";
 
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
 type Starter = { id: string; name: string; type: string[]; image: string };
 
-// Constants để tránh tạo object mới mỗi lần render
+// ============================================================================
+// CONSTANTS & CONFIGURATION
+// ============================================================================
+/**
+ * Confetti colors for celebration effect
+ * Constants to avoid creating new objects on each render
+ */
 const CONFETTI_COLORS = [
   "#3b82f6",
   "#10b981",
@@ -28,6 +40,10 @@ const CONFETTI_COLORS = [
   "#06b6d4",
 ];
 
+/**
+ * Confetti configuration object
+ * Optimized settings for celebration animation
+ */
 const CONFETTI_CONFIG = {
   count: 300,
   origin: { x: -10, y: 0 },
@@ -38,9 +54,20 @@ const CONFETTI_CONFIG = {
   fallSpeed: 2000,
 };
 
+/**
+ * Delay before confetti starts (in milliseconds)
+ */
 const CONFETTI_DELAY = 500;
 
-// Custom hook để quản lý confetti logic
+// ============================================================================
+// CUSTOM HOOKS
+// ============================================================================
+/**
+ * Custom hook to manage confetti animation logic
+ * Handles delayed confetti trigger to avoid creating new objects on each render
+ * @param delay - Delay before confetti starts (default: CONFETTI_DELAY)
+ * @returns Object containing confetti ref and triggered state
+ */
 const useConfetti = (delay: number = CONFETTI_DELAY) => {
   const confettiRef = useRef<ConfettiCannon>(null);
   const [triggered, setTriggered] = useState(false);
@@ -59,12 +86,26 @@ const useConfetti = (delay: number = CONFETTI_DELAY) => {
   return { confettiRef, triggered };
 };
 
-// Memoized component để tránh re-render không cần thiết
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+/**
+ * Memoized component to prevent unnecessary re-renders
+ * Optimized for performance with memoized styles and callbacks
+ */
 const CongratsScreen = React.memo(() => {
+  // ============================================================================
+  // HOOKS & STATE
+  // ============================================================================
   const starterId = useUserStore((state) => state.starterId);
   const { confettiRef } = useConfetti();
 
-  // Memoize selected starter để tránh tính toán lại không cần thiết
+  // ============================================================================
+  // COMPUTED VALUES
+  // ============================================================================
+  /**
+   * Memoized selected starter to avoid unnecessary recalculations
+   */
   const selectedStarter = useMemo(() => {
     return (
       starters.find((starter: Starter) => starter.id === starterId) ||
@@ -72,7 +113,13 @@ const CongratsScreen = React.memo(() => {
     );
   }, [starterId]);
 
-  // Memoize styles để tránh tạo object mới mỗi lần render
+  // ============================================================================
+  // MEMOIZED STYLES
+  // ============================================================================
+  /**
+   * Memoized styles to avoid creating new objects on each render
+   * Optimized for performance
+   */
   const containerStyle = useMemo(
     () => ({
       flex: 1,
@@ -116,35 +163,55 @@ const CongratsScreen = React.memo(() => {
     []
   );
 
-  // Memoized callback để tránh re-render không cần thiết
+  // ============================================================================
+  // EVENT HANDLERS
+  // ============================================================================
+  /**
+   * Memoized callback to prevent unnecessary re-renders
+   * Handles navigation to home screen
+   */
   const handleGoHome = useCallback(() => {
     router.replace(ROUTES.AUTH.WELCOME);
   }, []);
 
+  // ============================================================================
+  // RENDER
+  // ============================================================================
   return (
     <StarterScreenLayout showBack={false}>
+      {/* Confetti Animation */}
       <ConfettiCannon ref={confettiRef} {...CONFETTI_CONFIG} />
+      
+      {/* Main Content Section */}
       <View style={containerStyle}>
+        {/* Celebration Badge */}
         <View style={badgeStyle}>
           <ThemedText>Hurray!!</ThemedText>
         </View>
 
+        {/* Starter Image */}
         <Image
           source={{ uri: selectedStarter.image }}
           style={imageStyle}
           resizeMode="contain"
         />
+        
+        {/* Welcome Message */}
         <ThemedText
           type="title"
           style={{ textAlign: "center", marginBottom: 8 }}
         >
           Welcome <HelloWave />
         </ThemedText>
+        
+        {/* Success Message */}
         <ThemedText
           style={{ textAlign: "center", color: "#6b7280", marginBottom: 4 }}
         >
           Your profile has been created successfully.
         </ThemedText>
+        
+        {/* Starter Name */}
         <ThemedText
           style={{ textAlign: "center", color: "#3b82f6", fontWeight: "600" }}
         >
@@ -152,6 +219,7 @@ const CongratsScreen = React.memo(() => {
         </ThemedText>
       </View>
 
+      {/* Action Button Section */}
       <View style={buttonContainerStyle}>
         <BounceButton
           size="full"
@@ -166,7 +234,13 @@ const CongratsScreen = React.memo(() => {
   );
 });
 
-// Export với display name để debugging
+// ============================================================================
+// COMPONENT EXPORT
+// ============================================================================
+/**
+ * Export with display name for debugging purposes
+ * Helps identify component in React DevTools
+ */
 CongratsScreen.displayName = "CongratsScreen";
 
 export default CongratsScreen;

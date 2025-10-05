@@ -1,8 +1,14 @@
-import { ThemedText } from "@components/ThemedText";
+// ============================================================================
+// IMPORTS
+// ============================================================================
+import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import React from "react";
 import { Animated, TouchableOpacity, View } from "react-native";
 
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
 interface AudioPlayerProps {
   audioUrl: string;
   onPlaybackStatusUpdate?: (status: any) => void;
@@ -11,6 +17,9 @@ interface AudioPlayerProps {
   disabled?: boolean;
 }
 
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 export default function AudioPlayer({
   audioUrl,
   onPlaybackStatusUpdate,
@@ -18,20 +27,35 @@ export default function AudioPlayer({
   buttonStyle,
   disabled = false,
 }: AudioPlayerProps) {
+  // ============================================================================
+  // STATE & REFS
+  // ============================================================================
   const [sound, setSound] = React.useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
+  // ============================================================================
+  // EFFECTS
+  // ============================================================================
+  /**
+   * Cleanup effect - unloads audio when component unmounts
+   */
   React.useEffect(() => {
     return () => {
-      // Cleanup khi component unmount
       if (sound) {
         sound.unloadAsync();
       }
     };
   }, [sound]);
 
+  // ============================================================================
+  // AUDIO MANAGEMENT FUNCTIONS
+  // ============================================================================
+  /**
+   * Loads audio from URL with optional autoplay
+   * @param shouldAutoPlay - Whether to start playing immediately after loading
+   */
   const loadAudio = async (shouldAutoPlay = false) => {
     try {
       setIsLoading(true);
@@ -39,22 +63,22 @@ export default function AudioPlayer({
         { uri: audioUrl },
         { shouldPlay: shouldAutoPlay },
         (status) => {
-          // Xử lý khi audio kết thúc
+          // Handle audio completion
           if (status.isLoaded && status.didJustFinish) {
             setIsPlaying(false);
-            // Cleanup audio để có thể replay
+            // Cleanup audio for replay capability
             setTimeout(() => {
               newSound.unloadAsync();
               setSound(null);
-            }, 100); // Delay nhỏ để đảm bảo cleanup hoàn tất
+            }, 100); // Small delay to ensure cleanup completes
           }
-          // Gọi callback từ parent nếu có
+          // Call parent callback if provided
           onPlaybackStatusUpdate?.(status);
         }
       );
       setSound(newSound);
 
-      // Nếu cần autoplay, phát ngay sau khi load
+      // If autoplay is needed, start playing immediately after loading
       if (shouldAutoPlay) {
         setIsPlaying(true);
       }
@@ -65,10 +89,14 @@ export default function AudioPlayer({
     }
   };
 
+  /**
+   * Handles play/pause functionality
+   * Loads audio if not already loaded, then toggles playback
+   */
   const playAudio = async () => {
-    // Nếu không có sound hoặc sound đã bị cleanup, load và phát luôn
+    // If no sound or sound was cleaned up, load and play immediately
     if (!sound) {
-      await loadAudio(true); // Autoplay sau khi load
+      await loadAudio(true); // Autoplay after loading
       return;
     }
 
@@ -82,12 +110,14 @@ export default function AudioPlayer({
       }
     } catch (error) {
       console.error("Error playing audio:", error);
-      // Nếu có lỗi, reset state
+      // Reset state on error
       setIsPlaying(false);
     }
   };
 
-  // Animation effect khi đang phát
+  /**
+   * Animation effect for playing state - creates pulsing animation
+   */
   React.useEffect(() => {
     if (isPlaying) {
       const loop = Animated.loop(
@@ -107,7 +137,7 @@ export default function AudioPlayer({
       loop.start();
       return () => loop.stop();
     } else {
-      // Reset animation về trạng thái ban đầu
+      // Reset animation to initial state
       Animated.timing(scaleAnim, {
         toValue: 1,
         duration: 200,
@@ -116,20 +146,24 @@ export default function AudioPlayer({
     }
   }, [isPlaying, scaleAnim]);
 
+  // ============================================================================
+  // RENDER
+  // ============================================================================
   return (
     <View style={style}>
       <TouchableOpacity
         onPress={playAudio}
         disabled={disabled || isLoading}
         activeOpacity={0.8}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         style={[
           {
-            width: 56,
-            height: 56,
-            borderRadius: 28,
+            width: 40,
+            height: 40,
+            borderRadius: 20,
             alignItems: "center",
             justifyContent: "center",
-            borderWidth: 2,
+            borderWidth: 1,
             borderColor: isPlaying ? "#3b82f6" : "#e5e7eb",
             backgroundColor: isPlaying ? "rgba(59,130,246,0.1)" : "#ffffff",
             opacity: disabled || isLoading ? 0.5 : 1,
@@ -138,9 +172,11 @@ export default function AudioPlayer({
         ]}
       >
         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-          <ThemedText style={{ fontSize: 24 }}>
-            {isLoading ? "⏳" : isPlaying ? "⏸️" : "▶️"}
-          </ThemedText>
+          <Ionicons
+            name={isLoading ? "hourglass" : "volume-high"}
+            size={18}
+            color="#3b82f6"
+          />
         </Animated.View>
       </TouchableOpacity>
     </View>

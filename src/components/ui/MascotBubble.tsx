@@ -117,10 +117,10 @@ export default function MascotBubble({
         <Image
           source={
             mascotSource ?? {
-              uri: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
+              uri: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif",
             }
           }
-          style={[{ width: 72, height: 72, borderRadius: 9999 }, mascotImageStyle]}
+          style={[{ width: 72, height: 72, borderRadius: 16 }, mascotImageStyle]}
           resizeMode="contain"
         />
       </View>

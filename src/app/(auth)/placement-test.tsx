@@ -1,9 +1,12 @@
+// ============================================================================
+// IMPORTS
+// ============================================================================
 import StarterScreenLayout from "@components/layouts/StarterScreenLayout";
 import { ThemedText } from "@components/ThemedText";
-import BounceButton from "@components/ui/BounceButton";
-// removed Card in favor of MascotBubble
 import AudioPlayer from "@components/ui/AudioPlayer";
+import BounceButton from "@components/ui/BounceButton";
 import MascotBubble from "@components/ui/MascotBubble";
+import { Ionicons } from "@expo/vector-icons";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
 import * as Haptics from "expo-haptics";
@@ -14,6 +17,9 @@ import { useTranslation } from "react-i18next";
 import { Animated, TouchableOpacity, View } from "react-native";
 import questionsData from "../../../mock-data/placement-questions.json";
 
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
 type Difficulty = "N5" | "N4" | "N3";
 type QuestionType = "text" | "audio";
 type Question = {
@@ -23,9 +29,17 @@ type Question = {
   options: string[];
   answerIndex: number;
   difficulty: Difficulty;
-  audioUrl?: string; // URL của audio file (chỉ dành cho type "audio")
+  audioUrl?: string;
 };
 
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+/**
+ * Shuffles an array using Fisher-Yates algorithm
+ * @param array - The array to shuffle
+ * @returns A new shuffled array
+ */
 function shuffle<T>(array: T[]): T[] {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -35,35 +49,64 @@ function shuffle<T>(array: T[]): T[] {
   return arr;
 }
 
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 export default function PlacementTestScreen() {
+  // ============================================================================
+  // HOOKS & STATE
+  // ============================================================================
   const { t } = useTranslation();
+
+  // Questions state - initialized once with shuffled questions
   const [questions] = React.useState<Question[]>(() => {
     const all = questionsData as Question[];
-    // Đảm bảo tất cả questions có type, mặc định là "text"
-    const normalizedQuestions = all.map(q => ({
+
+    const normalizedQuestions = all.map((q) => ({
       ...q,
-      type: q.type || "text" as QuestionType
+      type: q.type || ("text" as QuestionType),
     }));
     const shuffled = shuffle(normalizedQuestions);
     return shuffled.slice(0, Math.min(10, shuffled.length));
   });
+
+  // Test progress state
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
   const [answers, setAnswers] = React.useState<number[]>([]);
+
+  // Speech state
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
+  // Store selectors
   const setLevel = useUserStore((s) => (s as any).setLevel);
-  const setHasCompletedPlacementTest = useUserStore((s) => (s as any).setHasCompletedPlacementTest);
+  const setHasCompletedPlacementTest = useUserStore(
+    (s) => (s as any).setHasCompletedPlacementTest
+  );
 
+  // ============================================================================
+  // COMPUTED VALUES
+  // ============================================================================
   const current = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
+  const progress = (currentIndex + 1) / questions.length;
 
+  // ============================================================================
+  // EVENT HANDLERS
+  // ============================================================================
+  /**
+   * Handles option selection with haptic feedback
+   * @param idx - The index of the selected option
+   */
   const onChoose = (idx: number) => {
     Haptics.selectionAsync();
     setSelectedIndex(idx);
   };
 
+  /**
+   * Handles text-to-speech functionality for questions
+   */
   const handleSpeak = () => {
     if (isSpeaking) {
       Speech.stop();
@@ -86,7 +129,12 @@ export default function PlacementTestScreen() {
     });
   };
 
-  // Animation effect khi đang speak
+  // ============================================================================
+  // EFFECTS
+  // ============================================================================
+  /**
+   * Animation effect for speaking state - creates pulsing animation
+   */
   React.useEffect(() => {
     if (isSpeaking) {
       const loop = Animated.loop(
@@ -114,13 +162,21 @@ export default function PlacementTestScreen() {
     }
   }, [isSpeaking, scaleAnim]);
 
-  // Cleanup khi component unmount
+  /**
+   * Cleanup effect - stops speech when component unmounts
+   */
   React.useEffect(() => {
     return () => {
       Speech.stop();
     };
   }, []);
 
+  // ============================================================================
+  // NAVIGATION HANDLERS
+  // ============================================================================
+  /**
+   * Handles moving to next question or completing the test
+   */
   const onNext = () => {
     if (selectedIndex == null) return;
     const nextAnswers = [...answers];
@@ -138,6 +194,16 @@ export default function PlacementTestScreen() {
     }
   };
 
+  /**
+   * Handles back navigation
+   */
+  const handleBack = () => {
+    router.back();
+  };
+
+  // ============================================================================
+  // EARLY RETURNS & VALIDATION
+  // ============================================================================
   if (questions.length === 0) {
     return (
       <StarterScreenLayout currentStep={1} totalSteps={2}>
@@ -155,30 +221,48 @@ export default function PlacementTestScreen() {
     );
   }
 
+  // ============================================================================
+  // LAYOUT CONFIGURATION
+  // ============================================================================
   const maxOptionsForGrid = 4;
-  const maxLenPerOption = 15; // Giảm từ 22 xuống 15 để dễ hiển thị 2x2
+  const maxLenPerOption = 15; // Reduced from 22 to 15 for better 2x2 grid display
   const shouldUseGrid =
     !!current &&
     Array.isArray(current.options) &&
-    current.options.length === maxOptionsForGrid && // Chỉ dùng grid khi có đúng 4 options
+    current.options.length === maxOptionsForGrid && // Only use grid when exactly 4 options
     current.options.every((o) => (o ?? "").length <= maxLenPerOption);
+  // ============================================================================
+  // RENDER
+  // ============================================================================
   return (
-    <StarterScreenLayout currentStep={1} totalSteps={2}>
+    <StarterScreenLayout currentStep={1} totalSteps={2} onBack={handleBack}>
       <View style={{ flex: 1 }}>
+        {/* Progress Section */}
         <View style={{ marginBottom: 12, paddingHorizontal: 20 }}>
-          {/* <ThemedText
-            type="defaultSemiBold"
-            style={{ marginBottom: 6, fontSize: 30 }}
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 8,
+            }}
           >
-            {t("auth.placement_test.progress_title")}
-          </ThemedText> */}
-          {/* <View
+            <ThemedText type="defaultSemiBold" style={{ fontSize: 18 }}>
+              {t("auth.placement_test.progress_title")}
+            </ThemedText>
+            <ThemedText
+              type="default"
+              style={{ fontSize: 14, color: "#6b7280" }}
+            >
+              {currentIndex + 1}/{questions.length}
+            </ThemedText>
+          </View>
+          <View
             style={{
               height: 6,
               backgroundColor: "#e5e7eb",
               borderRadius: 9999,
               overflow: "hidden",
-              marginBottom: 6,
             }}
           >
             <View
@@ -186,10 +270,12 @@ export default function PlacementTestScreen() {
                 width: `${progress * 100}%`,
                 backgroundColor: "#3b82f6",
                 height: "100%",
+                borderRadius: 9999,
               }}
             />
-          </View> */}
+          </View>
         </View>
+        {/* Question Section */}
         <View style={{ marginBottom: 24, paddingHorizontal: 20 }}>
           <MascotBubble
             bubbleStyle={{ paddingHorizontal: 24, paddingVertical: 100 }}
@@ -215,7 +301,7 @@ export default function PlacementTestScreen() {
                   style={{
                     width: 40,
                     height: 40,
-                    borderRadius: 9999,
+                    borderRadius: 20,
                     alignItems: "center",
                     justifyContent: "center",
                     borderWidth: 1,
@@ -226,9 +312,11 @@ export default function PlacementTestScreen() {
                   }}
                 >
                   <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-                    <ThemedText style={{ fontSize: 18 }}>
-                      {isSpeaking ? "🔊" : "🔊"}
-                    </ThemedText>
+                    <Ionicons
+                      name={isSpeaking ? "volume-high" : "volume-high"}
+                      size={18}
+                      color="#3b82f6"
+                    />
                   </Animated.View>
                 </TouchableOpacity>
               )
@@ -237,6 +325,7 @@ export default function PlacementTestScreen() {
             {current.question}
           </MascotBubble>
         </View>
+        {/* Options Section */}
         <View
           style={{
             gap: 12,
@@ -277,6 +366,8 @@ export default function PlacementTestScreen() {
           })}
         </View>
       </View>
+
+      {/* Action Button Section */}
       <View style={{ paddingHorizontal: 20, paddingBottom: 12 }}>
         <BounceButton
           variant="solid"
@@ -290,7 +381,16 @@ export default function PlacementTestScreen() {
   );
 }
 
-//fake caculation
+// ============================================================================
+// UTILITY FUNCTIONS (EXPORTED)
+// ============================================================================
+/**
+ * Computes JLPT level recommendation based on test answers
+ * Uses a simple heuristic algorithm to determine the appropriate level
+ * @param questions - Array of test questions
+ * @param answers - Array of user's answers (indices)
+ * @returns Recommended JLPT difficulty level
+ */
 function computeRecommendation(
   questions: Question[],
   answers: number[]
@@ -298,6 +398,8 @@ function computeRecommendation(
   let correct = 0;
   let correctN3 = 0;
   let correctN4 = 0;
+
+  // Count correct answers by difficulty level
   for (let i = 0; i < questions.length; i++) {
     const q = questions[i];
     const a = answers[i];
@@ -308,7 +410,8 @@ function computeRecommendation(
       if (q.difficulty === "N4") correctN4++;
     }
   }
-  // Simple heuristic
+
+  // Simple heuristic algorithm
   if (correct >= 8 || correctN3 >= 3) return "N3";
   if (correct >= 5 || correctN4 >= 3) return "N4";
   return "N5";
