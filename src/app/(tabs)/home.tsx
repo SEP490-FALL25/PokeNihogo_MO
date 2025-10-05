@@ -1,32 +1,144 @@
-import HomeLayout from "@components/layouts/HomeLayout";
+import HomeLayout, { HomeLayoutRef } from "@components/layouts/HomeLayout";
 import MainNavigation from "@components/MainNavigation";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
-import React from "react";
+import AnimatedPokemonOverlay from "@components/ui/AnimatedPokemonOverlay";
+import HomeTourGuide, { TourStep } from "@components/ui/HomeTourGuide";
+import WelcomeModal from "@components/ui/WelcomeModal";
+import { useUserStore } from "@stores/user/user.config";
+import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
+import starters from "../../../mock-data/starters.json";
+import { Starter } from "../../types/starter.types";
 
+// Constants for Pokemon display
+const POKEMON_CONSTANTS = {
+  DEFAULT_IMAGE_SIZE: 120,
+  PARTNER_POKEMON_IMAGE:
+    "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/16.gif", // Pidgey
+} as const;
 
-
+/**
+ * HomeScreen Component
+ *
+ * Main home screen displaying user progress, partner Pokemon, and learning content.
+ * Features tour guide functionality and welcome modal for new users.
+ *
+ * @returns JSX.Element
+ */
 export default function HomeScreen() {
-  const handleStartLesson = () => {
-    // Navigate to lesson screen
-    console.log("Start Lesson pressed");
+  // Tour and modal state management
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [shouldStartTour, setShouldStartTour] = useState(false);
+  const homeLayoutRef = useRef<HomeLayoutRef>(null);
+
+  // Global state from user store
+  const { isFirstTimeLogin, setIsFirstTimeLogin, starterId, email } =
+    useUserStore();
+
+  /**
+   * Get user's selected starter Pokemon
+   * Falls back to first starter if none selected
+   */
+  const selectedStarter = React.useMemo(() => {
+    return (
+      starters.find((starter: Starter) => starter.id === starterId) ||
+      starters[0]
+    );
+  }, [starterId]);
+
+  /**
+   * Extract username from email (part before @)
+   * Falls back to "Trainer" if email is invalid
+   */
+  const username = email.split("@")[0] || "Trainer";
+
+  /**
+   * Handle tour completion - called when user finishes the tour guide
+   */
+  const handleTourComplete = () => {
+    setIsFirstTimeLogin(false);
+    setShouldStartTour(false);
   };
 
+  /**
+   * Show welcome modal for first-time users
+   * Triggers when isFirstTimeLogin is true
+   */
+  useEffect(() => {
+    if (isFirstTimeLogin === true) {
+      setShowWelcomeModal(true);
+    }
+  }, [isFirstTimeLogin]);
+
+  /**
+   * Handle welcome modal close - starts tour guide after modal is dismissed
+   */
+  const handleWelcomeModalClose = () => {
+    setShowWelcomeModal(false);
+    if (isFirstTimeLogin === true) {
+      setShouldStartTour(true);
+    }
+  };
+
+  /**
+   * Handle start lesson button press
+   * TODO: Implement navigation to lesson screen
+   */
+  const handleStartLesson = () => {
+    // Navigate to lesson screen
+  };
+
+  /**
+   * Test function to simulate first-time login (for development/testing)
+   * Allows developers to trigger welcome flow manually
+   */
+  const handleTestTour = () => {
+    setIsFirstTimeLogin(true);
+  };
 
   return (
-    <HomeLayout >
-      {/* Custom content for home screen */}
-      <View style={styles.customContent}>
-        <ThemedText type="subtitle" style={styles.welcomeTitle}>
-          Welcome back, ! 👋
-        </ThemedText>
+    <HomeTourGuide
+      onTourComplete={handleTourComplete}
+      shouldStartTour={shouldStartTour}
+      scrollTo={(y: number) => homeLayoutRef.current?.scrollTo(y)}
+    >
+      <HomeLayout ref={homeLayoutRef}>
+        {/* Main content container for home screen */}
+        <View style={styles.customContent}>
+          {/* Welcome message with username */}
+          <ThemedText type="subtitle" style={styles.welcomeTitle}>
+            Welcome back, {username}! 👋
+          </ThemedText>
 
-        <ThemedText style={styles.welcomeSubtitle}>
-          Ready to continue your Japanese learning journey?
-        </ThemedText>
+          {/* Subtitle encouraging continued learning */}
+          <ThemedText style={styles.welcomeSubtitle}>
+            Ready to continue your Japanese learning journey?
+          </ThemedText>
 
-          {/* Quick Start Section */}
+          {/* Partner Pokemon Display with Tour Guide */}
+          <View style={styles.pokemonContainer}>
+            <TourStep
+              stepIndex={1}
+              title="Your Partner Pokémon"
+              description="Take care of your partner Pokémon and evolve together!"
+            >
+              <AnimatedPokemonOverlay
+                style={styles.pokemonOverlay}
+                visible={true}
+                imageUri={POKEMON_CONSTANTS.PARTNER_POKEMON_IMAGE}
+                imageSize={POKEMON_CONSTANTS.DEFAULT_IMAGE_SIZE}
+                showBackground={true}
+              />
+            </TourStep>
+          </View>
+          {/* Development/Testing: Button to trigger tour guide manually */}
+          <TouchableOpacity style={styles.testButton} onPress={handleTestTour}>
+            <ThemedText style={styles.testButtonText}>
+              🧪 Test Tour Guide
+            </ThemedText>
+          </TouchableOpacity>
+          {/* Quick Start Section - Main action card */}
           <ThemedView style={styles.quickStartCard}>
             <ThemedText type="subtitle" style={styles.cardTitle}>
               🚀 Quick Start
@@ -59,14 +171,15 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.pathItem}>
-              <ThemedText style={styles.pathItemTitle}>Next Goal: N4</ThemedText>
+              <ThemedText style={styles.pathItemTitle}>
+                Next Goal: N4
+              </ThemedText>
               <ThemedText style={styles.pathItemSubtitle}>
                 Intermediate Japanese - Kanji & Grammar
               </ThemedText>
             </View>
           </ThemedView>
 
-          {/* Main Navigation Section */}
           <MainNavigation />
 
           {/* Recent Activity Section */}
@@ -97,14 +210,36 @@ export default function HomeScreen() {
             </View>
           </ThemedView>
         </View>
-    </HomeLayout>
+      </HomeLayout>
+
+      {/* Welcome Modal */}
+      <WelcomeModal
+        visible={showWelcomeModal}
+        onClose={handleWelcomeModalClose}
+        username={username}
+        pokemonName={selectedStarter.name}
+      />
+    </HomeTourGuide>
   );
 }
 
+/**
+ * Styles for HomeScreen component
+ *
+ * Organized by component sections for better maintainability:
+ * - Layout and content styles
+ * - Welcome section styles
+ * - Card and button styles
+ * - Pokemon display styles
+ * - Activity and text styles
+ */
 const styles = StyleSheet.create({
+  // Layout and content styles
   customContent: {
     gap: 20,
   },
+
+  // Welcome section styles
   welcomeTitle: {
     fontSize: 24,
     fontWeight: "bold",
@@ -236,5 +371,55 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 14,
     fontWeight: "600",
+  },
+  pokemonCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    padding: 20,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  /**
+   * Container for Pokemon display section
+   * Centers the Pokemon and ensures it doesn't expand beyond content
+   */
+  pokemonContainer: {
+    alignItems: "center",
+    marginTop: 12,
+    // Ensure container only takes the size of its content
+    alignSelf: "center",
+  },
+  pokemonName: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1f2937",
+    marginBottom: 4,
+  },
+  pokemonType: {
+    fontSize: 14,
+    color: "#6b7280",
+    fontWeight: "500",
+  },
+  /**
+   * Style for Pokemon overlay in tour guide context
+   * Uses relative positioning to work within the tour step wrapper
+   * Allows PokemonDisplay to show with full background and padding
+   */
+  pokemonOverlay: {
+    // Override absolute positioning for tour guide compatibility
+    position: "relative",
+    top: 0,
+    left: 0,
+    marginTop: 0,
+    marginLeft: 0,
+    // Let PokemonDisplay determine its own size with background and padding
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
