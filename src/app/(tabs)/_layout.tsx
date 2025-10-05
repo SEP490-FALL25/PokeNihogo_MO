@@ -2,6 +2,7 @@ import { Tabs } from "expo-router";
 import React from "react";
 
 import CustomTabBar from "@components/ui/CustomTabBar";
+import CustomTab  from "@components/ui/CustomTab";
 
 export default function TabLayout() {
 
@@ -19,7 +20,8 @@ export default function TabLayout() {
         <Tabs.Screen name="listening" options={{ title: "Listening" }} />
         <Tabs.Screen name="battle" options={{ title: "Battle" }} />
       </Tabs>
-      <CustomTabBar />
+      {/* <CustomTabBar /> */}
+      <CustomTab />
     </>
   );
 }
