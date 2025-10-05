@@ -1,3 +1,6 @@
+// ============================================================================
+// IMPORTS
+// ============================================================================
 import BackScreen from "@components/molecules/Back";
 import { StepProgress } from "@components/ui/StepProgress";
 import { LinearGradient } from "expo-linear-gradient";
@@ -5,6 +8,9 @@ import React from "react";
 import { StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// ============================================================================
+// TYPES & INTERFACES
+// ============================================================================
 interface StarterScreenLayoutProps {
   children: React.ReactNode;
   currentStep?: number;
@@ -12,12 +18,18 @@ interface StarterScreenLayoutProps {
   onBack?: () => void;
 }
 
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 export default function StarterScreenLayout({
   children,
   currentStep,
   totalSteps = 3,
-  onBack ,
+  onBack,
 }: StarterScreenLayoutProps) {
+  // ============================================================================
+  // RENDER
+  // ============================================================================
   return (
     <LinearGradient
       colors={["#79B4C4", "#85C3C3", "#9BC7B9"]}
@@ -25,7 +37,7 @@ export default function StarterScreenLayout({
     >
       <StatusBar barStyle="light-content" />
       <SafeAreaView style={{ flex: 1 }}>
-        {/* Header với nút back và thanh tiến trình */}
+        {/* Header Section - Back button and progress indicator */}
         <View style={{ paddingHorizontal: 20, paddingTop: 4 }}>
           <View
             style={{
@@ -35,14 +47,16 @@ export default function StarterScreenLayout({
               marginBottom: 12,
             }}
           >
-            {/* Nút back */}
+            {/* Back Button */}
             <View style={{ width: 40 }}>
               {onBack && <BackScreen noWrapper onPress={onBack} />}
             </View>
 
-            {/* StepProgress ở giữa */}
+            {/* Step Progress Indicator */}
             {currentStep && (
-              <View style={{ flex: 1, alignItems: "center" }}>
+              <View
+                style={{ flex: 1, alignItems: "center", paddingVertical: 30 }}
+              >
                 <StepProgress
                   currentStep={currentStep}
                   totalSteps={totalSteps}
@@ -53,12 +67,12 @@ export default function StarterScreenLayout({
               </View>
             )}
 
-            {/* Spacer để cân bằng */}
+            {/* Spacer for balance */}
             <View style={{ width: 40 }} />
           </View>
         </View>
 
-        {/* Nội dung chính */}
+        {/* Main Content */}
         {children}
       </SafeAreaView>
     </LinearGradient>
