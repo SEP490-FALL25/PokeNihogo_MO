@@ -12,8 +12,8 @@ import { router } from "expo-router";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { FlatList, View } from "react-native";
-import starters from "../../../mock-data/starters.json";
-import { Starter } from "../../types/starter.types";
+import starters from "../../../../mock-data/starters.json";
+import { Starter } from "../../../types/starter.types";
 
 // ============================================================================
 // MAIN COMPONENT
@@ -63,7 +63,7 @@ export default function ChooseStarterScreen() {
       setStarterId(selected);
       setIsFirstTimeLogin(true);
       await authService.selectStarter(selected);
-      router.replace(ROUTES.AUTH.CONGRATS);
+      router.replace(ROUTES.STARTER.CONGRATS);
     } catch (error) {
       console.error("Error selecting starter:", error);
       setIsProcessing(false);

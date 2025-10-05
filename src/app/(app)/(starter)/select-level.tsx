@@ -182,7 +182,7 @@ export default function SelectLevelScreen() {
       setLevel(selected);
       await authService.setUserLevel(selected);
       setIsProcessing(false); // Reset processing state before navigation
-      router.push(ROUTES.AUTH.CHOOSE_STARTER as any);
+      router.push(ROUTES.STARTER.CHOOSE_STARTER as any);
     } catch (error) {
       console.error("Error setting user level:", error);
       setIsProcessing(false);
@@ -466,7 +466,7 @@ export default function SelectLevelScreen() {
 
           {/* Take Placement Test Button */}
           <TouchableOpacity
-            onPress={() => router.push(ROUTES.AUTH.PLACEMENT_TEST as any)}
+            onPress={() => router.push(ROUTES.STARTER.PLACEMENT_TEST as any)}
             activeOpacity={0.8}
             style={{
               paddingHorizontal: 16,

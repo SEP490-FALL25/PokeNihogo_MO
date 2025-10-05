@@ -52,7 +52,7 @@ export default function CreateAccountScreen() {
                 toast({ variant: 'Success', description: res.data.message });
                 saveSecureStorage('accessToken', res.data.data.accessToken);
                 saveSecureStorage('refreshToken', res.data.data.refreshToken);
-                router.replace(ROUTES.AUTH.SELECT_LEVEL);
+                router.replace(ROUTES.STARTER.SELECT_LEVEL);
             }
         } catch (error: any) {
             toast({ variant: 'destructive', description: error.message });

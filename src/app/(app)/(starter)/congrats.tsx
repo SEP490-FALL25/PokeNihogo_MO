@@ -9,15 +9,15 @@ import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
 import { router } from "expo-router";
 import React, {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from "react";
 import { Image, View } from "react-native";
 import ConfettiCannon from "react-native-confetti-cannon";
-import starters from "../../../mock-data/starters.json";
+import starters from "../../../../mock-data/starters.json";
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -171,17 +171,17 @@ const CongratsScreen = React.memo(() => {
    * Handles navigation to home screen
    */
   const handleGoHome = useCallback(() => {
-    router.replace(ROUTES.AUTH.WELCOME);
+    router.replace(ROUTES.TABS.HOME);
   }, []);
 
   // ============================================================================
   // RENDER
   // ============================================================================
   return (
-    <StarterScreenLayout showBack={false}>
+    <StarterScreenLayout>
       {/* Confetti Animation */}
       <ConfettiCannon ref={confettiRef} {...CONFETTI_CONFIG} />
-      
+
       {/* Main Content Section */}
       <View style={containerStyle}>
         {/* Celebration Badge */}
@@ -195,7 +195,7 @@ const CongratsScreen = React.memo(() => {
           style={imageStyle}
           resizeMode="contain"
         />
-        
+
         {/* Welcome Message */}
         <ThemedText
           type="title"
@@ -203,14 +203,14 @@ const CongratsScreen = React.memo(() => {
         >
           Welcome <HelloWave />
         </ThemedText>
-        
+
         {/* Success Message */}
         <ThemedText
           style={{ textAlign: "center", color: "#6b7280", marginBottom: 4 }}
         >
           Your profile has been created successfully.
         </ThemedText>
-        
+
         {/* Starter Name */}
         <ThemedText
           style={{ textAlign: "center", color: "#3b82f6", fontWeight: "600" }}

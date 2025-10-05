@@ -14,7 +14,7 @@ export default function IndexScreen() {
         return <SplashScreen />;
     }
 
-    const href = isLoggedIn ? ROUTES.TABS.ROOT : ROUTES.AUTH.WELCOME;
+    const href = isLoggedIn ? ROUTES.TABS.HOME : ROUTES.AUTH.WELCOME;
 
     return <Redirect href={href} />;
 }
