@@ -28,6 +28,7 @@ interface HomeLayoutProps {
 
 export default function HomeLayout({ children, user }: HomeLayoutProps) {
   const currentUser = user || sampleUser;
+  
   return (
     <LinearGradient
       colors={["#dbeafe", "#ffffff", "#e0e7ff"]} // bg-gradient-to-br from-blue-50 via-white to-indigo-100

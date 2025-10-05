@@ -12,9 +12,9 @@ declare namespace ZUSTAND {
         setLevel: (level: 'N5' | 'N4' | 'N3') => void;
         starterId?: string;
         setStarterId: (starterId: string) => void;
-        isFirstTimeLogin?: boolean;
-        setIsFirstTimeLogin: (value: boolean) => void;
-        hasCompletedPlacementTest: boolean;
-        setHasCompletedPlacementTest: (value: boolean) => void;
+            isFirstTimeLogin?: boolean;
+            setIsFirstTimeLogin: (value: boolean) => void;
+            hasCompletedPlacementTest: boolean;
+            setHasCompletedPlacementTest: (value: boolean) => void;
     }
 }

@@ -8,20 +8,11 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 
 export default function HomeScreen() {
-  const handleContinueLearning = () => {
-    // Navigate to learning screen
-    console.log("Continue Learning pressed");
-  };
-
-  const handlePractice = () => {
-    // Navigate to practice screen
-    console.log("Practice pressed");
-  };
-
   const handleStartLesson = () => {
     // Navigate to lesson screen
     console.log("Start Lesson pressed");
   };
+
 
   return (
     <HomeLayout >
@@ -35,77 +26,77 @@ export default function HomeScreen() {
           Ready to continue your Japanese learning journey?
         </ThemedText>
 
-        {/* Quick Start Section */}
-        <ThemedView style={styles.quickStartCard}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>
-            🚀 Quick Start
-          </ThemedText>
-
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={handleStartLesson}
-            activeOpacity={0.8}
-          >
-            <ThemedText style={styles.primaryButtonText}>
-              Start New Lesson
+          {/* Quick Start Section */}
+          <ThemedView style={styles.quickStartCard}>
+            <ThemedText type="subtitle" style={styles.cardTitle}>
+              🚀 Quick Start
             </ThemedText>
-          </TouchableOpacity>
-        </ThemedView>
 
-        {/* Learning Path Section */}
-        <ThemedView style={styles.learningPathCard}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>
-            📚 Your Learning Path
-          </ThemedText>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={handleStartLesson}
+              activeOpacity={0.8}
+            >
+              <ThemedText style={styles.primaryButtonText}>
+                Start New Lesson
+              </ThemedText>
+            </TouchableOpacity>
+          </ThemedView>
 
-          <View style={styles.pathItem}>
-            <ThemedText style={styles.pathItemTitle}>
-              Current Level: N5
+          {/* Learning Path Section */}
+          <ThemedView style={styles.learningPathCard}>
+            <ThemedText type="subtitle" style={styles.cardTitle}>
+              📚 Your Learning Path
             </ThemedText>
-            <ThemedText style={styles.pathItemSubtitle}>
-              Basic Japanese - Hiragana & Katakana
+
+            <View style={styles.pathItem}>
+              <ThemedText style={styles.pathItemTitle}>
+                Current Level: N5
+              </ThemedText>
+              <ThemedText style={styles.pathItemSubtitle}>
+                Basic Japanese - Hiragana & Katakana
+              </ThemedText>
+            </View>
+
+            <View style={styles.pathItem}>
+              <ThemedText style={styles.pathItemTitle}>Next Goal: N4</ThemedText>
+              <ThemedText style={styles.pathItemSubtitle}>
+                Intermediate Japanese - Kanji & Grammar
+              </ThemedText>
+            </View>
+          </ThemedView>
+
+          {/* Main Navigation Section */}
+          <MainNavigation />
+
+          {/* Recent Activity Section */}
+          <ThemedView style={styles.recentActivityCard}>
+            <ThemedText type="subtitle" style={styles.cardTitle}>
+              📈 Recent Activity
             </ThemedText>
-          </View>
 
-          <View style={styles.pathItem}>
-            <ThemedText style={styles.pathItemTitle}>Next Goal: N4</ThemedText>
-            <ThemedText style={styles.pathItemSubtitle}>
-              Intermediate Japanese - Kanji & Grammar
-            </ThemedText>
-          </View>
-        </ThemedView>
+            <View style={styles.activityItem}>
+              <ThemedText style={styles.activityText}>
+                ✅ Completed &quot;Basic Greetings&quot; lesson
+              </ThemedText>
+              <ThemedText style={styles.activityTime}>2 hours ago</ThemedText>
+            </View>
 
-        {/* Main Navigation Section */}
-        <MainNavigation />
+            <View style={styles.activityItem}>
+              <ThemedText style={styles.activityText}>
+                🎯 Achieved 95% accuracy in vocabulary quiz
+              </ThemedText>
+              <ThemedText style={styles.activityTime}>Yesterday</ThemedText>
+            </View>
 
-        {/* Recent Activity Section */}
-        <ThemedView style={styles.recentActivityCard}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>
-            📈 Recent Activity
-          </ThemedText>
-
-          <View style={styles.activityItem}>
-            <ThemedText style={styles.activityText}>
-              ✅ Completed &quot;Basic Greetings&quot; lesson
-            </ThemedText>
-            <ThemedText style={styles.activityTime}>2 hours ago</ThemedText>
-          </View>
-
-          <View style={styles.activityItem}>
-            <ThemedText style={styles.activityText}>
-              🎯 Achieved 95% accuracy in vocabulary quiz
-            </ThemedText>
-            <ThemedText style={styles.activityTime}>Yesterday</ThemedText>
-          </View>
-
-          <View style={styles.activityItem}>
-            <ThemedText style={styles.activityText}>
-              🔥 7-day streak maintained!
-            </ThemedText>
-            <ThemedText style={styles.activityTime}>3 days ago</ThemedText>
-          </View>
-        </ThemedView>
-      </View>
+            <View style={styles.activityItem}>
+              <ThemedText style={styles.activityText}>
+                🔥 7-day streak maintained!
+              </ThemedText>
+              <ThemedText style={styles.activityTime}>3 days ago</ThemedText>
+            </View>
+          </ThemedView>
+        </View>
     </HomeLayout>
   );
 }
@@ -224,5 +215,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#9ca3af",
     marginLeft: 12,
+  },
+  testButton: {
+    backgroundColor: "#10b981",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 16,
+    shadowColor: "#10b981",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  testButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
