@@ -68,15 +68,21 @@ const CustomTab = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isActive = useCallback((route: string) => {
-    const cleanRoute = route.replace("/(app)/(tabs)", "");
-    const cleanPathname = pathname.replace("/(app)/(tabs)", "");
-    return cleanPathname === cleanRoute || pathname === route;
-  }, [pathname]);
+  const isActive = useCallback(
+    (route: string) => {
+      const cleanRoute = route.replace(ROUTES.TABS.ROOT, "");
+      const cleanPathname = pathname.replace(ROUTES.TABS.ROOT, "");
+      return cleanPathname === cleanRoute || pathname === route;
+    },
+    [pathname]
+  );
 
-  const handleTabPress = useCallback((route: string) => {
-    router.push(route as any);
-  }, [router]);
+  const handleTabPress = useCallback(
+    (route: string) => {
+      router.push(route as any);
+    },
+    [router]
+  );
 
   return (
     <View style={styles.container}>
@@ -96,7 +102,11 @@ const CustomTab = () => {
 
 const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
   const bounceAnim = useRef(new Animated.Value(active ? 1 : 0)).current;
-  const scaleAnim = useRef(new Animated.Value(active ? 1.2 : 1)).current;
+  const scaleAnim = useRef(
+    new Animated.Value(
+      active ? DIMENSIONS.SCALE_ACTIVE : DIMENSIONS.SCALE_INACTIVE
+    )
+  ).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -109,10 +119,21 @@ const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
         toValue: active ? DIMENSIONS.SCALE_ACTIVE : DIMENSIONS.SCALE_INACTIVE,
         ...ANIMATION_CONFIG.SPRING,
       }),
-      Animated.timing(rotateAnim, {
-        toValue: active ? 1 : 0,
-        ...ANIMATION_CONFIG.TIMING,
-      }),
+      // Chỉ rotate khi active, với sequence animation
+      ...(active
+        ? [
+            Animated.sequence([
+              Animated.timing(rotateAnim, {
+                toValue: 1,
+                ...ANIMATION_CONFIG.ROTATE_TIMING,
+              }),
+              Animated.timing(rotateAnim, {
+                toValue: 0,
+                ...ANIMATION_CONFIG.ROTATE_TIMING,
+              }),
+            ]),
+          ]
+        : []),
     ]).start();
   }, [active, bounceAnim, scaleAnim, rotateAnim]);
 
@@ -123,7 +144,7 @@ const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
 
   const rotate = rotateAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
+    outputRange: ["0deg", "10deg"],
   });
 
   return (
@@ -185,7 +206,8 @@ const DIMENSIONS = {
 
 const ANIMATION_CONFIG = {
   SPRING: { tension: 50, friction: 7, useNativeDriver: true },
-  TIMING: { duration: 600, useNativeDriver: true },
+  TIMING: { duration: 250, useNativeDriver: true },
+  ROTATE_TIMING: { duration: 200, useNativeDriver: true },
 } as const;
 
 const styles = StyleSheet.create({
