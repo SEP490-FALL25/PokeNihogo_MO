@@ -139,7 +139,7 @@ export default function SelectLevelScreen() {
 
   const onContinue = async () => {
     if (!selected || isProcessing) return;
-    
+
     try {
       setIsProcessing(true);
       setLevel(selected);
@@ -423,7 +423,9 @@ export default function SelectLevelScreen() {
             disabled={!selected || isProcessing}
             onPress={onContinue}
           >
-            {isProcessing ? t("common.processing") || "Processing..." : t("common.continue")}
+            {isProcessing
+              ? t("common.processing") || "Processing..."
+              : t("common.continue")}
           </BounceButton>
         </View>
       </View>
