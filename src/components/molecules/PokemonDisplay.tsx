@@ -1,7 +1,6 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import PokemonImage from "../atoms/PokemonImage";
-import { TourStep } from "../ui/TourGuide";
 
 interface PokemonDisplayProps {
   imageUri: string;
@@ -15,15 +14,9 @@ export default function PokemonDisplay({
   style,
 }: PokemonDisplayProps) {
   return (
-    <TourStep
-      name="PartnerPokemonDisplay"
-      text="Take care of your partner Pokémon and evolve together!"
-      zone={2}
-    >
-      <View style={[styles.container, style]}>
-        <PokemonImage imageUri={imageUri} size={imageSize} style={styles.image} />
-      </View>
-    </TourStep>
+    <View style={[styles.container, style]}>
+      <PokemonImage imageUri={imageUri} size={imageSize} style={styles.image} />
+    </View>
   );
 }
 

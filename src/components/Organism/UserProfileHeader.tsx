@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Animated, Modal, Pressable, StyleSheet } from "react-native";
 import CompactHeader from "../molecules/CompactHeader";
 import ExpandedContent from "../molecules/ExpandedContent";
-import { TourStep } from "../ui/TourGuide";
 
 interface User {
   name: string;
@@ -44,14 +43,8 @@ export default function UserProfileHeaderAtomic({
 
   return (
     <>
-      {/* Compact Header Bar with Tour Guide */}
-      <TourStep
-        name="UserProfileHeader"
-        text="Here's your progress. Complete the lessons to level up!"
-        zone={1}
-      >
-        <CompactHeader user={user} onPress={handleOpen} style={style} />
-      </TourStep>
+      {/* Compact Header Bar */}
+      <CompactHeader user={user} onPress={handleOpen} style={style} />
 
       {/* Overlay Modal */}
       <Modal

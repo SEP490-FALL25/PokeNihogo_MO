@@ -2,60 +2,29 @@ import HomeLayout from "@components/layouts/HomeLayout";
 import MainNavigation from "@components/MainNavigation";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
-import TourGuide from "@components/ui/TourGuide";
-import { useUserStore } from "@stores/user/user.config";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 
 
 export default function HomeScreen() {
-  const { isFirstTimeLogin, setIsFirstTimeLogin } = useUserStore();
-
-  const handleContinueLearning = () => {
-    // Navigate to learning screen
-    console.log("Continue Learning pressed");
-  };
-
-  const handlePractice = () => {
-    // Navigate to practice screen
-    console.log("Practice pressed");
-  };
-
   const handleStartLesson = () => {
     // Navigate to lesson screen
     console.log("Start Lesson pressed");
   };
 
-  const handleTestTourGuide = () => {
-    setIsFirstTimeLogin(true);
-  };
 
   return (
-    <TourGuide>
-      <HomeLayout >
-        {/* Custom content for home screen */}
-        <View style={styles.customContent}>
-          <ThemedText type="subtitle" style={styles.welcomeTitle}>
-            Welcome back, ! 👋
-          </ThemedText>
+    <HomeLayout >
+      {/* Custom content for home screen */}
+      <View style={styles.customContent}>
+        <ThemedText type="subtitle" style={styles.welcomeTitle}>
+          Welcome back, ! 👋
+        </ThemedText>
 
-          <ThemedText style={styles.welcomeSubtitle}>
-            Ready to continue your Japanese learning journey?
-          </ThemedText>
-
-          {/* Test Tour Guide Button - Only show when not in tour mode */}
-          {!isFirstTimeLogin && (
-            <TouchableOpacity
-              style={styles.testButton}
-              onPress={handleTestTourGuide}
-              activeOpacity={0.8}
-            >
-              <ThemedText style={styles.testButtonText}>
-                🎯 Test Tour Guide
-              </ThemedText>
-            </TouchableOpacity>
-          )}
+        <ThemedText style={styles.welcomeSubtitle}>
+          Ready to continue your Japanese learning journey?
+        </ThemedText>
 
           {/* Quick Start Section */}
           <ThemedView style={styles.quickStartCard}>
@@ -128,8 +97,7 @@ export default function HomeScreen() {
             </View>
           </ThemedView>
         </View>
-      </HomeLayout>
-    </TourGuide>
+    </HomeLayout>
   );
 }
 
