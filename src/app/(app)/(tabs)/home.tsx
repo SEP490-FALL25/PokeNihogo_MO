@@ -8,8 +8,9 @@ import WelcomeModal from "@components/ui/WelcomeModal";
 import { useUserStore } from "@stores/user/user.config";
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import starters from "../../../mock-data/starters.json";
-import { Starter } from "../../types/starter.types";
+import starters from "../../../../mock-data/starters.json";
+import { Starter } from "../../../types/starter.types";
+
 
 // Constants for Pokemon display
 const POKEMON_CONSTANTS = {
