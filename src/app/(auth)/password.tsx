@@ -50,9 +50,9 @@ export default function PasswordScreen() {
                 saveSecureStorage('accessToken', res.data.data.accessToken);
                 saveSecureStorage('refreshToken', res.data.data.refreshToken);
                 if (res.data.data.level !== null) {
-                    router.replace(ROUTES.TABS.ROOT);
+                    router.replace(ROUTES.TABS.HOME);
                 }
-                router.replace(ROUTES.AUTH.SELECT_LEVEL);
+                router.replace(ROUTES.STARTER.SELECT_LEVEL);
             }
         } catch (error: any) {
             toast({ variant: 'destructive', description: error.message });

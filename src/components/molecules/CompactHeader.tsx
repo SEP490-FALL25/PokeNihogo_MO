@@ -23,7 +23,7 @@ interface CompactHeaderProps {
 
 export default function CompactHeader({ user, onPress, style }: CompactHeaderProps) {
   const handleAvatarPress = () => {
-    router.push(ROUTES.AUTH.USER_PROFILE);
+    router.push(ROUTES.APP.PROFILE);
   };
 
   return (

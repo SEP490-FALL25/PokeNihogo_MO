@@ -63,7 +63,7 @@ const MainNavigation: React.FC = () => {
   const handleUserInfo = () => {
     // Navigate to user info screen
     console.log("User Info pressed");
-    router.push(ROUTES.AUTH.USER_PROFILE);
+    router.push(ROUTES.APP.PROFILE);
   };
 
   const handleOther = () => {

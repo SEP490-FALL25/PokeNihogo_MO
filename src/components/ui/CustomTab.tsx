@@ -5,11 +5,11 @@ import { ROUTES } from "@routes/routes";
 import { usePathname, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef } from "react";
 import {
-    Animated,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 interface Tab {
@@ -69,8 +69,8 @@ const CustomTab = () => {
   const pathname = usePathname();
 
   const isActive = useCallback((route: string) => {
-    const cleanRoute = route.replace("/(tabs)", "");
-    const cleanPathname = pathname.replace("/(tabs)", "");
+    const cleanRoute = route.replace("/(app)/(tabs)", "");
+    const cleanPathname = pathname.replace("/(app)/(tabs)", "");
     return cleanPathname === cleanRoute || pathname === route;
   }, [pathname]);
 

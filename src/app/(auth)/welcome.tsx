@@ -14,12 +14,12 @@ const WelcomeScreen = () => {
   }
 
   const handleTabs = () => {
-    router.push(ROUTES.AUTH.SELECT_LEVEL);
+    router.push(ROUTES.STARTER.SELECT_LEVEL);
   }
 
-const handleDemo =() => {
-  router.push(ROUTES.TABS.HOME);
-}
+  const handleDemo = () => {
+    router.push(ROUTES.TABS.HOME);
+  }
 
   return (
     <AuthScreenLayout>
