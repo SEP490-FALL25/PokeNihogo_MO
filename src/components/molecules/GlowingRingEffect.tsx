@@ -9,7 +9,7 @@ interface GunnyEffectProps {
     particleCount?: number;
 }
 
-export default function GunnyEffect({
+export default function GlowingRingEffect({
     color = '#00FFFF',
     ringSize = 220,
     particleCount = 15,

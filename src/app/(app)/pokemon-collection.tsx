@@ -1,106 +1,100 @@
 import BackScreen from '@components/molecules/Back';
-import GunnyEffect from '@components/molecules/GlowingRingEffect';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { FlatList, Image, StatusBar, Text, TouchableOpacity, View } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import { Search } from 'lucide-react-native';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, Image, Pressable, StatusBar, Text, TextInput, View } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ALL_POKEMON } from '../../../mock-data/pokemon';
 
-const mockPokemonCollection = [
-    { id: 25, name: 'Pikachu', caught: true, platformColor: '#F7D02C' },
-    { id: 4, name: 'Charmander', caught: true, platformColor: '#EE8130' },
-    { id: 7, name: 'Squirtle', caught: true, platformColor: '#6390F0' },
-    { id: 1, name: 'Bulbasaur', caught: true, platformColor: '#7AC74C' },
-    { id: 149, name: 'Dragonite', caught: false, platformColor: '#6F35FC' },
-];
+const userCaughtPokemonIds = new Set([1, 4, 5, 7, 10, 13, 16, 25, 39, 52, 92, 93, 133, 147, 148]);
 
-export default function PokemonCollectionScreen() {
-    const [selectedPokemon, setSelectedPokemon] = useState(mockPokemonCollection.find(p => p.caught));
-    const pokemonFloat = useSharedValue(0);
+const fullPokedexData = ALL_POKEMON.map((pokemon: any) => ({
+    ...pokemon,
+    caught: userCaughtPokemonIds.has(pokemon.id),
+}));
 
-    useEffect(() => {
-        'worklet';
-        pokemonFloat.value = withRepeat(
-            withTiming(10, { duration: 2500, easing: Easing.inOut(Easing.sin) }),
-            -1,
-            true
-        );
-    }, []);
+const PokemonGridItem = React.memo(({ item }: { item: any }) => {
+    const [isLoading, setIsLoading] = useState(true);
+    const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${item.id}.png`;
 
-    const pokemonAnimatedStyle = useAnimatedStyle(() => {
-        'worklet';
-        return {
-            transform: [{ translateY: pokemonFloat.value }],
-        };
-    });
-
-    if (!selectedPokemon) {
-        return <SafeAreaView className="flex-1 bg-slate-900" />;
-    }
-
-    const selectedPokemonImageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${selectedPokemon.id}.png`;
+    const handlePress = () => {
+        if (item.caught) {
+            router.push(`/pokemon/${item.id}`);
+        }
+    };
 
     return (
-        <SafeAreaView className="flex-1 bg-slate-900">
-            <StatusBar barStyle="light-content" />
-            <BackScreen onPress={() => router.back()} color="white">
-                <Text className="text-2xl font-bold text-white">Pokédex</Text>
+        <Pressable
+            onPress={handlePress}
+            className="flex-1 m-1.5 items-center justify-center aspect-square"
+        >
+            <View className="absolute w-full h-full bg-slate-200 rounded-xl" />
+
+            {/* Vòng xoay loading */}
+            {isLoading && <ActivityIndicator size="small" color="#94a3b8" className="absolute" />}
+
+            {/* Ảnh Pokémon */}
+            <Image
+                source={{ uri: imageUrl }}
+                className="w-20 h-20"
+                resizeMode="contain"
+                onLoadEnd={() => setIsLoading(false)}
+                style={!item.caught ? { tintColor: '#cbd5e1' } : {}}
+            />
+
+            {/* Dải băng tên và ID ở dưới */}
+            <View className="absolute bottom-0 w-full p-1.5 bg-black/20 rounded-b-xl">
+                <Text className="text-white text-xs font-bold text-center" numberOfLines={1}>{item.name}</Text>
+                <Text className="text-white/70 text-[10px] text-center">#{String(item.id).padStart(3, '0')}</Text>
+            </View>
+        </Pressable>
+    );
+});
+
+export default function PokemonCollectionScreen() {
+
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Lọc danh sách Pokémon dựa trên tìm kiếm
+    const filteredCollection = useMemo(() => {
+        if (!searchQuery) return fullPokedexData;
+        return fullPokedexData.filter((p: any) =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            String(p.id).padStart(3, '0').includes(searchQuery)
+        );
+    }, [searchQuery]);
+
+    return (
+        <SafeAreaView className="flex-1 bg-slate-100">
+            <StatusBar barStyle="dark-content" />
+            <BackScreen onPress={() => router.back()} color='black'>
+                <Text className="text-2xl font-bold text-slate-800">Pokémon</Text>
             </BackScreen>
 
-            <View className="flex-1 items-center justify-center">
-                <View className="items-center mb-4">
-                    <Text className="text-5xl font-bold text-white tracking-wider">{selectedPokemon.name}</Text>
-                    <Text className="text-2xl font-semibold text-slate-400">#{String(selectedPokemon.id).padStart(3, '0')}</Text>
+            {/* --- Khu vực tìm kiếm và bộ sưu tập --- */}
+            <View className="flex-1 px-2">
+                <View className="flex-row items-center bg-white rounded-full p-2 my-2 border border-slate-200 shadow-sm">
+                    <Search size={20} color="#94A3B8" className="mx-2" />
+                    <TextInput
+                        placeholder="Tìm kiếm theo tên hoặc số thứ tự..."
+                        placeholderTextColor="#94A3B8"
+                        className="flex-1 text-slate-800 text-base"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
                 </View>
 
-                {/* --- Pokémon Display --- */}
-                <View className="w-80 h-80 items-center justify-center">
-                    {/* --- Pokemon Image --- */}
-                    <Animated.View style={pokemonAnimatedStyle} className="z-10">
-                        <Image
-                            source={{ uri: selectedPokemonImageUrl }}
-                            className="w-64 h-64"
-                            resizeMode="contain"
-                        />
-                    </Animated.View>
-
-                    {/* --- Gunny Effect --- */}
-                    <View className="absolute -bottom-28">
-                        <GunnyEffect color={selectedPokemon.platformColor} ringSize={250} />
-                    </View>
-                </View>
-            </View>
-
-            {/* --- Băng chuyền chọn Pokémon --- */}
-            <View className="h-36 border-t-2 border-cyan-400/30">
-                <Text className="text-white font-bold text-lg text-center py-2">Bộ sưu tập</Text>
+                {/* --- Lưới Pokémon --- */}
                 <FlatList
-                    data={mockPokemonCollection}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    keyExtractor={(item) => item.id.toString()}
-                    contentContainerStyle={{ paddingHorizontal: 16, alignItems: 'center' }}
-                    renderItem={({ item }) => {
-                        const isSelected = item.id === selectedPokemon.id;
-                        const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${item.id}.png`;
-
-                        return (
-                            <TouchableOpacity
-                                onPress={() => item.caught && setSelectedPokemon(item)}
-                                className={`w-20 h-20 rounded-full mx-2 items-center justify-center border-2 ${isSelected ? 'border-cyan-400' : 'border-transparent'}`}
-                            >
-                                <View className="p-1 bg-white/10 rounded-full">
-                                    <Image
-                                        source={{ uri: imageUrl }}
-                                        className="w-16 h-16"
-                                        style={!item.caught ? { tintColor: '#1e293b' } : {}}
-                                    />
-                                </View>
-                            </TouchableOpacity>
-                        );
-                    }}
+                    data={filteredCollection}
+                    numColumns={3}
+                    keyExtractor={(item) => item.id.toString()} // eslint-disable-line @typescript-eslint/no-explicit-any
+                    renderItem={({ item }) => <PokemonGridItem item={item} />}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 20 }}
                 />
             </View>
         </SafeAreaView>
     );
-}
+}   
