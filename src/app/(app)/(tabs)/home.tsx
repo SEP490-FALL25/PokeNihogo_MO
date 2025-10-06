@@ -2,21 +2,18 @@ import HomeLayout, { HomeLayoutRef } from "@components/layouts/HomeLayout";
 import MainNavigation from "@components/MainNavigation";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
-import AnimatedPokemonOverlay from "@components/ui/AnimatedPokemonOverlay";
 import HomeTourGuide, { TourStep } from "@components/ui/HomeTourGuide";
 import WelcomeModal from "@components/ui/WelcomeModal";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useUserStore } from "@stores/user/user.config";
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
 
-// Constants for Pokemon display
-const POKEMON_CONSTANTS = {
-  DEFAULT_IMAGE_SIZE: 120,
-  PARTNER_POKEMON_IMAGE:
-    "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/16.gif", // Pidgey
-} as const;
+// Constants for fake overlay (same as DraggableOverlay)
+const OVERLAY_SIZE = 150;
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 /**
  * HomeScreen Component
@@ -97,6 +94,30 @@ export default function HomeScreen() {
     setIsFirstTimeLogin(true);
   };
 
+  /**
+   * Clear AsyncStorage for DraggableOverlay position
+   * Resets the overlay position to default center position
+   */
+  const handleClearAsyncStorage = async () => {
+    try {
+      await AsyncStorage.removeItem("@DraggableOverlay:position");
+      console.log("✅ Cleared DraggableOverlay position from AsyncStorage");
+      // Optional: Show a success message or toast
+    } catch (error) {
+      console.error("❌ Error clearing AsyncStorage:", error);
+    }
+  };
+
+  /**
+   * Calculate default position for fake overlay (same formula as DraggableOverlay)
+   */
+  const getDefaultOverlayPosition = () => {
+    return {
+      x: screenWidth / 2 - OVERLAY_SIZE / 2,
+      y: screenHeight / 2 - OVERLAY_SIZE / 2,
+    };
+  };
+
   return (
     <HomeTourGuide
       onTourComplete={handleTourComplete}
@@ -116,28 +137,19 @@ export default function HomeScreen() {
             Ready to continue your Japanese learning journey?
           </ThemedText>
 
-          {/* Partner Pokemon Display with Tour Guide */}
-          <View style={styles.pokemonContainer}>
-            <TourStep
-              stepIndex={1}
-              title="Your Partner Pokémon"
-              description="Take care of your partner Pokémon and evolve together!"
-            >
-              <AnimatedPokemonOverlay
-                style={styles.pokemonOverlay}
-                visible={true}
-                imageUri={POKEMON_CONSTANTS.PARTNER_POKEMON_IMAGE}
-                imageSize={POKEMON_CONSTANTS.DEFAULT_IMAGE_SIZE}
-                showBackground={true}
-              />
-            </TourStep>
-          </View>
-          {/* Development/Testing: Button to trigger tour guide manually */}
+          {/* Development/Testing: Buttons for testing and debugging */}
           <TouchableOpacity style={styles.testButton} onPress={handleTestTour}>
             <ThemedText style={styles.testButtonText}>
               🧪 Test Tour Guide
             </ThemedText>
           </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.testButton} onPress={handleClearAsyncStorage}>
+            <ThemedText style={styles.testButtonText}>
+              🗑️ Clear Overlay Position
+            </ThemedText>
+          </TouchableOpacity>
+          
           {/* Quick Start Section - Main action card */}
           <ThemedView style={styles.quickStartCard}>
             <ThemedText type="subtitle" style={styles.cardTitle}>
@@ -184,6 +196,44 @@ export default function HomeScreen() {
         </View>
       </HomeLayout>
 
+      {/* Fake Overlay for Tour Step - positioned at default DraggableOverlay location */}
+      <View
+        style={[
+          styles.fakeOverlay,
+          {
+            position: "absolute",
+            zIndex: 1000,
+            left: getDefaultOverlayPosition().x,
+            top: getDefaultOverlayPosition().y,
+          },
+        ]}
+      >
+        <TourStep
+          stepIndex={1}
+          title="Your Partner Pokémon"
+          description="Take care of your partner Pokémon and evolve together!"
+        >
+          <ThemedText style={styles.fakeOverlayText}>
+            Partner Pokémon
+          </ThemedText>
+          <ThemedText style={styles.fakeOverlaySubtext}>
+            Take care of me!
+          </ThemedText>
+          <ThemedText style={styles.fakeOverlaySubtext}>
+            Partner Pokémon
+          </ThemedText>
+          <ThemedText style={styles.fakeOverlaySubtext}>
+            Take care of me!
+          </ThemedText>
+          <ThemedText style={styles.fakeOverlaySubtext}>
+            Partner Pokémon
+          </ThemedText>
+          <ThemedText style={styles.fakeOverlaySubtext}>
+            Partner Pokémon
+          </ThemedText>
+        </TourStep>
+      </View>
+
       {/* Welcome Modal */}
       <WelcomeModal
         visible={showWelcomeModal}
@@ -202,7 +252,6 @@ export default function HomeScreen() {
  * - Layout and content styles
  * - Welcome section styles
  * - Card and button styles
- * - Pokemon display styles
  * - Activity and text styles
  */
 const styles = StyleSheet.create({
@@ -344,54 +393,38 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-  pokemonCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
+  // Fake overlay styles (same dimensions as DraggableOverlay) - INVISIBLE
+  fakeOverlay: {
+    position: "absolute",
+    width: OVERLAY_SIZE,
+    height: OVERLAY_SIZE,
+    borderRadius: 10,
+    backgroundColor: "transparent", // No background - invisible
+    elevation: 0, // No shadow
+    shadowColor: "transparent",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    zIndex: 1000, // Lower than DraggableOverlay (1001) but visible
+    overflow: "hidden",
   },
-  /**
-   * Container for Pokemon display section
-   * Centers the Pokemon and ensures it doesn't expand beyond content
-   */
-  pokemonContainer: {
-    alignItems: "center",
-    marginTop: 12,
-    // Ensure container only takes the size of its content
-    alignSelf: "center",
-  },
-  pokemonName: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#1f2937",
-    marginBottom: 4,
-  },
-  pokemonType: {
-    fontSize: 14,
-    color: "#6b7280",
-    fontWeight: "500",
-  },
-  /**
-   * Style for Pokemon overlay in tour guide context
-   * Uses relative positioning to work within the tour step wrapper
-   * Allows PokemonDisplay to show with full background and padding
-   */
-  pokemonOverlay: {
-    // Override absolute positioning for tour guide compatibility
-    position: "relative",
-    top: 0,
-    left: 0,
-    marginTop: 0,
-    marginLeft: 0,
-    // Let PokemonDisplay determine its own size with background and padding
-    alignItems: "center",
+  fakeOverlayContent: {
+    flex: 1,
+
     justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "red",
+  },
+  fakeOverlayText: {
+    color: "transparent", // Invisible text
+    fontWeight: "bold",
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 5,
+  },
+  fakeOverlaySubtext: {
+    color: "transparent", // Invisible text
+    fontSize: 12,
+    textAlign: "center",
   },
 });
