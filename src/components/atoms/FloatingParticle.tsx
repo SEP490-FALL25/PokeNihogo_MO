@@ -1,4 +1,3 @@
-// src/components/atoms/FloatingParticle.tsx
 import React, { useEffect } from 'react';
 import Animated, {
     Easing,
@@ -32,7 +31,6 @@ export default function FloatingParticle({
     const opacity = useSharedValue(0);
 
     useEffect(() => {
-        // Animation lặp lại vô tận
         translateY.value = withDelay(
             delay,
             withRepeat(
@@ -45,8 +43,8 @@ export default function FloatingParticle({
             delay,
             withRepeat(
                 withSequence(
-                    withTiming(0.8, { duration: duration * 0.3 }), // Hiện ra
-                    withTiming(0, { duration: duration * 0.7, easing: Easing.in(Easing.quad) }) // Mờ dần
+                    withTiming(0.8, { duration: duration * 0.3 }),
+                    withTiming(0, { duration: duration * 0.7, easing: Easing.in(Easing.quad) })
                 ),
                 -1
             )

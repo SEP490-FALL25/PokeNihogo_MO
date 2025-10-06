@@ -1,6 +1,5 @@
-// src/app/(app)/pokemon-collection.tsx
 import BackScreen from '@components/molecules/Back';
-import GunnyEffect from '@components/molecules/GunnyEffect'; // Import component Gunny mới
+import GunnyEffect from '@components/molecules/GlowingRingEffect';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, StatusBar, Text, TouchableOpacity, View } from 'react-native';
@@ -54,9 +53,9 @@ export default function PokemonCollectionScreen() {
                     <Text className="text-2xl font-semibold text-slate-400">#{String(selectedPokemon.id).padStart(3, '0')}</Text>
                 </View>
 
-                {/* --- Khu vực hiển thị Pokémon --- */}
+                {/* --- Pokémon Display --- */}
                 <View className="w-80 h-80 items-center justify-center">
-                    {/* 1. Hình ảnh Pokémon bay lên xuống */}
+                    {/* --- Pokemon Image --- */}
                     <Animated.View style={pokemonAnimatedStyle} className="z-10">
                         <Image
                             source={{ uri: selectedPokemonImageUrl }}
@@ -65,9 +64,7 @@ export default function PokemonCollectionScreen() {
                         />
                     </Animated.View>
 
-                    {/* 2. Bóng đổ - nằm ngay dưới Pokémon */}
-
-                    {/* 3. Hiệu ứng Gunny (Vòng sáng + Hạt bay lên) - nằm trên bóng đổ */}
+                    {/* --- Gunny Effect --- */}
                     <View className="absolute -bottom-28">
                         <GunnyEffect color={selectedPokemon.platformColor} ringSize={250} />
                     </View>
