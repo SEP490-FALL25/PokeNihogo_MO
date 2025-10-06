@@ -1,5 +1,6 @@
 enum APP {
   PROFILE = "/(app)/profile",
+  POKEMON_COLLECTION = "/(app)/pokemon-collection",
 }
 
 enum AUTH {

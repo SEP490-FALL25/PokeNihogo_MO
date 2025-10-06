@@ -8,6 +8,7 @@ type BackScreenProps = {
   onPress?: () => void;
   noWrapper?: boolean;
   title?: string;
+  children?: React.ReactNode;
 };
 
 const BackScreen: React.FC<BackScreenProps> = ({
@@ -15,6 +16,7 @@ const BackScreen: React.FC<BackScreenProps> = ({
   onPress,
   noWrapper,
   title,
+  children,
 }) => {
   const Button = (
     <View className="flex-row w-full items-center py-3">
@@ -33,7 +35,9 @@ const BackScreen: React.FC<BackScreenProps> = ({
         <Text className="text-xl text-center font-semibold text-white">{title}</Text>
       </View>
 
-      <View className="w-12" />
+      <View className="w-12">
+        {children}
+      </View>
     </View>
   );
 
