@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useGlobalStore } from "../../stores/global/global.config";
 import PokemonImage from "../atoms/PokemonImage";
 import PokemonDisplay from "../molecules/PokemonDisplay";
 
@@ -54,58 +55,76 @@ const DraggableOverlay = ({
   showText = false,
   text = "Kéo Thả Tự Do",
 }: DraggableOverlayProps) => {
-  async function logStorage() {
-    try {
-      const keys = await AsyncStorage.getAllKeys();
-      const stores = await AsyncStorage.multiGet(keys);
-      console.log("🔎 AsyncStorage data:", stores);
-    } catch (e) {
-      console.error("Error reading AsyncStorage:", e);
-    }
-  }
-
-  // Gọi hàm ở chỗ bạn cần debug
-  logStorage();
+  // Global store for overlay position
+  const {
+    overlayPosition,
+    isOverlayPositionLoaded,
+    setOverlayPosition,
+    setOverlayPositionLoaded,
+  } = useGlobalStore();
 
   // 1. State/Ref để quản lý vị trí
   const pan = useRef(new Animated.ValueXY()).current;
   const [initialLoadCompleted, setInitialLoadCompleted] = useState(false);
 
-  // 2. Hàm lưu vị trí vào AsyncStorage
-  const savePosition = useCallback(async (x: number, y: number) => {
-    try {
-      const position = JSON.stringify({ x, y });
-      await AsyncStorage.setItem(STORAGE_KEY, position);
-    } catch (e) {
-      console.error("Lỗi khi lưu vị trí:", e);
-    }
-  }, []);
+  // 2. Hàm lưu vị trí vào cả AsyncStorage và Global Store
+  const savePosition = useCallback(
+    async (x: number, y: number) => {
+      try {
+        const position = JSON.stringify({ x, y });
+        await AsyncStorage.setItem(STORAGE_KEY, position);
+        // Update global store immediately for instant sync across screens
+        setOverlayPosition({ x, y });
+      } catch (e) {
+        console.error("Lỗi khi lưu vị trí:", e);
+      }
+    },
+    [setOverlayPosition]
+  );
 
-  // 3. Hàm tải vị trí từ AsyncStorage
+  // 3. Initialize position from global store or load from AsyncStorage
   useEffect(() => {
-    // Vị trí mặc định (giữa màn hình)
-    const defaultPosition = {
-      x: screenWidth / 2 - OVERLAY_SIZE / 2,
-      y: screenHeight / 2 - OVERLAY_SIZE / 2,
-    };
+    const initializePosition = async () => {
+      // Vị trí mặc định (giữa màn hình)
+      const defaultPosition = {
+        x: screenWidth / 2 - OVERLAY_SIZE / 2,
+        y: screenHeight / 2 - OVERLAY_SIZE / 2,
+      };
 
-    const loadPosition = async () => {
+      // If global store already has position loaded, use it
+      if (
+        isOverlayPositionLoaded &&
+        overlayPosition.x !== 0 &&
+        overlayPosition.y !== 0
+      ) {
+        console.log("Using position from global store:", overlayPosition);
+        pan.setValue(overlayPosition);
+        setInitialLoadCompleted(true);
+        return;
+      }
+
+      // Otherwise, load from AsyncStorage and update global store
       try {
         const storedPosition = await AsyncStorage.getItem(STORAGE_KEY);
         if (storedPosition !== null) {
           const { x, y } = JSON.parse(storedPosition);
-          // Đặt giá trị ban đầu cho Animated.ValueXY
+          console.log("Loaded position from AsyncStorage:", { x, y });
+          // Update global store and set position
+          setOverlayPosition({ x, y });
           pan.setValue({ x, y });
         } else {
-          // Nếu không có vị trí đã lưu, đặt vị trí mặc định
+          console.log("No stored position, using default:", defaultPosition);
+          // Update global store with default position
+          setOverlayPosition(defaultPosition);
           pan.setValue(defaultPosition);
-          console.log("Using default position:", defaultPosition);
         }
       } catch (e) {
         console.error("Lỗi khi tải vị trí:", e);
-        // Trong trường hợp lỗi, vẫn đặt vị trí mặc định
+        // Update global store with default position
+        setOverlayPosition(defaultPosition);
         pan.setValue(defaultPosition);
       } finally {
+        setOverlayPositionLoaded(true);
         setInitialLoadCompleted(true);
       }
     };
@@ -114,15 +133,28 @@ const DraggableOverlay = ({
     const timeoutId = setTimeout(() => {
       if (!initialLoadCompleted) {
         console.log("Timeout reached, forcing load completion");
+        const defaultPosition = {
+          x: screenWidth / 2 - OVERLAY_SIZE / 2,
+          y: screenHeight / 2 - OVERLAY_SIZE / 2,
+        };
+        setOverlayPosition(defaultPosition);
+        setOverlayPositionLoaded(true);
         pan.setValue(defaultPosition);
         setInitialLoadCompleted(true);
       }
     }, 1000); // 1 giây timeout
 
-    loadPosition();
+    initializePosition();
 
     return () => clearTimeout(timeoutId);
-  }, [pan, initialLoadCompleted]);
+  }, [
+    pan,
+    initialLoadCompleted,
+    isOverlayPositionLoaded,
+    overlayPosition,
+    setOverlayPosition,
+    setOverlayPositionLoaded,
+  ]);
 
   // 4. PanResponder để xử lý kéo thả
   const panResponder = useRef(

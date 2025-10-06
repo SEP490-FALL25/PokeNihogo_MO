@@ -5,6 +5,7 @@ import { ThemedView } from "@components/ThemedView";
 import HomeTourGuide, { TourStep } from "@components/ui/HomeTourGuide";
 import WelcomeModal from "@components/ui/WelcomeModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useGlobalStore } from "@stores/global/global.config";
 import { useUserStore } from "@stores/user/user.config";
 import React, { useEffect, useRef, useState } from "react";
 import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -32,6 +33,9 @@ export default function HomeScreen() {
   // Global state from user store
   const { isFirstTimeLogin, setIsFirstTimeLogin, starterId, email } =
     useUserStore();
+
+  // Global state for overlay position
+  const { resetOverlayPosition } = useGlobalStore();
 
   /**
    * Get user's selected starter Pokemon
@@ -101,7 +105,11 @@ export default function HomeScreen() {
   const handleClearAsyncStorage = async () => {
     try {
       await AsyncStorage.removeItem("@DraggableOverlay:position");
-      console.log("✅ Cleared DraggableOverlay position from AsyncStorage");
+      // Reset global store position to default
+      resetOverlayPosition();
+      console.log(
+        "✅ Cleared DraggableOverlay position from AsyncStorage and global store"
+      );
       // Optional: Show a success message or toast
     } catch (error) {
       console.error("❌ Error clearing AsyncStorage:", error);
@@ -143,13 +151,16 @@ export default function HomeScreen() {
               🧪 Test Tour Guide
             </ThemedText>
           </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.testButton} onPress={handleClearAsyncStorage}>
+
+          <TouchableOpacity
+            style={styles.testButton}
+            onPress={handleClearAsyncStorage}
+          >
             <ThemedText style={styles.testButtonText}>
               🗑️ Clear Overlay Position
             </ThemedText>
           </TouchableOpacity>
-          
+
           {/* Quick Start Section - Main action card */}
           <ThemedView style={styles.quickStartCard}>
             <ThemedText type="subtitle" style={styles.cardTitle}>
