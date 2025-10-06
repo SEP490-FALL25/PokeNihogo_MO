@@ -74,16 +74,20 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
             <View style={styles.contentSection}>{children}</View>
           </ScrollView>
 
-          <TourStep
-            stepIndex={1}
-            title="Your Partner Pokémon"
-            description="Take care of your partner Pokémon and evolve together!"
-          ></TourStep>
+          {/* Test: DraggableOverlay outside TourStep first */}
           <DraggableOverlay
             imageUri="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
             imageSize={100}
             showBackground={false}
           />
+
+          {/* <TourStep
+            stepIndex={1}
+            title="Your Partner Pokémon"
+            description="Take care of your partner Pokémon and evolve together!"
+          >
+            <View style={{ width: 100, height: 100, backgroundColor: 'rgba(255,0,0,0.3)' }} />
+          </TourStep> */}
         </SafeAreaView>
       </LinearGradient>
     );
