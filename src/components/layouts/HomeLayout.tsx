@@ -3,8 +3,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { forwardRef, useImperativeHandle, useRef } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ThemedText } from "../ThemedText";
-import { ThemedView } from "../ThemedView";
+
+import DraggableOverlay from "@components/ui/Draggable";
 import { TourStep } from "../ui/HomeTourGuide";
 
 const sampleUser = {
@@ -72,64 +72,22 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
 
             {/* Main Content Area */}
             <View style={styles.contentSection}>{children}</View>
-
-            {/* Quick Stats Section */}
-            <ThemedView style={styles.quickStatsCard}>
-              <ThemedText type="subtitle" style={styles.cardTitle}>
-                📊 Quick Stats
-              </ThemedText>
-
-              <View style={styles.statsGrid}>
-                <View style={styles.statItem}>
-                  <ThemedText style={styles.statNumber}>15</ThemedText>
-                  <ThemedText style={styles.statLabel}>Lessons</ThemedText>
-                </View>
-
-                <View style={styles.statItem}>
-                  <ThemedText style={styles.statNumber}>95%</ThemedText>
-                  <ThemedText style={styles.statLabel}>Accuracy</ThemedText>
-                </View>
-
-                <View style={styles.statItem}>
-                  <ThemedText style={styles.statNumber}>7</ThemedText>
-                  <ThemedText style={styles.statLabel}>Day Streak</ThemedText>
-                </View>
-
-                <View style={styles.statItem}>
-                  <ThemedText style={styles.statNumber}>42</ThemedText>
-                  <ThemedText style={styles.statLabel}>Words</ThemedText>
-                </View>
-              </View>
-            </ThemedView>
-
-            {/* Recent Activity Section */}
-            <ThemedView style={styles.recentActivityCard}>
-              <ThemedText type="subtitle" style={styles.cardTitle}>
-                📈 Recent Activity
-              </ThemedText>
-
-              <View style={styles.activityItem}>
-                <ThemedText style={styles.activityText}>
-                  ✅ Completed &quot;Basic Greetings&quot; lesson
-                </ThemedText>
-                <ThemedText style={styles.activityTime}>2 hours ago</ThemedText>
-              </View>
-
-              <View style={styles.activityItem}>
-                <ThemedText style={styles.activityText}>
-                  🎯 Achieved 95% accuracy in vocabulary quiz
-                </ThemedText>
-                <ThemedText style={styles.activityTime}>Yesterday</ThemedText>
-              </View>
-
-              <View style={styles.activityItem}>
-                <ThemedText style={styles.activityText}>
-                  🔥 7-day streak maintained!
-                </ThemedText>
-                <ThemedText style={styles.activityTime}>3 days ago</ThemedText>
-              </View>
-            </ThemedView>
           </ScrollView>
+
+          {/* Test: DraggableOverlay outside TourStep first */}
+          <DraggableOverlay
+            imageUri="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
+            imageSize={100}
+            showBackground={false}
+          />
+
+          {/* <TourStep
+            stepIndex={1}
+            title="Your Partner Pokémon"
+            description="Take care of your partner Pokémon and evolve together!"
+          >
+            <View style={{ width: 100, height: 100, backgroundColor: 'rgba(255,0,0,0.3)' }} />
+          </TourStep> */}
         </SafeAreaView>
       </LinearGradient>
     );
