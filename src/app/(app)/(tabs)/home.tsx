@@ -11,7 +11,6 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
 
-
 // Constants for Pokemon display
 const POKEMON_CONSTANTS = {
   DEFAULT_IMAGE_SIZE: 120,
@@ -182,34 +181,6 @@ export default function HomeScreen() {
           </ThemedView>
 
           <MainNavigation />
-
-          {/* Recent Activity Section */}
-          <ThemedView style={styles.recentActivityCard}>
-            <ThemedText type="subtitle" style={styles.cardTitle}>
-              📈 Recent Activity
-            </ThemedText>
-
-            <View style={styles.activityItem}>
-              <ThemedText style={styles.activityText}>
-                ✅ Completed &quot;Basic Greetings&quot; lesson
-              </ThemedText>
-              <ThemedText style={styles.activityTime}>2 hours ago</ThemedText>
-            </View>
-
-            <View style={styles.activityItem}>
-              <ThemedText style={styles.activityText}>
-                🎯 Achieved 95% accuracy in vocabulary quiz
-              </ThemedText>
-              <ThemedText style={styles.activityTime}>Yesterday</ThemedText>
-            </View>
-
-            <View style={styles.activityItem}>
-              <ThemedText style={styles.activityText}>
-                🔥 7-day streak maintained!
-              </ThemedText>
-              <ThemedText style={styles.activityTime}>3 days ago</ThemedText>
-            </View>
-          </ThemedView>
         </View>
       </HomeLayout>
 
