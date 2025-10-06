@@ -4,7 +4,6 @@ import React from "react";
 import CustomTab from "@components/ui/CustomTab";
 
 export default function TabLayout() {
-
   return (
     <>
       <Tabs
@@ -19,7 +18,6 @@ export default function TabLayout() {
         <Tabs.Screen name="listening" options={{ title: "Listening" }} />
         <Tabs.Screen name="battle" options={{ title: "Battle" }} />
       </Tabs>
-      {/* <CustomTabBar /> */}
       <CustomTab />
     </>
   );

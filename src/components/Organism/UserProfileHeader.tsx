@@ -1,3 +1,4 @@
+import { TourStep } from "@components/ui/HomeTourGuide";
 import React, { useState } from "react";
 import { Animated, Modal, Pressable, StyleSheet } from "react-native";
 import CompactHeader from "../molecules/CompactHeader";
@@ -44,8 +45,13 @@ export default function UserProfileHeaderAtomic({
   return (
     <>
       {/* Compact Header Bar */}
-      <CompactHeader user={user} onPress={handleOpen} style={style} />
-
+      <TourStep
+        stepIndex={0}
+        title="Your Progress"
+        description="Here's your progress. Complete the lessons to level up!"
+      >
+        <CompactHeader user={user} onPress={handleOpen} style={style} />
+      </TourStep>
       {/* Overlay Modal */}
       <Modal
         visible={isExpanded}

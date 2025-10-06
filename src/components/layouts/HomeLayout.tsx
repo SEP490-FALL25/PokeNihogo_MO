@@ -1,10 +1,13 @@
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
+import React, { forwardRef, useImperativeHandle, useRef } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ThemedText } from "../ThemedText";
-import { ThemedView } from "../ThemedView";
+
+import DraggableOverlay from "@components/ui/Draggable";
+import { TourStep } from "../ui/HomeTourGuide";
+
+// Placeholder component để tour có thể track được vị trí
 
 const sampleUser = {
   name: "Skibido ",
@@ -26,80 +29,66 @@ interface HomeLayoutProps {
   };
 }
 
-export default function HomeLayout({ children, user }: HomeLayoutProps) {
-  const currentUser = user || sampleUser;
-  return (
-    <LinearGradient
-      colors={["#dbeafe", "#ffffff", "#e0e7ff"]} // bg-gradient-to-br from-blue-50 via-white to-indigo-100
-      style={styles.container}
-    >
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* User Profile Header */}
-          <View style={styles.profileSection}>
-            <UserProfileHeaderAtomic user={currentUser} />
-          </View>
-
-          {/* Main Content Area */}
-          <View style={styles.contentSection}>{children}</View>
-
-          {/* Quick Stats Section */}
-          <View style={styles.statsSection}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Today&apos;s Progress
-            </ThemedText>
-
-            <View style={styles.statsGrid}>
-              <ThemedView style={styles.statCard}>
-                <ThemedText style={styles.statNumber}>12</ThemedText>
-                <ThemedText style={styles.statLabel}>Lessons</ThemedText>
-              </ThemedView>
-
-              <ThemedView style={styles.statCard}>
-                <ThemedText style={styles.statNumber}>8</ThemedText>
-                <ThemedText style={styles.statLabel}>New Words</ThemedText>
-              </ThemedView>
-
-              <ThemedView style={styles.statCard}>
-                <ThemedText style={styles.statNumber}>95%</ThemedText>
-                <ThemedText style={styles.statLabel}>Accuracy</ThemedText>
-              </ThemedView>
-            </View>
-          </View>
-
-          {/* Quick Actions Section */}
-          <View style={styles.actionsSection}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Quick Actions
-            </ThemedText>
-
-            <View style={styles.actionsGrid}>
-              <ThemedView style={styles.actionCard}>
-                <ThemedText style={styles.actionTitle}>
-                  Continue Learning
-                </ThemedText>
-                <ThemedText style={styles.actionSubtitle}>
-                  Resume your current lesson
-                </ThemedText>
-              </ThemedView>
-
-              <ThemedView style={styles.actionCard}>
-                <ThemedText style={styles.actionTitle}>Practice</ThemedText>
-                <ThemedText style={styles.actionSubtitle}>
-                  Review learned words
-                </ThemedText>
-              </ThemedView>
-            </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </LinearGradient>
-  );
+export interface HomeLayoutRef {
+  scrollTo: (y: number) => void;
 }
+
+const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
+  function HomeLayout({ children, user }, ref) {
+    const currentUser = user || sampleUser;
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    useImperativeHandle(ref, () => ({
+      scrollTo: (y: number) => {
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({
+            y,
+            animated: true,
+          });
+        }
+      },
+    }));
+
+    return (
+      <LinearGradient
+        colors={["#dbeafe", "#ffffff", "#e0e7ff"]} // bg-gradient-to-br from-blue-50 via-white to-indigo-100
+        style={styles.container}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* User Profile Header */}
+            <View style={styles.profileSection}>
+              <TourStep
+                stepIndex={0}
+                title="Your Progress"
+                description="Here's your progress. Complete the lessons to level up!"
+              >
+                <UserProfileHeaderAtomic user={currentUser} />
+              </TourStep>
+            </View>
+
+            {/* Main Content Area */}
+            <View style={styles.contentSection}>{children}</View>
+          </ScrollView>
+
+          {/* DraggableOverlay - Đặt bên ngoài để không bị ảnh hưởng bởi tour layout */}
+          <DraggableOverlay
+            imageUri="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
+            imageSize={100}
+            showBackground={true}
+          />
+        </SafeAreaView>
+      </LinearGradient>
+    );
+  }
+);
+
+export default HomeLayout;
 
 const styles = StyleSheet.create({
   container: {
@@ -131,10 +120,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     color: "#1f2937",
     fontWeight: "600",
-  },
-  statsGrid: {
-    flexDirection: "row",
-    gap: 12,
   },
   statCard: {
     flex: 1,
@@ -192,5 +177,107 @@ const styles = StyleSheet.create({
   actionSubtitle: {
     fontSize: 14,
     color: "#6b7280",
+  },
+  quickStatsCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    margin: 16,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginBottom: 16,
+  },
+  statsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  statItem: {
+    flex: 1,
+    minWidth: "45%",
+    backgroundColor: "rgba(59, 130, 246, 0.1)",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  recentActivityCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    margin: 16,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  activityItem: {
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0, 0, 0, 0.05)",
+  },
+  activityText: {
+    fontSize: 14,
+    color: "#374151",
+    marginBottom: 4,
+  },
+  activityTime: {
+    fontSize: 12,
+    color: "#9ca3af",
+  },
+  draggableContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: "none", // Allow touch events to pass through to DraggableOverlay
+    zIndex: 1000,
+  },
+  testPokemonContainer: {
+    position: "absolute",
+    top: 100,
+    left: 20,
+    width: 100,
+    height: 100,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1002,
+  },
+  pokemonTourPlaceholder: {
+    position: "absolute",
+    top: "50%", // Vị trí giữa màn hình
+    left: "50%",
+    marginTop: -75, // Để căn giữa (150px / 2)
+    marginLeft: -75, // Để căn giữa (150px / 2)
+    width: 150,
+    height: 150,
+    backgroundColor: "transparent", // Trong suốt
+    zIndex: 998, // Thấp hơn DraggableOverlay
+    pointerEvents: "none", // Không chặn touch events
   },
 });
