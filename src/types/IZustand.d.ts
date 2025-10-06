@@ -3,6 +3,13 @@ declare namespace ZUSTAND {
     export interface IGlobalState {
         language: string;
         setLanguage: (language: string) => void;
+        
+        // DraggableOverlay position management
+        overlayPosition: { x: number; y: number };
+        isOverlayPositionLoaded: boolean;
+        setOverlayPosition: (position: { x: number; y: number }) => void;
+        setOverlayPositionLoaded: (loaded: boolean) => void;
+        resetOverlayPosition: () => void;
     }
 
     export interface IUserState {
