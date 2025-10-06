@@ -54,6 +54,19 @@ const DraggableOverlay = ({
   showText = false,
   text = "Kéo Thả Tự Do",
 }: DraggableOverlayProps) => {
+  async function logStorage() {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const stores = await AsyncStorage.multiGet(keys);
+      console.log("🔎 AsyncStorage data:", stores);
+    } catch (e) {
+      console.error("Error reading AsyncStorage:", e);
+    }
+  }
+
+  // Gọi hàm ở chỗ bạn cần debug
+  logStorage();
+
   // 1. State/Ref để quản lý vị trí
   const pan = useRef(new Animated.ValueXY()).current;
   const [initialLoadCompleted, setInitialLoadCompleted] = useState(false);
@@ -86,6 +99,7 @@ const DraggableOverlay = ({
         } else {
           // Nếu không có vị trí đã lưu, đặt vị trí mặc định
           pan.setValue(defaultPosition);
+          console.log("Using default position:", defaultPosition);
         }
       } catch (e) {
         console.error("Lỗi khi tải vị trí:", e);
@@ -96,8 +110,19 @@ const DraggableOverlay = ({
       }
     };
 
+    // Timeout để đảm bảo component hiển thị ngay cả khi AsyncStorage chậm
+    const timeoutId = setTimeout(() => {
+      if (!initialLoadCompleted) {
+        console.log("Timeout reached, forcing load completion");
+        pan.setValue(defaultPosition);
+        setInitialLoadCompleted(true);
+      }
+    }, 1000); // 1 giây timeout
+
     loadPosition();
-  }, [pan]);
+
+    return () => clearTimeout(timeoutId);
+  }, [pan, initialLoadCompleted]);
 
   // 4. PanResponder để xử lý kéo thả
   const panResponder = useRef(
@@ -151,8 +176,24 @@ const DraggableOverlay = ({
   ).current;
 
   // 6. Ẩn/Hiện component
-  if (!isVisible || !initialLoadCompleted) {
+  if (!isVisible) {
     return null;
+  }
+
+  if (!initialLoadCompleted) {
+    // Hiển thị loading state thay vì null
+    return (
+      <View
+        style={[
+          styles.container,
+          { position: "absolute" as const, left: 0, top: 0, zIndex: 1001 },
+        ]}
+      >
+        <View style={styles.overlayContent}>
+          <Text style={styles.headerText}>Loading...</Text>
+        </View>
+      </View>
+    );
   }
 
   // 7. Style cho component
@@ -162,7 +203,7 @@ const DraggableOverlay = ({
     position: "absolute" as const,
     left: 0,
     top: 0,
-    zIndex: 1000, // Đảm bảo overlay nằm trên cùng
+    zIndex: 1001, // Đảm bảo overlay nằm trên cùng, cao hơn tour wrapper
   };
 
   return (

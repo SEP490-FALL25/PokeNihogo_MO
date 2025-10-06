@@ -7,6 +7,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DraggableOverlay from "@components/ui/Draggable";
 import { TourStep } from "../ui/HomeTourGuide";
 
+// Placeholder component để tour có thể track được vị trí
+
 const sampleUser = {
   name: "Skibido ",
   level: 15,
@@ -74,20 +76,12 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
             <View style={styles.contentSection}>{children}</View>
           </ScrollView>
 
-          {/* Test: DraggableOverlay outside TourStep first */}
+          {/* DraggableOverlay - Đặt bên ngoài để không bị ảnh hưởng bởi tour layout */}
           <DraggableOverlay
             imageUri="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
             imageSize={100}
-            showBackground={false}
+            showBackground={true}
           />
-
-          {/* <TourStep
-            stepIndex={1}
-            title="Your Partner Pokémon"
-            description="Take care of your partner Pokémon and evolve together!"
-          >
-            <View style={{ width: 100, height: 100, backgroundColor: 'rgba(255,0,0,0.3)' }} />
-          </TourStep> */}
         </SafeAreaView>
       </LinearGradient>
     );
@@ -252,5 +246,38 @@ const styles = StyleSheet.create({
   activityTime: {
     fontSize: 12,
     color: "#9ca3af",
+  },
+  draggableContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: "none", // Allow touch events to pass through to DraggableOverlay
+    zIndex: 1000,
+  },
+  testPokemonContainer: {
+    position: "absolute",
+    top: 100,
+    left: 20,
+    width: 100,
+    height: 100,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1002,
+  },
+  pokemonTourPlaceholder: {
+    position: "absolute",
+    top: "50%", // Vị trí giữa màn hình
+    left: "50%",
+    marginTop: -75, // Để căn giữa (150px / 2)
+    marginLeft: -75, // Để căn giữa (150px / 2)
+    width: 150,
+    height: 150,
+    backgroundColor: "transparent", // Trong suốt
+    zIndex: 998, // Thấp hơn DraggableOverlay
+    pointerEvents: "none", // Không chặn touch events
   },
 });

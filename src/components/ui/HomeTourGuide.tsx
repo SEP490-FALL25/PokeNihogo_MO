@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useEffect } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import {
-  AttachStep,
-  SpotlightTourProvider,
-  TourStep,
-  useSpotlightTour,
+    AttachStep,
+    SpotlightTourProvider,
+    TourStep,
+    useSpotlightTour,
 } from "react-native-spotlight-tour";
 import { ThemedText } from "../ThemedText";
 
@@ -313,7 +313,7 @@ const tourSteps: TourStep[] = [
   },
   {
     placement: "bottom",
-    shape: { type: "rectangle" as const, padding: 12 },
+    shape: { type: "rectangle" as const, padding: 12  },
     flip: true,
     shift: { padding: 16 },
     offset: 8,
