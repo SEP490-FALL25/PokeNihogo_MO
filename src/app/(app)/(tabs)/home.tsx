@@ -1,4 +1,4 @@
-import DailyLoginModal from "@components/DailyLoginModal";
+import { DailyLoginModal } from "@components/DailyLoginModal";
 import HomeLayout, { HomeLayoutRef } from "@components/layouts/HomeLayout";
 import MainNavigation from "@components/MainNavigation";
 import { ThemedText } from "@components/ThemedText";
@@ -49,6 +49,16 @@ export default function HomeScreen() {
       starters[0]
     );
   }, [starterId]);
+
+  const mockCheckinHistory = [
+    { date: "Day -6", status: "missed" as const },
+    { date: "Day -5", status: "checked" as const },
+    { date: "Day -4", status: "checked" as const },
+    { date: "Day -3", status: "checked" as const },
+    { date: "Day -2", status: "checked" as const },
+    { date: "Day -1", status: "checked" as const },
+    { date: "Today", status: "today" as const }, // Hôm nay chưa check-in
+  ];
 
   /**
    * Extract username from email (part before @)
@@ -105,7 +115,7 @@ export default function HomeScreen() {
    * Updates user's streak and rewards
    */
   const handleDailyCheckin = () => {
-    console.log('User checked in daily!');
+    console.log("User checked in daily!");
     // TODO: Implement actual check-in logic
     // - Update user streak in backend
     // - Add coins to user account
@@ -189,7 +199,10 @@ export default function HomeScreen() {
             </ThemedText>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.testButton} onPress={handleTestDailyLogin}>
+          <TouchableOpacity
+            style={styles.testButton}
+            onPress={handleTestDailyLogin}
+          >
             <ThemedText style={styles.testButtonText}>
               🎉 Test Daily Login Modal
             </ThemedText>
@@ -289,9 +302,9 @@ export default function HomeScreen() {
 
       {/* Daily Login Modal */}
       <DailyLoginModal
-        isVisible={showDailyLogin}
-        onClose={handleCloseDailyModal}
-        onCheckin={handleDailyCheckin}
+        visible={showDailyLogin}
+        onClose={() => setShowDailyLogin(false)}
+        onCheckIn={handleDailyCheckin}
       />
     </HomeTourGuide>
   );
