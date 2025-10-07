@@ -1,10 +1,13 @@
+
 export const createGlobalSlice = (set: any): ZUSTAND.IGlobalState => ({
   language: "en",
+
   // DraggableOverlay position state
   overlayPosition: { x: 0, y: 0 },
   isOverlayPositionLoaded: false,
 
   setLanguage: (language: string) => set({ language }),
+
 
   // Overlay position management
   setOverlayPosition: (position: { x: number; y: number }) =>

@@ -14,5 +14,9 @@ export async function getValueForSecureStorage(key: string) {
 }
 
 export async function deleteSecureStorage(key: string) {
-    await SecureStore.deleteItemAsync(key);
+    try {
+        await SecureStore.deleteItemAsync(key);
+    } catch (error: any) {
+        console.error('Error when deleting secure storage: ', error.message);
+    }
 }

@@ -34,7 +34,7 @@ const BackScreen: React.FC<BackScreenProps> = ({
       </View>
 
       <View className="flex-1">
-        <Text className={`text-2xl text-center font-semibold ${color}`}>{title}</Text>
+        <Text className={`text-2xl text-center font-semibold text-${color}`}>{title}</Text>
       </View>
 
       <View className="w-12">
