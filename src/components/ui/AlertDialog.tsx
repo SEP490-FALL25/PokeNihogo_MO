@@ -1,50 +1,58 @@
-import React, { useState } from 'react'
-import { Animated, Modal, Text, TextProps, TouchableOpacity, View, ViewProps } from 'react-native'
+import React, { useState } from "react";
+import {
+  Animated,
+  Modal,
+  Text,
+  TextProps,
+  TouchableOpacity,
+  View,
+  ViewProps,
+} from "react-native";
 
 interface AlertDialogProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 interface AlertDialogTriggerProps extends ViewProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 interface AlertDialogContentProps extends ViewProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 interface AlertDialogHeaderProps extends ViewProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 interface AlertDialogFooterProps extends ViewProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 interface AlertDialogTitleProps extends TextProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 interface AlertDialogDescriptionProps extends TextProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 interface AlertDialogActionProps extends ViewProps {
-  children: React.ReactNode
-  onPress?: () => void
+  children: React.ReactNode;
+  onPress?: () => void;
 }
 
 interface AlertDialogCancelProps extends ViewProps {
-  children: React.ReactNode
-  onPress?: () => void
+  children: React.ReactNode;
+  onPress?: () => void;
 }
 
 const AlertDialog = ({ children }: AlertDialogProps) => {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleOpenChange = (open: boolean) => {
-    setIsOpen(open)
-  }
+    setIsOpen(open);
+  };
 
   return (
     <>
@@ -53,102 +61,117 @@ const AlertDialog = ({ children }: AlertDialogProps) => {
           return React.cloneElement(child, {
             isOpen,
             onOpenChange: handleOpenChange,
-          } as any)
+          } as any);
         }
-        return child
+        return child;
       })}
     </>
-  )
-}
+  );
+};
 
-const AlertDialogTrigger = React.forwardRef<React.ElementRef<typeof TouchableOpacity>, AlertDialogTriggerProps & { isOpen?: boolean; onOpenChange?: (open: boolean) => void }>(
-  ({ children, isOpen, onOpenChange, ...props }, ref) => {
-    const handlePress = () => {
-      onOpenChange?.(true)
-    }
-
-    return (
-      <TouchableOpacity
-        ref={ref}
-        onPress={handlePress}
-        activeOpacity={0.8}
-        {...props}
-      >
-        {children}
-      </TouchableOpacity>
-    )
+const AlertDialogTrigger = React.forwardRef<
+  React.ElementRef<typeof TouchableOpacity>,
+  AlertDialogTriggerProps & {
+    isOpen?: boolean;
+    onOpenChange?: (open: boolean) => void;
   }
-)
+>(({ children, isOpen, onOpenChange, ...props }, ref) => {
+  const handlePress = () => {
+    onOpenChange?.(true);
+  };
 
-AlertDialogTrigger.displayName = 'AlertDialogTrigger'
+  return (
+    <TouchableOpacity
+      ref={ref}
+      onPress={handlePress}
+      activeOpacity={0.8}
+      {...props}
+    >
+      {children}
+    </TouchableOpacity>
+  );
+});
 
-const AlertDialogContent = React.forwardRef<View, AlertDialogContentProps & { isOpen?: boolean; onOpenChange?: (open: boolean) => void }>(
-  ({ children, isOpen, onOpenChange, style, ...props }, ref) => {
-    const scaleAnim = React.useRef(new Animated.Value(0)).current
-    const opacityAnim = React.useRef(new Animated.Value(0)).current
+AlertDialogTrigger.displayName = "AlertDialogTrigger";
 
-    React.useEffect(() => {
-      if (isOpen) {
-        Animated.parallel([
-          Animated.spring(scaleAnim, {
-            toValue: 1,
-            useNativeDriver: true,
-            tension: 100,
-            friction: 8,
-          }),
-          Animated.timing(opacityAnim, {
-            toValue: 1,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-        ]).start()
-      } else {
-        Animated.parallel([
-          Animated.spring(scaleAnim, {
-            toValue: 0,
-            useNativeDriver: true,
-            tension: 100,
-            friction: 8,
-          }),
-          Animated.timing(opacityAnim, {
-            toValue: 0,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-        ]).start()
-      }
-    }, [isOpen, scaleAnim, opacityAnim])
+const AlertDialogContent = React.forwardRef<
+  View,
+  AlertDialogContentProps & {
+    isOpen?: boolean;
+    onOpenChange?: (open: boolean) => void;
+  }
+>(({ children, isOpen, onOpenChange, style, ...props }, ref) => {
+  const scaleAnim = React.useRef(new Animated.Value(0)).current;
+  const opacityAnim = React.useRef(new Animated.Value(0)).current;
 
-    if (!isOpen) return null
+  React.useEffect(() => {
+    if (isOpen) {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          useNativeDriver: true,
+          tension: 100,
+          friction: 8,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 100,
+          friction: 8,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isOpen, scaleAnim, opacityAnim]);
 
-    return (
-      <Modal
-        visible={isOpen}
-        transparent
-        animationType="none"
-        onRequestClose={() => onOpenChange?.(false)}
+  if (!isOpen) return null;
+
+  return (
+    <Modal
+      visible={isOpen}
+      transparent
+      animationType="none"
+      onRequestClose={() => onOpenChange?.(false)}
+    >
+      {/* Overlay */}
+      <TouchableOpacity
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          justifyContent: "center",
+          alignItems: "center",
+          opacity: opacityAnim,
+        }}
+        activeOpacity={1}
+        onPress={() => onOpenChange?.(false)}
       >
-        {/* Overlay */}
-        <Animated.View
-          style={{
-            flex: 1,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            justifyContent: 'center',
-            alignItems: 'center',
-            opacity: opacityAnim,
-          }}
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={(e) => e.stopPropagation()}
         >
           <Animated.View
             ref={ref}
             style={[
               {
-                backgroundColor: '#ffffff',
+                backgroundColor: "#ffffff",
                 borderRadius: 8,
                 padding: 24,
                 margin: 16,
-                width: '90%',
+                width: "90%",
                 maxWidth: 400,
-                shadowColor: '#000',
+                shadowColor: "#000",
                 shadowOffset: {
                   width: 0,
                   height: 4,
@@ -165,13 +188,13 @@ const AlertDialogContent = React.forwardRef<View, AlertDialogContentProps & { is
           >
             {children}
           </Animated.View>
-        </Animated.View>
-      </Modal>
-    )
-  }
-)
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
+});
 
-AlertDialogContent.displayName = 'AlertDialogContent'
+AlertDialogContent.displayName = "AlertDialogContent";
 
 const AlertDialogHeader = React.forwardRef<View, AlertDialogHeaderProps>(
   ({ children, style, ...props }, ref) => (
@@ -179,9 +202,9 @@ const AlertDialogHeader = React.forwardRef<View, AlertDialogHeaderProps>(
       ref={ref}
       style={[
         {
-          flexDirection: 'column',
+          flexDirection: "column",
           gap: 8,
-          alignItems: 'center',
+          alignItems: "center",
         },
         style,
       ]}
@@ -190,9 +213,9 @@ const AlertDialogHeader = React.forwardRef<View, AlertDialogHeaderProps>(
       {children}
     </View>
   )
-)
+);
 
-AlertDialogHeader.displayName = 'AlertDialogHeader'
+AlertDialogHeader.displayName = "AlertDialogHeader";
 
 const AlertDialogFooter = React.forwardRef<View, AlertDialogFooterProps>(
   ({ children, style, ...props }, ref) => (
@@ -200,7 +223,7 @@ const AlertDialogFooter = React.forwardRef<View, AlertDialogFooterProps>(
       ref={ref}
       style={[
         {
-          flexDirection: 'column-reverse',
+          flexDirection: "column-reverse",
           gap: 8,
         },
         style,
@@ -210,9 +233,9 @@ const AlertDialogFooter = React.forwardRef<View, AlertDialogFooterProps>(
       {children}
     </View>
   )
-)
+);
 
-AlertDialogFooter.displayName = 'AlertDialogFooter'
+AlertDialogFooter.displayName = "AlertDialogFooter";
 
 const AlertDialogTitle = React.forwardRef<Text, AlertDialogTitleProps>(
   ({ children, style, ...props }, ref) => (
@@ -221,9 +244,9 @@ const AlertDialogTitle = React.forwardRef<Text, AlertDialogTitleProps>(
       style={[
         {
           fontSize: 18,
-          fontWeight: '600',
-          color: '#111827',
-          textAlign: 'center',
+          fontWeight: "600",
+          color: "#111827",
+          textAlign: "center",
         },
         style,
       ]}
@@ -232,122 +255,138 @@ const AlertDialogTitle = React.forwardRef<Text, AlertDialogTitleProps>(
       {children}
     </Text>
   )
-)
+);
 
-AlertDialogTitle.displayName = 'AlertDialogTitle'
+AlertDialogTitle.displayName = "AlertDialogTitle";
 
-const AlertDialogDescription = React.forwardRef<Text, AlertDialogDescriptionProps>(
-  ({ children, style, ...props }, ref) => (
-    <Text
+const AlertDialogDescription = React.forwardRef<
+  Text,
+  AlertDialogDescriptionProps
+>(({ children, style, ...props }, ref) => (
+  <Text
+    ref={ref}
+    style={[
+      {
+        fontSize: 14,
+        color: "#6b7280",
+        textAlign: "center",
+        lineHeight: 20,
+      },
+      style,
+    ]}
+    {...props}
+  >
+    {children}
+  </Text>
+));
+
+AlertDialogDescription.displayName = "AlertDialogDescription";
+
+const AlertDialogAction = React.forwardRef<
+  React.ElementRef<typeof TouchableOpacity>,
+  AlertDialogActionProps & { onOpenChange?: (open: boolean) => void }
+>(({ children, onPress, onOpenChange, style, ...props }, ref) => {
+  const handlePress = () => {
+    onPress?.();
+    onOpenChange?.(false);
+  };
+
+  return (
+    <TouchableOpacity
       ref={ref}
       style={[
         {
-          fontSize: 14,
-          color: '#6b7280',
-          textAlign: 'center',
-          lineHeight: 20,
+          backgroundColor: "#dc2626",
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          borderRadius: 6,
+          alignItems: "center",
+          justifyContent: "center",
         },
         style,
       ]}
+      onPress={handlePress}
+      activeOpacity={0.8}
       {...props}
     >
-      {children}
-    </Text>
-  )
-)
-
-AlertDialogDescription.displayName = 'AlertDialogDescription'
-
-const AlertDialogAction = React.forwardRef<React.ElementRef<typeof TouchableOpacity>, AlertDialogActionProps & { onOpenChange?: (open: boolean) => void }>(
-  ({ children, onPress, onOpenChange, style, ...props }, ref) => {
-    const handlePress = () => {
-      onPress?.()
-      onOpenChange?.(false)
-    }
-
-    return (
-      <TouchableOpacity
-        ref={ref}
-        style={[
-          {
-            backgroundColor: '#dc2626',
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            borderRadius: 6,
-            alignItems: 'center',
-            justifyContent: 'center',
-          },
-          style,
-        ]}
-        onPress={handlePress}
-        activeOpacity={0.8}
-        {...props}
+      <Text
+        style={{
+          fontSize: 16,
+          fontWeight: "500",
+          color: "#ffffff",
+        }}
       >
-        <Text
-          style={{
-            fontSize: 16,
-            fontWeight: '500',
-            color: '#ffffff',
-          }}
-        >
-          {children}
-        </Text>
-      </TouchableOpacity>
-    )
-  }
-)
+        {children}
+      </Text>
+    </TouchableOpacity>
+  );
+});
 
-AlertDialogAction.displayName = 'AlertDialogAction'
+AlertDialogAction.displayName = "AlertDialogAction";
 
-const AlertDialogCancel = React.forwardRef<React.ElementRef<typeof TouchableOpacity>, AlertDialogCancelProps & { onOpenChange?: (open: boolean) => void }>(
-  ({ children, onPress, onOpenChange, style, ...props }, ref) => {
-    const handlePress = () => {
-      onPress?.()
-      onOpenChange?.(false)
-    }
+const AlertDialogCancel = React.forwardRef<
+  React.ElementRef<typeof TouchableOpacity>,
+  AlertDialogCancelProps & { onOpenChange?: (open: boolean) => void }
+>(({ children, onPress, onOpenChange, style, ...props }, ref) => {
+  const handlePress = () => {
+    onPress?.();
+    onOpenChange?.(false);
+  };
 
-    return (
-      <TouchableOpacity
-        ref={ref}
-        style={[
-          {
-            backgroundColor: 'transparent',
-            borderWidth: 1,
-            borderColor: '#d1d5db',
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            borderRadius: 6,
-            alignItems: 'center',
-            justifyContent: 'center',
-          },
-          style,
-        ]}
-        onPress={handlePress}
-        activeOpacity={0.8}
-        {...props}
+  return (
+    <TouchableOpacity
+      ref={ref}
+      style={[
+        {
+          backgroundColor: "transparent",
+          borderWidth: 1,
+          borderColor: "#d1d5db",
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          borderRadius: 6,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        style,
+      ]}
+      onPress={handlePress}
+      activeOpacity={0.8}
+      {...props}
+    >
+      <Text
+        style={{
+          fontSize: 16,
+          fontWeight: "500",
+          color: "#374151",
+        }}
       >
-        <Text
-          style={{
-            fontSize: 16,
-            fontWeight: '500',
-            color: '#374151',
-          }}
-        >
-          {children}
-        </Text>
-      </TouchableOpacity>
-    )
-  }
-)
+        {children}
+      </Text>
+    </TouchableOpacity>
+  );
+});
 
-AlertDialogCancel.displayName = 'AlertDialogCancel'
+AlertDialogCancel.displayName = "AlertDialogCancel";
 
 export {
-    AlertDialog, AlertDialogAction,
-    AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
-}
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+};
 export type {
-    AlertDialogActionProps,
-    AlertDialogCancelProps, AlertDialogContentProps, AlertDialogDescriptionProps, AlertDialogFooterProps, AlertDialogHeaderProps, AlertDialogProps, AlertDialogTitleProps, AlertDialogTriggerProps
-}
-
+  AlertDialogActionProps,
+  AlertDialogCancelProps,
+  AlertDialogContentProps,
+  AlertDialogDescriptionProps,
+  AlertDialogFooterProps,
+  AlertDialogHeaderProps,
+  AlertDialogProps,
+  AlertDialogTitleProps,
+  AlertDialogTriggerProps,
+};
