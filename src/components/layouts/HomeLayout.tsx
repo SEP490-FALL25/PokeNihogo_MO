@@ -1,18 +1,9 @@
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
 import { LinearGradient } from "expo-linear-gradient";
-import React, {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { forwardRef, useImperativeHandle, useRef } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import DraggableOverlay from "@components/ui/Draggable";
-import userPokemonService from "@services/user-pokemon";
 import { TourStep } from "../ui/HomeTourGuide";
 
 // Placeholder component để tour có thể track được vị trí
@@ -46,40 +37,7 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     const scrollViewRef = useRef<ScrollView>(null);
     const currentUser = sampleUser;
 
-    // State cho owned pokemons
-    const [ownedPokemons, setOwnedPokemons] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isError, setIsError] = useState(false);
-    const [error, setError] = useState<any>(null);
-
-    // Gọi API để lấy owned pokemons
-    useEffect(() => {
-      const fetchOwnedPokemons = async () => {
-        try {
-          setIsLoading(true);
-          setIsError(false);
-          const response = await userPokemonService.getOwnedPokemons();
-          setOwnedPokemons(response.data);
-        } catch (err) {
-          console.error("--- LỖI TỪ API GET OWNED POKEMONS ---");
-          console.error("Lỗi chi tiết:", err);
-          setIsError(true);
-          setError(err);
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      fetchOwnedPokemons();
-    }, []);
-
-    // Tìm pokemon chính (isMain = true) và tối ưu với useMemo
-    const mainPokemonImageUrl = useMemo(() => {
-      const mainPokemon = ownedPokemons?.data?.results?.find(
-        (pokemon: any) => pokemon.isMain === true
-      );
-      return mainPokemon?.pokemon?.imageUrl;
-    }, [ownedPokemons]);
+    // Note: Main pokemon logic moved to tab layout level to prevent re-mounting
 
     useImperativeHandle(ref, () => ({
       scrollTo: (y: number) => {
@@ -118,16 +76,6 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
             {/* Main Content Area */}
             <View style={styles.contentSection}>{children}</View>
           </ScrollView>
-
-          {/* DraggableOverlay - Đặt bên ngoài để không bị ảnh hưởng bởi tour layout */}
-          <DraggableOverlay
-            imageUri={
-              mainPokemonImageUrl ||
-              "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
-            }
-            imageSize={100}
-            showBackground={false}
-          />
         </SafeAreaView>
       </LinearGradient>
     );
