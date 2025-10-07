@@ -1,3 +1,4 @@
+import { DailyLoginModal } from "@components/DailyLoginModal";
 import HomeLayout, { HomeLayoutRef } from "@components/layouts/HomeLayout";
 import MainNavigation from "@components/MainNavigation";
 import { ThemedText } from "@components/ThemedText";
@@ -27,6 +28,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 export default function HomeScreen() {
   // Tour and modal state management
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showDailyLogin, setShowDailyLogin] = useState(false);
   const [shouldStartTour, setShouldStartTour] = useState(false);
   const homeLayoutRef = useRef<HomeLayoutRef>(null);
 
@@ -47,6 +49,16 @@ export default function HomeScreen() {
       starters[0]
     );
   }, [starterId]);
+
+  const mockCheckinHistory = [
+    { date: "Day -6", status: "missed" as const },
+    { date: "Day -5", status: "checked" as const },
+    { date: "Day -4", status: "checked" as const },
+    { date: "Day -3", status: "checked" as const },
+    { date: "Day -2", status: "checked" as const },
+    { date: "Day -1", status: "checked" as const },
+    { date: "Today", status: "today" as const }, // Hôm nay chưa check-in
+  ];
 
   /**
    * Extract username from email (part before @)
@@ -96,6 +108,32 @@ export default function HomeScreen() {
    */
   const handleTestTour = () => {
     setIsFirstTimeLogin(true);
+  };
+
+  /**
+   * Handle daily check-in action
+   * Updates user's streak and rewards
+   */
+  const handleDailyCheckin = () => {
+    console.log("User checked in daily!");
+    // TODO: Implement actual check-in logic
+    // - Update user streak in backend
+    // - Add coins to user account
+    // - Update daily login status
+  };
+
+  /**
+   * Handle daily login modal close
+   */
+  const handleCloseDailyModal = () => {
+    setShowDailyLogin(false);
+  };
+
+  /**
+   * Test function to show daily login modal (for development/testing)
+   */
+  const handleTestDailyLogin = () => {
+    setShowDailyLogin(true);
   };
 
   /**
@@ -161,6 +199,15 @@ export default function HomeScreen() {
             </ThemedText>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={styles.testButton}
+            onPress={handleTestDailyLogin}
+          >
+            <ThemedText style={styles.testButtonText}>
+              🎉 Test Daily Login Modal
+            </ThemedText>
+          </TouchableOpacity>
+
           {/* Quick Start Section - Main action card */}
           <ThemedView style={styles.quickStartCard}>
             <ThemedText type="subtitle" style={styles.cardTitle}>
@@ -213,11 +260,11 @@ export default function HomeScreen() {
           styles.fakeOverlay,
           {
             position: "absolute",
-            zIndex: 1000,
             left: getDefaultOverlayPosition().x,
             top: getDefaultOverlayPosition().y,
           },
         ]}
+        pointerEvents="none"
       >
         <TourStep
           stepIndex={1}
@@ -251,6 +298,13 @@ export default function HomeScreen() {
         onClose={handleWelcomeModalClose}
         username={username}
         pokemonName={selectedStarter.name}
+      />
+
+      {/* Daily Login Modal */}
+      <DailyLoginModal
+        visible={showDailyLogin}
+        onClose={() => setShowDailyLogin(false)}
+        onCheckIn={handleDailyCheckin}
       />
     </HomeTourGuide>
   );
@@ -416,7 +470,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
     shadowRadius: 0,
-    zIndex: 1000, // Lower than DraggableOverlay (1001) but visible
     overflow: "hidden",
   },
   fakeOverlayContent: {
