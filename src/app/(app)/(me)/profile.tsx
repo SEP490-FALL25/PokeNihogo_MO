@@ -1,5 +1,7 @@
 import BackScreen from '@components/molecules/Back';
+import useAuth from '@hooks/useAuth';
 import { ROUTES } from '@routes/routes';
+import { formatDateToMMYYYY } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import {
@@ -10,8 +12,7 @@ import {
   Shield,
   Sparkles,
   Star,
-  Trophy,
-  Zap
+  Trophy
 } from 'lucide-react-native';
 import React from 'react';
 import {
@@ -166,6 +167,8 @@ const AchievementBadge: React.FC<AchievementBadgeProps> = ({ name, icon, colors 
 );
 
 export default function ProfileScreen() {
+  const { user } = useAuth();
+  const userProfile = user?.data;
   return (
     <SafeAreaView className="flex-1 bg-slate-100">
       <StatusBar barStyle="light-content" />
@@ -209,7 +212,7 @@ export default function ProfileScreen() {
               <View style={styles.progressGlow} />
               <Progress.Circle
                 size={152}
-                progress={mockUserData.level.progress}
+                progress={mockUserData?.level?.progress}
                 thickness={11}
                 color={'#10b981'}
                 unfilledColor={'rgba(255,255,255,0.25)'}
@@ -220,7 +223,7 @@ export default function ProfileScreen() {
               {/* Avatar with White Border */}
               <View className="absolute w-34 h-34 rounded-full bg-white items-center justify-center shadow-lg">
                 <Image
-                  source={{ uri: mockUserData.avatarUrl }}
+                  source={{ uri: userProfile?.avatar }}
                   className="w-32 h-32 rounded-full"
                 />
               </View>
@@ -233,15 +236,14 @@ export default function ProfileScreen() {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
-                <Zap size={12} color="white" fill="white" strokeWidth={2} />
                 <Text className="text-sm font-extrabold text-white tracking-wide">
-                  {Math.round(mockUserData.level.progress * 100)}%
+                  {Math.round(mockUserData?.level?.progress * 100)}
                 </Text>
               </LinearGradient>
             </View>
 
             {/* User Info */}
-            <Text className="text-4xl font-extrabold text-white mb-3 tracking-tight">{mockUserData.name}</Text>
+            <Text className="text-4xl font-extrabold text-white mb-3 tracking-tight">{userProfile?.name}</Text>
 
             <LinearGradient
               colors={['rgba(255,255,255,0.25)', 'rgba(255,255,255,0.15)']}
@@ -249,12 +251,12 @@ export default function ProfileScreen() {
               className="flex-row items-center px-4.5 py-2.5 rounded-2xl gap-1.5 mb-3"
             >
               <Trophy size={16} color="white" strokeWidth={2.5} />
-              <Text className="text-base font-bold text-white tracking-wide">{mockUserData.level.name}</Text>
+              <Text className="text-base font-bold text-white tracking-wide">{mockUserData?.level?.name}</Text>
             </LinearGradient>
 
             <View className="flex-row items-center gap-1.5">
               <Calendar size={15} color="rgba(255,255,255,0.95)" strokeWidth={2.5} />
-              <Text className="text-sm font-semibold text-white/95 tracking-wide">Tham gia {mockUserData.joinDate}</Text>
+              <Text className="text-sm font-semibold text-white/95 tracking-wide">Tham gia {formatDateToMMYYYY(userProfile?.createdAt)}</Text>
             </View>
           </View>
         </LinearGradient>
@@ -265,21 +267,21 @@ export default function ProfileScreen() {
           <View className="flex-row gap-3 mb-6">
             <StatItem
               icon={Star}
-              value={mockUserData.stats.learningPoints.toLocaleString()}
+              value={mockUserData?.stats?.learningPoints?.toLocaleString()}
               label="Điểm"
               color="#f59e0b"
               accentColor="#fbbf24"
             />
             <StatItem
               icon={Flame}
-              value={mockUserData.stats.streak}
+              value={mockUserData?.stats?.streak}
               label="Streak"
               color="#ef4444"
               accentColor="#f87171"
             />
             <StatItem
               icon={Shield}
-              value={mockUserData.stats.league}
+              value={mockUserData?.stats?.league}
               label="Giải đấu"
               color="#6FAFB2"
               accentColor="#7EC5C8"
@@ -324,7 +326,7 @@ export default function ProfileScreen() {
 
               {/* Pokemon Preview */}
               <View className="flex-row justify-center gap-2.5 pt-5 border-t border-slate-100">
-                {mockUserData.collectionPreview.map((p, i) => (
+                {mockUserData?.collectionPreview?.map((p, i) => (
                   <LinearGradient
                     key={i}
                     colors={['#f8fafc', '#f1f5f9']}
