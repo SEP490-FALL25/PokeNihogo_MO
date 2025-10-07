@@ -66,6 +66,7 @@ const DraggableOverlay = ({
   // 1. State/Ref để quản lý vị trí
   const pan = useRef(new Animated.ValueXY()).current;
   const [initialLoadCompleted, setInitialLoadCompleted] = useState(false);
+  const isInitializing = useRef(false);
 
   // 2. Hàm lưu vị trí vào cả AsyncStorage và Global Store
   const savePosition = useCallback(
@@ -82,8 +83,11 @@ const DraggableOverlay = ({
     [setOverlayPosition]
   );
 
-  // 3. Initialize position from global store or load from AsyncStorage
+  // 3. Initialize position from global store or load from AsyncStorage (runs only once)
   useEffect(() => {
+    if (isInitializing.current) return;
+    isInitializing.current = true;
+
     const initializePosition = async () => {
       // Vị trí mặc định (giữa màn hình)
       const defaultPosition = {
@@ -147,16 +151,27 @@ const DraggableOverlay = ({
     initializePosition();
 
     return () => clearTimeout(timeoutId);
-  }, [
-    pan,
-    initialLoadCompleted,
-    isOverlayPositionLoaded,
-    overlayPosition,
-    setOverlayPosition,
-    setOverlayPositionLoaded,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - runs only once on mount
 
-  // 4. PanResponder để xử lý kéo thả
+  // 4. Sync position from global store when it changes (separate effect)
+  useEffect(() => {
+    if (isOverlayPositionLoaded && initialLoadCompleted) {
+      // Only update if position is different to avoid unnecessary updates
+      const currentPanX = (pan.x as any)._value;
+      const currentPanY = (pan.y as any)._value;
+      
+      if (
+        Math.abs(currentPanX - overlayPosition.x) > 1 ||
+        Math.abs(currentPanY - overlayPosition.y) > 1
+      ) {
+        console.log("Syncing position from global store:", overlayPosition);
+        pan.setValue(overlayPosition);
+      }
+    }
+  }, [overlayPosition, isOverlayPositionLoaded, initialLoadCompleted, pan]);
+
+  // 5. PanResponder để xử lý kéo thả
   const panResponder = useRef(
     PanResponder.create({
       // Cho phép PanResponder xử lý cử chỉ
@@ -188,7 +203,7 @@ const DraggableOverlay = ({
         // Kết hợp offset và giá trị hiện tại (đặt lại offset = 0)
         pan.flattenOffset();
 
-        // 5. Ghi nhớ và giới hạn vị trí
+        // 6. Ghi nhớ và giới hạn vị trí
         let finalX = (pan.x as any)._value;
         let finalY = (pan.y as any)._value;
 
@@ -207,7 +222,7 @@ const DraggableOverlay = ({
     })
   ).current;
 
-  // 6. Ẩn/Hiện component
+  // 7. Ẩn/Hiện component
   if (!isVisible) {
     return null;
   }
@@ -228,7 +243,7 @@ const DraggableOverlay = ({
     );
   }
 
-  // 7. Style cho component
+  // 8. Style cho component
   const animatedStyle = {
     transform: pan.getTranslateTransform(),
     // Đặt vị trí ban đầu là absolute
