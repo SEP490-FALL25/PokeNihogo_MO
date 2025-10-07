@@ -6,8 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { IPasswordFormDataRequest, PasswordFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
+import { useAuthStore } from '@stores/auth/auth.config';
 import { useEmailSelector } from '@stores/user/user.selectors';
-import { saveSecureStorage } from '@utils/secure-storage';
 import { router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import React from 'react';
@@ -24,6 +24,8 @@ export default function PasswordScreen() {
     const { t } = useTranslation();
     const email = useEmailSelector();
     const { toast } = useToast();
+    const setAccessToken = useAuthStore((state) => state.setAccessToken);
+
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
 
@@ -47,12 +49,13 @@ export default function PasswordScreen() {
             const res = await authService.login(data);
 
             if (res.data.statusCode === 200) {
-                saveSecureStorage('accessToken', res.data.data.accessToken);
-                saveSecureStorage('refreshToken', res.data.data.refreshToken);
+                await setAccessToken(res.data.data.accessToken);
+                // saveSecureStorage('refreshToken', res.data.data.refreshToken);
                 if (res.data.data.level !== null) {
                     router.replace(ROUTES.TABS.HOME);
+                } else {
+                    router.replace(ROUTES.STARTER.SELECT_LEVEL);
                 }
-                router.replace(ROUTES.STARTER.SELECT_LEVEL);
             }
         } catch (error: any) {
             toast({ variant: 'destructive', description: error.message });
