@@ -160,12 +160,11 @@ const DraggableOverlay = ({
       // Only update if position is different to avoid unnecessary updates
       const currentPanX = (pan.x as any)._value;
       const currentPanY = (pan.y as any)._value;
-      
+
       if (
         Math.abs(currentPanX - overlayPosition.x) > 1 ||
         Math.abs(currentPanY - overlayPosition.y) > 1
       ) {
-        console.log("Syncing position from global store:", overlayPosition);
         pan.setValue(overlayPosition);
       }
     }
