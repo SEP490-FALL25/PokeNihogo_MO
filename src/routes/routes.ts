@@ -1,6 +1,12 @@
 enum APP {
-  PROFILE = "/(app)/profile",
-  POKEMON_COLLECTION = "/(app)/pokemon-collection",
+}
+
+enum ME {
+  PROFILE = "/(app)/(me)/profile",
+  POKEMON_COLLECTION = "/(app)/(me)/pokemon-collection",
+  ACHIEVEMENTS = "/(app)/(me)/achievements",
+  SETTINGS = "/(app)/(me)/settings",
+  POKEMON_DETAIL = "/(app)/(me)/pokemon/[id]",
 }
 
 enum AUTH {
@@ -36,5 +42,6 @@ export const ROUTES = {
   AUTH,
   TABS,
   STARTER,
+  ME,
   APP,
 };

@@ -1,3 +1,4 @@
+import { ROUTES } from "@routes/routes";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
@@ -5,7 +6,6 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import ExpProgressBar from "../atoms/ExpProgressBar";
 import LevelBadge from "../atoms/LevelBadge";
 import UserAvatar from "../atoms/UserAvatar";
-import { ROUTES } from "@routes/routes";
 
 interface User {
   name: string;
@@ -23,7 +23,7 @@ interface CompactHeaderProps {
 
 export default function CompactHeader({ user, onPress, style }: CompactHeaderProps) {
   const handleAvatarPress = () => {
-    router.push(ROUTES.APP.PROFILE);
+    router.push(ROUTES.ME.PROFILE);
   };
 
   return (
@@ -51,10 +51,10 @@ export default function CompactHeader({ user, onPress, style }: CompactHeaderPro
         </View>
 
         {/* Avatar */}
-        <UserAvatar 
-          name={user.name} 
-          avatar={user.avatar} 
-          size="small" 
+        <UserAvatar
+          name={user.name}
+          avatar={user.avatar}
+          size="small"
           onPress={handleAvatarPress}
         />
       </LinearGradient>
