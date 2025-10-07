@@ -69,9 +69,18 @@ export default function HomeScreen() {
   /**
    * Handle tour completion - called when user finishes the tour guide
    */
-  const handleTourComplete = () => {
+  const handleTourComplete = async () => {
     setIsFirstTimeLogin(false);
     setShouldStartTour(false);
+
+    // Clear overlay position from AsyncStorage so it uses the default center position
+    // This ensures first-time users always start with the overlay in the center
+    try {
+      await AsyncStorage.removeItem("@DraggableOverlay:position");
+      console.log("✅ Cleared overlay position for first-time user");
+    } catch (error) {
+      console.error("❌ Error clearing overlay position:", error);
+    }
   };
 
   /**

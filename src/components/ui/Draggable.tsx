@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useGlobalStore } from "../../stores/global/global.config";
+import { useUserStore } from "../../stores/user/user.config";
 import PokemonImage from "../atoms/PokemonImage";
 import PokemonDisplay from "../molecules/PokemonDisplay";
 
@@ -63,6 +64,9 @@ const DraggableOverlay = ({
     setOverlayPositionLoaded,
   } = useGlobalStore();
 
+  // User store to check first time login
+  const { isFirstTimeLogin } = useUserStore();
+
   // 1. State/Ref để quản lý vị trí
   const pan = useRef(new Animated.ValueXY()).current;
   const [initialLoadCompleted, setInitialLoadCompleted] = useState(false);
@@ -83,7 +87,7 @@ const DraggableOverlay = ({
     [setOverlayPosition]
   );
 
-  // 3. Initialize position from global store or load from AsyncStorage (runs only once)
+  // 3. Initialize position from AsyncStorage (runs only once)
   useEffect(() => {
     if (isInitializing.current) return;
     isInitializing.current = true;
@@ -95,27 +99,22 @@ const DraggableOverlay = ({
         y: screenHeight / 2 - OVERLAY_SIZE / 2,
       };
 
-      // If global store already has position loaded, use it
-      if (
-        isOverlayPositionLoaded &&
-        overlayPosition.x !== 0 &&
-        overlayPosition.y !== 0
-      ) {
-        console.log("Using position from global store:", overlayPosition);
-        pan.setValue(overlayPosition);
-        setInitialLoadCompleted(true);
-        return;
-      }
-
-      // Otherwise, load from AsyncStorage and update global store
       try {
+        // Always load from AsyncStorage first to get the most recent position
         const storedPosition = await AsyncStorage.getItem(STORAGE_KEY);
         if (storedPosition !== null) {
           const { x, y } = JSON.parse(storedPosition);
           console.log("Loaded position from AsyncStorage:", { x, y });
+
+          // Validate position is within screen bounds
+          const validX = Math.max(0, Math.min(x, screenWidth - OVERLAY_SIZE));
+          const validY = Math.max(0, Math.min(y, screenHeight - OVERLAY_SIZE));
+
+          const validPosition = { x: validX, y: validY };
+
           // Update global store and set position
-          setOverlayPosition({ x, y });
-          pan.setValue({ x, y });
+          setOverlayPosition(validPosition);
+          pan.setValue(validPosition);
         } else {
           console.log("No stored position, using default:", defaultPosition);
           // Update global store with default position
@@ -133,26 +132,45 @@ const DraggableOverlay = ({
       }
     };
 
-    // Timeout để đảm bảo component hiển thị ngay cả khi AsyncStorage chậm
-    const timeoutId = setTimeout(() => {
-      if (!initialLoadCompleted) {
-        console.log("Timeout reached, forcing load completion");
+    initializePosition();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - runs only once on mount
+
+  // 3.5. Handle first time login - set default position when user first logs in
+  useEffect(() => {
+    const handleFirstTimeLogin = async () => {
+      // Only run if this is first time login and position hasn't been loaded yet
+      if (isFirstTimeLogin === true && !isOverlayPositionLoaded) {
         const defaultPosition = {
           x: screenWidth / 2 - OVERLAY_SIZE / 2,
           y: screenHeight / 2 - OVERLAY_SIZE / 2,
         };
+
+        console.log(
+          "First time login detected, setting default center position:",
+          defaultPosition
+        );
+
+        // Update global store with default position
         setOverlayPosition(defaultPosition);
-        setOverlayPositionLoaded(true);
         pan.setValue(defaultPosition);
+
+        // Save the default position to AsyncStorage for future use
+        await savePosition(defaultPosition.x, defaultPosition.y);
+        setOverlayPositionLoaded(true);
         setInitialLoadCompleted(true);
       }
-    }, 1000); // 1 giây timeout
+    };
 
-    initializePosition();
-
-    return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array - runs only once on mount
+    handleFirstTimeLogin();
+  }, [
+    isFirstTimeLogin,
+    isOverlayPositionLoaded,
+    setOverlayPosition,
+    setOverlayPositionLoaded,
+    pan,
+    savePosition,
+  ]);
 
   // 4. Sync position from global store when it changes (separate effect)
   useEffect(() => {
@@ -227,19 +245,9 @@ const DraggableOverlay = ({
   }
 
   if (!initialLoadCompleted) {
-    // Hiển thị loading state thay vì null
-    return (
-      <View
-        style={[
-          styles.container,
-          { position: "absolute" as const, left: 0, top: 0, zIndex: 1001 },
-        ]}
-      >
-        <View style={styles.overlayContent}>
-          <Text style={styles.headerText}>Loading...</Text>
-        </View>
-      </View>
-    );
+    // Don't render anything until position is properly loaded
+    // This prevents the overlay from appearing at wrong position during initialization
+    return null;
   }
 
   // 8. Style cho component

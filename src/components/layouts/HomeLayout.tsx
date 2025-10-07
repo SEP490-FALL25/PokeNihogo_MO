@@ -4,7 +4,6 @@ import React, { forwardRef, useImperativeHandle, useRef } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import DraggableOverlay from "@components/ui/Draggable";
 import { TourStep } from "../ui/HomeTourGuide";
 
 // Placeholder component để tour có thể track được vị trí
@@ -34,9 +33,11 @@ export interface HomeLayoutRef {
 }
 
 const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
-  function HomeLayout({ children, user }, ref) {
-    const currentUser = user || sampleUser;
+  function HomeLayout({ children }, ref) {
     const scrollViewRef = useRef<ScrollView>(null);
+    const currentUser = sampleUser;
+
+    // Note: Main pokemon logic moved to tab layout level to prevent re-mounting
 
     useImperativeHandle(ref, () => ({
       scrollTo: (y: number) => {
@@ -75,13 +76,6 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
             {/* Main Content Area */}
             <View style={styles.contentSection}>{children}</View>
           </ScrollView>
-
-          {/* DraggableOverlay - Đặt bên ngoài để không bị ảnh hưởng bởi tour layout */}
-          <DraggableOverlay
-            imageUri="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
-            imageSize={100}
-            showBackground={false}
-          />
         </SafeAreaView>
       </LinearGradient>
     );
