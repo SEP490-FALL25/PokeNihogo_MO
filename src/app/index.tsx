@@ -7,13 +7,17 @@ import '../../global.css';
 
 export default function IndexScreen() {
 
-    const { isAuthenticated, isLoading: isUserLoading } = useAuth();
+    const { isAuthenticated, isLoading: isUserLoading, user } = useAuth();
 
     if (isUserLoading) {
         return <SplashScreen />;
     }
 
-    const href = isAuthenticated ? ROUTES.TABS.HOME : ROUTES.AUTH.WELCOME;
+    if (user?.data?.level !== null) {
+        return <Redirect href={ROUTES.TABS.HOME} />;
+    }
+
+    const href = isAuthenticated ? ROUTES.STARTER.SELECT_LEVEL : ROUTES.AUTH.WELCOME;
 
     return <Redirect href={href} />;
 }

@@ -1,20 +1,22 @@
 import SplashScreen from '@app/splash';
 import useAuth from '@hooks/useAuth';
 import { ROUTES } from '@routes/routes';
-import { Redirect, Stack } from 'expo-router';
-import React from 'react';
+import { Stack, router } from 'expo-router';
+import React, { useEffect } from 'react';
 
 export default function AuthLayout() {
-    const { isAuthenticated, isLoading, user } = useAuth();
+    const { isAuthenticated, isLoading } = useAuth();
 
-    if (isLoading) {
+    useEffect(() => {
+        if (!isLoading) {
+            if (isAuthenticated) {
+                router.replace(ROUTES.TABS.HOME);
+            }
+        }
+    }, [isLoading, isAuthenticated]);
+
+    if (isLoading || isAuthenticated) {
         return <SplashScreen />;
-    }
-
-    if (isAuthenticated && user?.data?.level !== null) {
-        return <Redirect href={ROUTES.TABS.HOME} />;
-    } else if (isAuthenticated && user?.data?.level === null) {
-        return <Redirect href={ROUTES.STARTER.SELECT_LEVEL} />;
     }
 
     return (
