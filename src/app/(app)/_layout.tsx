@@ -5,7 +5,7 @@ import { Redirect, Stack } from 'expo-router';
 import React from 'react';
 
 export default function AppLayout() {
-    const { isAuthenticated, isLoading } = useAuth();
+    const { isAuthenticated, isLoading, user } = useAuth();
 
     if (isLoading) {
         return <SplashScreen />;
@@ -13,6 +13,8 @@ export default function AppLayout() {
 
     if (!isAuthenticated) {
         return <Redirect href={ROUTES.AUTH.WELCOME} />;
+    } else if (isAuthenticated && user?.data?.level === null) {
+        return <Redirect href={ROUTES.STARTER.SELECT_LEVEL} />;
     }
 
     return (
