@@ -41,13 +41,9 @@ export default function EmailScreen() {
 
         switch (res.data.statusCode) {
             case 401:
-                setEmail(data.email)
-                router.push({ pathname: ROUTES.AUTH.OTP, params: { type: res.data.data.type } })
-                break;
             case 200:
                 setEmail(data.email)
                 router.push({ pathname: ROUTES.AUTH.OTP, params: { type: res.data.data.type } })
-                break;
             //Đã lưu IP máy dưới
             case 201:
                 setEmail(data.email)
