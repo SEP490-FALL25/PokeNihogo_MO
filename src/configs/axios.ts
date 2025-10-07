@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 
 import { ROUTES } from '@routes/routes';
+import { useAuthStore } from '@stores/auth/auth.config';
 import { useLanguageSelector } from '@stores/global/global.selectors';
 import axios, { AxiosError } from 'axios';
 import { router } from 'expo-router';
@@ -28,7 +29,9 @@ const axiosPrivate = axios.create({
 axiosPrivate.interceptors.request.use(
     async (config) => {
 
-        const token = await SecureStore.getItemAsync('accessToken');
+        const token = useAuthStore.getState().accessToken;
+        console.log('accessTokenAxios: ', token);
+
         // const decodedToken = await decodeToken();
         // const userRole = decodedToken?.role;
 

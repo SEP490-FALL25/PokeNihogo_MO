@@ -12,7 +12,11 @@ export const createAuthSlice = (set: any): ZUSTAND.IAuthState => ({
     set({ isLoading: false });
   },
   setAccessToken: async (newToken: string) => {
-    await saveSecureStorage('accessToken', newToken);
+    console.log('newToken: ', newToken);
+    
+    const newTokenSave = await saveSecureStorage('accessToken', newToken);
+    console.log('newTokenSave: ', newTokenSave);
+    
     set({ accessToken: newToken });
   },
   deleteAccessToken: async () => {

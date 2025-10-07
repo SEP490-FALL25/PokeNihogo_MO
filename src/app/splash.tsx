@@ -17,7 +17,7 @@ const SplashScreen = () => {
             <Animated.View style={{ opacity: fadeAnim }}>
                 <Image
                     source={require('../../assets/images/PokeNihongoLogo.png')}
-                    className='w-96 h-96 object-contain'
+                    className='w-64 h-36 object-contain'
                 />
             </Animated.View>
         </View>

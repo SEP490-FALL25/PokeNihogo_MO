@@ -1,18 +1,21 @@
-import * as SecureStore from 'expo-secure-store';
-import { useEffect, useState } from "react";
+import authService from '@services/auth';
+import { useAuthStore } from '@stores/auth/auth.config';
+import { useQuery } from '@tanstack/react-query';
 
 export const useAuth = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+    const { accessToken } = useAuthStore();
 
-    useEffect(() => {
-        const checkToken = async () => {
-            const token = await SecureStore.getItemAsync('token');
-            setIsLoggedIn(!!token);
-        };
-        checkToken();
-    }, []);
+    const { data: user, isLoading, ...rest } = useQuery({
+        queryKey: ['user-profile', accessToken],
+        queryFn: () => authService.getProfile(),
+        enabled: !!accessToken,
+    })
 
-    return { isLoggedIn, isLoading: isLoggedIn === null };
+    return {
+        isAuthenticated: !!user,
+        isLoading, 
+        user,
+    };
 }
 
 export default useAuth;
