@@ -10,8 +10,8 @@ interface ExpProgressBarProps {
 }
 
 export default function ExpProgressBar({
-  currentExp,
-  expToNextLevel,
+  currentExp=0,
+  expToNextLevel=0,
   size = "small",
   showText = true,
   style,
@@ -30,7 +30,7 @@ export default function ExpProgressBar({
               isLarge ? styles.progressTextLarge : styles.progressTextSmall,
             ]}
           >
-            {currentExp.toLocaleString()} / {expToNextLevel.toLocaleString()} XP
+            {currentExp?.toLocaleString()} / {expToNextLevel.toLocaleString()} XP
           </Text>
           {isLarge && (
             <Text style={styles.percentageText}>{percentage.toFixed(1)}%</Text>
