@@ -34,7 +34,7 @@ export default function ExpandedContent({
 }: ExpandedContentProps) {
   const handleAvatarPress = () => {
     onClose(); // Close the modal first
-    router.push(ROUTES.APP.PROFILE);
+    router.push(ROUTES.ME.PROFILE);
   };
 
   return (

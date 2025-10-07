@@ -1,7 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Image, View } from 'react-native';
 
-const SplashScreen = () => {
+interface SplashScreenProps {
+    from?: 'index' | 'layout';
+}
+
+const SplashScreen = ({ from = 'index' }: SplashScreenProps) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
@@ -16,8 +20,8 @@ const SplashScreen = () => {
         <View className='flex-1 justify-center items-center bg-white'>
             <Animated.View style={{ opacity: fadeAnim }}>
                 <Image
-                    source={require('../../assets/images/PokeNihongoLogo.png')}
-                    className='w-96 h-96 object-contain'
+                    source={from === 'index' ? require('../../assets/images/PokeNihongoLogo.png') : require('../../assets/images/PokeNihongoLogo.png')}
+                    className='w-64 h-36 object-contain'
                 />
             </Animated.View>
         </View>

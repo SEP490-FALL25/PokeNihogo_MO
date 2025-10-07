@@ -23,6 +23,9 @@ const authService = {
     resetPassword: async (data: IResetPasswordFormDataRequest) => {
         return axiosPrivate.post(`/auth/reset-password`, data)
     },
+    getProfile: async () => {
+        return axiosPrivate.get(`/auth/me`)
+    },
     // mock API for setting user level
     setUserLevel: async (level: 'N5' | 'N4' | 'N3') => {
         // mock: simulate network latency
