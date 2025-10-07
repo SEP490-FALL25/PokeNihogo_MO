@@ -20,26 +20,21 @@ export default function RootLayout() {
     SpaceMono: require('../../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  // Chỉ lấy `initialize` và `isLoading` (tức isTokenLoading) từ store
   const { initialize, isLoading: isTokenLoading } = useAuthStore();
 
-  // Gọi hàm initialize một lần duy nhất tại đây
   useEffect(() => {
     initialize();
   }, []);
 
-  // Chỉ hiển thị splash screen khi font chưa load xong hoặc token chưa đọc xong
   if (!loaded || isTokenLoading) {
     return <SplashScreen />;
   }
 
-  // Sau khi xong, render phần còn lại của app
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ReactQueryProvider>
         <ToastProvider>
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            {/* Stack này sẽ render IndexScreen hoặc các route khác */}
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="index" />
               <Stack.Screen name="(tabs)" />
