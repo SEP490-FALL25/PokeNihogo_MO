@@ -12,7 +12,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ALL_POKEMON } from '../../../../../mock-data/pokemon';
 import { TYPE_COLORS, TYPE_MATCHUPS } from '../../../../../mock-data/type-matchups';
 
-// Enable className on LinearGradient
 cssInterop(LinearGradient, { className: 'style' });
 const TWLinearGradient = LinearGradient as unknown as React.ComponentType<React.ComponentProps<typeof LinearGradient> & { className?: string }>;
 
@@ -26,7 +25,6 @@ interface Pokemon {
     evolutionChainId?: number;
 }
 
-// Ultra Premium Type Badge with Glow
 const TypeBadge = ({ type }: { type: string }) => {
     const color = TYPE_COLORS[type as keyof typeof TYPE_COLORS] || '#A8A878';
 
@@ -40,7 +38,7 @@ const TypeBadge = ({ type }: { type: string }) => {
             >
                 <View className="relative">
                     <Text className="text-white text-[14px] font-extrabold capitalize tracking-[0.8px] drop-shadow">{type}</Text>
-                    <View className="absolute -top-2.5 -right-2.5 w-5 h-5 bg-white/30 rounded-full" />
+                    <View className="absolute top-2.5 -left-2.5 w-5 h-5 bg-white/30 rounded-full" />
                 </View>
             </TWLinearGradient>
         </View>
@@ -198,6 +196,7 @@ export default function PokemonDetailScreen() {
                         showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingBottom: 24 }}
                     >
+
                         {/* Ultra Premium Next Evolution Card */}
                         {nextEvolution && (
                             <View className="relative mb-6">
@@ -392,38 +391,10 @@ export default function PokemonDetailScreen() {
                             <Text className="text-[18px] font-extrabold text-white tracking-[1.5px]">#{String(pokemon.id).padStart(3, '0')}</Text>
                         </TWLinearGradient>
                     </View>
-
-                    {/* Enhanced Level Progress */}
-                    {pokemon.level != null && pokemon.xp != null && (
-                        <View className="w-full">
-                            <View className="flex-row justify-between items-center mb-2.5">
-                                <TWLinearGradient
-                                    colors={['#fbbf24', '#f59e0b']}
-                                    className="flex-row items-center px-[14px] py-2 rounded-[14px] gap-1.5 shadow-[0_3px_6px_rgba(251,191,36,0.4)]"
-                                >
-                                    <Zap size={14} color="white" fill="white" strokeWidth={2.5} />
-                                    <Text className="text-[15px] font-black text-white tracking-[0.8px]">Lv. {pokemon.level}</Text>
-                                </TWLinearGradient>
-                                <Text className="text-[14px] font-bold text-slate-400 tracking-[0.5px]">Next Level</Text>
-                            </View>
-                            <View className="relative">
-                                <View className="absolute w-full h-3 bg-[#6FAFB2] opacity-30 rounded-[6px] shadow-[0_0_8px_rgba(111,175,178,0.6)]" />
-                                <Progress.Bar
-                                    progress={pokemon.xp}
-                                    width={null}
-                                    height={12}
-                                    color={pokemon.platformColor}
-                                    unfilledColor={'#1e293b'}
-                                    borderWidth={0}
-                                    borderRadius={6}
-                                />
-                            </View>
-                        </View>
-                    )}
                 </View>
 
                 {/* Pokemon Image with Multiple Effects */}
-                <View className="w-[300px] h-[300px] items-center justify-center relative">
+                <View className="w-[300px] h-[300px] items-center justify-center relative top-10">
                     {isLoading && (
                         <ActivityIndicator
                             size="large"
@@ -438,16 +409,44 @@ export default function PokemonDetailScreen() {
 
                     <Image
                         source={{ uri: imageUrl }}
-                        style={{ width: 280, height: 280, zIndex: 10 }}
+                        style={{ width: 250, height: 250, zIndex: 10 }}
                         resizeMode="contain"
                         onLoadEnd={() => setIsLoading(false)}
                     />
 
                     {/* Enhanced Glowing Ring */}
-                    <View className="absolute -bottom-[90px]">
+                    <View className="absolute -bottom-[75px]">
                         <GlowingRingEffect color={pokemon.platformColor} ringSize={220} />
                     </View>
                 </View>
+
+                {/* Enhanced Level Progress */}
+                {pokemon.level != null && pokemon.xp != null && (
+                    <View className="w-full mt-4 px-6">
+                        <View className="flex-row justify-between items-center mb-2.5">
+                            <TWLinearGradient
+                                colors={['#fbbf24', '#f59e0b']}
+                                className="flex-row items-center px-[14px] py-1.5 rounded-[14px] gap-1.5 shadow-[0_3px_6px_rgba(251,191,36,0.4)]"
+                            >
+                                <Zap size={12} color="white" fill="white" strokeWidth={2.5} />
+                                <Text className="text-md font-black text-white tracking-[0.8px]">Lv. {pokemon.level}</Text>
+                            </TWLinearGradient>
+                            <Text className="text-[14px] font-bold text-slate-400 tracking-[0.5px]">Next Level</Text>
+                        </View>
+                        <View className="relative">
+                            <View className="absolute w-full h-3 bg-[#6FAFB2] opacity-30 rounded-[6px] shadow-[0_0_8px_rgba(111,175,178,0.6)]" />
+                            <Progress.Bar
+                                progress={pokemon.xp}
+                                width={null}
+                                height={12}
+                                color={pokemon.platformColor}
+                                unfilledColor={'#1e293b'}
+                                borderWidth={0}
+                                borderRadius={6}
+                            />
+                        </View>
+                    </View>
+                )}
             </TWLinearGradient>
 
             {/* Details Section */}
@@ -466,7 +465,7 @@ export default function PokemonDetailScreen() {
                             className="pb-[14px] relative"
                             activeOpacity={0.7}
                         >
-                            <View className={`flex-row items-center ${activeTab === tab ? 'gap-2' : 'gap-1.5'}`}>
+                            <View className={`flex-row items-center pl-2 pr-1 pb-1.5 ${activeTab === tab ? 'gap-2' : 'gap-1.5'}`}>
                                 <Text
                                     className={`text-[17px] font-bold tracking-[0.5px] ${activeTab === tab ? 'text-white font-extrabold' : 'text-slate-500'}`}
                                 >
