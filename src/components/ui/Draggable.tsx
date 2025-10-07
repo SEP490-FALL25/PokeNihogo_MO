@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { useGlobalStore } from "../../stores/global/global.config";
+import { useUserStore } from "../../stores/user/user.config";
 import PokemonImage from "../atoms/PokemonImage";
 import PokemonDisplay from "../molecules/PokemonDisplay";
 
@@ -63,6 +64,9 @@ const DraggableOverlay = ({
     setOverlayPositionLoaded,
   } = useGlobalStore();
 
+  // User store to check first time login
+  const { isFirstTimeLogin } = useUserStore();
+
   // 1. State/Ref để quản lý vị trí
   const pan = useRef(new Animated.ValueXY()).current;
   const [initialLoadCompleted, setInitialLoadCompleted] = useState(false);
@@ -101,13 +105,13 @@ const DraggableOverlay = ({
         if (storedPosition !== null) {
           const { x, y } = JSON.parse(storedPosition);
           console.log("Loaded position from AsyncStorage:", { x, y });
-          
+
           // Validate position is within screen bounds
           const validX = Math.max(0, Math.min(x, screenWidth - OVERLAY_SIZE));
           const validY = Math.max(0, Math.min(y, screenHeight - OVERLAY_SIZE));
-          
+
           const validPosition = { x: validX, y: validY };
-          
+
           // Update global store and set position
           setOverlayPosition(validPosition);
           pan.setValue(validPosition);
@@ -131,6 +135,42 @@ const DraggableOverlay = ({
     initializePosition();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - runs only once on mount
+
+  // 3.5. Handle first time login - set default position when user first logs in
+  useEffect(() => {
+    const handleFirstTimeLogin = async () => {
+      // Only run if this is first time login and position hasn't been loaded yet
+      if (isFirstTimeLogin === true && !isOverlayPositionLoaded) {
+        const defaultPosition = {
+          x: screenWidth / 2 - OVERLAY_SIZE / 2,
+          y: screenHeight / 2 - OVERLAY_SIZE / 2,
+        };
+
+        console.log(
+          "First time login detected, setting default center position:",
+          defaultPosition
+        );
+
+        // Update global store with default position
+        setOverlayPosition(defaultPosition);
+        pan.setValue(defaultPosition);
+
+        // Save the default position to AsyncStorage for future use
+        await savePosition(defaultPosition.x, defaultPosition.y);
+        setOverlayPositionLoaded(true);
+        setInitialLoadCompleted(true);
+      }
+    };
+
+    handleFirstTimeLogin();
+  }, [
+    isFirstTimeLogin,
+    isOverlayPositionLoaded,
+    setOverlayPosition,
+    setOverlayPositionLoaded,
+    pan,
+    savePosition,
+  ]);
 
   // 4. Sync position from global store when it changes (separate effect)
   useEffect(() => {
