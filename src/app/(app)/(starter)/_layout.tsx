@@ -1,15 +1,7 @@
-import useAuth from '@hooks/useAuth';
-import { ROUTES } from '@routes/routes';
-import { Redirect, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
 import React from 'react';
 
-export default function StarterLayout() {
-    const { user } = useAuth();
-
-    if (user?.data?.level !== null) {
-        return <Redirect href={ROUTES.TABS.HOME} />;
-    }
-
+export default function AuthLayout() {
     return (
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="choose-starter" />

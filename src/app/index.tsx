@@ -7,7 +7,7 @@ import '../../global.css';
 
 export default function IndexScreen() {
 
-    const { isAuthenticated, isLoading: isUserLoading, user } = useAuth();
+    const { isAuthenticated, isLoading: isUserLoading } = useAuth();
 
     if (isUserLoading) {
         return <SplashScreen />;
