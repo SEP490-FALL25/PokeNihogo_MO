@@ -80,7 +80,7 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
           <DraggableOverlay
             imageUri="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
             imageSize={100}
-            showBackground={true}
+            showBackground={false}
           />
         </SafeAreaView>
       </LinearGradient>
