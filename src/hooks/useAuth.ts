@@ -22,7 +22,7 @@ export const useAuth = () => {
     return {
         isAuthenticated: !!user,
         isLoading,
-        user,
+        user: user?.data,
     };
 };
 
