@@ -47,14 +47,16 @@ export default function TabLayout() {
       <CustomTab />
 
       {/* DraggableOverlay at tab level - persists across screen changes */}
+      {mainPokemonImageUrl && (
       <DraggableOverlay
         imageUri={
           mainPokemonImageUrl ||
           "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
         }
         imageSize={100}
-        showBackground={false}
-      />
+          showBackground={false}
+        />
+      )}
     </>
   );
 }
