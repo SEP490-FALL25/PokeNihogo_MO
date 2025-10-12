@@ -35,6 +35,13 @@ const TAB_CONFIG: Tab[] = [
     color: "#10b981",
   },
   {
+    name: "lessons",
+    icon: "library",
+    label: "Lessons",
+    route: ROUTES.TABS.LESSONS,
+    color: "#06b6d4",
+  },
+  {
     name: "reading",
     icon: "text",
     label: "Reading",

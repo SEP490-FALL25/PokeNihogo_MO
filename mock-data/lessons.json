@@ -1,0 +1,198 @@
+{
+  "categories": [
+    {
+      "id": "n5-vocabulary",
+      "name": "Từ vựng cơ bản",
+      "description": "Học từ vựng tiếng Nhật cơ bản cho người mới bắt đầu",
+      "level": "N5",
+      "icon": "📚",
+      "color": "#4CAF50",
+      "lessons": [
+        {
+          "id": "n5-vocab-01",
+          "title": "Số đếm từ 1-10",
+          "description": "Học cách đếm từ 1 đến 10 trong tiếng Nhật",
+          "level": "N5",
+          "type": "vocabulary",
+          "difficulty": "beginner",
+          "estimatedTime": 15,
+          "isCompleted": false,
+          "progress": 0,
+          "pokemonReward": {
+            "id": "pikachu",
+            "name": "Pikachu",
+            "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
+            "rarity": "COMMON"
+          },
+          "prerequisites": [],
+          "tags": ["numbers", "basic"],
+          "thumbnail": "https://via.placeholder.com/300x200/4CAF50/FFFFFF?text=1-10",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+          "id": "n5-vocab-02",
+          "title": "Màu sắc cơ bản",
+          "description": "Học các từ vựng về màu sắc trong tiếng Nhật",
+          "level": "N5",
+          "type": "vocabulary",
+          "difficulty": "beginner",
+          "estimatedTime": 20,
+          "isCompleted": false,
+          "progress": 0,
+          "pokemonReward": {
+            "id": "bulbasaur",
+            "name": "Bulbasaur",
+            "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png",
+            "rarity": "COMMON"
+          },
+          "prerequisites": ["n5-vocab-01"],
+          "tags": ["colors", "basic"],
+          "thumbnail": "https://via.placeholder.com/300x200/FF9800/FFFFFF?text=Colors",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+          "id": "n5-vocab-03",
+          "title": "Gia đình",
+          "description": "Học từ vựng về các thành viên trong gia đình",
+          "level": "N5",
+          "type": "vocabulary",
+          "difficulty": "beginner",
+          "estimatedTime": 25,
+          "isCompleted": false,
+          "progress": 0,
+          "pokemonReward": {
+            "id": "charmander",
+            "name": "Charmander",
+            "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png",
+            "rarity": "COMMON"
+          },
+          "prerequisites": ["n5-vocab-02"],
+          "tags": ["family", "basic"],
+          "thumbnail": "https://via.placeholder.com/300x200/2196F3/FFFFFF?text=Family",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "n5-grammar",
+      "name": "Ngữ pháp cơ bản",
+      "description": "Học ngữ pháp tiếng Nhật cơ bản cho trình độ N5",
+      "level": "N5",
+      "icon": "📝",
+      "color": "#2196F3",
+      "lessons": [
+        {
+          "id": "n5-grammar-01",
+          "title": "Trợ từ は (wa)",
+          "description": "Học cách sử dụng trợ từ は để đánh dấu chủ đề câu",
+          "level": "N5",
+          "type": "grammar",
+          "difficulty": "beginner",
+          "estimatedTime": 30,
+          "isCompleted": false,
+          "progress": 0,
+          "pokemonReward": {
+            "id": "squirtle",
+            "name": "Squirtle",
+            "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png",
+            "rarity": "UNCOMMON"
+          },
+          "prerequisites": ["n5-vocab-01"],
+          "tags": ["particles", "grammar"],
+          "thumbnail": "https://via.placeholder.com/300x200/9C27B0/FFFFFF?text=Particles",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+          "id": "n5-grammar-02",
+          "title": "Động từ です",
+          "description": "Học cách sử dụng động từ です trong câu khẳng định",
+          "level": "N5",
+          "type": "grammar",
+          "difficulty": "beginner",
+          "estimatedTime": 25,
+          "isCompleted": false,
+          "progress": 0,
+          "pokemonReward": {
+            "id": "eevee",
+            "name": "Eevee",
+            "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png",
+            "rarity": "COMMON"
+          },
+          "prerequisites": ["n5-grammar-01"],
+          "tags": ["verbs", "grammar"],
+          "thumbnail": "https://via.placeholder.com/300x200/F44336/FFFFFF?text=Desu",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "n5-kanji",
+      "name": "Kanji N5",
+      "description": "Học 80 chữ Kanji cơ bản cho trình độ N5",
+      "level": "N5",
+      "icon": "🈴",
+      "color": "#FF9800",
+      "lessons": [
+        {
+          "id": "n5-kanji-01",
+          "title": "Kanji số đếm",
+          "description": "Học cách viết và đọc các Kanji số đếm cơ bản",
+          "level": "N5",
+          "type": "kanji",
+          "difficulty": "beginner",
+          "estimatedTime": 35,
+          "isCompleted": false,
+          "progress": 0,
+          "pokemonReward": {
+            "id": "mew",
+            "name": "Mew",
+            "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png",
+            "rarity": "LEGENDARY"
+          },
+          "prerequisites": ["n5-vocab-01"],
+          "tags": ["kanji", "numbers"],
+          "thumbnail": "https://via.placeholder.com/300x200/607D8B/FFFFFF?text=Kanji",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "n4-vocabulary",
+      "name": "Từ vựng N4",
+      "description": "Từ vựng tiếng Nhật cho trình độ N4",
+      "level": "N4",
+      "icon": "📖",
+      "color": "#FF5722",
+      "lessons": [
+        {
+          "id": "n4-vocab-01",
+          "title": "Từ vựng công việc",
+          "description": "Học từ vựng về các ngành nghề và công việc",
+          "level": "N4",
+          "type": "vocabulary",
+          "difficulty": "intermediate",
+          "estimatedTime": 40,
+          "isCompleted": false,
+          "progress": 0,
+          "pokemonReward": {
+            "id": "lucario",
+            "name": "Lucario",
+            "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/448.png",
+            "rarity": "RARE"
+          },
+          "prerequisites": ["n5-vocab-03"],
+          "tags": ["job", "work"],
+          "thumbnail": "https://via.placeholder.com/300x200/795548/FFFFFF?text=Jobs",
+          "createdAt": "2024-01-01T00:00:00Z",
+          "updatedAt": "2024-01-01T00:00:00Z"
+        }
+      ]
+    }
+  ]
+}

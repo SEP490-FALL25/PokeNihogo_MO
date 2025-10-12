@@ -30,6 +30,7 @@ enum TABS {
   ROOT = "/(app)/(tabs)",
   HOME = "/(app)/(tabs)/home",
   LEARN = "/(app)/(tabs)/learn",
+  LESSONS = "/(app)/(tabs)/lessons",
   READING = "/(app)/(tabs)/reading",
   LISTENING = "/(app)/(tabs)/listening",
   BATTLE = "/(app)/(tabs)/battle",

@@ -93,6 +93,41 @@
             "togepi": "Small steps today, success tomorrow!"
         }
     },
+    "lessons": {
+        "title": "Lessons",
+        "progress_title": "Learning Progress",
+        "overall_progress": "Overall Progress",
+        "level_progress": "Level Progress",
+        "lessons_completed": "lessons completed",
+        "select_level": "Select Level",
+        "all_levels": "All",
+        "categories": "Lesson Categories",
+        "categories_count": "categories",
+        "no_lessons": "No lessons available for level",
+        "contact_admin": "Try selecting a different level or contact admin to add content",
+        "lesson_status": {
+            "completed": "Completed",
+            "in_progress": "In Progress",
+            "not_started": "Not Started"
+        },
+        "lesson_types": {
+            "vocabulary": "Vocabulary",
+            "grammar": "Grammar",
+            "reading": "Reading",
+            "listening": "Listening",
+            "kanji": "Kanji"
+        },
+        "difficulty": {
+            "beginner": "Beginner",
+            "intermediate": "Intermediate",
+            "advanced": "Advanced"
+        },
+        "level_names": {
+            "N5": "Beginner",
+            "N4": "Elementary",
+            "N3": "Intermediate"
+        }
+    },
     "zod": {
         "errors": {
             "auth": {
