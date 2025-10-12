@@ -94,6 +94,41 @@
             "togepi": "Bước nhỏ hôm nay, thành công ngày mai!"
         }
     },
+    "lessons": {
+        "title": "Bài học",
+        "progress_title": "Tiến độ học tập",
+        "overall_progress": "Tổng tiến độ",
+        "level_progress": "Tiến độ theo cấp độ",
+        "lessons_completed": "bài học hoàn thành",
+        "select_level": "Chọn cấp độ",
+        "all_levels": "Tất cả",
+        "categories": "Danh mục bài học",
+        "categories_count": "danh mục",
+        "no_lessons": "Không có bài học nào cho cấp độ",
+        "contact_admin": "Thử chọn cấp độ khác hoặc liên hệ admin để thêm nội dung",
+        "lesson_status": {
+            "completed": "Hoàn thành",
+            "in_progress": "Đang học",
+            "not_started": "Chưa bắt đầu"
+        },
+        "lesson_types": {
+            "vocabulary": "Từ vựng",
+            "grammar": "Ngữ pháp",
+            "reading": "Đọc hiểu",
+            "listening": "Nghe hiểu",
+            "kanji": "Kanji"
+        },
+        "difficulty": {
+            "beginner": "Sơ cấp",
+            "intermediate": "Trung cấp",
+            "advanced": "Nâng cao"
+        },
+        "level_names": {
+            "N5": "Sơ cấp",
+            "N4": "Sơ trung cấp",
+            "N3": "Trung cấp"
+        }
+    },
     "zod": {
         "errors": {
             "auth": {

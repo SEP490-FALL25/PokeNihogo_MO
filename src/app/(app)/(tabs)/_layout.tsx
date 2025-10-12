@@ -37,7 +37,8 @@ export default function TabLayout() {
           tabBarStyle: { display: "none" },
         }}
       >
-        <Tabs.Screen name="learn" options={{ title: "Learn" }} />
+        {/* <Tabs.Screen name="learn" options={{ title: "Learn" }} /> */}
+        <Tabs.Screen name="lessons" options={{ title: "Lessons" }} />
         <Tabs.Screen name="reading" options={{ title: "Reading" }} />
         <Tabs.Screen name="home" options={{ title: "Home" }} />
         <Tabs.Screen name="listening" options={{ title: "Listening" }} />
