@@ -12,8 +12,10 @@ interface SelectOption {
 interface CustomSelectProps {
   options: SelectOption[]
   placeholder?: string
-  onSelect: (option: SelectOption) => void
+  onSelect?: (option: SelectOption) => void
+  onValueChange?: (value: string) => void
   selectedValue?: string
+  value?: string
   style?: any
 }
 
@@ -21,14 +23,17 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   options,
   placeholder = "Choose an option",
   onSelect,
+  onValueChange,
   selectedValue,
+  value,
   style,
 }) => {
   const [isVisible, setIsVisible] = useState(false)
   const fadeAnim = useRef(new Animated.Value(0)).current
   const scaleAnim = useRef(new Animated.Value(0.8)).current
 
-  const selectedOption = options.find((option) => option.value === selectedValue)
+  const currentValue = value || selectedValue;
+  const selectedOption = options.find((option) => option.value === currentValue)
 
   const openModal = () => {
     setIsVisible(true)
@@ -65,16 +70,17 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   }
 
   const handleSelect = (option: SelectOption) => {
-    onSelect(option)
+    onSelect?.(option)
+    onValueChange?.(option.value)
     closeModal()
   }
 
   const renderOption = ({ item }: { item: SelectOption }) => (
     <Pressable
-      style={[styles.option, selectedValue === item.value && styles.selectedOption]}
+      style={[styles.option, currentValue === item.value && styles.selectedOption]}
       onPress={() => handleSelect(item)}
     >
-      <Text style={[styles.optionText, selectedValue === item.value && styles.selectedOptionText]}>{item.label}</Text>
+      <Text style={[styles.optionText, currentValue === item.value && styles.selectedOptionText]}>{item.label}</Text>
     </Pressable>
   )
 
@@ -213,4 +219,7 @@ const styles = StyleSheet.create({
   },
 })
 
-export default CustomSelect
+CustomSelect.displayName = 'Select';
+
+export { CustomSelect as Select }
+export default CustomSelect;

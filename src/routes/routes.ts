@@ -26,6 +26,14 @@ enum STARTER {
   CONGRATS = "/(app)/(starter)/congrats",
 }
 
+enum QUIZ {
+  CREATE = "/(app)/quiz/create",
+  SESSION = "/(app)/quiz/[sessionId]",
+  RESULT = "/(app)/quiz/result/[resultId]",
+  HISTORY = "/(app)/quiz/history",
+  STATS = "/(app)/quiz/stats",
+}
+
 enum TABS {
   ROOT = "/(app)/(tabs)",
   HOME = "/(app)/(tabs)/home",
@@ -43,6 +51,7 @@ export const ROUTES = {
   AUTH,
   TABS,
   STARTER,
+  QUIZ,
   ME,
   APP,
 };
