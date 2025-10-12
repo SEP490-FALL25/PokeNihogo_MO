@@ -1,80 +1,82 @@
-import { Button } from '@components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/Card';
-import { Select } from '@components/ui/Select';
-import { ICreateQuizSessionResponse } from '@models/quiz/quiz.response';
-import { quizService } from '@services/quiz';
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import BounceButton from "@components/ui/BounceButton";
+import { Button } from "@components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/Card";
+import { Select } from "@components/ui/Select";
+import { ICreateQuizSessionResponse } from "@models/quiz/quiz.response";
+import { quizService } from "@services/quiz";
+import { router } from "expo-router";
+import React, { useState } from "react";
 import {
-    Alert,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 interface QuizConfig {
   category?: string;
-  level?: 'N5' | 'N4' | 'N3';
+  level?: "N5" | "N4" | "N3";
   questionCount?: number;
-  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  difficulty?: "beginner" | "intermediate" | "advanced";
 }
 
 export default function CreateQuizScreen() {
   const [config, setConfig] = useState<QuizConfig>({
-    category: 'vocabulary',
-    level: 'N5',
+    category: "vocabulary",
+    level: "N5",
     questionCount: 10,
-    difficulty: 'beginner',
+    difficulty: "beginner",
   });
   const [isCreating, setIsCreating] = useState(false);
 
   const categories = [
-    { value: 'vocabulary', label: 'Từ vựng' },
-    { value: 'grammar', label: 'Ngữ pháp' },
-    { value: 'kanji', label: 'Kanji' },
-    { value: 'listening', label: 'Nghe hiểu' },
-    { value: 'reading', label: 'Đọc hiểu' },
-    { value: 'mixed', label: 'Tổng hợp' },
+    { value: "vocabulary", label: "Từ vựng" },
+    { value: "grammar", label: "Ngữ pháp" },
+    { value: "kanji", label: "Kanji" },
+    { value: "listening", label: "Nghe hiểu" },
+    { value: "reading", label: "Đọc hiểu" },
+    { value: "mixed", label: "Tổng hợp" },
   ];
 
   const levels = [
-    { value: 'N5', label: 'N5 - Cơ bản' },
-    { value: 'N4', label: 'N4 - Trung cấp' },
-    { value: 'N3', label: 'N3 - Cao cấp' },
+    { value: "N5", label: "N5 - Cơ bản" },
+    { value: "N4", label: "N4 - Trung cấp" },
+    { value: "N3", label: "N3 - Cao cấp" },
   ];
 
   const difficulties = [
-    { value: 'beginner', label: 'Dễ' },
-    { value: 'intermediate', label: 'Trung bình' },
-    { value: 'advanced', label: 'Khó' },
+    { value: "beginner", label: "Dễ" },
+    { value: "intermediate", label: "Trung bình" },
+    { value: "advanced", label: "Khó" },
   ];
 
   const questionCounts = [
-    { value: '5', label: '5 câu hỏi' },
-    { value: '10', label: '10 câu hỏi' },
-    { value: '15', label: '15 câu hỏi' },
-    { value: '20', label: '20 câu hỏi' },
+    { value: "5", label: "5 câu hỏi" },
+    { value: "10", label: "10 câu hỏi" },
+    { value: "15", label: "15 câu hỏi" },
+    { value: "20", label: "20 câu hỏi" },
   ];
 
   const handleCreateQuiz = async () => {
     try {
       setIsCreating(true);
-      
-      const response: ICreateQuizSessionResponse = await quizService.createQuizSession(config);
-      
+
+      const response: ICreateQuizSessionResponse =
+        await quizService.createQuizSession(config);
+
       if (response.statusCode === 201 && response.data?.session) {
         // Navigate to quiz screen
         router.replace({
-          pathname: '/quiz/[sessionId]',
-          params: { sessionId: response.data.session.id }
+          pathname: "/quiz/[sessionId]",
+          params: { sessionId: response.data.session.id },
         });
       }
     } catch (error) {
-      console.error('Error creating quiz:', error);
-      Alert.alert('Lỗi', 'Không thể tạo quiz. Vui lòng thử lại.');
+      console.error("Error creating quiz:", error);
+      Alert.alert("Lỗi", "Không thể tạo quiz. Vui lòng thử lại.");
     } finally {
       setIsCreating(false);
     }
@@ -83,8 +85,11 @@ export default function CreateQuizScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>Tạo Quiz Mới</Text>
           <Text style={styles.subtitle}>
@@ -100,7 +105,9 @@ export default function CreateQuizScreen() {
           <CardContent>
             <Select
               value={config.category}
-              onValueChange={(value) => setConfig({ ...config, category: value })}
+              onValueChange={(value) =>
+                setConfig({ ...config, category: value })
+              }
               options={categories}
               placeholder="Chọn chủ đề"
             />
@@ -115,7 +122,9 @@ export default function CreateQuizScreen() {
           <CardContent>
             <Select
               value={config.level}
-              onValueChange={(value) => setConfig({ ...config, level: value as any })}
+              onValueChange={(value) =>
+                setConfig({ ...config, level: value as any })
+              }
               options={levels}
               placeholder="Chọn trình độ"
             />
@@ -130,7 +139,9 @@ export default function CreateQuizScreen() {
           <CardContent>
             <Select
               value={config.difficulty}
-              onValueChange={(value) => setConfig({ ...config, difficulty: value as any })}
+              onValueChange={(value) =>
+                setConfig({ ...config, difficulty: value as any })
+              }
               options={difficulties}
               placeholder="Chọn độ khó"
             />
@@ -145,7 +156,9 @@ export default function CreateQuizScreen() {
           <CardContent>
             <Select
               value={config.questionCount?.toString()}
-              onValueChange={(value) => setConfig({ ...config, questionCount: parseInt(value) })}
+              onValueChange={(value) =>
+                setConfig({ ...config, questionCount: parseInt(value) })
+              }
               options={questionCounts}
               placeholder="Chọn số câu hỏi"
             />
@@ -161,25 +174,29 @@ export default function CreateQuizScreen() {
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Chủ đề:</Text>
               <Text style={styles.infoValue}>
-                {categories.find(c => c.value === config.category)?.label}
+                {categories.find((c) => c.value === config.category)?.label}
               </Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Trình độ:</Text>
               <Text style={styles.infoValue}>
-                {levels.find(l => l.value === config.level)?.label}
+                {levels.find((l) => l.value === config.level)?.label}
               </Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Độ khó:</Text>
               <Text style={styles.infoValue}>
-                {difficulties.find(d => d.value === config.difficulty)?.label}
+                {difficulties.find((d) => d.value === config.difficulty)?.label}
               </Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Số câu hỏi:</Text>
               <Text style={styles.infoValue}>
-                {questionCounts.find(q => q.value === config.questionCount?.toString())?.label}
+                {
+                  questionCounts.find(
+                    (q) => q.value === config.questionCount?.toString()
+                  )?.label
+                }
               </Text>
             </View>
             <View style={styles.infoRow}>
@@ -193,14 +210,15 @@ export default function CreateQuizScreen() {
 
         {/* Action Buttons */}
         <View style={styles.actionContainer}>
-          <Button
+          <BounceButton
             onPress={handleCreateQuiz}
             loading={isCreating}
-            style={styles.createButton}
+            variant="ghost"
+            // style={styles.createButton}
           >
             Bắt đầu Quiz
-          </Button>
-          
+          </BounceButton>
+
           <Button
             variant="outline"
             onPress={() => router.back()}
@@ -217,25 +235,25 @@ export default function CreateQuizScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
   },
   scrollView: {
     flex: 1,
   },
   header: {
     padding: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: "700",
+    color: "#111827",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
-    textAlign: 'center',
+    color: "#6b7280",
+    textAlign: "center",
     lineHeight: 24,
   },
   configCard: {
@@ -249,28 +267,28 @@ const styles = StyleSheet.create({
   infoCard: {
     margin: 16,
     marginBottom: 8,
-    backgroundColor: '#f0f9ff',
-    borderColor: '#dbeafe',
+    backgroundColor: "#f0f9ff",
+    borderColor: "#dbeafe",
   },
   infoTitle: {
     fontSize: 18,
     marginBottom: 0,
-    color: '#1e40af',
+    color: "#1e40af",
   },
   infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   infoLabel: {
     fontSize: 14,
-    color: '#6b7280',
+    color: "#6b7280",
   },
   infoValue: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#111827',
+    fontWeight: "600",
+    color: "#111827",
   },
   actionContainer: {
     padding: 20,

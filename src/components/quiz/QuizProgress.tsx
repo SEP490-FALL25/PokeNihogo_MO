@@ -1,6 +1,6 @@
-import React from 'react';
-import { Text, View, ViewStyle } from 'react-native';
-import { Progress } from '../ui/Progress';
+import React from "react";
+import { Text, View, ViewStyle } from "react-native";
+import { Progress } from "../ui/Progress";
 
 interface QuizProgressProps {
   currentQuestion: number;
@@ -17,12 +17,13 @@ export const QuizProgress: React.FC<QuizProgressProps> = ({
   score,
   style,
 }) => {
-  const progress = totalQuestions > 0 ? (currentQuestion / totalQuestions) * 100 : 0;
-  
+  const progress =
+    totalQuestions > 0 ? (currentQuestion / totalQuestions) * 100 : 0;
+
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -41,19 +42,21 @@ export const QuizProgress: React.FC<QuizProgressProps> = ({
           <Text style={styles.statLabel}>Câu hỏi</Text>
           <Text style={styles.statValue}>{currentQuestion + 1}</Text>
         </View>
-        
+
         {timeRemaining !== undefined && (
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Thời gian</Text>
-            <Text style={[
-              styles.statValue,
-              timeRemaining < 30 ? styles.timeWarning : styles.timeNormal
-            ]}>
+            <Text
+              style={[
+                styles.statValue,
+                timeRemaining < 30 ? styles.timeWarning : styles.timeNormal,
+              ]}
+            >
               {formatTime(timeRemaining)}
             </Text>
           </View>
         )}
-        
+
         {score !== undefined && (
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Điểm</Text>
@@ -67,8 +70,8 @@ export const QuizProgress: React.FC<QuizProgressProps> = ({
 
 const styles = {
   progressContainer: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
     marginBottom: 12,
     gap: 12,
   },
@@ -78,34 +81,34 @@ const styles = {
   },
   progressText: {
     fontSize: 14,
-    fontWeight: '600' as const,
-    color: '#374151',
+    fontWeight: "600" as const,
+    color: "#374151",
     minWidth: 60,
-    textAlign: 'center' as const,
+    textAlign: "center" as const,
   },
   statsRow: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    alignItems: 'center' as const,
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    alignItems: "center" as const,
   },
   statItem: {
-    alignItems: 'center' as const,
+    alignItems: "center" as const,
     flex: 1,
   },
   statLabel: {
     fontSize: 12,
-    color: '#6b7280',
+    color: "#6b7280",
     marginBottom: 2,
   },
   statValue: {
     fontSize: 16,
-    fontWeight: '700' as const,
-    color: '#111827',
+    fontWeight: "700" as const,
+    color: "#111827",
   },
   timeNormal: {
-    color: '#059669',
+    color: "#059669",
   },
   timeWarning: {
-    color: '#dc2626',
+    color: "#dc2626",
   },
 };

@@ -1,5 +1,6 @@
 // Quiz Components
 export { AnswerOption } from './AnswerOption';
+export { ConfettiEffect } from './ConfettiEffect';
 export { PokemonRewardModal } from './PokemonRewardModal';
 export { QuestionCard } from './QuestionCard';
 export { QuizProgress } from './QuizProgress';

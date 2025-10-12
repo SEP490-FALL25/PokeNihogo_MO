@@ -155,7 +155,6 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 const styles = {
   container: {
     margin: 16,
-    maxHeight: '85%',
   },
   content: {
     padding: 20,
