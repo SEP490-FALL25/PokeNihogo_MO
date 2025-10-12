@@ -1,10 +1,9 @@
 import { QuizResult } from "@models/quiz/quiz.common";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Text, View, ViewStyle } from "react-native";
 import { Button } from "../ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/Card";
 import { Progress } from "../ui/Progress";
-import { ConfettiEffect } from "./ConfettiEffect";
 import { PokemonRewardModal } from "./PokemonRewardModal";
 
 interface QuizResultCardProps {
@@ -23,19 +22,7 @@ export const QuizResultCard: React.FC<QuizResultCardProps> = ({
   style,
 }) => {
   const [showPokemonModal, setShowPokemonModal] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
 
-  // Show confetti when component mounts
-  useEffect(() => {
-    if (result.score >= 80) {
-      setShowConfetti(true);
-      // Hide confetti after animation
-      const timer = setTimeout(() => {
-        setShowConfetti(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [result.score]);
   const getScoreColor = (score: number): string => {
     if (score >= 90) return "#059669"; // green
     if (score >= 80) return "#0891b2"; // blue
@@ -62,7 +49,6 @@ export const QuizResultCard: React.FC<QuizResultCardProps> = ({
 
   return (
     <>
-      <ConfettiEffect visible={showConfetti} />
       <Card style={[styles.container, style]}>
         <CardHeader>
           <CardTitle style={styles.title}>Kết quả Quiz</CardTitle>

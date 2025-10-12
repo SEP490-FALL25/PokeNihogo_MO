@@ -1,8 +1,8 @@
-import { QuizQuestion } from '@models/quiz/quiz.common';
-import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, View, ViewStyle } from 'react-native';
-import { Card, CardContent } from '../ui/Card';
-import { AnswerOption } from './AnswerOption';
+import { QuizQuestion } from "@models/quiz/quiz.common";
+import React, { useEffect, useState } from "react";
+import { ScrollView, Text, View, ViewStyle } from "react-native";
+import { Card, CardContent } from "../ui/Card";
+import { AnswerOption } from "./AnswerOption";
 
 interface QuestionCardProps {
   question: QuizQuestion;
@@ -19,7 +19,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   showResult = false,
   style,
 }) => {
-  const [localSelectedAnswers, setLocalSelectedAnswers] = useState<string[]>(selectedAnswers);
+  const [localSelectedAnswers, setLocalSelectedAnswers] =
+    useState<string[]>(selectedAnswers);
 
   useEffect(() => {
     setLocalSelectedAnswers(selectedAnswers);
@@ -27,11 +28,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
   const handleAnswerSelect = (optionId: string) => {
     let newAnswers: string[];
-    
-    if (question.type === 'multiple-choice') {
+
+    if (question.type === "multiple-choice") {
       // Toggle selection for multiple choice
       if (localSelectedAnswers.includes(optionId)) {
-        newAnswers = localSelectedAnswers.filter(id => id !== optionId);
+        newAnswers = localSelectedAnswers.filter((id) => id !== optionId);
       } else {
         newAnswers = [...localSelectedAnswers, optionId];
       }
@@ -39,30 +40,30 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       // Single selection for single choice
       newAnswers = [optionId];
     }
-    
+
     setLocalSelectedAnswers(newAnswers);
     onAnswerSelect(question.id, newAnswers);
   };
 
   const getQuestionTypeLabel = (): string => {
     switch (question.type) {
-      case 'single-choice':
-        return 'Chọn 1 đáp án đúng';
-      case 'multiple-choice':
-        return 'Chọn tất cả đáp án đúng';
-      case 'text-input':
-        return 'Nhập câu trả lời';
-      case 'audio':
-        return 'Nghe và chọn đáp án';
-      case 'image':
-        return 'Quan sát hình ảnh và chọn đáp án';
+      case "single-choice":
+        return "Chọn 1 đáp án đúng";
+      case "multiple-choice":
+        return "Chọn tất cả đáp án đúng";
+      case "text-input":
+        return "Nhập câu trả lời";
+      case "audio":
+        return "Nghe và chọn đáp án";
+      case "image":
+        return "Quan sát hình ảnh và chọn đáp án";
       default:
-        return '';
+        return "";
     }
   };
 
   const renderAudioPlayer = () => {
-    if (question.type === 'audio' && question.audioUrl) {
+    if (question.type === "audio" && question.audioUrl) {
       return (
         <View style={styles.audioContainer}>
           <View style={styles.audioPlayer}>
@@ -105,7 +106,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           {/* Question Content */}
           <View style={styles.questionContent}>
             <Text style={styles.questionText}>{question.question}</Text>
-            
+
             {renderAudioPlayer()}
             {renderImage()}
           </View>
@@ -121,7 +122,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                 isCorrect={showResult ? option.isCorrect : undefined}
                 isSelected={localSelectedAnswers.includes(option.id)}
                 showResult={showResult}
-                isMultipleChoice={question.type === 'multiple-choice'}
+                isMultipleChoice={question.type === "multiple-choice"}
                 onSelect={handleAnswerSelect}
               />
             ))}
@@ -160,40 +161,40 @@ const styles = {
     padding: 20,
   },
   header: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    alignItems: 'center' as const,
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    alignItems: "center" as const,
     marginBottom: 16,
   },
   typeBadge: {
-    backgroundColor: '#dbeafe',
+    backgroundColor: "#dbeafe",
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 16,
   },
   typeText: {
     fontSize: 12,
-    color: '#1e40af',
-    fontWeight: '600' as const,
+    color: "#1e40af",
+    fontWeight: "600" as const,
   },
   difficultyBadge: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: "#fef3c7",
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 16,
   },
   difficultyText: {
     fontSize: 12,
-    color: '#92400e',
-    fontWeight: '600' as const,
+    color: "#92400e",
+    fontWeight: "600" as const,
   },
   questionContent: {
     marginBottom: 24,
   },
   questionText: {
     fontSize: 18,
-    fontWeight: '600' as const,
-    color: '#111827',
+    fontWeight: "600" as const,
+    color: "#111827",
     lineHeight: 28,
     marginBottom: 16,
   },
@@ -201,9 +202,9 @@ const styles = {
     marginVertical: 16,
   },
   audioPlayer: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    backgroundColor: '#f3f4f6',
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    backgroundColor: "#f3f4f6",
     padding: 16,
     borderRadius: 12,
     gap: 12,
@@ -213,67 +214,67 @@ const styles = {
   },
   audioText: {
     fontSize: 16,
-    color: '#374151',
+    color: "#374151",
   },
   imageContainer: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: "#f9fafb",
     padding: 20,
     borderRadius: 12,
-    alignItems: 'center' as const,
+    alignItems: "center" as const,
     marginVertical: 16,
   },
   imagePlaceholder: {
     fontSize: 16,
-    color: '#6b7280',
+    color: "#6b7280",
   },
   optionsContainer: {
     marginBottom: 20,
   },
   explanationContainer: {
-    backgroundColor: '#f0f9ff',
+    backgroundColor: "#f0f9ff",
     padding: 16,
     borderRadius: 12,
     marginBottom: 20,
     borderLeftWidth: 4,
-    borderLeftColor: '#3b82f6',
+    borderLeftColor: "#3b82f6",
   },
   explanationLabel: {
     fontSize: 14,
-    fontWeight: '600' as const,
-    color: '#1e40af',
+    fontWeight: "600" as const,
+    color: "#1e40af",
     marginBottom: 8,
   },
   explanationText: {
     fontSize: 14,
-    color: '#374151',
+    color: "#374151",
     lineHeight: 20,
   },
   metadata: {
-    flexDirection: 'row' as const,
-    justifyContent: 'space-between' as const,
-    alignItems: 'center' as const,
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    alignItems: "center" as const,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: "#e5e7eb",
   },
   tagContainer: {
-    flexDirection: 'row' as const,
-    flexWrap: 'wrap' as const,
+    flexDirection: "row" as const,
+    flexWrap: "wrap" as const,
     gap: 6,
   },
   tag: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: "#e5e7eb",
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 12,
   },
   tagText: {
     fontSize: 12,
-    color: '#6b7280',
+    color: "#6b7280",
   },
   pointsText: {
     fontSize: 14,
-    fontWeight: '600' as const,
-    color: '#059669',
+    fontWeight: "600" as const,
+    color: "#059669",
   },
 };
