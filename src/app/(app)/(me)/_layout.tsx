@@ -6,7 +6,7 @@ export default function AppLayout() {
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="profile" />
             <Stack.Screen name="pokemon-collection" />
-            <Stack.Screen name="achiements" />
+            <Stack.Screen name="achievements" />
             <Stack.Screen name="settings" />
         </Stack>
     );

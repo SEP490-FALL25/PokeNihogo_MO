@@ -174,7 +174,7 @@ const LessonDetailScreen = () => {
                 {lesson.difficulty}
               </Badge>
               <Badge variant="outline">
-                ⏱️ {lesson.estimatedTime}m
+                {`⏱️ ${lesson.estimatedTime}m`}
               </Badge>
             </View>
           </ThemedView>

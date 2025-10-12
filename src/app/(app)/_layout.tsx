@@ -17,7 +17,10 @@ export default function AppLayout() {
 
     return (
         <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="me" />
+            <Stack.Screen name="(me)" />
+            <Stack.Screen name="(starter)" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="lesson/[id]" />
         </Stack>
     );
 }

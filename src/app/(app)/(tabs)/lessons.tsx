@@ -1,5 +1,5 @@
 import HomeLayout from "@components/layouts/HomeLayout";
-import LessonCategory from "@components/molecules/Lesson/LessonCategory";
+import LessonCategory from "@components/molecules/LessonCategory";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { Alert } from "@components/ui/Alert";
@@ -12,11 +12,11 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 const LessonsScreen = () => {
@@ -143,8 +143,8 @@ const LessonsScreen = () => {
             <ThemedText type="subtitle" style={styles.categoriesTitle}>
               📖 {t("lessons.categories")}
             </ThemedText>
-            <Badge variant="outline" className="text-xs">
-              {categories.length} {t("lessons.categories_count")}
+            <Badge variant="outline">
+              {`${categories.length} ${t("lessons.categories_count")}`}
             </Badge>
           </View>
 

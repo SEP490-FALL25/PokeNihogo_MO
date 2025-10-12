@@ -27,13 +27,13 @@ interface TabButtonProps {
 }
 
 const TAB_CONFIG: Tab[] = [
-  {
-    name: "learn",
-    icon: "book",
-    label: "Learn",
-    route: ROUTES.TABS.LEARN,
-    color: "#10b981",
-  },
+  // {
+  //   name: "learn",
+  //   icon: "book",
+  //   label: "Learn",
+  //   route: ROUTES.TABS.LEARN,
+  //   color: "#10b981",
+  // },
   {
     name: "lessons",
     icon: "library",
