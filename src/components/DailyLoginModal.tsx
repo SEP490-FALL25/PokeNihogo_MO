@@ -1,35 +1,47 @@
-"use client"
+"use client";
 
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import { useEffect, useRef, useState } from "react"
-import { Animated, Dimensions, Modal, ScrollView, StyleSheet, Text, View } from "react-native"
-import BounceButton from "./ui/BounceButton"
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  Dimensions,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import BounceButton from "./ui/BounceButton";
 
 interface CheckInDay {
-  date: string
-  status: "checked" | "missed" | "future"
+  date: string;
+  status: "checked" | "missed" | "future";
 }
 
 interface DailyLoginModalProps {
-  visible: boolean
-  onClose: () => void
-  onCheckIn: () => void
+  visible: boolean;
+  onClose: () => void;
+  onCheckIn: () => void;
 }
 
-export function DailyLoginModal({ visible, onClose, onCheckIn }: DailyLoginModalProps) {
-  const [streak, setStreak] = useState(0)
-  const [hasCheckedInToday, setHasCheckedInToday] = useState(false)
-  const [checkInDays, setCheckInDays] = useState<CheckInDay[]>([])
-  const [showCelebration, setShowCelebration] = useState(false)
+export function DailyLoginModal({
+  visible,
+  onClose,
+  onCheckIn,
+}: DailyLoginModalProps) {
+  const [streak, setStreak] = useState(0);
+  const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
+  const [checkInDays, setCheckInDays] = useState<CheckInDay[]>([]);
+  const [showCelebration, setShowCelebration] = useState(false);
 
-  const scaleAnim = useRef(new Animated.Value(0)).current
-  const fadeAnim = useRef(new Animated.Value(0)).current
-  const streakPulse = useRef(new Animated.Value(1)).current
-  const celebrationAnim = useRef(new Animated.Value(0)).current
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const streakPulse = useRef(new Animated.Value(1)).current;
+  const celebrationAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
-      loadCheckInData()
+      loadCheckInData();
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
@@ -42,7 +54,7 @@ export function DailyLoginModal({ visible, onClose, onCheckIn }: DailyLoginModal
           duration: 300,
           useNativeDriver: true,
         }),
-      ]).start()
+      ]).start();
 
       Animated.loop(
         Animated.sequence([
@@ -56,93 +68,95 @@ export function DailyLoginModal({ visible, onClose, onCheckIn }: DailyLoginModal
             duration: 1000,
             useNativeDriver: true,
           }),
-        ]),
-      ).start()
+        ])
+      ).start();
     } else {
-      scaleAnim.setValue(0)
-      fadeAnim.setValue(0)
+      scaleAnim.setValue(0);
+      fadeAnim.setValue(0);
     }
-  }, [visible])
+  }, [visible]);
 
   const loadCheckInData = async () => {
     try {
-      const storedData = await AsyncStorage.getItem("dailyCheckIn")
+      const storedData = await AsyncStorage.getItem("dailyCheckIn");
       if (storedData) {
-        const data = JSON.parse(storedData)
-        setStreak(data.streak || 0)
-        setHasCheckedInToday(data.lastCheckIn === getTodayDate())
+        const data = JSON.parse(storedData);
+        setStreak(data.streak || 0);
+        setHasCheckedInToday(data.lastCheckIn === getTodayDate());
 
-        const days = generateLast7Days(data.checkInHistory || [])
-        setCheckInDays(days)
+        const days = generateLast7Days(data.checkInHistory || []);
+        setCheckInDays(days);
       } else {
-        const days = generateLast7Days([])
-        setCheckInDays(days)
+        const days = generateLast7Days([]);
+        setCheckInDays(days);
       }
     } catch (error) {
-      console.error("Error loading check-in data:", error)
+      console.error("Error loading check-in data:", error);
     }
-  }
+  };
 
   const getTodayDate = () => {
-    return new Date().toISOString().split("T")[0]
-  }
+    return new Date().toISOString().split("T")[0];
+  };
 
   const generateLast7Days = (checkInHistory: string[]) => {
-    const days: CheckInDay[] = []
-    const today = new Date()
+    const days: CheckInDay[] = [];
+    const today = new Date();
 
     for (let i = 6; i >= 0; i--) {
-      const date = new Date(today)
-      date.setDate(date.getDate() - i)
-      const dateString = date.toISOString().split("T")[0]
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateString = date.toISOString().split("T")[0];
 
-      let status: "checked" | "missed" | "future" = "missed"
+      let status: "checked" | "missed" | "future" = "missed";
 
       if (dateString === getTodayDate()) {
-        status = checkInHistory.includes(dateString) ? "checked" : "future"
+        status = checkInHistory.includes(dateString) ? "checked" : "future";
       } else if (checkInHistory.includes(dateString)) {
-        status = "checked"
+        status = "checked";
       } else if (date < today) {
-        status = "missed"
+        status = "missed";
       }
 
-      days.push({ date: dateString, status })
+      days.push({ date: dateString, status });
     }
 
-    return days
-  }
+    return days;
+  };
 
   const handleCheckIn = async () => {
-    const today = getTodayDate()
+    const today = getTodayDate();
     try {
-      const storedData = await AsyncStorage.getItem("dailyCheckIn")
-      const data = storedData ? JSON.parse(storedData) : { streak: 0, checkInHistory: [], lastCheckIn: null }
+      const storedData = await AsyncStorage.getItem("dailyCheckIn");
+      const data = storedData
+        ? JSON.parse(storedData)
+        : { streak: 0, checkInHistory: [], lastCheckIn: null };
 
       if (data.lastCheckIn === today) {
-        return
+        return;
       }
 
-      const yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1)
-      const yesterdayDate = yesterday.toISOString().split("T")[0]
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayDate = yesterday.toISOString().split("T")[0];
 
       if (data.lastCheckIn === yesterdayDate) {
-        data.streak += 1
+        data.streak += 1;
       } else if (data.lastCheckIn !== today) {
-        data.streak = 1
+        data.streak = 1;
       }
 
-      data.checkInHistory.push(today)
-      data.lastCheckIn = today
+      data.checkInHistory.push(today);
+      data.lastCheckIn = today;
 
-      await AsyncStorage.setItem("dailyCheckIn", JSON.stringify(data))
+      await AsyncStorage.setItem("dailyCheckIn", JSON.stringify(data));
 
-      setStreak(data.streak)
-      setHasCheckedInToday(true)
-      const days = generateLast7Days(data.checkInHistory)
-      setCheckInDays(days)
+      setStreak(data.streak);
+      setHasCheckedInToday(true);
+      const days = generateLast7Days(data.checkInHistory);
+      setCheckInDays(days);
 
-      setShowCelebration(true)
+      setShowCelebration(true);
       Animated.sequence([
         Animated.timing(celebrationAnim, {
           toValue: 1,
@@ -154,27 +168,32 @@ export function DailyLoginModal({ visible, onClose, onCheckIn }: DailyLoginModal
           duration: 400,
           useNativeDriver: true,
         }),
-      ]).start(() => setShowCelebration(false))
+      ]).start(() => setShowCelebration(false));
 
-      onCheckIn()
+      onCheckIn();
     } catch (error) {
-      console.error("Error saving check-in:", error)
+      console.error("Error saving check-in:", error);
     }
-  }
+  };
 
   const getDayName = (dateString: string) => {
-    const date = new Date(dateString)
-    const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"]
-    return days[date.getDay()]
-  }
+    const date = new Date(dateString);
+    const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+    return days[date.getDay()];
+  };
 
   const getDateNumber = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.getDate()
-  }
+    const date = new Date(dateString);
+    return date.getDate();
+  };
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      onRequestClose={onClose}
+    >
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
         <Animated.View
           style={[
@@ -187,10 +206,17 @@ export function DailyLoginModal({ visible, onClose, onCheckIn }: DailyLoginModal
           <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
             <View style={styles.header}>
               <Text style={styles.title}>Điểm danh hàng ngày</Text>
-              <Text style={styles.subtitle}>Duy trì thói quen tốt mỗi ngày</Text>
+              <Text style={styles.subtitle}>
+                Duy trì thói quen tốt mỗi ngày
+              </Text>
             </View>
 
-            <Animated.View style={[styles.streakContainer, { transform: [{ scale: streakPulse }] }]}>
+            <Animated.View
+              style={[
+                styles.streakContainer,
+                { transform: [{ scale: streakPulse }] },
+              ]}
+            >
               <View style={styles.streakGlow}>
                 <Text style={styles.flameIcon}>🔥</Text>
                 <View style={styles.streakInfo}>
@@ -204,20 +230,14 @@ export function DailyLoginModal({ visible, onClose, onCheckIn }: DailyLoginModal
               <Text style={styles.motivationText}>
                 {streak === 0 && "Bắt đầu chuỗi điểm danh của bạn!"}
                 {streak > 0 && streak < 7 && "Tuyệt vời! Hãy tiếp tục!"}
-                {streak >= 7 && streak < 30 && "Xuất sắc! Bạn đang làm rất tốt!"}
+                {streak >= 7 &&
+                  streak < 30 &&
+                  "Xuất sắc! Bạn đang làm rất tốt!"}
                 {streak >= 30 && "Đỉnh cao! Bạn là huyền thoại!"}
               </Text>
             </View>
 
             <View style={styles.calendarSection}>
-              <View style={styles.calendarHeader}>
-                <View style={styles.calendarHeaderLeft}>
-                  <View style={styles.calendarIconContainer}>
-                    <Text style={styles.calendarIcon}>📅</Text>
-                  </View>
-                  <Text style={styles.calendarLabel}>7 ngày gần nhất</Text>
-                </View>
-              </View>
 
               <View style={styles.calendarGrid}>
                 {checkInDays.map((day, index) => (
@@ -240,27 +260,14 @@ export function DailyLoginModal({ visible, onClose, onCheckIn }: DailyLoginModal
                           <Text style={styles.missIcon}>✗</Text>
                         </View>
                       ) : (
-                        <Text style={styles.dateNumber}>{getDateNumber(day.date)}</Text>
+                        <Text style={styles.dateNumber}>
+                          {getDateNumber(day.date)}
+                        </Text>
                       )}
                     </View>
                     <View style={styles.dayDot} />
                   </View>
                 ))}
-              </View>
-            </View>
-
-            <View style={styles.legend}>
-              <View style={styles.legendItem}>
-                <View style={styles.legendIconChecked}>
-                  <Text style={styles.legendCheckIcon}>✓</Text>
-                </View>
-                <Text style={styles.legendText}>Đã điểm danh</Text>
-              </View>
-              <View style={styles.legendItem}>
-                <View style={styles.legendIconMissed}>
-                  <Text style={styles.legendMissIcon}>✗</Text>
-                </View>
-                <Text style={styles.legendText}>Đã bỏ lỡ</Text>
               </View>
             </View>
 
@@ -273,7 +280,9 @@ export function DailyLoginModal({ visible, onClose, onCheckIn }: DailyLoginModal
                 withHaptics={true}
                 className="h-16"
               >
-                {hasCheckedInToday ? "✓ Đã điểm danh hôm nay" : "Điểm danh ngay 🎯"}
+                {hasCheckedInToday
+                  ? "✓ Đã điểm danh hôm nay"
+                  : "Điểm danh ngay 🎯"}
               </BounceButton>
             </View>
 
@@ -311,12 +320,12 @@ export function DailyLoginModal({ visible, onClose, onCheckIn }: DailyLoginModal
         </Animated.View>
       </Animated.View>
     </Modal>
-  )
+  );
 }
 
-const { width, height } = Dimensions.get("window")
-const modalWidth = Math.min(width * 0.92, 420)
-const isSmallDevice = width < 375
+const { width, height } = Dimensions.get("window");
+const modalWidth = Math.min(width * 0.92, 420);
+const isSmallDevice = width < 375;
 
 const styles = StyleSheet.create({
   overlay: {
@@ -400,6 +409,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderLeftWidth: 4,
     borderLeftColor: "#3b82f6",
+    borderRightWidth: 4,
+    borderRightColor: "#3b82f6",
   },
   motivationText: {
     fontSize: 14,
@@ -574,4 +585,4 @@ const styles = StyleSheet.create({
   celebrationText: {
     fontSize: 60,
   },
-})
+});
