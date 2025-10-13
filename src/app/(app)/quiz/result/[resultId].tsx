@@ -1,6 +1,7 @@
 import { QuizResultCard } from "@components/quiz/QuizResultCard";
 import { Button } from "@components/ui/Button";
 import { QuizResult } from "@models/quiz/quiz.common";
+import { ROUTES } from "@routes/routes";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -61,21 +62,44 @@ export default function QuizResultScreen() {
     loadQuizResult();
   }, [resultId, loadQuizResult]);
 
-  const handleRetakeQuiz = () => {
-    // Navigate to create new quiz
-    router.replace("/quiz/create");
+  const handleRetakeQuiz = async () => {
+    try {
+      // Create a new quiz session with same parameters and navigate directly
+      const { quizService } = await import('@services/quiz');
+      const response = await quizService.createQuizSession({
+        category: result?.category,
+        level: result?.level as 'N5' | 'N4' | 'N3',
+        difficulty: 'beginner', // Default difficulty
+        questionCount: result?.totalQuestions
+      });
+
+      if (response.statusCode === 201 && response.data?.session) {
+        router.replace({
+          pathname: ROUTES.QUIZ.SESSION,
+          params: { sessionId: response.data.session.id }
+        });
+      }
+    } catch (error) {
+      console.error('Error creating retake quiz:', error);
+    }
   };
 
-  const handleViewDetails = () => {
-    // Navigate to detailed results view
-    Alert.alert(
-      "Thông báo",
-      "Tính năng xem chi tiết sẽ được phát triển trong phiên bản tiếp theo."
-    );
+  const handleTryDifferentQuiz = async () => {
+    try {
+      // Navigate to quiz demo to choose different quiz
+      router.push("/(app)/(tabs)/quiz-demo");
+    } catch (error) {
+      console.error('Error navigating to quiz demo:', error);
+    }
   };
 
-  const handleContinue = () => {
-    // Navigate back to lessons or home
+  const handleViewHistory = () => {
+    // Navigate to quiz history
+    router.push(ROUTES.QUIZ.HISTORY);
+  };
+
+  const handleGoHome = () => {
+    // Navigate back to home
     router.replace("/(app)/(tabs)/home");
   };
 
@@ -114,8 +138,9 @@ export default function QuizResultScreen() {
         <QuizResultCard
           result={result}
           onRetakeQuiz={handleRetakeQuiz}
-          onViewDetails={handleViewDetails}
-          onContinue={handleContinue}
+          onTryDifferentQuiz={handleTryDifferentQuiz}
+          onViewHistory={handleViewHistory}
+          onGoHome={handleGoHome}
           style={styles.resultCard}
         />
       </ScrollView>

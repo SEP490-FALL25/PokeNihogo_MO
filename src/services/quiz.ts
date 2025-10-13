@@ -81,6 +81,42 @@ export const quizService = {
     }
   },
 
+  // Get quiz session by ID
+  getQuizSession: async (sessionId: string): Promise<{ statusCode: number; data?: { session: QuizSession }; message?: string }> => {
+    try {
+      if (USE_MOCK_DATA) {
+        // In mock mode, we'll create a session with the same ID
+        // In a real app, this would fetch from the backend
+        const mockSession: QuizSession = {
+          id: sessionId,
+          userId: "current-user",
+          category: "vocabulary",
+          level: "N5",
+          questions: mockQuizData.questions.slice(0, 5) as QuizQuestion[],
+          currentQuestionIndex: 0,
+          answers: [],
+          startTime: new Date().toISOString(),
+          isCompleted: false,
+          totalPoints: 50,
+          score: 0,
+        };
+
+        return {
+          statusCode: 200,
+          data: { session: mockSession },
+          message: "Quiz session retrieved successfully",
+        };
+      }
+
+      // Real API implementation
+      const response = await axiosPrivate.get(`/api/v1/quiz/session/${sessionId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error getting quiz session:", error);
+      throw error;
+    }
+  },
+
   // Get quiz questions for a session
   getQuizQuestions: async (sessionId: string): Promise<IGetQuizQuestionsResponse> => {
     try {
@@ -220,6 +256,8 @@ export const quizService = {
         const result: QuizResult = {
           sessionId: params.sessionId,
           userId: "current-user",
+          category: "vocabulary", // Default category for mock
+          level: "N5", // Default level for mock
           totalQuestions,
           correctAnswers,
           score,

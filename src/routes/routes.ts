@@ -27,7 +27,6 @@ enum STARTER {
 }
 
 enum QUIZ {
-  CREATE = "/(app)/quiz/create",
   SESSION = "/(app)/quiz/[sessionId]",
   RESULT = "/(app)/quiz/result/[resultId]",
   HISTORY = "/(app)/quiz/history",
