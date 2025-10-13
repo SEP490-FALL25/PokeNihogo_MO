@@ -1,0 +1,339 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "lessonId": "n5-vocab-01",
+      "category": "vocabulary",
+      "type": "single-choice",
+      "difficulty": "beginner",
+      "level": "N5",
+      "question": "Chọn từ vựng tiếng Nhật đúng cho số \"1\"",
+      "options": [
+        {
+          "id": "opt1",
+          "text": "一 (いち)",
+          "isCorrect": true
+        },
+        {
+          "id": "opt2",
+          "text": "二 (に)",
+          "isCorrect": false
+        },
+        {
+          "id": "opt3",
+          "text": "三 (さん)",
+          "isCorrect": false
+        },
+        {
+          "id": "opt4",
+          "text": "四 (し)",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswers": ["opt1"],
+      "explanation": "一 (いち) là cách đọc số 1 trong tiếng Nhật.",
+      "tags": ["numbers", "vocabulary"],
+      "estimatedTime": 30,
+      "points": 10
+    },
+    {
+      "id": "q2",
+      "lessonId": "n5-vocab-02",
+      "category": "vocabulary",
+      "type": "single-choice",
+      "difficulty": "beginner",
+      "level": "N5",
+      "question": "Từ nào có nghĩa là \"đỏ\" trong tiếng Nhật?",
+      "options": [
+        {
+          "id": "opt1",
+          "text": "青 (あお) - xanh dương",
+          "isCorrect": false
+        },
+        {
+          "id": "opt2",
+          "text": "赤 (あか) - đỏ",
+          "isCorrect": true
+        },
+        {
+          "id": "opt3",
+          "text": "緑 (みどり) - xanh lá",
+          "isCorrect": false
+        },
+        {
+          "id": "opt4",
+          "text": "白 (しろ) - trắng",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswers": ["opt2"],
+      "explanation": "赤 (あか) là từ vựng tiếng Nhật có nghĩa là màu đỏ.",
+      "tags": ["colors", "vocabulary"],
+      "estimatedTime": 30,
+      "points": 10
+    },
+    {
+      "id": "q3",
+      "lessonId": "n5-vocab-03",
+      "category": "vocabulary",
+      "type": "multiple-choice",
+      "difficulty": "beginner",
+      "level": "N5",
+      "question": "Chọn tất cả các từ vựng về thành viên gia đình:",
+      "options": [
+        {
+          "id": "opt1",
+          "text": "お父さん (おとうさん) - bố",
+          "isCorrect": true
+        },
+        {
+          "id": "opt2",
+          "text": "お母さん (おかあさん) - mẹ",
+          "isCorrect": true
+        },
+        {
+          "id": "opt3",
+          "text": "車 (くるま) - xe ô tô",
+          "isCorrect": false
+        },
+        {
+          "id": "opt4",
+          "text": "兄弟 (きょうだい) - anh chị em",
+          "isCorrect": true
+        }
+      ],
+      "correctAnswers": ["opt1", "opt2", "opt4"],
+      "explanation": "お父さん, お母さん, và 兄弟 đều là từ vựng về gia đình.",
+      "tags": ["family", "vocabulary"],
+      "estimatedTime": 45,
+      "points": 15
+    },
+    {
+      "id": "q4",
+      "lessonId": "n5-grammar-01",
+      "category": "grammar",
+      "type": "single-choice",
+      "difficulty": "beginner",
+      "level": "N5",
+      "question": "Chọn trợ từ đúng để đánh dấu chủ đề trong câu: \"私は学生です\" (Tôi là học sinh)",
+      "options": [
+        {
+          "id": "opt1",
+          "text": "を",
+          "isCorrect": false
+        },
+        {
+          "id": "opt2",
+          "text": "が",
+          "isCorrect": false
+        },
+        {
+          "id": "opt3",
+          "text": "は",
+          "isCorrect": true
+        },
+        {
+          "id": "opt4",
+          "text": "に",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswers": ["opt3"],
+      "explanation": "Trợ từ は (wa) được dùng để đánh dấu chủ đề của câu.",
+      "tags": ["particles", "grammar"],
+      "estimatedTime": 40,
+      "points": 12
+    },
+    {
+      "id": "q5",
+      "category": "listening",
+      "type": "audio",
+      "difficulty": "beginner",
+      "level": "N5",
+      "question": "Nghe audio và chọn nghĩa đúng:",
+      "audioUrl": "https://res.cloudinary.com/dwewjjysv/video/upload/v1757170836/ngon-qua-ha-linda_oufiwi.mp3",
+      "options": [
+        {
+          "id": "opt1",
+          "text": "Xin chào",
+          "isCorrect": false
+        },
+        {
+          "id": "opt2",
+          "text": "Cảm ơn",
+          "isCorrect": false
+        },
+        {
+          "id": "opt3",
+          "text": "Ngon quá",
+          "isCorrect": true
+        },
+        {
+          "id": "opt4",
+          "text": "Tạm biệt",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswers": ["opt3"],
+      "explanation": "Audio phát âm \"ngon quá\" trong tiếng Việt.",
+      "tags": ["listening", "audio"],
+      "estimatedTime": 60,
+      "points": 15
+    },
+    {
+      "id": "q6",
+      "lessonId": "n5-kanji-01",
+      "category": "kanji",
+      "type": "multiple-choice",
+      "difficulty": "beginner",
+      "level": "N5",
+      "question": "Chọn tất cả các Kanji đúng cho số đếm:",
+      "options": [
+        {
+          "id": "opt1",
+          "text": "一 (1)",
+          "isCorrect": true
+        },
+        {
+          "id": "opt2",
+          "text": "二 (2)",
+          "isCorrect": true
+        },
+        {
+          "id": "opt3",
+          "text": "山 (núi)",
+          "isCorrect": false
+        },
+        {
+          "id": "opt4",
+          "text": "三 (3)",
+          "isCorrect": true
+        }
+      ],
+      "correctAnswers": ["opt1", "opt2", "opt4"],
+      "explanation": "一, 二, 三 là các Kanji số đếm từ 1-3.",
+      "tags": ["kanji", "numbers"],
+      "estimatedTime": 45,
+      "points": 18
+    },
+    {
+      "id": "q7",
+      "category": "vocabulary",
+      "type": "text-input",
+      "difficulty": "intermediate",
+      "level": "N4",
+      "question": "Viết từ vựng tiếng Nhật có nghĩa là \"công việc\" (romaji):",
+      "correctAnswers": ["shigoto", "しごと"],
+      "explanation": "仕事 (しごと) có nghĩa là công việc trong tiếng Nhật.",
+      "tags": ["job", "vocabulary"],
+      "estimatedTime": 60,
+      "points": 20
+    },
+    {
+      "id": "q8",
+      "lessonId": "n5-grammar-02",
+      "category": "grammar",
+      "type": "single-choice",
+      "difficulty": "beginner",
+      "level": "N5",
+      "question": "Chọn dạng đúng của động từ \"です\" trong câu khẳng định:",
+      "options": [
+        {
+          "id": "opt1",
+          "text": "学生です (Tôi là học sinh)",
+          "isCorrect": true
+        },
+        {
+          "id": "opt2",
+          "text": "学生だ (Tôi là học sinh - thân mật)",
+          "isCorrect": false
+        },
+        {
+          "id": "opt3",
+          "text": "学生である (Tôi là học sinh - văn viết)",
+          "isCorrect": false
+        },
+        {
+          "id": "opt4",
+          "text": "学生じゃない (Tôi không phải học sinh)",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswers": ["opt1"],
+      "explanation": "です là dạng lịch sự của động từ \"là\" trong tiếng Nhật.",
+      "tags": ["grammar", "politeness"],
+      "estimatedTime": 35,
+      "points": 12
+    },
+    {
+      "id": "q9",
+      "category": "reading",
+      "type": "single-choice",
+      "difficulty": "intermediate",
+      "level": "N4",
+      "question": "Đọc đoạn văn và chọn câu trả lời đúng:\n\n「田中さんは会社員です。毎日電車で会社に行きます。」",
+      "options": [
+        {
+          "id": "opt1",
+          "text": "Tanaka là học sinh",
+          "isCorrect": false
+        },
+        {
+          "id": "opt2",
+          "text": "Tanaka là nhân viên công ty",
+          "isCorrect": true
+        },
+        {
+          "id": "opt3",
+          "text": "Tanaka đi làm bằng xe đạp",
+          "isCorrect": false
+        },
+        {
+          "id": "opt4",
+          "text": "Tanaka không đi làm",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswers": ["opt2"],
+      "explanation": "会社員 (かいしゃいん) có nghĩa là nhân viên công ty.",
+      "tags": ["reading", "comprehension"],
+      "estimatedTime": 90,
+      "points": 25
+    },
+    {
+      "id": "q10",
+      "category": "vocabulary",
+      "type": "multiple-choice",
+      "difficulty": "advanced",
+      "level": "N3",
+      "question": "Chọn tất cả các từ vựng về cảm xúc:",
+      "options": [
+        {
+          "id": "opt1",
+          "text": "嬉しい (うれしい) - vui",
+          "isCorrect": true
+        },
+        {
+          "id": "opt2",
+          "text": "悲しい (かなしい) - buồn",
+          "isCorrect": true
+        },
+        {
+          "id": "opt3",
+          "text": "怒る (おこる) - tức giận",
+          "isCorrect": true
+        },
+        {
+          "id": "opt4",
+          "text": "食べる (たべる) - ăn",
+          "isCorrect": false
+        }
+      ],
+      "correctAnswers": ["opt1", "opt2", "opt3"],
+      "explanation": "嬉しい, 悲しい, 怒る đều là từ vựng về cảm xúc.",
+      "tags": ["emotions", "vocabulary"],
+      "estimatedTime": 50,
+      "points": 20
+    }
+  ]
+}

@@ -35,6 +35,13 @@ const TAB_CONFIG: Tab[] = [
   //   color: "#10b981",
   // },
   {
+    name: "demo quiz",
+    icon: "game-controller",
+    label: "Demo Quiz",
+    route: "/quiz-demo",
+    color: "#ef4444",
+  },
+  {
     name: "lessons",
     icon: "library",
     label: "Lessons",
