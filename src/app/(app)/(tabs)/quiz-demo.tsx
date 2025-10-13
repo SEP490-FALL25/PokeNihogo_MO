@@ -4,12 +4,12 @@ import { ROUTES } from '@routes/routes';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 
 export default function QuizDemoScreen() {
@@ -18,16 +18,21 @@ export default function QuizDemoScreen() {
   const handleStartQuiz = async (category: string, level: string, difficulty: string) => {
     try {
       setIsCreating(true);
-      // Navigate to quiz create screen with pre-filled parameters
-      router.push({
-        pathname: ROUTES.QUIZ.CREATE,
-        params: { 
-          category, 
-          level, 
-          difficulty,
-          questionCount: '5' // Demo with 5 questions
-        }
+      // Create quiz session directly and navigate to quiz
+      const { quizService } = await import('@services/quiz');
+      const response = await quizService.createQuizSession({
+        category,
+        level: level as 'N5' | 'N4' | 'N3',
+        difficulty: difficulty as 'beginner' | 'intermediate' | 'advanced',
+        questionCount: 5 // Demo with 5 questions
       });
+
+      if (response.statusCode === 201 && response.data?.session) {
+        router.push({
+          pathname: ROUTES.QUIZ.SESSION,
+          params: { sessionId: response.data.session.id }
+        });
+      }
     } catch (error) {
       console.error('Error starting quiz:', error);
     } finally {
@@ -141,10 +146,10 @@ export default function QuizDemoScreen() {
           <View style={styles.quickActionsGrid}>
             <Button
               variant="outline"
-              onPress={() => router.push(ROUTES.QUIZ.CREATE)}
+              onPress={() => handleStartQuiz('mixed', 'N5', 'beginner')}
               style={styles.quickActionButton}
             >
-              Tạo Quiz tùy chỉnh
+              Quiz Nhanh
             </Button>
             
             <Button

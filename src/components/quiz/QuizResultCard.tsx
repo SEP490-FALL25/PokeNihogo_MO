@@ -9,16 +9,18 @@ import { PokemonRewardModal } from "./PokemonRewardModal";
 interface QuizResultCardProps {
   result: QuizResult;
   onRetakeQuiz?: () => void;
-  onViewDetails?: () => void;
-  onContinue?: () => void;
+  onTryDifferentQuiz?: () => void;
+  onViewHistory?: () => void;
+  onGoHome?: () => void;
   style?: ViewStyle;
 }
 
 export const QuizResultCard: React.FC<QuizResultCardProps> = ({
   result,
   onRetakeQuiz,
-  onViewDetails,
-  onContinue,
+  onTryDifferentQuiz,
+  onViewHistory,
+  onGoHome,
   style,
 }) => {
   const [showPokemonModal, setShowPokemonModal] = useState(false);
@@ -183,25 +185,41 @@ export const QuizResultCard: React.FC<QuizResultCardProps> = ({
             <View style={styles.actionButtons}>
               {onRetakeQuiz && (
                 <Button
-                  variant="outline"
                   onPress={onRetakeQuiz}
-                  style={styles.actionButton}
+                  style={styles.primaryActionButton}
                 >
-                  Làm lại
+                  Làm lại Quiz
                 </Button>
               )}
-              {onViewDetails && (
-                <Button
-                  variant="secondary"
-                  onPress={onViewDetails}
-                  style={styles.actionButton}
+              
+              <View style={styles.secondaryButtons}>
+                {onTryDifferentQuiz && (
+                  <Button
+                    variant="outline"
+                    onPress={onTryDifferentQuiz}
+                    style={styles.secondaryButton}
+                  >
+                    Quiz khác
+                  </Button>
+                )}
+                {onViewHistory && (
+                  <Button
+                    variant="outline"
+                    onPress={onViewHistory}
+                    style={styles.secondaryButton}
+                  >
+                    Lịch sử
+                  </Button>
+                )}
+              </View>
+              
+              {onGoHome && (
+                <Button 
+                  variant="ghost" 
+                  onPress={onGoHome} 
+                  style={styles.homeButton}
                 >
-                  Xem chi tiết
-                </Button>
-              )}
-              {onContinue && (
-                <Button onPress={onContinue} style={styles.actionButton}>
-                  Tiếp tục
+                  Về trang chủ
                 </Button>
               )}
             </View>
@@ -493,15 +511,25 @@ const styles = {
     color: "#111827",
   },
   actionButtons: {
-    flexDirection: "row" as const,
-    gap: 12,
-    justifyContent: "center" as const,
+    gap: 16,
     paddingHorizontal: 16,
     paddingTop: 16,
     marginBottom: 32,
   },
-  actionButton: {
+  primaryActionButton: {
+    height: 48,
+  },
+  secondaryButtons: {
+    flexDirection: "row" as const,
+    gap: 12,
+  },
+  secondaryButton: {
     flex: 1,
+    height: 44,
+  },
+  homeButton: {
+    alignSelf: "center" as const,
+    marginTop: 8,
   },
   viewPokemonButton: {
     marginTop: 12,
