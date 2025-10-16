@@ -179,7 +179,7 @@ export default function ProfileScreen() {
     sortOrder: 'asc' as 'asc' | 'desc',
   });
   //------------------------End------------------------//
-  console.log(pokemonsData);
+
   return (
     <SafeAreaView className="flex-1 bg-slate-100">
       <StatusBar barStyle="light-content" />

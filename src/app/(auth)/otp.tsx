@@ -71,7 +71,6 @@ export default function OTPScreen() {
         if (timer > 0) return;
         try {
             const res = await authService.resendOtp(email);
-            console.log(res);
 
             if (res.data.statusCode === 201) {
                 toast({ description: res.data.data.message });
