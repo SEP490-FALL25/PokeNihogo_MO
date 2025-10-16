@@ -27,5 +27,5 @@ export const BackendResponsePaginationModel = <T extends z.ZodTypeAny>(dataModel
         data: z.object({
             results: z.array(dataModel),
             pagination: PaginationSchema,
-        }).partial(),
+        }),
     });

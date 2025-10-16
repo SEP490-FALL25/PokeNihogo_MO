@@ -1,34 +1,45 @@
 import BackScreen from '@components/molecules/Back';
 import PokemonGridItem from '@components/Organism/PokemonGridItem';
-import { useListUserPokemons } from '@hooks/useUserPokemon';
+import { Skeleton } from '@components/ui/Skeleton';
+import { useGetUserPokemonStats, useListUserPokemons } from '@hooks/useUserPokemon';
 import { IUserPokemonResponse } from '@models/user-pokemon/user-pokemon.response';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Search, Trophy } from 'lucide-react-native';
-import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+const { width } = Dimensions.get('window');
+const CARD_SIZE = (width - 48) / 3;
+
 export default function PokemonCollectionScreen() {
+    /**
+     * Handle use Hook useListUserPokemons
+     */
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const params = useMemo(() => ({
+    const [debouncedQuery, setDebouncedQuery] = useState<string>('');
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedQuery(searchQuery.trim());
+        }, 350);
+        return () => clearTimeout(handler);
+    }, [searchQuery]);
+
+    const { data, isLoading, isError } = useListUserPokemons({
         currentPage: 1,
         pageSize: 15,
         sortBy: 'id',
         sortOrder: 'asc' as 'asc' | 'desc',
-        search: searchQuery || undefined,
-    }), [searchQuery]);
+        search: debouncedQuery || undefined,
+    });
+    //------------------------End------------------------//
 
-    const { data, isLoading, isError } = useListUserPokemons(params);
 
-    // Calculate collection stats
-    const collectionStats = useMemo(() => {
-        const totalCaught = data?.results?.length || 0;
-        const totalPokemon = data?.pagination?.totalItem || 0;
-        const percentage = totalPokemon > 0 ? Math.round((totalCaught / totalPokemon) * 100) : 0;
-        return { totalCaught, totalPokemon, percentage };
-    }, [data]);
+    const { data: collectionStats, isLoading: isLoadingCollectionStats, isError: isErrorCollectionStats } = useGetUserPokemonStats();
+
 
     return (
         <SafeAreaView className="flex-1 bg-slate-100">
@@ -50,40 +61,56 @@ export default function PokemonCollectionScreen() {
                     <View className="absolute w-30 h-30 rounded-full bg-white/10" />
                     <View className="absolute w-20 h-20 rounded-full bg-white/8" />
 
-                    <View className="flex-row items-center mb-4">
-                        <View className="w-14 h-14 rounded-2xl bg-white/25 items-center justify-center mr-3.5">
-                            <Trophy size={28} color="white" strokeWidth={2.5} />
-                        </View>
+                    {!isLoadingCollectionStats && !isErrorCollectionStats ? (
+                        <>
+                            <View className="flex-row items-center mb-4">
+                                <View className="w-14 h-14 rounded-2xl bg-white/25 items-center justify-center mr-3.5">
+                                    <Trophy size={28} color="white" strokeWidth={2.5} />
+                                </View>
 
-                        <View className="flex-1">
-                            <Text className="text-lg font-extrabold text-white mb-1 tracking-tight">Bộ sưu tập của bạn</Text>
-                            <Text className="text-sm font-semibold text-white/90 tracking-wide">
-                                {collectionStats.totalCaught} / {collectionStats.totalPokemon} Pokémon
-                            </Text>
-                        </View>
+                                <View className="flex-1">
+                                    <Text className="text-lg font-extrabold text-white mb-1 tracking-tight">Bộ sưu tập của bạn</Text>
+                                    <Text className="text-sm font-semibold text-white/90 tracking-wide">
+                                        {collectionStats?.userPokemonsCount} / {collectionStats?.totalPokemons} Pokémon
+                                    </Text>
+                                </View>
 
-                        <View className="bg-white/25 px-4 py-2 rounded-2xl">
-                            <Text className="text-xl font-extrabold text-white tracking-tight">
-                                {collectionStats.percentage}%
-                            </Text>
-                        </View>
-                    </View>
+                                <View className="bg-white/25 px-4 py-2 rounded-2xl">
+                                    <Text className="text-xl font-extrabold text-white tracking-tight">
+                                        {collectionStats?.ownershipPercentage}%
+                                    </Text>
+                                </View>
+                            </View>
 
-                    {/* Progress bar */}
-                    <View className="mt-1">
-                        <View className="h-2 bg-white/25 rounded-sm overflow-hidden">
-                            <LinearGradient
-                                colors={['#10b981', '#059669']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                style={[
-                                    styles.progressBarFill,
-                                    { width: `${collectionStats.percentage}%` }
-                                ]}
-                                className="h-full rounded-sm"
-                            />
-                        </View>
-                    </View>
+                            {/* Progress bar */}
+                            <View className="mt-1">
+                                <View className="h-2 bg-white/25 rounded-sm overflow-hidden">
+                                    <LinearGradient
+                                        colors={['#10b981', '#059669']}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 0 }}
+                                        style={[
+                                            styles.progressBarFill,
+                                            { width: `${collectionStats?.ownershipPercentage ?? 0}%` }
+                                        ]}
+                                        className="h-full rounded-sm"
+                                    />
+                                </View>
+                            </View>
+                        </>
+                    ) : isLoadingCollectionStats || isErrorCollectionStats ? (
+                        <>
+                            <View className="flex-row items-center mb-4">
+                                <Skeleton style={{ width: 56, height: 56, borderRadius: 16, marginRight: 14 }} />
+                                <View className="flex-1">
+                                    <Skeleton className="h-5 w-3/4 mb-2 rounded" />
+                                    <Skeleton className="h-4 w-1/2 rounded" />
+                                </View>
+                                <Skeleton style={{ width: 64, height: 28, borderRadius: 14 }} />
+                            </View>
+                            <Skeleton className="h-2 w-full rounded" />
+                        </>
+                    ) : null}
                 </LinearGradient>
             </View>
 
@@ -117,24 +144,35 @@ export default function PokemonCollectionScreen() {
                 </View>
 
                 {/* Results count */}
-                {searchQuery.length > 0 && (
+                {debouncedQuery.length > 0 && (
                     <Text className="text-sm font-bold text-slate-500 mb-3 ml-1 tracking-wide">
-                        Tìm thấy {data?.results?.length} kết quả
+                        Tìm thấy {data?.data?.results?.length} kết quả
                     </Text>
                 )}
 
                 {/* Pokemon grid */}
                 {isLoading ? (
-                    <View className="flex-1 items-center justify-center">
-                        <ActivityIndicator size="large" color="#6FAFB2" />
-                    </View>
+                    <FlatList
+                        data={Array.from({ length: 9 }, (_, i) => i)}
+                        numColumns={3}
+                        keyExtractor={(item) => `skeleton-${item}`}
+                        renderItem={() => (
+                            <Skeleton
+                                style={{ width: CARD_SIZE, height: CARD_SIZE, borderRadius: 20 }}
+                                className="mb-3"
+                            />
+                        )}
+                        showsVerticalScrollIndicator={false}
+                        columnWrapperStyle={styles.gridRow}
+                        className="pb-6"
+                    />
                 ) : isError ? (
                     <View className="flex-1 items-center justify-center">
                         <Text className="text-slate-500 font-semibold">Không thể tải dữ liệu Pokémon</Text>
                     </View>
                 ) : (
                     <FlatList
-                        data={data?.results || []}
+                        data={data?.data?.results || []}
                         numColumns={3}
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={({ item }: { item: IUserPokemonResponse }) => <PokemonGridItem item={item} />}

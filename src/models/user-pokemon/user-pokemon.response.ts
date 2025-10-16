@@ -41,11 +41,21 @@ export const UserPokemonResponseSchema = z.object({
     userPokemon: z.boolean(),
 });
 
-export const UserPokemonResponsePaginationSchema = BackendResponsePaginationModel(UserPokemonResponseSchema).extend({
+export const UserPokemonResponsePaginationSchema = BackendResponsePaginationModel(UserPokemonResponseSchema);
+export type IUserPokemonResponse = z.infer<typeof UserPokemonResponseSchema>;
+export type IUserPokemonResponsePagination = z.infer<typeof UserPokemonResponsePaginationSchema>;
+//------------------------End------------------------//
+
+
+/**
+ * User Pokemon stats response schema
+ */
+export const UserPokemonStatsDataSchema = z.object({
     ownershipPercentage: z.number(),
     userPokemonsCount: z.number(),
     totalPokemons: z.number(),
 });
-export type IUserPokemonResponse = z.infer<typeof UserPokemonResponseSchema>;
-export type IUserPokemonResponsePagination = z.infer<typeof UserPokemonResponsePaginationSchema>;
+export const UserPokemonStatsResponseSchema = BackendResponseModel(UserPokemonStatsDataSchema);
+export type IUserPokemonStatsData = z.infer<typeof UserPokemonStatsDataSchema>;
+export type IUserPokemonStatsResponse = z.infer<typeof UserPokemonStatsResponseSchema>;
 //------------------------End------------------------//

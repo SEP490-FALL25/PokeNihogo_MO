@@ -44,6 +44,9 @@ const userPokemonService = {
   getOwnedPokemons: async () => {
     return axiosPrivate.get(`/user-pokemon`);
   },
+  getUserPokemonStats: async () => {
+    return axiosPrivate.get(`/user-pokemon/user/pokemons/stats`);
+  },
 };
 
 export default userPokemonService;
