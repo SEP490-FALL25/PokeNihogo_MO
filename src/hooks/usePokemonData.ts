@@ -64,10 +64,16 @@ export const usePokemonData = (params: any, starterId: string) => {
 export default usePokemonData;
 
 
+/**
+ * List of pokemons
+ * @param params 
+ * @returns 
+ */
 export const useListPokemons = (params: IQueryRequest) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['pokemons', params],
     queryFn: () => pokemonService.getAll(params),
   });
-  return { data, isLoading, isError };
+  return { data: data?.data, isLoading, isError };
 };
+//------------------------End------------------------//Userpro

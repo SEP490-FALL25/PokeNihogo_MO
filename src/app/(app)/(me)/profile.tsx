@@ -1,5 +1,7 @@
 import BackScreen from '@components/molecules/Back';
 import useAuth from '@hooks/useAuth';
+import { useListPokemons } from '@hooks/usePokemonData';
+import { IPokemon } from '@models/pokemon/pokemon.common';
 import { ROUTES } from '@routes/routes';
 import { formatDateToMMYYYY } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -169,6 +171,15 @@ const AchievementBadge: React.FC<AchievementBadgeProps> = ({ name, icon, colors 
 export default function ProfileScreen() {
   const { user } = useAuth();
   const userProfile = user?.data;
+
+  const { data: pokemonsData, isLoading: isLoadingPokemons, isError: isErrorPokemons } = useListPokemons({
+    pageSize: 3,
+    currentPage: 1,
+    sortBy: 'id',
+    sortOrder: 'asc' as 'asc' | 'desc',
+  });
+  //------------------------End------------------------//
+  console.log(pokemonsData);
   return (
     <SafeAreaView className="flex-1 bg-slate-100">
       <StatusBar barStyle="light-content" />
@@ -326,21 +337,23 @@ export default function ProfileScreen() {
 
               {/* Pokemon Preview */}
               <View className="flex-row justify-center gap-2.5 pt-5 border-t border-slate-100">
-                {mockUserData?.collectionPreview?.map((p, i) => (
-                  <LinearGradient
-                    key={i}
+                {pokemonsData?.data?.results?.map((p: IPokemon) => {
+                  console.log(p);
+                  return (<LinearGradient
+                    key={p?.id}
                     colors={['#f8fafc', '#f1f5f9']}
                     style={styles.pokemonCard}
                     className="w-21 h-21 rounded-2xl items-center justify-center shadow-sm"
                   >
                     <Image
                       source={{
-                        uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${p.id}.png`,
+                        uri: p?.imageUrl,
                       }}
                       className="w-17 h-17"
                     />
-                  </LinearGradient>
-                ))}
+                  </LinearGradient>)
+
+                })}
               </View>
             </LinearGradient>
           </TouchableOpacity>

@@ -1,13 +1,13 @@
 import BackScreen from '@components/molecules/Back';
 import PokemonGridItem from '@components/Organism/PokemonGridItem';
 import { Skeleton } from '@components/ui/Skeleton';
-import { useGetUserPokemonStats, useListUserPokemons } from '@hooks/useUserPokemon';
+import { useGetUserPokemonStats, useInfiniteUserPokemons } from '@hooks/useUserPokemon';
 import { IUserPokemonResponse } from '@models/user-pokemon/user-pokemon.response';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Search, Trophy } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -28,8 +28,7 @@ export default function PokemonCollectionScreen() {
         return () => clearTimeout(handler);
     }, [searchQuery]);
 
-    const { data, isLoading, isError } = useListUserPokemons({
-        currentPage: 1,
+    const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useInfiniteUserPokemons({
         pageSize: 15,
         sortBy: 'id',
         sortOrder: 'asc' as 'asc' | 'desc',
@@ -146,7 +145,7 @@ export default function PokemonCollectionScreen() {
                 {/* Results count */}
                 {debouncedQuery.length > 0 && (
                     <Text className="text-sm font-bold text-slate-500 mb-3 ml-1 tracking-wide">
-                        Tìm thấy {data?.data?.results?.length} kết quả
+                        Tìm thấy {data?.pages?.[0]?.data?.data?.pagination?.totalItem ?? 0} kết quả
                     </Text>
                 )}
 
@@ -172,13 +171,28 @@ export default function PokemonCollectionScreen() {
                     </View>
                 ) : (
                     <FlatList
-                        data={data?.data?.results || []}
+                        data={(data?.pages ?? []).flatMap((p: any) => p?.data?.data?.results ?? [])}
                         numColumns={3}
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={({ item }: { item: IUserPokemonResponse }) => <PokemonGridItem item={item} />}
                         showsVerticalScrollIndicator={false}
                         columnWrapperStyle={styles.gridRow}
                         className="pb-6"
+                        onEndReachedThreshold={0.4}
+                        onEndReached={() => {
+                            if (hasNextPage && !isFetchingNextPage) {
+                                fetchNextPage();
+                            }
+                        }}
+                        refreshing={isLoading}
+                        onRefresh={() => refetch()}
+                        ListFooterComponent={
+                            isFetchingNextPage ? (
+                                <View className="py-3">
+                                    <ActivityIndicator size="large" color="#929898" />
+                                </View>
+                            ) : null
+                        }
                     />
                 )}
             </View>
