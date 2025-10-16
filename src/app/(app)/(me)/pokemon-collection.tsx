@@ -1,59 +1,34 @@
 import BackScreen from '@components/molecules/Back';
 import PokemonGridItem from '@components/Organism/PokemonGridItem';
-import { useListPokemons } from '@hooks/usePokemonData';
+import { useListUserPokemons } from '@hooks/useUserPokemon';
+import { IUserPokemonResponse } from '@models/user-pokemon/user-pokemon.response';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Search, Trophy } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Dimensions, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width } = Dimensions.get('window');
-const CARD_SIZE = (width - 48) / 3; // 3 columns with padding
-
-const userCaughtPokemonIds = new Set([1, 4, 5, 7, 10, 13, 16, 25, 39, 52, 92, 93, 133, 147, 148]);
-
-interface Pokemon {
-    id: number;
-    name: string;
-    caught: boolean;
-}
-
 export default function PokemonCollectionScreen() {
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState<string>('');
     const params = useMemo(() => ({
         currentPage: 1,
-        pageSize: 200,
-        sort: 'id',
+        pageSize: 15,
+        sortBy: 'id',
+        sortOrder: 'asc' as 'asc' | 'desc',
         search: searchQuery || undefined,
     }), [searchQuery]);
 
-    const { data, isLoading, isError } = useListPokemons(params);
-
-    console.log('data', data);
-    const apiResults: any[] = data?.data?.data?.results || [];
-    const fullPokedexData: Pokemon[] = useMemo(() => {
-        return apiResults.map((p: any) => ({
-            id: p.pokedex_number ?? p.id,
-            name: p?.nameTranslations?.en || p?.nameJp || '',
-            caught: userCaughtPokemonIds.has(p.pokedex_number ?? p.id),
-        }));
-    }, [apiResults]);
+    const { data, isLoading, isError } = useListUserPokemons(params);
 
     // Calculate collection stats
     const collectionStats = useMemo(() => {
-        const totalCaught = fullPokedexData.filter(p => p.caught).length;
-        const totalPokemon = fullPokedexData.length;
-        const percentage = Math.round((totalCaught / totalPokemon) * 100);
+        const totalCaught = data?.results?.length || 0;
+        const totalPokemon = data?.pagination?.totalItem || 0;
+        const percentage = totalPokemon > 0 ? Math.round((totalCaught / totalPokemon) * 100) : 0;
         return { totalCaught, totalPokemon, percentage };
-    }, []);
-
-    // Filter pokemon list based on search query
-    const filteredCollection = useMemo(() => {
-        // Server already filters by search; keep simple client mirror
-        return fullPokedexData;
-    }, [fullPokedexData]);
+    }, [data]);
 
     return (
         <SafeAreaView className="flex-1 bg-slate-100">
@@ -144,7 +119,7 @@ export default function PokemonCollectionScreen() {
                 {/* Results count */}
                 {searchQuery.length > 0 && (
                     <Text className="text-sm font-bold text-slate-500 mb-3 ml-1 tracking-wide">
-                        Tìm thấy {filteredCollection.length} kết quả
+                        Tìm thấy {data?.results?.length} kết quả
                     </Text>
                 )}
 
@@ -159,10 +134,10 @@ export default function PokemonCollectionScreen() {
                     </View>
                 ) : (
                     <FlatList
-                        data={filteredCollection}
+                        data={data?.results || []}
                         numColumns={3}
                         keyExtractor={(item) => item.id.toString()}
-                        renderItem={({ item }) => <PokemonGridItem item={item} />}
+                        renderItem={({ item }: { item: IUserPokemonResponse }) => <PokemonGridItem item={item} />}
                         showsVerticalScrollIndicator={false}
                         columnWrapperStyle={styles.gridRow}
                         className="pb-6"

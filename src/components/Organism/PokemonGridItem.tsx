@@ -1,3 +1,4 @@
+import { IUserPokemonResponse } from "@models/user-pokemon/user-pokemon.response";
 import { ROUTES } from "@routes/routes";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -7,26 +8,15 @@ import { ActivityIndicator, Dimensions, Image, Pressable, StyleSheet, Text, View
 const { width } = Dimensions.get('window');
 const CARD_SIZE = (width - 48) / 3;
 
-interface Pokemon {
-    id: number;
-    name: string;
-    caught: boolean;
-}
 
-interface PokemonGridItemProps {
-    item: Pokemon;
-}
-
-
-const PokemonGridItem = memo<PokemonGridItemProps>(({ item }) => {
+const PokemonGridItem = memo<{ item: IUserPokemonResponse }>(({ item }) => {
     const [isLoading, setIsLoading] = useState(true);
-    const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${item.id}.png`;
 
     const handlePress = () => {
-        if (item.caught) {
+        if (item.userPokemon) {
             router.push({
                 pathname: ROUTES.ME.POKEMON_DETAIL,
-                params: { id: item.id.toString() }
+                params: { id: item.id }
             });
         }
     };
@@ -37,9 +27,9 @@ const PokemonGridItem = memo<PokemonGridItemProps>(({ item }) => {
             style={[
                 styles.pokemonCard,
             ]}
-            className={`${!item.caught ? 'opacity-60' : ''}`}
+            className={`${!item.userPokemon ? 'opacity-60' : ''}`}
         >
-            {item.caught ? (
+            {item.userPokemon === true ? (
                 <LinearGradient
                     colors={['#ffffff', '#f8fafc']}
                     style={styles.pokemonCardGradient}
@@ -56,7 +46,7 @@ const PokemonGridItem = memo<PokemonGridItemProps>(({ item }) => {
 
                     {/* Pokemon image */}
                     <Image
-                        source={{ uri: imageUrl }}
+                        source={{ uri: item.imageUrl }}
                         style={styles.pokemonImage}
                         className="w-24 h-24"
                         resizeMode="contain"
@@ -69,10 +59,10 @@ const PokemonGridItem = memo<PokemonGridItemProps>(({ item }) => {
                         style={styles.pokemonInfo}
                     >
                         <Text className="text-white text-xs font-extrabold text-center mb-0.5 tracking-wide capitalize" numberOfLines={1}>
-                            {item.name}
+                            {item.nameTranslations.vi}
                         </Text>
                         <Text className="text-white/85 text-xs font-bold text-center tracking-wider">
-                            #{String(item.id).padStart(3, '0')}
+                            #{String(item.pokedex_number).padStart(3, '0')}
                         </Text>
                     </LinearGradient>
                 </LinearGradient>
@@ -89,7 +79,7 @@ const PokemonGridItem = memo<PokemonGridItemProps>(({ item }) => {
 
                     {/* Pokemon silhouette */}
                     <Image
-                        source={{ uri: imageUrl }}
+                        source={{ uri: item.imageUrl }}
                         style={[styles.pokemonImage, styles.pokemonImageUncaught]}
                         className="w-24 h-24"
                         resizeMode="contain"
@@ -102,7 +92,7 @@ const PokemonGridItem = memo<PokemonGridItemProps>(({ item }) => {
                             ???
                         </Text>
                         <Text className="text-slate-400 text-xs font-bold text-center tracking-wider">
-                            #{String(item.id).padStart(3, '0')}
+                            #{String(item.pokedex_number).padStart(3, '0')}
                         </Text>
                     </View>
                 </View>
@@ -138,7 +128,7 @@ const styles = StyleSheet.create({
         height: CARD_SIZE * 0.6,
     },
     pokemonImageUncaught: {
-        tintColor: '#cbd5e1',
+        tintColor: '#b2bcc9',
         opacity: 0.4,
     },
     pokemonInfo: {
