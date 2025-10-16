@@ -1,3 +1,6 @@
+import { IQueryRequest } from "@models/common/common.request";
+import pokemonService from "@services/pokemon";
+import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import starters from "../../mock-data/starters.json";
 
@@ -59,3 +62,12 @@ export const usePokemonData = (params: any, starterId: string) => {
 };
 
 export default usePokemonData;
+
+
+export const useListPokemons = (params: IQueryRequest) => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['pokemons', params],
+    queryFn: () => pokemonService.getAll(params),
+  });
+  return { data, isLoading, isError };
+};

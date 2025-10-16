@@ -61,8 +61,12 @@ export default function ChooseStarterScreen() {
       try {
         setIsLoading(true);
         const response = await pokemonService.getAll(
-          1,
-          "sort:id,isStarted=true"
+          {
+            currentPage: 1,
+            pageSize: 4,
+            sortBy: 'id',
+            sortOrder: 'asc',
+          }
         );
         
         // Check if component is still mounted before updating state

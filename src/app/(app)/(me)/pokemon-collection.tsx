@@ -1,13 +1,13 @@
 import BackScreen from '@components/molecules/Back';
 import PokemonGridItem from '@components/Organism/PokemonGridItem';
+import { useListPokemons } from '@hooks/usePokemonData';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Search, Trophy } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
-import { Dimensions, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ALL_POKEMON } from '../../../../mock-data/pokemon';
 
 const { width } = Dimensions.get('window');
 const CARD_SIZE = (width - 48) / 3; // 3 columns with padding
@@ -20,13 +20,26 @@ interface Pokemon {
     caught: boolean;
 }
 
-const fullPokedexData: Pokemon[] = ALL_POKEMON.map((pokemon: any) => ({
-    ...pokemon,
-    caught: userCaughtPokemonIds.has(pokemon.id),
-}));
-
 export default function PokemonCollectionScreen() {
     const [searchQuery, setSearchQuery] = useState('');
+    const params = useMemo(() => ({
+        currentPage: 1,
+        pageSize: 200,
+        sort: 'id',
+        search: searchQuery || undefined,
+    }), [searchQuery]);
+
+    const { data, isLoading, isError } = useListPokemons(params);
+
+    console.log('data', data);
+    const apiResults: any[] = data?.data?.data?.results || [];
+    const fullPokedexData: Pokemon[] = useMemo(() => {
+        return apiResults.map((p: any) => ({
+            id: p.pokedex_number ?? p.id,
+            name: p?.nameTranslations?.en || p?.nameJp || '',
+            caught: userCaughtPokemonIds.has(p.pokedex_number ?? p.id),
+        }));
+    }, [apiResults]);
 
     // Calculate collection stats
     const collectionStats = useMemo(() => {
@@ -38,12 +51,9 @@ export default function PokemonCollectionScreen() {
 
     // Filter pokemon list based on search query
     const filteredCollection = useMemo(() => {
-        if (!searchQuery) return fullPokedexData;
-        return fullPokedexData.filter((p: Pokemon) =>
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            String(p.id).padStart(3, '0').includes(searchQuery)
-        );
-    }, [searchQuery]);
+        // Server already filters by search; keep simple client mirror
+        return fullPokedexData;
+    }, [fullPokedexData]);
 
     return (
         <SafeAreaView className="flex-1 bg-slate-100">
@@ -139,15 +149,25 @@ export default function PokemonCollectionScreen() {
                 )}
 
                 {/* Pokemon grid */}
-                <FlatList
-                    data={filteredCollection}
-                    numColumns={3}
-                    keyExtractor={(item) => item.id.toString()}
-                    renderItem={({ item }) => <PokemonGridItem item={item} />}
-                    showsVerticalScrollIndicator={false}
-                    columnWrapperStyle={styles.gridRow}
-                    className="pb-6"
-                />
+                {isLoading ? (
+                    <View className="flex-1 items-center justify-center">
+                        <ActivityIndicator size="large" color="#6FAFB2" />
+                    </View>
+                ) : isError ? (
+                    <View className="flex-1 items-center justify-center">
+                        <Text className="text-slate-500 font-semibold">Không thể tải dữ liệu Pokémon</Text>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={filteredCollection}
+                        numColumns={3}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={({ item }) => <PokemonGridItem item={item} />}
+                        showsVerticalScrollIndicator={false}
+                        columnWrapperStyle={styles.gridRow}
+                        className="pb-6"
+                    />
+                )}
             </View>
         </SafeAreaView>
     );
