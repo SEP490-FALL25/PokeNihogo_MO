@@ -337,23 +337,13 @@ export default function ProfileScreen() {
 
               {/* Pokemon Preview */}
               <View className="flex-row justify-center gap-2.5 pt-5 border-t border-slate-100">
-                {pokemonsData?.data?.results?.map((p: IPokemon) => {
-                  console.log(p);
-                  return (<LinearGradient
-                    key={p?.id}
-                    colors={['#f8fafc', '#f1f5f9']}
-                    style={styles.pokemonCard}
-                    className="w-21 h-21 rounded-2xl items-center justify-center shadow-sm"
-                  >
-                    <Image
-                      source={{
-                        uri: p?.imageUrl,
-                      }}
-                      className="w-17 h-17"
-                    />
-                  </LinearGradient>)
-
-                })}
+                {pokemonsData?.data?.results?.map((p: IPokemon) => (
+                  <Image
+                    source={{ uri: p?.imageUrl }}
+                    className="w-24 h-24 rounded-2xl"
+                    resizeMode="contain"
+                  />
+                ))}
               </View>
             </LinearGradient>
           </TouchableOpacity>
