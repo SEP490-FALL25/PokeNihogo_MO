@@ -1,8 +1,8 @@
+import BounceButton from "@components/ui/BounceButton";
 import { QuizResult } from "@models/quiz/quiz.common";
 import React, { useState } from "react";
 import { Text, View, ViewStyle } from "react-native";
 import { Button } from "../ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/Card";
 import { Progress } from "../ui/Progress";
 import { PokemonRewardModal } from "./PokemonRewardModal";
 
@@ -26,11 +26,12 @@ export const QuizResultCard: React.FC<QuizResultCardProps> = ({
   const [showPokemonModal, setShowPokemonModal] = useState(false);
 
   const getScoreColor = (score: number): string => {
-    if (score >= 90) return "#059669"; // green
-    if (score >= 80) return "#0891b2"; // blue
-    if (score >= 70) return "#ca8a04"; // yellow
-    if (score >= 60) return "#ea580c"; // orange
-    return "#dc2626"; // red
+    // Teal-forward palette to harmonize with gradient background
+    if (score >= 90) return "#0ea5a6"; // teal-500
+    if (score >= 80) return "#14b8a6"; // teal-400
+    if (score >= 70) return "#22c55e"; // green-500 (gentle success)
+    if (score >= 60) return "#f59e0b"; // amber-500 (warning)
+    return "#ef4444"; // red-500 (error)
   };
 
   const getScoreMessage = (score: number): string => {
@@ -51,12 +52,12 @@ export const QuizResultCard: React.FC<QuizResultCardProps> = ({
 
   return (
     <>
-      <Card style={[styles.container, style]}>
-        <CardHeader>
-          <CardTitle style={styles.title}>Kết quả Quiz</CardTitle>
-        </CardHeader>
+      <View style={[styles.container, style]}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Kết quả Quiz</Text>
+        </View>
 
-        <CardContent>
+        <View style={styles.content}>
           <View>
             {/* Score Section */}
             <View style={styles.scoreSection}>
@@ -191,32 +192,30 @@ export const QuizResultCard: React.FC<QuizResultCardProps> = ({
                   Làm lại Quiz
                 </Button>
               )}
-              
+
               <View style={styles.secondaryButtons}>
                 {onTryDifferentQuiz && (
-                  <Button
-                    variant="outline"
+                  <BounceButton
+                    variant="default"
                     onPress={onTryDifferentQuiz}
-                    style={styles.secondaryButton}
                   >
                     Quiz khác
-                  </Button>
+                  </BounceButton>
                 )}
                 {onViewHistory && (
-                  <Button
-                    variant="outline"
+                  <BounceButton
+                    variant="ghost"
                     onPress={onViewHistory}
-                    style={styles.secondaryButton}
                   >
                     Lịch sử
-                  </Button>
+                  </BounceButton>
                 )}
               </View>
-              
+
               {onGoHome && (
-                <Button 
-                  variant="ghost" 
-                  onPress={onGoHome} 
+                <Button
+                  variant="ghost"
+                  onPress={onGoHome}
                   style={styles.homeButton}
                 >
                   Về trang chủ
@@ -224,7 +223,7 @@ export const QuizResultCard: React.FC<QuizResultCardProps> = ({
               )}
             </View>
           </View>
-        </CardContent>
+        </View>
 
         {/* Pokemon Reward Modal */}
         {result.pokemonReward && (
@@ -238,7 +237,7 @@ export const QuizResultCard: React.FC<QuizResultCardProps> = ({
             }}
           />
         )}
-      </Card>
+      </View>
     </>
   );
 };
@@ -280,8 +279,33 @@ const getRarityText = (rarity: string): string => {
 const styles = {
   container: {
     margin: 16,
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    alignItems: "center" as const,
+  },
+  content: {
+    paddingHorizontal: 0,
+  },
+  title: {
+    textAlign: "center" as const,
+    fontSize: 24,
+    fontWeight: "600" as const,
+    color: "#ffffff",
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  scoreSection: {
+    alignItems: "center" as const,
+    marginBottom: 24,
+    paddingVertical: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.88)",
     borderRadius: 12,
-    overflow: "hidden" as const,
+    marginHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -290,23 +314,6 @@ const styles = {
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
-  },
-  title: {
-    textAlign: "center" as const,
-    marginBottom: 8,
-    fontSize: 24,
-    fontWeight: "600" as const,
-    color: "#111827",
-  },
-  scoreSection: {
-    alignItems: "center" as const,
-    marginBottom: 24,
-    paddingVertical: 20,
-    backgroundColor: "rgba(59, 130, 246, 0.1)",
-    borderRadius: 12,
-    marginHorizontal: 16,
-    borderWidth: 1,
-    borderColor: "rgba(59, 130, 246, 0.2)",
   },
   scoreContainer: {
     flexDirection: "row" as const,
@@ -320,12 +327,12 @@ const styles = {
   scoreText: {
     fontSize: 36,
     fontWeight: "700" as const,
-    color: "#3b82f6",
+    color: "#0ea5a6",
   },
   scoreMessage: {
     fontSize: 16,
     fontWeight: "600" as const,
-    color: "#374151",
+    color: "#0f172a",
     marginBottom: 16,
     textAlign: "center" as const,
   },
@@ -346,11 +353,13 @@ const styles = {
   },
   statItem: {
     alignItems: "center" as const,
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    backgroundColor: "rgba(255, 255, 255, 0.88)",
     padding: 16,
     borderRadius: 12,
     width: "47%" as const,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.25)",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -363,12 +372,12 @@ const styles = {
   statValue: {
     fontSize: 24,
     fontWeight: "bold" as const,
-    color: "#3b82f6",
+    color: "#0ea5a6",
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: "#6b7280",
+    color: "#334155",
     textAlign: "center" as const,
     fontWeight: "500" as const,
   },
@@ -379,16 +388,18 @@ const styles = {
   rewardTitle: {
     fontSize: 18,
     fontWeight: "600" as const,
-    color: "#111827",
+    color: "#0f172a",
     marginBottom: 16,
     textAlign: "center" as const,
   },
   pokemonCard: {
     flexDirection: "row" as const,
     alignItems: "center" as const,
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    backgroundColor: "rgba(255, 255, 255, 0.88)",
     padding: 16,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.25)",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -424,7 +435,7 @@ const styles = {
   pokemonName: {
     fontSize: 16,
     fontWeight: "600" as const,
-    color: "#111827",
+    color: "#0f172a",
     marginBottom: 8,
   },
   rarityBadge: {
@@ -447,17 +458,19 @@ const styles = {
   achievementsTitle: {
     fontSize: 18,
     fontWeight: "600" as const,
-    color: "#111827",
+    color: "#0f172a",
     marginBottom: 16,
     textAlign: "center" as const,
   },
   achievementItem: {
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    backgroundColor: "rgba(255, 255, 255, 0.88)",
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
     borderLeftWidth: 4,
-    borderLeftColor: "#22C55E",
+    borderLeftColor: "#0ea5a6",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.25)",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -469,15 +482,17 @@ const styles = {
   },
   achievementText: {
     fontSize: 14,
-    color: "#374151",
+    color: "#334155",
     fontWeight: "500" as const,
   },
   quizInfo: {
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    backgroundColor: "rgba(255, 255, 255, 0.88)",
     padding: 16,
     borderRadius: 12,
     marginBottom: 24,
     marginHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.25)",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -490,7 +505,7 @@ const styles = {
   quizInfoLabel: {
     fontSize: 16,
     fontWeight: "600" as const,
-    color: "#111827",
+    color: "#0f172a",
     marginBottom: 12,
     textAlign: "center" as const,
   },
@@ -502,13 +517,13 @@ const styles = {
   },
   quizInfoKey: {
     fontSize: 14,
-    color: "#6b7280",
+    color: "#334155",
     fontWeight: "500" as const,
   },
   quizInfoValue: {
     fontSize: 14,
     fontWeight: "600" as const,
-    color: "#111827",
+    color: "#0f172a",
   },
   actionButtons: {
     gap: 16,
@@ -520,12 +535,7 @@ const styles = {
     height: 48,
   },
   secondaryButtons: {
-    flexDirection: "row" as const,
     gap: 12,
-  },
-  secondaryButton: {
-    flex: 1,
-    height: 44,
   },
   homeButton: {
     alignSelf: "center" as const,

@@ -1,14 +1,16 @@
-import { QuizResultCard } from "@components/quiz/QuizResultCard";
+import QuizLayout from "@components/layouts/QuizLayout";
 import { Button } from "@components/ui/Button";
 import { QuizResult } from "@models/quiz/quiz.common";
-import { ROUTES } from "@routes/routes";
+// import { ROUTES } from "@routes/routes";
+import ResultValueCard from "@components/quiz/ResultValueCard";
+import BounceButton from "@components/ui/BounceButton";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
-  SafeAreaView,
+  Image,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -62,41 +64,12 @@ export default function QuizResultScreen() {
     loadQuizResult();
   }, [resultId, loadQuizResult]);
 
-  const handleRetakeQuiz = async () => {
-    try {
-      // Create a new quiz session with same parameters and navigate directly
-      const { quizService } = await import('@services/quiz');
-      const response = await quizService.createQuizSession({
-        category: result?.category,
-        level: result?.level as 'N5' | 'N4' | 'N3',
-        difficulty: 'beginner', // Default difficulty
-        questionCount: result?.totalQuestions
-      });
+  // kept for future use
+  // const handleRetakeQuiz = async () => {};
 
-      if (response.statusCode === 201 && response.data?.session) {
-        router.replace({
-          pathname: ROUTES.QUIZ.SESSION,
-          params: { sessionId: response.data.session.id }
-        });
-      }
-    } catch (error) {
-      console.error('Error creating retake quiz:', error);
-    }
-  };
+  // const handleTryDifferentQuiz = async () => {};
 
-  const handleTryDifferentQuiz = async () => {
-    try {
-      // Navigate to quiz demo to choose different quiz
-      router.push("/(app)/(tabs)/quiz-demo");
-    } catch (error) {
-      console.error('Error navigating to quiz demo:', error);
-    }
-  };
-
-  const handleViewHistory = () => {
-    // Navigate to quiz history
-    router.push(ROUTES.QUIZ.HISTORY);
-  };
+  // const handleViewHistory = () => {};
 
   const handleGoHome = () => {
     // Navigate back to home
@@ -105,54 +78,90 @@ export default function QuizResultScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
+      <QuizLayout>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Đang tải kết quả...</Text>
         </View>
-      </SafeAreaView>
+      </QuizLayout>
     );
   }
 
   if (!result) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
+      <QuizLayout>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Không tìm thấy kết quả quiz</Text>
           <Button onPress={() => router.back()}>Quay lại</Button>
         </View>
-      </SafeAreaView>
+      </QuizLayout>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-
+    <QuizLayout>
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <QuizResultCard
-          result={result}
-          onRetakeQuiz={handleRetakeQuiz}
-          onTryDifferentQuiz={handleTryDifferentQuiz}
-          onViewHistory={handleViewHistory}
-          onGoHome={handleGoHome}
-          style={styles.resultCard}
+        <Text style={styles.title}>Lesson completed!</Text>
+
+        <View style={styles.mascotWrap}>
+          <Image
+            source={require("../../../../../assets/images/PokeNihongoLogo.png")}
+            resizeMode="contain"
+            style={styles.mascot}
+          />
+        </View>
+
+        <ResultValueCard
+          title="Diamonds"
+          value={result.earnedPoints}
+          icon={<MaterialCommunityIcons name="diamond" size={22} color="#1d4ed8" />}
+          headerGradientColors={["#4f86ff", "#2f66f3"]}
+          style={styles.diamondCard}
         />
+
+        <View style={styles.tileRow}>
+          <ResultValueCard
+            title="Total XP"
+            value={result.totalPoints}
+            icon={<MaterialCommunityIcons name="lightning-bolt" size={18} color="#92400e" />}
+            headerGradientColors={["#f59e0b", "#fbbf24"]}
+            style={styles.tile}
+            size="compact"
+          />
+
+          <ResultValueCard
+            title="Time"
+            value={`${result.timeSpent}m`}
+            icon={<MaterialCommunityIcons name="timer-outline" size={18} color="#065f46" />}
+            headerGradientColors={["#10b981", "#34d399"]}
+            style={styles.tile}
+            size="compact"
+          />
+
+          <ResultValueCard
+            title="Accuracy"
+            value={`${result.score}%`}
+            icon={<MaterialCommunityIcons name="target-variant" size={18} color="#991b1b" />}
+            headerGradientColors={["#ef4444", "#f87171"]}
+            style={styles.tile}
+            size="compact"
+          />
+        </View>
+
+        <View style={styles.ctaWrap}>
+          <BounceButton variant="default" onPress={handleGoHome} >
+            CONTINUE
+          </BounceButton>
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </QuizLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -178,8 +187,57 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 100,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    flexGrow: 1,
   },
-  resultCard: {
-    marginBottom: 20,
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#6d28d9",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  mascotWrap: {
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 8,
+  },
+  mascot: {
+    width: 180,
+    height: 140,
+  },
+  diamondCard: {
+    width: "100%",
+    borderRadius: 14,
+    overflow: "hidden",
+    marginTop: 10,
+    marginBottom: 18,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  tileRow: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  tile: {
+    flex: 1,
+  },
+  ctaWrap: {
+    width: "100%",
+    marginTop: 24,
+    marginBottom: 48,
+  },
+  ctaButton: {
+    height: 48,
+    borderRadius: 24,
   },
 });
