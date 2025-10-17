@@ -1,3 +1,4 @@
+import QuizLayout from "@components/layouts/QuizLayout";
 import { QuestionCard } from "@components/quiz/QuestionCard";
 import { QuizProgress } from "@components/quiz/QuizProgress";
 import BounceButton from "@components/ui/BounceButton";
@@ -8,8 +9,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
-  SafeAreaView,
-  StatusBar,
   StyleSheet,
   Text,
   View,
@@ -174,41 +173,39 @@ export default function QuizScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
+      <QuizLayout>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Đang tải quiz...</Text>
         </View>
-      </SafeAreaView>
+      </QuizLayout>
     );
   }
 
   if (!session) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
+      <QuizLayout>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Không tìm thấy quiz</Text>
           <Button onPress={() => router.back()}>Quay lại</Button>
         </View>
-      </SafeAreaView>
+      </QuizLayout>
     );
   }
 
   const currentQuestion = session.questions[currentQuestionIndex];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-
-      {/* Progress Header */}
-      <QuizProgress
-        currentQuestion={currentQuestionIndex}
-        totalQuestions={session.questions.length}
-        timeRemaining={timeRemaining}
-        style={styles.progress}
-      />
-
+    <QuizLayout
+      showProgress={true}
+      progressComponent={
+        <QuizProgress
+          currentQuestion={currentQuestionIndex}
+          totalQuestions={session.questions.length}
+          timeRemaining={timeRemaining}
+          style={styles.progress}
+        />
+      }
+    >
       {/* Question Card */}
       <View style={styles.questionContainer}>
         <QuestionCard
@@ -246,15 +243,11 @@ export default function QuizScreen() {
           </Button>
         )}
       </View>
-    </SafeAreaView>
+    </QuizLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
