@@ -9,6 +9,7 @@ import authService from '@services/auth';
 import { useAuthStore } from '@stores/auth/auth.config';
 import { useEmailSelector } from '@stores/user/user.selectors';
 import { router } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { ArrowLeft } from 'lucide-react-native';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -50,7 +51,8 @@ export default function PasswordScreen() {
 
             if (res.data.statusCode === 200) {
                 await setAccessToken(res.data.data.accessToken);
-                // saveSecureStorage('refreshToken', res.data.data.refreshToken);
+                // persist refresh token for future refresh
+                try { await SecureStore.setItemAsync('refreshToken', res.data.data.refreshToken); } catch { }
                 if (res.data.data.level !== null) {
                     router.replace(ROUTES.TABS.HOME);
                 } else {

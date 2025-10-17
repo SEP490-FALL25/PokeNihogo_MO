@@ -25,6 +25,45 @@ const axiosPrivate = axios.create({
     withCredentials: true,
 });
 
+// Token refresh concurrency control
+let isRefreshing = false;
+let pendingRequestsQueue: Array<(token: string | null) => void> = [];
+
+const processQueue = (token: string | null) => {
+    pendingRequestsQueue.forEach((callback) => callback(token));
+    pendingRequestsQueue = [];
+};
+
+const refreshAccessToken = async (): Promise<{ accessToken: string; refreshToken?: string } | null> => {
+    try {
+        const refreshToken = await SecureStore.getItemAsync('refreshToken');
+        if (!refreshToken) return null;
+
+        // Call refresh token endpoint
+        const response = await axios.post(
+            `${process.env.EXPO_PUBLIC_API_URL}/auth/refresh-token`,
+            { refreshToken },
+            { headers: { 'Content-Type': 'application/json', 'Accept-Language': locale } }
+        );
+
+        const newAccessToken: string | undefined = response?.data?.data?.accessToken;
+        const newRefreshToken: string | undefined = response?.data?.data?.refreshToken;
+        if (!newAccessToken) return null;
+
+        // Persist tokens
+        await SecureStore.setItemAsync('accessToken', newAccessToken);
+        if (newRefreshToken) {
+            await SecureStore.setItemAsync('refreshToken', newRefreshToken);
+        }
+        // Update zustand store
+        useAuthStore.getState().setAccessToken(newAccessToken);
+
+        return { accessToken: newAccessToken, refreshToken: newRefreshToken };
+    } catch (e) {
+        return null;
+    }
+};
+
 // Interceptors cho axiosPrivate
 axiosPrivate.interceptors.request.use(
     async (config) => {
@@ -54,14 +93,45 @@ axiosPrivate.interceptors.request.use(
 axiosPrivate.interceptors.response.use(
     (response) => response,
     async (error) => {
-        if (error.response?.status === 401) {
-            // Xử lý khi bị unauthorized
-            console.error('Unauthorized! Token expired or invalid. Logging out...');
+        const originalRequest = error.config as (typeof error)['config'] & { _retry?: boolean };
+
+        if (error.response?.status === 401 && !originalRequest?._retry) {
+            originalRequest._retry = true;
+
+            if (isRefreshing) {
+                // Queue the request until refresh completes
+                return new Promise((resolve, reject) => {
+                    pendingRequestsQueue.push((token) => {
+                        if (!token) {
+                            reject(error);
+                            return;
+                        }
+                        if (!originalRequest.headers) originalRequest.headers = {} as any;
+                        (originalRequest.headers as any)['Authorization'] = `Bearer ${token}`;
+                        resolve(axiosPrivate(originalRequest));
+                    });
+                });
+            }
+
+            isRefreshing = true;
+            const refreshed = await refreshAccessToken();
+            isRefreshing = false;
+            processQueue(refreshed?.accessToken ?? null);
+
+            if (refreshed?.accessToken) {
+                if (!originalRequest.headers) originalRequest.headers = {} as any;
+                (originalRequest.headers as any)['Authorization'] = `Bearer ${refreshed.accessToken}`;
+                return axiosPrivate(originalRequest);
+            }
+
+            // Refresh failed -> force logout
             await SecureStore.deleteItemAsync('accessToken');
             await SecureStore.deleteItemAsync('refreshToken');
+            useAuthStore.getState().deleteAccessToken();
             router.replace(ROUTES.AUTH.WELCOME);
-            alert('Token expired or invalid. Logging out...');
+            return Promise.reject(error);
         }
+
         return Promise.reject(error);
     },
 );
@@ -85,7 +155,6 @@ const handleError = (error: AxiosError) => {
 };
 
 axiosClient.interceptors.response.use((response) => response, handleError);
-axiosPrivate.interceptors.response.use((response) => response, handleError);
 
 export { axiosClient, axiosPrivate };
 
