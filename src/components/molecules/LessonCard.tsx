@@ -104,11 +104,6 @@ const LessonCard: React.FC<LessonCardProps> = ({ lesson, onPress }) => {
             {lesson.description}
           </ThemedText>
         </View>
-        <View style={styles.difficultyBadge}>
-          <ThemedText style={styles.difficultyText}>
-            {t(`lessons.difficulty.${lesson.difficulty}`)}
-          </ThemedText>
-        </View>
       </View>
 
       {/* Pokemon Reward */}

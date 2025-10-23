@@ -42,10 +42,10 @@ const TAB_CONFIG: Tab[] = [
     color: "#ef4444",
   },
   {
-    name: "lessons",
+    name: "learn",
     icon: "library",
-    label: "Lessons",
-    route: ROUTES.TABS.LESSONS,
+    label: "Learn",
+    route: ROUTES.TABS.LEARN,
     color: "#06b6d4",
   },
   {

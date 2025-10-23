@@ -1,4 +1,6 @@
+import { IQueryRequest } from "@models/common/common.request";
 import { lessonService } from "@services/lesson";
+import userProgressService from "@services/user-progres";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useLessons = (level: "N5" | "N4" | "N3") => {
@@ -47,5 +49,14 @@ export const useUserProgress = () => {
     queryKey: ["userProgress"],
     queryFn: () => lessonService.getUserProgress(),
     staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+};
+
+export const useUserProgressWithParams = (params: IQueryRequest) => {
+  return useQuery({
+    queryKey: ["userProgress", params],
+    queryFn: () => userProgressService.getMyProgress(params),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: 1, // Only retry once
   });
 };
