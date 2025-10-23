@@ -4,9 +4,62 @@ import {
   Lesson,
   LessonCategory as LessonCategoryType,
 } from "@models/lesson/lesson.common";
-import React, { useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  LayoutAnimation,
+  Platform,
+  StyleSheet,
+  TouchableOpacity,
+  UIManager,
+  View
+} from "react-native";
 import LessonCard from "./LessonCard";
+
+// Animated wrapper for LessonCard
+const AnimatedLessonCard = ({ 
+  lesson, 
+  onPress, 
+  index 
+}: {
+  lesson: any;
+  onPress: (lesson: any) => void;
+  index: number;
+}) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        delay: index * 50, // Staggered animation
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        delay: index * 50,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [index, fadeAnim, slideAnim]);
+
+  return (
+    <Animated.View
+      style={{
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }],
+      }}
+    >
+      <LessonCard
+        lesson={lesson}
+        onPress={onPress}
+      />
+    </Animated.View>
+  );
+};
 
 interface LessonCategoryProps {
   category: LessonCategoryType;
@@ -18,6 +71,43 @@ const LessonCategory: React.FC<LessonCategoryProps> = ({
   onLessonPress,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const animatedRotation = useRef(new Animated.Value(0)).current;
+
+  // Enable LayoutAnimation on Android
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      if (UIManager.setLayoutAnimationEnabledExperimental) {
+        UIManager.setLayoutAnimationEnabledExperimental(true);
+      }
+    }
+  }, []);
+
+  const handleToggle = () => {
+    // Configure smooth layout animation
+    LayoutAnimation.configureNext({
+      duration: 300,
+      create: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+        property: LayoutAnimation.Properties.opacity,
+      },
+      update: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+      },
+      delete: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+        property: LayoutAnimation.Properties.opacity,
+      },
+    });
+
+    // Animate chevron rotation
+    Animated.timing(animatedRotation, {
+      toValue: isExpanded ? 0 : 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+
+    setIsExpanded(!isExpanded);
+  };
 
   const completedLessons = category.lessons.filter(
     (lesson) => lesson.isCompleted
@@ -59,7 +149,7 @@ const LessonCategory: React.FC<LessonCategoryProps> = ({
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        onPress={() => setIsExpanded(!isExpanded)}
+        onPress={handleToggle}
         style={[styles.categoryCard, { borderLeftColor: category.color }]}
         activeOpacity={0.8}
       >
@@ -99,13 +189,25 @@ const LessonCategory: React.FC<LessonCategoryProps> = ({
                   {completedLessons}/{totalLessons}
                 </ThemedText>
               </View>
-              <View style={styles.expandIcon}>
+              <Animated.View 
+                style={[
+                  styles.expandIcon,
+                  {
+                    transform: [{
+                      rotate: animatedRotation.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ['0deg', '180deg'],
+                      }),
+                    }],
+                  },
+                ]}
+              >
                 <IconSymbol
-                  name={isExpanded ? "chevron.up" : "chevron.down"}
+                  name="chevron.down"
                   size={20}
                   color="#6b7280"
                 />
-              </View>
+              </Animated.View>
             </View>
           </View>
         </View>
@@ -113,11 +215,12 @@ const LessonCategory: React.FC<LessonCategoryProps> = ({
 
       {isExpanded && (
         <View style={styles.lessonsContainer}>
-          {category.lessons.map((lesson) => (
-            <LessonCard
+          {category.lessons.map((lesson, index) => (
+            <AnimatedLessonCard
               key={lesson.id}
               lesson={lesson}
-              onPress={onLessonPress}
+              onPress={onLessonPress || (() => {})}
+              index={index}
             />
           ))}
         </View>
@@ -206,6 +309,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingLeft: 8,
     gap: 12,
+    overflow: 'hidden',
   },
 });
 
