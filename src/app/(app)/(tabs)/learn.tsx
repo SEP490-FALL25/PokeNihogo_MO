@@ -5,7 +5,11 @@ import { Alert } from "@components/ui/Alert";
 import { Badge } from "@components/ui/Badge";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import { Skeleton } from "@components/ui/Skeleton";
-import { useLessons, useUserProgress, useUserProgressWithParams } from "@hooks/useLessons";
+import {
+  useLessons,
+  useUserProgress,
+  useUserProgressWithParams,
+} from "@hooks/useLessons";
 import { Lesson } from "@models/lesson/lesson.common";
 import { useUserStore } from "@stores/user/user.config";
 import { router } from "expo-router";
@@ -22,11 +26,11 @@ import {
 } from "react-native";
 
 // Animated wrapper for LessonCategory
-const AnimatedLessonCategory = ({ 
-  category, 
-  onLessonPress, 
-  delay, 
-  isLoaded 
+const AnimatedLessonCategory = ({
+  category,
+  onLessonPress,
+  delay,
+  isLoaded,
 }: {
   category: any;
   onLessonPress: (lesson: Lesson) => void;
@@ -62,10 +66,7 @@ const AnimatedLessonCategory = ({
         transform: [{ translateY: slideAnim }],
       }}
     >
-      <LessonCategory
-        category={category}
-        onLessonPress={onLessonPress}
-      />
+      <LessonCategory category={category} onLessonPress={onLessonPress} />
     </Animated.View>
   );
 };
@@ -74,7 +75,7 @@ const LessonsScreen = () => {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  
+
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
@@ -88,30 +89,23 @@ const LessonsScreen = () => {
     refetch,
   } = useLessons(userLevel || "N5");
   const { data: progressData, isLoading: progressLoading } = useUserProgress();
-  
+
   // Test useUserProgressWithParams hook with some parameters
-  const { 
-    data: progressWithParamsData, 
+  const {
+    data: progressWithParamsData,
     isLoading: progressWithParamsLoading,
-    error: progressWithParamsError 
+    error: progressWithParamsError,
   } = useUserProgressWithParams({
     currentPage: 1,
     pageSize: 10,
     lessonCategoryId: 1,
   });
 
-  // Console log data for debugging
-  useEffect(() => {
-
-    console.log("=== USER PROGRESS WITH PARAMS DATA ===");
-    console.log("Progress With Params Data:", progressWithParamsData?.data.results);
-  }, [lessonsData, lessonsLoading, lessonsError, progressData, progressLoading, progressWithParamsData, progressWithParamsLoading, progressWithParamsError]);
-
   // Animation effect when data loads
   useEffect(() => {
     if (!lessonsLoading && !progressLoading && !lessonsError) {
       setIsLoaded(true);
-      
+
       // Staggered animation for different elements
       Animated.sequence([
         // Progress card animation
@@ -135,7 +129,14 @@ const LessonsScreen = () => {
         }),
       ]).start();
     }
-  }, [lessonsLoading, progressLoading, lessonsError, fadeAnim, slideAnim, progressAnim]);
+  }, [
+    lessonsLoading,
+    progressLoading,
+    lessonsError,
+    fadeAnim,
+    slideAnim,
+    progressAnim,
+  ]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -186,7 +187,7 @@ const LessonsScreen = () => {
       color: "#10b981",
       level: "N5" as const,
       icon: "1.circle.fill",
-      lessons: progressWithParamsData?.data?.results 
+      lessons: progressWithParamsData?.data?.results
         ? createLessonsFromProgress(progressWithParamsData.data.results)
         : [],
     },
@@ -203,7 +204,7 @@ const LessonsScreen = () => {
     },
     {
       id: "5",
-      name: "🎤 Speaking Practice", 
+      name: "🎤 Speaking Practice",
       description: "Luyện tập nói tiếng Nhật",
       color: "#ef4444",
       icon: "mic.fill",
@@ -294,7 +295,7 @@ const LessonsScreen = () => {
                 <ThemedText style={styles.progressStatLabel}>Cấp độ</ThemedText>
               </View>
             </View>
-            
+
             {/* Debug info for useUserProgressWithParams */}
             {progressWithParamsData && (
               <View style={styles.debugInfo}>
@@ -305,10 +306,12 @@ const LessonsScreen = () => {
                   Status: {progressWithParamsLoading ? "Loading..." : "Loaded"}
                 </ThemedText>
                 <ThemedText style={styles.debugText}>
-                  Total Items: {progressWithParamsData?.data?.pagination?.totalItem || 0}
+                  Total Items:{" "}
+                  {progressWithParamsData?.data?.pagination?.totalItem || 0}
                 </ThemedText>
                 <ThemedText style={styles.debugText}>
-                  Current Page: {progressWithParamsData?.data?.pagination?.current || 0}
+                  Current Page:{" "}
+                  {progressWithParamsData?.data?.pagination?.current || 0}
                 </ThemedText>
                 {progressWithParamsError && (
                   <ThemedText style={styles.debugError}>
@@ -321,20 +324,25 @@ const LessonsScreen = () => {
         )}
 
         {/* Level Categories - Only show if has real data */}
-        {levelCategories.some(category => category.lessons.length > 0) ? (
+        {levelCategories.some((category) => category.lessons.length > 0) ? (
           <View style={styles.categoriesSection}>
             <View style={styles.categoriesHeader}>
               <ThemedText type="subtitle" style={styles.categoriesTitle}>
                 🎯 Cấp độ học tập
               </ThemedText>
               <Badge variant="outline">
-                {levelCategories.filter(category => category.lessons.length > 0).length} cấp độ
+                {
+                  levelCategories.filter(
+                    (category) => category.lessons.length > 0
+                  ).length
+                }{" "}
+                cấp độ
               </Badge>
             </View>
 
             <View style={styles.categoriesContainer}>
               {levelCategories
-                .filter(category => category.lessons.length > 0)
+                .filter((category) => category.lessons.length > 0)
                 .map((category, index) => (
                   <AnimatedLessonCategory
                     key={category.id}
@@ -353,7 +361,8 @@ const LessonsScreen = () => {
                 📚 Chưa có bài học nào
               </ThemedText>
               <ThemedText style={styles.emptyStateDescription}>
-                Bạn chưa có bài học nào trong hệ thống. Vui lòng liên hệ admin để được thêm bài học.
+                Bạn chưa có bài học nào trong hệ thống. Vui lòng liên hệ admin
+                để được thêm bài học.
               </ThemedText>
             </View>
           )
@@ -376,19 +385,27 @@ const LessonsScreen = () => {
                 key={category.id}
                 style={{
                   opacity: isLoaded ? fadeAnim : 0,
-                  transform: [{ 
-                    translateY: isLoaded ? slideAnim : 30 
-                  }],
+                  transform: [
+                    {
+                      translateY: isLoaded ? slideAnim : 30,
+                    },
+                  ],
                 }}
               >
                 <TouchableOpacity
-                  style={[styles.navigationCard, { borderLeftColor: category.color }]}
+                  style={[
+                    styles.navigationCard,
+                    { borderLeftColor: category.color },
+                  ]}
                   onPress={() => handleNavigationPress(category.route)}
                   activeOpacity={0.8}
                 >
                   <View style={styles.navigationHeader}>
                     <View
-                      style={[styles.navigationIcon, { backgroundColor: category.color }]}
+                      style={[
+                        styles.navigationIcon,
+                        { backgroundColor: category.color },
+                      ]}
                     >
                       <IconSymbol
                         name={category.icon as any}
@@ -397,7 +414,10 @@ const LessonsScreen = () => {
                       />
                     </View>
                     <View style={styles.navigationInfo}>
-                      <ThemedText type="subtitle" style={styles.navigationTitle}>
+                      <ThemedText
+                        type="subtitle"
+                        style={styles.navigationTitle}
+                      >
                         {category.name}
                       </ThemedText>
                       <ThemedText style={styles.navigationDescription}>
