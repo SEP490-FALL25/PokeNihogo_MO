@@ -28,6 +28,15 @@ const LessonCategory: React.FC<LessonCategoryProps> = ({
 
   const getCategoryIcon = (categoryName: string) => {
     switch (categoryName.toLowerCase()) {
+      case "n5 - cơ bản":
+      case "n5":
+        return "1.circle.fill";
+      case "n4 - sơ cấp":
+      case "n4":
+        return "2.circle.fill";
+      case "n3 - trung cấp":
+      case "n3":
+        return "3.circle.fill";
       case "vocabulary":
         return "textformat.abc";
       case "grammar":

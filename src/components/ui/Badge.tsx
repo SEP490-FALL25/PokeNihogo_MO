@@ -81,7 +81,15 @@ const Badge = React.forwardRef<View, BadgeProps>(
             {children}
           </Text>
         ) : (
-          children
+          <Text
+            style={{
+              fontSize: 12,
+              fontWeight: '600',
+              color: getTextColor(),
+            }}
+          >
+            {children}
+          </Text>
         )}
       </View>
     )
