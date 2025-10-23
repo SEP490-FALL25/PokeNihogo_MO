@@ -5,7 +5,7 @@ import { Alert } from "@components/ui/Alert";
 import { Badge } from "@components/ui/Badge";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import { Skeleton } from "@components/ui/Skeleton";
-import { useLessons, useUserProgress } from "@hooks/useLessons";
+import { useLessons, useUserProgress, useUserProgressWithParams } from "@hooks/useLessons";
 import { Lesson } from "@models/lesson/lesson.common";
 import { useUserStore } from "@stores/user/user.config";
 import { router } from "expo-router";
@@ -88,6 +88,24 @@ const LessonsScreen = () => {
     refetch,
   } = useLessons(userLevel || "N5");
   const { data: progressData, isLoading: progressLoading } = useUserProgress();
+  
+  // Test useUserProgressWithParams hook with some parameters
+  const { 
+    data: progressWithParamsData, 
+    isLoading: progressWithParamsLoading,
+    error: progressWithParamsError 
+  } = useUserProgressWithParams({
+    currentPage: 1,
+    pageSize: 10,
+    lessonCategoryId: 1,
+  });
+
+  // Console log data for debugging
+  useEffect(() => {
+
+    console.log("=== USER PROGRESS WITH PARAMS DATA ===");
+    console.log("Progress With Params Data:", progressWithParamsData?.data.results);
+  }, [lessonsData, lessonsLoading, lessonsError, progressData, progressLoading, progressWithParamsData, progressWithParamsLoading, progressWithParamsError]);
 
   // Animation effect when data loads
   useEffect(() => {
@@ -141,25 +159,25 @@ const LessonsScreen = () => {
     }
   };
 
-  // Create mock data for N5, N4, N3 levels
-  const createMockLessons = (level: string, count: number): Lesson[] => {
-    return Array.from({ length: count }, (_, index) => ({
-      id: `${level}-lesson-${index + 1}`,
-      title: `Bài ${index + 1}`,
-      description: `Bài học ${level} số ${index + 1}`,
-      isCompleted: Math.random() > 0.5,
-      level: level as "N5" | "N4" | "N3",
+  // Create lessons from real progress data
+  const createLessonsFromProgress = (progressData: any[]): Lesson[] => {
+    return progressData.map((progressItem) => ({
+      id: progressItem.lessonId.toString(),
+      title: progressItem.lesson.titleJp,
+      description: `Bài học N${progressItem.lesson.levelJlpt}`,
+      isCompleted: progressItem.status === "COMPLETED",
+      level: `N${progressItem.lesson.levelJlpt}` as "N5" | "N4" | "N3",
       estimatedTime: 15,
-      color: level === "N5" ? "#10b981" : level === "N4" ? "#3b82f6" : "#8b5cf6",
       type: "vocabulary" as const,
       difficulty: "beginner" as const,
-      progress: Math.floor(Math.random() * 100),
+      progress: progressItem.progressPercentage,
       tags: ["basic"],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: progressItem.createdAt,
+      updatedAt: progressItem.updatedAt,
     }));
   };
 
+  // Create categories with real data only
   const levelCategories = [
     {
       id: "1",
@@ -168,25 +186,9 @@ const LessonsScreen = () => {
       color: "#10b981",
       level: "N5" as const,
       icon: "1.circle.fill",
-      lessons: createMockLessons("N5", 10),
-    },
-    {
-      id: "2", 
-      name: "N4 - Sơ cấp",
-      description: "Tiếp tục phát triển kỹ năng tiếng Nhật",
-      color: "#3b82f6",
-      level: "N4" as const,
-      icon: "2.circle.fill",
-      lessons: createMockLessons("N4", 10),
-    },
-    {
-      id: "3",
-      name: "N3 - Trung cấp",
-      description: "Nâng cao trình độ tiếng Nhật của bạn",
-      color: "#8b5cf6",
-      level: "N3" as const,
-      icon: "3.circle.fill",
-      lessons: createMockLessons("N3", 10),
+      lessons: progressWithParamsData?.data?.results 
+        ? createLessonsFromProgress(progressWithParamsData.data.results)
+        : [],
     },
   ];
 
@@ -292,32 +294,70 @@ const LessonsScreen = () => {
                 <ThemedText style={styles.progressStatLabel}>Cấp độ</ThemedText>
               </View>
             </View>
+            
+            {/* Debug info for useUserProgressWithParams */}
+            {progressWithParamsData && (
+              <View style={styles.debugInfo}>
+                <ThemedText style={styles.debugTitle}>
+                  🔍 Debug Info (useUserProgressWithParams):
+                </ThemedText>
+                <ThemedText style={styles.debugText}>
+                  Status: {progressWithParamsLoading ? "Loading..." : "Loaded"}
+                </ThemedText>
+                <ThemedText style={styles.debugText}>
+                  Total Items: {progressWithParamsData?.data?.pagination?.totalItem || 0}
+                </ThemedText>
+                <ThemedText style={styles.debugText}>
+                  Current Page: {progressWithParamsData?.data?.pagination?.current || 0}
+                </ThemedText>
+                {progressWithParamsError && (
+                  <ThemedText style={styles.debugError}>
+                    Error: {JSON.stringify(progressWithParamsError)}
+                  </ThemedText>
+                )}
+              </View>
+            )}
           </Animated.View>
         )}
 
-        {/* Level Categories (N5, N4, N3) */}
-        <View style={styles.categoriesSection}>
-          <View style={styles.categoriesHeader}>
-            <ThemedText type="subtitle" style={styles.categoriesTitle}>
-              🎯 Cấp độ học tập
-            </ThemedText>
-            <Badge variant="outline">
-              {levelCategories.length} cấp độ
-            </Badge>
-          </View>
+        {/* Level Categories - Only show if has real data */}
+        {levelCategories.some(category => category.lessons.length > 0) ? (
+          <View style={styles.categoriesSection}>
+            <View style={styles.categoriesHeader}>
+              <ThemedText type="subtitle" style={styles.categoriesTitle}>
+                🎯 Cấp độ học tập
+              </ThemedText>
+              <Badge variant="outline">
+                {levelCategories.filter(category => category.lessons.length > 0).length} cấp độ
+              </Badge>
+            </View>
 
-          <View style={styles.categoriesContainer}>
-            {levelCategories.map((category, index) => (
-              <AnimatedLessonCategory
-                key={category.id}
-                category={category}
-                onLessonPress={handleLessonPress}
-                delay={index * 100}
-                isLoaded={isLoaded}
-              />
-            ))}
+            <View style={styles.categoriesContainer}>
+              {levelCategories
+                .filter(category => category.lessons.length > 0)
+                .map((category, index) => (
+                  <AnimatedLessonCategory
+                    key={category.id}
+                    category={category}
+                    onLessonPress={handleLessonPress}
+                    delay={index * 100}
+                    isLoaded={isLoaded}
+                  />
+                ))}
+            </View>
           </View>
-        </View>
+        ) : (
+          !progressWithParamsLoading && (
+            <View style={styles.emptyState}>
+              <ThemedText style={styles.emptyStateTitle}>
+                📚 Chưa có bài học nào
+              </ThemedText>
+              <ThemedText style={styles.emptyStateDescription}>
+                Bạn chưa có bài học nào trong hệ thống. Vui lòng liên hệ admin để được thêm bài học.
+              </ThemedText>
+            </View>
+          )
+        )}
 
         {/* Navigation Categories (Reading, Speaking) */}
         <View style={styles.categoriesSection}>
@@ -485,33 +525,6 @@ const styles = StyleSheet.create({
   categoriesContainer: {
     gap: 16,
   },
-  emptyState: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 16,
-    padding: 40,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#6b7280",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  emptyStateDescription: {
-    fontSize: 14,
-    color: "#9ca3af",
-    textAlign: "center",
-    lineHeight: 20,
-  },
   bottomSpacing: {
     height: 80,
   },
@@ -559,6 +572,58 @@ const styles = StyleSheet.create({
   },
   navigationArrow: {
     marginLeft: 8,
+  },
+  debugInfo: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: "rgba(59, 130, 246, 0.1)",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#3b82f6",
+  },
+  debugTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1e40af",
+    marginBottom: 8,
+  },
+  debugText: {
+    fontSize: 12,
+    color: "#3730a3",
+    marginBottom: 4,
+  },
+  debugError: {
+    fontSize: 12,
+    color: "#dc2626",
+    marginTop: 4,
+  },
+  emptyState: {
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    borderRadius: 16,
+    padding: 40,
+    alignItems: "center",
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#6b7280",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  emptyStateDescription: {
+    fontSize: 14,
+    color: "#9ca3af",
+    textAlign: "center",
+    lineHeight: 20,
   },
 });
 

@@ -1,5 +1,6 @@
 import { axiosPrivate } from "@configs/axios";
 import { IQueryRequest } from "@models/common/common.request";
+import { UserProgressResponseSchema } from "@models/user-progress/user-progress.response";
 
 const userProgressService = {
   getMyProgress: async (params: IQueryRequest) => {
@@ -24,8 +25,11 @@ const userProgressService = {
         queryString.append(key, value.toString());
       }
     });
-
-    return axiosPrivate.get(`/user-progress?${queryString.toString()}`);
+    const response = await axiosPrivate.get(`user-progress/my?${queryString.toString()}`);
+    
+    // Validate response with Zod schema
+    const validatedData = UserProgressResponseSchema.parse(response.data);
+    return validatedData;
   },
 };
 

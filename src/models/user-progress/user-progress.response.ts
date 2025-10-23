@@ -1,38 +1,20 @@
-export interface UserProgress {
-  id: number;
-  userId: number;
-  lessonId: number;
-  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
-  progressPercentage: number;
-  completedAt: string | null;
-  lastAccessedAt: string;
-  createdAt: string;
-  updatedAt: string;
-  lesson: {
-    id: number;
-    titleJp: string;
-    levelJlpt: number;
-    isPublished: boolean;
-  };
-  user: {
-    id: number;
-    name: string;
-    email: string;
-  };
-}
+import {
+  IUserProgress,
+  IUserProgressPagination,
+  IUserProgressResponse,
+  UserProgressPaginationSchema,
+  UserProgressResponseSchema,
+  UserProgressSchema
+} from "./user-progress.common";
 
-export interface UserProgressPagination {
-  current: number;
-  pageSize: number;
-  totalPage: number;
-  totalItem: number;
-}
+// Re-export types for backward compatibility
+export type UserProgress = IUserProgress;
+export type UserProgressPagination = IUserProgressPagination;
+export type UserProgressResponse = IUserProgressResponse;
 
-export interface UserProgressResponse {
-  statusCode: number;
-  data: {
-    results: UserProgress[];
-    pagination: UserProgressPagination;
-  };
-  message: string;
-}
+// Export schemas for validation
+export {
+  UserProgressPaginationSchema,
+  UserProgressResponseSchema, UserProgressSchema
+};
+
