@@ -161,6 +161,90 @@
             "status": "Status"
         }
     },
+    "home": {
+        "welcome_back": "Welcome back, {{username}}! 👋",
+        "ready_to_continue": "Ready to continue your Japanese learning journey?",
+        "test_tour_guide": "🧪 Test Tour Guide",
+        "clear_overlay_position": "🗑️ Clear Overlay Position",
+        "test_daily_login_modal": "🎉 Test Daily Login Modal",
+        "quick_start": "🚀 Quick Start",
+        "start_new_lesson": "Start New Lesson",
+        "learning_path": "📚 Your Learning Path",
+        "current_level": "Current Level: {{level}}",
+        "next_goal": "Next Goal: {{level}}",
+        "basic_japanese": "Basic Japanese - Hiragana & Katakana",
+        "intermediate_japanese": "Intermediate Japanese - Kanji & Grammar",
+        "partner_pokemon": "Your Partner Pokémon",
+        "take_care_description": "Take care of your partner Pokémon and evolve together!",
+        "take_care_me": "Take care of me!",
+        "partner_pokemon_short": "Partner Pokémon"
+    },
+    "quiz": {
+        "question_types": {
+            "single_choice": "Choose 1 correct answer",
+            "multiple_choice": "Choose all correct answers",
+            "text_input": "Enter your answer",
+            "audio": "Listen and choose answer",
+            "image": "Observe image and choose answer"
+        },
+        "audio_player": {
+            "play_button": "▶️",
+            "press_to_play": "Press to play audio"
+        },
+        "image_placeholder": "🖼️ Question image",
+        "explanation_label": "Explanation:",
+        "points_label": "points"
+    },
+    "daily_login": {
+        "title": "Daily Check-in",
+        "subtitle": "Maintain good habits every day",
+        "consecutive_days": "consecutive days",
+        "motivation": {
+            "start_streak": "Start your check-in streak!",
+            "keep_going": "Great! Keep going!",
+            "excellent": "Excellent! You're doing great!",
+            "legendary": "Amazing! You're a legend!"
+        },
+        "check_in_button": "Check-in now 🎯",
+        "already_checked": "✓ Already checked in today",
+        "close": "Close",
+        "day_names": {
+            "sun": "Sun",
+            "mon": "Mon",
+            "tue": "Tue",
+            "wed": "Wed",
+            "thu": "Thu",
+            "fri": "Fri",
+            "sat": "Sat"
+        }
+    },
+    "welcome_modal": {
+        "title": "Welcome, {{username}}!",
+        "message": "{{pokemonName}} is ready to join you on your journey!",
+        "lets_begin": "Let's Begin! 🚀"
+    },
+    "tabs": {
+        "home": "Home",
+        "learn": "Learn",
+        "reading": "Reading",
+        "listening": "Listening",
+        "speaking": "Speaking",
+        "battle": "Battle",
+        "quiz_demo": "Quiz Demo"
+    },
+    "lesson_card": {
+        "lesson_description": "Lesson N{{level}}"
+    },
+    "error_state": {
+        "default_title": "An error occurred",
+        "default_description": "An error occurred while loading data. Please try again.",
+        "default_retry": "Retry",
+        "pokemon_footer": "⚡ Don't give up! Try again to continue your journey!"
+    },
+    "search": {
+        "placeholder": "Search lessons...",
+        "found_results": "Found {{count}} results"
+    },
     "zod": {
         "errors": {
             "auth": {

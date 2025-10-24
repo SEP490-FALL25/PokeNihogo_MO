@@ -9,6 +9,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useGlobalStore } from "@stores/global/global.config";
 import { useUserStore } from "@stores/user/user.config";
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
@@ -26,6 +27,8 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
  * @returns JSX.Element
  */
 export default function HomeScreen() {
+  const { t } = useTranslation();
+  
   // Tour and modal state management
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showDailyLogin, setShowDailyLogin] = useState(false);
@@ -184,18 +187,18 @@ export default function HomeScreen() {
         <View style={styles.customContent}>
           {/* Welcome message with username */}
           <ThemedText type="subtitle" style={styles.welcomeTitle}>
-            Welcome back, {username}! 👋
+            {t("home.welcome_back", { username })}
           </ThemedText>
 
           {/* Subtitle encouraging continued learning */}
           <ThemedText style={styles.welcomeSubtitle}>
-            Ready to continue your Japanese learning journey?
+            {t("home.ready_to_continue")}
           </ThemedText>
 
           {/* Development/Testing: Buttons for testing and debugging */}
           <TouchableOpacity style={styles.testButton} onPress={handleTestTour}>
             <ThemedText style={styles.testButtonText}>
-              🧪 Test Tour Guide
+              {t("home.test_tour_guide")}
             </ThemedText>
           </TouchableOpacity>
 
@@ -204,7 +207,7 @@ export default function HomeScreen() {
             onPress={handleClearAsyncStorage}
           >
             <ThemedText style={styles.testButtonText}>
-              🗑️ Clear Overlay Position
+              {t("home.clear_overlay_position")}
             </ThemedText>
           </TouchableOpacity>
 
@@ -213,14 +216,14 @@ export default function HomeScreen() {
             onPress={handleTestDailyLogin}
           >
             <ThemedText style={styles.testButtonText}>
-              🎉 Test Daily Login Modal
+              {t("home.test_daily_login_modal")}
             </ThemedText>
           </TouchableOpacity>
 
           {/* Quick Start Section - Main action card */}
           <ThemedView style={styles.quickStartCard}>
             <ThemedText type="subtitle" style={styles.cardTitle}>
-              🚀 Quick Start
+              {t("home.quick_start")}
             </ThemedText>
 
             <TouchableOpacity
@@ -229,7 +232,7 @@ export default function HomeScreen() {
               activeOpacity={0.8}
             >
               <ThemedText style={styles.primaryButtonText}>
-                Start New Lesson
+                {t("home.start_new_lesson")}
               </ThemedText>
             </TouchableOpacity>
           </ThemedView>
@@ -237,24 +240,24 @@ export default function HomeScreen() {
           {/* Learning Path Section */}
           <ThemedView style={styles.learningPathCard}>
             <ThemedText type="subtitle" style={styles.cardTitle}>
-              📚 Your Learning Path
+              {t("home.learning_path")}
             </ThemedText>
 
             <View style={styles.pathItem}>
               <ThemedText style={styles.pathItemTitle}>
-                Current Level: N5
+                {t("home.current_level", { level: "N5" })}
               </ThemedText>
               <ThemedText style={styles.pathItemSubtitle}>
-                Basic Japanese - Hiragana & Katakana
+                {t("home.basic_japanese")}
               </ThemedText>
             </View>
 
             <View style={styles.pathItem}>
               <ThemedText style={styles.pathItemTitle}>
-                Next Goal: N4
+                {t("home.next_goal", { level: "N4" })}
               </ThemedText>
               <ThemedText style={styles.pathItemSubtitle}>
-                Intermediate Japanese - Kanji & Grammar
+                {t("home.intermediate_japanese")}
               </ThemedText>
             </View>
           </ThemedView>
@@ -277,26 +280,26 @@ export default function HomeScreen() {
       >
         <TourStep
           stepIndex={1}
-          title="Your Partner Pokémon"
-          description="Take care of your partner Pokémon and evolve together!"
+          title={t("home.partner_pokemon")}
+          description={t("home.take_care_description")}
         >
           <ThemedText style={styles.fakeOverlayText}>
-            Partner Pokémon
+            {t("home.partner_pokemon_short")}
           </ThemedText>
           <ThemedText style={styles.fakeOverlaySubtext}>
-            Take care of me!
+            {t("home.take_care_me")}
           </ThemedText>
           <ThemedText style={styles.fakeOverlaySubtext}>
-            Partner Pokémon
+            {t("home.partner_pokemon_short")}
           </ThemedText>
           <ThemedText style={styles.fakeOverlaySubtext}>
-            Take care of me!
+            {t("home.take_care_me")}
           </ThemedText>
           <ThemedText style={styles.fakeOverlaySubtext}>
-            Partner Pokémon
+            {t("home.partner_pokemon_short")}
           </ThemedText>
           <ThemedText style={styles.fakeOverlaySubtext}>
-            Partner Pokémon
+            {t("home.partner_pokemon_short")}
           </ThemedText>
         </TourStep>
       </View>

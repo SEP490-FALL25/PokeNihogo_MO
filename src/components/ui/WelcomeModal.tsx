@@ -1,5 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
@@ -18,6 +19,8 @@ export default function WelcomeModal({
   username,
   pokemonName,
 }: WelcomeModalProps) {
+  const { t } = useTranslation();
+  
   return (
     <Modal
       visible={visible}
@@ -44,17 +47,17 @@ export default function WelcomeModal({
 
               {/* Welcome Message */}
               <ThemedText style={styles.welcomeTitle}>
-                Welcome, {username}!
+                {t("welcome_modal.title", { username })}
               </ThemedText>
 
               <ThemedText style={styles.welcomeMessage}>
-                {pokemonName} is ready to join you on your journey!
+                {t("welcome_modal.message", { pokemonName })}
               </ThemedText>
 
               {/* Action Button */}
               <Pressable style={styles.actionButton} onPress={onClose}>
                 <ThemedText style={styles.actionButtonText}>
-                  Let&apos;s Begin! 🚀
+                  {t("welcome_modal.lets_begin")}
                 </ThemedText>
               </Pressable>
             </View>

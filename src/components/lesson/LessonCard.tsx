@@ -59,7 +59,7 @@ const LessonCard: React.FC<LessonCardProps> = React.memo(
               {lesson.lesson.titleJp}
             </ThemedText>
             <ThemedText style={styles.lessonDescription}>
-              Bài học N{lesson.lesson.levelJlpt}
+              {t("lesson_card.lesson_description", { level: lesson.lesson.levelJlpt })}
             </ThemedText>
           </View>
         </View>

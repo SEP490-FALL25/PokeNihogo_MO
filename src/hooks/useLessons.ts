@@ -96,6 +96,30 @@ export const useUserProgressInfinite = (
   });
 };
 
+/**
+ * Infinite list of user lessons with pagination support
+ */
+export const useInfiniteUserLessons = (params: Omit<IQueryRequest, "currentPage">) => {
+  return useInfiniteQuery({
+    queryKey: ["user-lessons-infinite", params],
+    queryFn: ({ pageParam = 1 }) =>
+      userProgressService.getMyProgress({
+        ...params,
+        currentPage: pageParam as number,
+        pageSize: (params as IQueryRequest).pageSize ?? 10,
+      }),
+    initialPageParam: 1,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: 1, // Only retry once
+    getNextPageParam: (lastPage) => {
+      const pagination = (lastPage as any)?.data?.pagination;
+      if (!pagination) return undefined;
+      const { current, totalPage } = pagination;
+      return current < totalPage ? current + 1 : undefined;
+    },
+  });
+};
+
 export const useLessonCategories = () => {
   return useQuery<ILessonCategoryResponse>({
     queryKey: ["lessonCategories"],

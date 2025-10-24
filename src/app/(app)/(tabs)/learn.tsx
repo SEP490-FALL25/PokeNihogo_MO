@@ -253,13 +253,13 @@ const CategoriesScreen = () => {
           📚 {t("lessons.title")}
         </ThemedText>
         <ErrorState
-          title="Lỗi tải dữ liệu"
-          description="Không thể tải danh sách bài học. Vui lòng kiểm tra kết nối mạng và thử lại."
+          title={t("lessons.error_loading_lessons")}
+          description={t("lessons.error_loading_lessons_description")}
           error={lessonCategoriesError?.message || "Unknown error"}
           onRetry={() => {
             // TODO: Implement retry
           }}
-          retryText="Thử lại"
+          retryText={t("common.retry")}
         />
       </HomeLayout>
     );

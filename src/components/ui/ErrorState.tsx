@@ -1,6 +1,7 @@
 import { ThemedText } from "@components/ThemedText";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 interface ErrorStateProps {
@@ -21,21 +22,26 @@ interface ErrorStateProps {
 }
 
 const ErrorState: React.FC<ErrorStateProps> = ({
-  title = "Đã xảy ra lỗi",
-  description = "Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.",
+  title,
+  description,
   error,
   icon = "exclamationmark.triangle",
   iconSize = 48,
   iconColor = "#ef4444",
   showRetry = true,
   onRetry,
-  retryText = "Thử lại",
+  retryText,
   pokemonTheme = true,
   style,
   titleStyle,
   descriptionStyle,
   errorStyle,
 }) => {
+  const { t } = useTranslation();
+  
+  const defaultTitle = title || t("error_state.default_title");
+  const defaultDescription = description || t("error_state.default_description");
+  const defaultRetryText = retryText || t("error_state.default_retry");
   return (
     <View style={[styles.container, pokemonTheme && styles.pokemonContainer, style]}>
       <View style={[styles.iconContainer, pokemonTheme && styles.pokemonIconContainer]}>
@@ -55,13 +61,13 @@ const ErrorState: React.FC<ErrorStateProps> = ({
         type="subtitle" 
         style={[styles.title, pokemonTheme && styles.pokemonTitle, titleStyle]}
       >
-        {title}
+        {defaultTitle}
       </ThemedText>
       
       <ThemedText 
         style={[styles.description, pokemonTheme && styles.pokemonDescription, descriptionStyle]}
       >
-        {description}
+        {defaultDescription}
       </ThemedText>
 
       {error && (
@@ -80,7 +86,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({
         >
           <IconSymbol name="arrow.clockwise" size={16} color="#ffffff" />
           <ThemedText style={[styles.retryText, pokemonTheme && styles.pokemonRetryText]}>
-            {retryText}
+            {defaultRetryText}
           </ThemedText>
         </TouchableOpacity>
       )}
@@ -88,7 +94,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({
       {pokemonTheme && (
         <View style={styles.pokemonFooter}>
           <ThemedText style={styles.pokemonFooterText}>
-            ⚡ Đừng bỏ cuộc! Hãy thử lại để tiếp tục hành trình!
+            {t("error_state.pokemon_footer")}
           </ThemedText>
         </View>
       )}

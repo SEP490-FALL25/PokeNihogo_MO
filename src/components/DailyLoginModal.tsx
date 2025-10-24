@@ -2,6 +2,7 @@
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Animated,
   Dimensions,
@@ -29,6 +30,7 @@ export function DailyLoginModal({
   onClose,
   onCheckIn,
 }: DailyLoginModalProps) {
+  const { t } = useTranslation();
   const [streak, setStreak] = useState(0);
   const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
   const [checkInDays, setCheckInDays] = useState<CheckInDay[]>([]);
@@ -178,7 +180,15 @@ export function DailyLoginModal({
 
   const getDayName = (dateString: string) => {
     const date = new Date(dateString);
-    const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+    const days = [
+      t("daily_login.day_names.sun"),
+      t("daily_login.day_names.mon"),
+      t("daily_login.day_names.tue"),
+      t("daily_login.day_names.wed"),
+      t("daily_login.day_names.thu"),
+      t("daily_login.day_names.fri"),
+      t("daily_login.day_names.sat")
+    ];
     return days[date.getDay()];
   };
 
@@ -205,9 +215,9 @@ export function DailyLoginModal({
         >
           <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
             <View style={styles.header}>
-              <Text style={styles.title}>Điểm danh hàng ngày</Text>
+              <Text style={styles.title}>{t("daily_login.title")}</Text>
               <Text style={styles.subtitle}>
-                Duy trì thói quen tốt mỗi ngày
+                {t("daily_login.subtitle")}
               </Text>
             </View>
 
@@ -221,19 +231,19 @@ export function DailyLoginModal({
                 <Text style={styles.flameIcon}>🔥</Text>
                 <View style={styles.streakInfo}>
                   <Text style={styles.streakNumber}>{streak}</Text>
-                  <Text style={styles.streakLabel}>ngày liên tiếp</Text>
+                  <Text style={styles.streakLabel}>{t("daily_login.consecutive_days")}</Text>
                 </View>
               </View>
             </Animated.View>
 
             <View style={styles.motivationContainer}>
               <Text style={styles.motivationText}>
-                {streak === 0 && "Bắt đầu chuỗi điểm danh của bạn!"}
-                {streak > 0 && streak < 7 && "Tuyệt vời! Hãy tiếp tục!"}
+                {streak === 0 && t("daily_login.motivation.start_streak")}
+                {streak > 0 && streak < 7 && t("daily_login.motivation.keep_going")}
                 {streak >= 7 &&
                   streak < 30 &&
-                  "Xuất sắc! Bạn đang làm rất tốt!"}
-                {streak >= 30 && "Đỉnh cao! Bạn là huyền thoại!"}
+                  t("daily_login.motivation.excellent")}
+                {streak >= 30 && t("daily_login.motivation.legendary")}
               </Text>
             </View>
 
@@ -281,8 +291,8 @@ export function DailyLoginModal({
                 className="h-16"
               >
                 {hasCheckedInToday
-                  ? "✓ Đã điểm danh hôm nay"
-                  : "Điểm danh ngay 🎯"}
+                  ? t("daily_login.already_checked")
+                  : t("daily_login.check_in_button")}
               </BounceButton>
             </View>
 
@@ -314,7 +324,7 @@ export function DailyLoginModal({
               withHaptics={true}
               className="h-12"
             >
-              Đóng
+              {t("daily_login.close")}
             </BounceButton>
           </ScrollView>
         </Animated.View>

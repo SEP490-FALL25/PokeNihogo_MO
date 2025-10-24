@@ -1,4 +1,3 @@
-import HomeLayout from "@components/layouts/HomeLayout";
 import LessonCard from "@components/lesson/LessonCard";
 import { ThemedText } from "@components/ThemedText";
 import { Badge } from "@components/ui/Badge";
@@ -6,10 +5,12 @@ import EmptyState from "@components/ui/EmptyState";
 import ErrorState from "@components/ui/ErrorState";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import { Skeleton } from "@components/ui/Skeleton";
-import { useUserProgressWithParams } from "@hooks/useLessons";
+import { useInfiniteUserLessons } from "@hooks/useLessons";
 import { LessonProgress } from "@models/lesson/lesson.common";
 import { ROUTES } from "@routes/routes";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
+import { Search } from "lucide-react-native";
 import React, {
   useCallback,
   useEffect,
@@ -19,144 +20,104 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  ActivityIndicator,
   Animated,
-  RefreshControl,
+  FlatList,
+  Pressable,
+  StatusBar,
   StyleSheet,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Optimized animated wrapper for LessonCard
-const AnimatedLessonCard = React.memo(({
-  lesson,
-  onPress,
-}: {
-  lesson: LessonProgress;
-  onPress: (lesson: LessonProgress) => void;
-}) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
+const AnimatedLessonCard = React.memo(
+  ({
+    lesson,
+    onPress,
+  }: {
+    lesson: LessonProgress;
+    onPress: (lesson: LessonProgress) => void;
+  }) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(20)).current;
 
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [fadeAnim, slideAnim]);
+    useEffect(() => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, [fadeAnim, slideAnim]);
 
-  return (
-    <Animated.View
-      style={{
-        opacity: fadeAnim,
-        transform: [{ translateY: slideAnim }],
-        paddingBottom: 12,
-      }}
-    >
-      <LessonCard lesson={lesson} onPress={() => onPress(lesson)} />
-    </Animated.View>
-  );
-});
+    return (
+      <Animated.View
+        style={{
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+          paddingBottom: 12,
+        }}
+      >
+        <LessonCard lesson={lesson} onPress={() => onPress(lesson)} />
+      </Animated.View>
+    );
+  }
+);
 
 AnimatedLessonCard.displayName = "AnimatedLessonCard";
 
 const LessonsScreen = () => {
   const { t } = useTranslation();
   const { id, title } = useLocalSearchParams();
-  const [refreshing, setRefreshing] = useState(false);
-  const PAGE_SIZE = 5;
-  const [currentPage, setCurrentPage] = useState(1);
-  const [allLessons, setAllLessons] = useState<LessonProgress[]>([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
 
-  const headerFadeAnim = useRef(new Animated.Value(0)).current;
-  const headerSlideAnim = useRef(new Animated.Value(50)).current;
-  const spinAnim = useRef(new Animated.Value(0)).current;
+  // Search functionality with debouncing
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [debouncedQuery, setDebouncedQuery] = useState<string>("");
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim());
+    }, 350);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  // Infinite scroll with the new hook
   const {
-    data: progressData,
+    data,
     isLoading,
-    isFetching,
-    error,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     refetch,
-  } = useUserProgressWithParams({
-    currentPage: currentPage,
-    pageSize: PAGE_SIZE,
+  } = useInfiniteUserLessons({
+    pageSize: 5,
     lessonCategoryId: parseInt(id as string),
   });
 
-  useEffect(() => {
-    const newLessons = progressData?.data?.results;
-
-    if (newLessons) {
-      if (currentPage === 1) {
-        setAllLessons(newLessons);
-        Animated.parallel([
-          Animated.timing(headerFadeAnim, {
-            toValue: 1,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-          Animated.timing(headerSlideAnim, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      } else {
-        // Add only new lessons to avoid duplicates
-        setAllLessons((prevLessons) => {
-          const existingIds = new Set(prevLessons.map((l: LessonProgress) => l.id));
-          const uniqueNewLessons = newLessons.filter(
-            (l: LessonProgress) => !existingIds.has(l.id)
-          );
-          return [...prevLessons, ...uniqueNewLessons];
-        });
-      }
-
-      setHasMore(newLessons.length >= PAGE_SIZE);
-    }
-    setLoadingMore(false);
-  }, [progressData, currentPage, headerFadeAnim, headerSlideAnim]);
-
-  // Spin animation effect
-  useEffect(() => {
-    if (loadingMore || isFetching) {
-      const spinAnimation = Animated.loop(
-        Animated.timing(spinAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        })
-      );
-      spinAnimation.start();
-      return () => spinAnimation.stop();
-    } else {
-      spinAnim.setValue(0);
-    }
-  }, [loadingMore, isFetching, spinAnim]);
+  // Get all lessons from all pages
+  const allLessons = useMemo(() => {
+    return (data?.pages ?? []).flatMap((p: any) => p?.data?.results ?? []);
+  }, [data]);
 
   const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    setHasMore(true);
-    setCurrentPage(1);
-    setRefreshing(false);
-  }, []);
+    refetch();
+  }, [refetch]);
 
   const handleLoadMore = useCallback(() => {
-    if (!loadingMore && hasMore && !isFetching) {
-      setLoadingMore(true);
-      setCurrentPage((prevPage) => prevPage + 1);
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
-  }, [loadingMore, hasMore, isFetching]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleLessonPress = useCallback((lesson: LessonProgress) => {
     router.push({
@@ -167,7 +128,7 @@ const LessonsScreen = () => {
 
   const { completedLessons, progressPercentage } = useMemo(() => {
     const completed = allLessons.filter(
-      (lesson) => lesson.status === "COMPLETED"
+      (lesson: LessonProgress) => lesson.status === "COMPLETED"
     ).length;
     const total = allLessons.length;
     return {
@@ -176,8 +137,19 @@ const LessonsScreen = () => {
     };
   }, [allLessons]);
 
+  // Filter lessons based on search query
+  const filteredLessons = useMemo(() => {
+    if (!debouncedQuery) return allLessons;
+    return allLessons.filter((lesson: LessonProgress) =>
+      lesson.lesson?.titleJp
+        ?.toLowerCase()
+        .includes(debouncedQuery.toLowerCase())
+    );
+  }, [allLessons, debouncedQuery]);
+
   const renderListHeader = () => (
     <>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -190,104 +162,132 @@ const LessonsScreen = () => {
         </ThemedText>
       </View>
 
-      {isLoading && currentPage === 1 ? (
-        <>
-          <Skeleton className="h-32 w-full mb-4 rounded-lg" />
-          <Skeleton className="h-24 w-full mb-4 rounded-lg" />
-          <Skeleton className="h-24 w-full mb-4 rounded-lg" />
-        </>
-      ) : (
-        allLessons.length > 0 && (
-          <>
-            <Animated.View
-              style={[
-                styles.progressCard,
-                {
-                  opacity: headerFadeAnim,
-                  transform: [{ translateY: headerSlideAnim }],
-                },
-              ]}
-            >
-              <ThemedText type="subtitle" style={styles.progressTitle}>
-                📊 {t("lessons.progress_title")}
-              </ThemedText>
-              <View style={styles.progressStats}>
-                <View style={styles.progressStatItem}>
-                  <ThemedText style={styles.progressStatNumber}>
-                    {completedLessons}
-                  </ThemedText>
-                  <ThemedText style={styles.progressStatLabel}>
-                    {t("lessons.lessons_completed")}
-                  </ThemedText>
-                </View>
-                <View style={styles.progressStatItem}>
-                  <ThemedText style={styles.progressStatNumber}>
-                    {allLessons.length}
-                  </ThemedText>
-                  <ThemedText style={styles.progressStatLabel}>
-                    {t("lessons.total_lessons")}
-                  </ThemedText>
-                </View>
-                <View style={styles.progressStatItem}>
-                  <ThemedText style={styles.progressStatNumber}>
-                    {Math.round(progressPercentage)}%
-                  </ThemedText>
-                  <ThemedText style={styles.progressStatLabel}>
-                    {t("common.complete")}
-                  </ThemedText>
-                </View>
-              </View>
-            </Animated.View>
+      {/* Progress Stats Card */}
+      {allLessons.length > 0 && (
+        <LinearGradient
+          colors={["#6FAFB2", "#538f91"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.progressCard}
+          className="rounded-3xl p-5 overflow-hidden shadow-lg"
+        >
+          {/* Decorative circles */}
+          <View className="absolute w-30 h-30 rounded-full bg-white/10" />
+          <View className="absolute w-20 h-20 rounded-full bg-white/8" />
 
-            <View style={styles.lessonsHeader}>
-              <ThemedText type="subtitle" style={styles.lessonsTitle}>
-                📚 {t("lessons.lessons_list")}
+          <ThemedText type="subtitle" style={styles.progressTitle}>
+            📊 {t("lessons.progress_title")}
+          </ThemedText>
+          <View style={styles.progressStats}>
+            <View style={styles.progressStatItem}>
+              <ThemedText style={styles.progressStatNumber}>
+                {completedLessons}
               </ThemedText>
-              <Badge variant="outline">
-                {allLessons.length} {t("lessons.lessons_count")}
-              </Badge>
+              <ThemedText style={styles.progressStatLabel}>
+                {t("lessons.lessons_completed")}
+              </ThemedText>
             </View>
-          </>
-        )
+            <View style={styles.progressStatItem}>
+              <ThemedText style={styles.progressStatNumber}>
+                {allLessons.length}
+              </ThemedText>
+              <ThemedText style={styles.progressStatLabel}>
+                {t("lessons.total_lessons")}
+              </ThemedText>
+            </View>
+            <View style={styles.progressStatItem}>
+              <ThemedText style={styles.progressStatNumber}>
+                {Math.round(progressPercentage)}%
+              </ThemedText>
+              <ThemedText style={styles.progressStatLabel}>
+                {t("common.complete")}
+              </ThemedText>
+            </View>
+          </View>
+
+          {/* Progress bar */}
+          <View className="mt-4">
+            <View className="h-2 bg-white/25 rounded-sm overflow-hidden">
+              <LinearGradient
+                colors={["#10b981", "#059669"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[
+                  styles.progressBarFill,
+                  { width: `${progressPercentage}%` },
+                ]}
+                className="h-full rounded-sm"
+              />
+            </View>
+          </View>
+        </LinearGradient>
+      )}
+
+      {/* Search Bar */}
+      <View className="mb-4">
+        <LinearGradient
+          colors={["#ffffff", "#fefefe"]}
+          style={styles.searchBar}
+        >
+          <View className="w-9 h-9 rounded-xl bg-teal-50 items-center justify-center mr-3">
+            <Search size={20} color="#6FAFB2" strokeWidth={2.5} />
+          </View>
+          <TextInput
+            placeholder={t("search.placeholder")}
+            placeholderTextColor="#94A3B8"
+            className="flex-1 text-base font-semibold text-slate-800 tracking-wide"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <Pressable
+              onPress={() => setSearchQuery("")}
+              className="w-7 h-7 rounded-full bg-slate-100 items-center justify-center"
+            >
+              <ThemedText className="text-base font-bold text-slate-500">
+                ✕
+              </ThemedText>
+            </Pressable>
+          )}
+        </LinearGradient>
+      </View>
+
+      {/* Results count */}
+      {debouncedQuery.length > 0 && (
+        <ThemedText className="text-sm font-bold text-slate-500 mb-3 ml-1 tracking-wide">
+          {t("search.found_results", { count: filteredLessons.length })}
+        </ThemedText>
+      )}
+
+      {/* Lessons Header */}
+      {allLessons.length > 0 && (
+        <View style={styles.lessonsHeader}>
+          <ThemedText type="subtitle" style={styles.lessonsTitle}>
+            📚 {t("lessons.lessons_list")}
+          </ThemedText>
+          <Badge variant="outline">
+            {allLessons.length} {t("lessons.lessons_count")}
+          </Badge>
+        </View>
       )}
     </>
   );
 
+  const renderLessonItem = ({ item }: { item: LessonProgress }) => (
+    <AnimatedLessonCard
+      lesson={item}
+      onPress={handleLessonPress}
+    />
+  );
+
   const renderListFooter = () => (
     <>
-      {hasMore && (
-        <TouchableOpacity
-          style={styles.loadMoreButton}
-          onPress={handleLoadMore}
-          disabled={loadingMore || isFetching}
-          activeOpacity={0.8}
-        >
-          <ThemedText style={styles.loadMoreText}>
-            {loadingMore || isFetching
-              ? t("common.loading")
-              : t("lessons.load_more")}
-          </ThemedText>
-          {(loadingMore || isFetching) && (
-            <Animated.View style={styles.loadingSpinner}>
-              <Animated.View
-                style={{
-                  transform: [
-                    {
-                      rotate: spinAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: ["0deg", "360deg"],
-                      }),
-                    },
-                  ],
-                }}
-              >
-                <IconSymbol name="arrow.clockwise" size={16} color="#3b82f6" />
-              </Animated.View>
-            </Animated.View>
-          )}
-        </TouchableOpacity>
+      {isFetchingNextPage && (
+        <View className="py-3">
+          <ActivityIndicator size="large" color="#929898" />
+        </View>
       )}
-      {!hasMore && allLessons.length > 0 && (
+      {!hasNextPage && allLessons.length > 0 && (
         <View style={styles.endOfResultsContainer}>
           <View style={styles.endOfResultsLine} />
           <ThemedText style={styles.endOfResultsText}>
@@ -300,9 +300,10 @@ const LessonsScreen = () => {
     </>
   );
 
-  if (error) {
+  if (isError) {
     return (
-      <HomeLayout>
+      <SafeAreaView className="flex-1 bg-slate-100">
+        <StatusBar barStyle="dark-content" />
         <View style={{ flex: 1, padding: 16 }}>
           <View style={styles.header}>
             <TouchableOpacity
@@ -318,53 +319,75 @@ const LessonsScreen = () => {
           <ErrorState
             title={`📚 ${t("lessons.error_loading_lessons")}`}
             description={`📚 ${t("lessons.error_loading_lessons_description")}`}
-            error={error?.message || "Unknown error"}
+            error="Unknown error"
             onRetry={() => refetch()}
             retryText={t("common.retry")}
           />
         </View>
-      </HomeLayout>
+      </SafeAreaView>
     );
   }
 
   return (
-    <HomeLayout
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-      }
-    >
+    <SafeAreaView className="flex-1 bg-slate-100">
+      <StatusBar barStyle="dark-content" />
+
       <View style={styles.listContentContainer}>
         {renderListHeader()}
-        {!isLoading && allLessons.length === 0 ? (
+
+        {/* Lessons List */}
+        {isLoading ? (
+          <FlatList
+            data={Array.from({ length: 5 }, (_, i) => i)}
+            keyExtractor={(item) => `skeleton-${item}`}
+            renderItem={() => (
+              <Skeleton
+                style={{ height: 120, borderRadius: 16 }}
+                className="mb-3"
+              />
+            )}
+            showsVerticalScrollIndicator={false}
+            className="pb-6"
+          />
+        ) : filteredLessons.length === 0 ? (
           <EmptyState
             title={`📚 ${t("lessons.no_lessons")}`}
             description={t("lessons.no_lessons_description")}
             icon="book.closed"
           />
         ) : (
-          allLessons.map((lesson, index) => (
-            <AnimatedLessonCard
-              key={`${lesson.lessonId}-${lesson.id}`}
-              lesson={lesson}
-              onPress={handleLessonPress}
-            />
-          ))
+          <FlatList
+            data={filteredLessons}
+            keyExtractor={(item, index) => `lesson-${item.lessonId}-${item.id}-${index}`}
+            renderItem={renderLessonItem}
+            showsVerticalScrollIndicator={false}
+            className="pb-6"
+            onEndReachedThreshold={0.4}
+            onEndReached={() => {
+              if (hasNextPage && !isFetchingNextPage) {
+                handleLoadMore();
+              }
+            }}
+            refreshing={isLoading}
+            onRefresh={handleRefresh}
+            ListFooterComponent={renderListFooter}
+          />
         )}
-        {renderListFooter()}
       </View>
-    </HomeLayout>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   listContentContainer: {
+    flex: 1,
     paddingHorizontal: 16,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
-    marginTop: 10, // Thêm chút khoảng trống ở trên đầu
+    marginTop: 10,
   },
   backButton: {
     marginRight: 12,
@@ -376,21 +399,22 @@ const styles = StyleSheet.create({
     color: "#1f2937",
     flex: 1,
   },
+  // Progress Card - Enhanced with gradient styling
   progressCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 20,
-    marginBottom: 24, // Tăng khoảng cách
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
+    marginBottom: 24,
+    overflow: "hidden",
+    shadowColor: "#6FAFB2",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
   },
   progressTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#1f2937",
+    color: "white",
     marginBottom: 16,
     textAlign: "center",
   },
@@ -404,14 +428,33 @@ const styles = StyleSheet.create({
   progressStatNumber: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#3b82f6",
+    color: "white",
     marginBottom: 4,
   },
   progressStatLabel: {
     fontSize: 12,
-    color: "#6b7280",
+    color: "rgba(255, 255, 255, 0.8)",
     textAlign: "center",
   },
+  progressBarFill: {
+    height: "100%",
+    borderRadius: 4,
+  },
+
+  // Search Bar - Enhanced styling
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+
   lessonsHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -422,26 +465,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "600",
     color: "#1f2937",
-  },
-  loadMoreButton: {
-    backgroundColor: "rgba(59, 130, 246, 0.1)",
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(59, 130, 246, 0.2)",
-  },
-  loadMoreText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#3b82f6",
-    marginRight: 8,
-  },
-  loadingSpinner: {
-    marginLeft: 8,
   },
   endOfResultsContainer: {
     flexDirection: "row",
