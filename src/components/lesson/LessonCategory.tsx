@@ -1,77 +1,76 @@
 import { ThemedText } from "@components/ThemedText";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import {
-  LessonCategory as LessonCategoryType,
-  LessonProgress,
+    LessonCategory as LessonCategoryType,
+    LessonProgress,
 } from "@models/lesson/lesson.common";
+import { getCategoryIcon } from "@utils/lesson.utils";
 import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
 } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Animated,
-  LayoutAnimation,
-  Platform,
-  StyleSheet,
-  TouchableOpacity,
-  UIManager,
-  View,
+    Animated,
+    LayoutAnimation,
+    Platform,
+    StyleSheet,
+    TouchableOpacity,
+    UIManager,
+    View,
 } from "react-native";
 import LessonCard from "./LessonCard";
 
-// Optimized Animated wrapper for LessonCard with memoization
-const AnimatedLessonCard = React.memo(
-  ({
-    lesson,
-    onPress,
-    index,
-  }: {
-    lesson: LessonProgress;
-    onPress: (lesson: LessonProgress) => void;
-    index: number;
-  }) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const slideAnim = useRef(new Animated.Value(20)).current;
+// Simplified animated wrapper for LessonCard
+const AnimatedLessonCard = React.memo(({
+  lesson,
+  onPress,
+  index,
+}: {
+  lesson: LessonProgress;
+  onPress: (lesson: LessonProgress) => void;
+  index: number;
+}) => {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
 
-    useEffect(() => {
-      const animationDelay = Math.min(index * 50, 300); // Cap delay for better performance
+  useEffect(() => {
+    const animationDelay = Math.min(index * 50, 200);
+    
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 200,
+        delay: animationDelay,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 200,
+        delay: animationDelay,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [index, fadeAnim, slideAnim]);
 
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 250, // Reduced duration for snappier feel
-          delay: animationDelay,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 250,
-          delay: animationDelay,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, [index, fadeAnim, slideAnim]);
+  const handlePress = useCallback(() => {
+    onPress(lesson);
+  }, [onPress, lesson]);
 
-    const handlePress = useCallback(() => {
-      onPress(lesson);
-    }, [onPress, lesson]);
-
-    return (
-      <Animated.View
-        style={{
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        }}
-      >
-        <LessonCard lesson={lesson} onPress={handlePress} />
-      </Animated.View>
-    );
-  }
-);
+  return (
+    <Animated.View
+      style={{
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }],
+      }}
+    >
+      <LessonCard lesson={lesson} onPress={handlePress} />
+    </Animated.View>
+  );
+});
 
 AnimatedLessonCard.displayName = "AnimatedLessonCard";
 
@@ -144,42 +143,8 @@ const LessonCategory: React.FC<LessonCategoryProps> = React.memo(
       }
     }, [onCategoryPress, category, isExpanded, animatedRotation]);
 
-    // Memoized icon getter for better performance
-    const getCategoryIcon = useCallback((categoryName: string) => {
-      const name = categoryName.toLowerCase();
-      const iconMap: Record<string, string> = {
-        // Level categories
-        [t("lessons.level_categories.n5_basic").toLowerCase()]: "1.circle.fill",
-        [t("lessons.level_categories.n4_intermediate").toLowerCase()]: "2.circle.fill", 
-        [t("lessons.level_categories.n3_advanced").toLowerCase()]: "3.circle.fill",
-        // Skill categories
-        [t("lessons.skill_categories.reading").toLowerCase()]: "book.fill",
-        [t("lessons.skill_categories.speaking").toLowerCase()]: "mic.fill",
-        [t("lessons.skill_categories.listening").toLowerCase()]: "headphones",
-        // Lesson types
-        [t("lessons.lesson_types.vocabulary").toLowerCase()]: "textformat.abc",
-        [t("lessons.lesson_types.grammar").toLowerCase()]: "textformat.123",
-        [t("lessons.lesson_types.kanji").toLowerCase()]: "character",
-        // Fallback patterns
-        "n5": "1.circle.fill",
-        "n4": "2.circle.fill", 
-        "n3": "3.circle.fill",
-        "vocabulary": "textformat.abc",
-        "grammar": "textformat.123",
-        "reading": "book.fill",
-        "listening": "headphones",
-        "kanji": "character",
-        "conversation": "bubble.left.and.bubble.right.fill",
-        "writing": "pencil.and.outline",
-      };
-      return iconMap[name] || "folder.fill";
-    }, [t]);
-
-    // Memoized icon for this category
-    const categoryIcon = useMemo(
-      () => getCategoryIcon(category.name),
-      [getCategoryIcon, category.name]
-    );
+    // Get icon for this category
+    const categoryIcon = getCategoryIcon(category.name);
 
     return (
       <View style={styles.container}>

@@ -26,8 +26,8 @@ import {
   View,
 } from "react-native";
 
-// Animated wrapper for LessonCard
-const AnimatedLessonCard = ({
+// Optimized animated wrapper for LessonCard
+const AnimatedLessonCard = React.memo(({
   lesson,
   onPress,
 }: {
@@ -41,12 +41,12 @@ const AnimatedLessonCard = ({
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 400,
+        duration: 300,
         useNativeDriver: true,
       }),
       Animated.timing(slideAnim, {
         toValue: 0,
-        duration: 400,
+        duration: 300,
         useNativeDriver: true,
       }),
     ]).start();
@@ -57,13 +57,15 @@ const AnimatedLessonCard = ({
       style={{
         opacity: fadeAnim,
         transform: [{ translateY: slideAnim }],
-        paddingBottom: 12, // Khoảng cách giữa các item
+        paddingBottom: 12,
       }}
     >
       <LessonCard lesson={lesson} onPress={() => onPress(lesson)} />
     </Animated.View>
   );
-};
+});
+
+AnimatedLessonCard.displayName = "AnimatedLessonCard";
 
 const LessonsScreen = () => {
   const { t } = useTranslation();
@@ -100,21 +102,19 @@ const LessonsScreen = () => {
         Animated.parallel([
           Animated.timing(headerFadeAnim, {
             toValue: 1,
-            duration: 400,
+            duration: 300,
             useNativeDriver: true,
           }),
           Animated.timing(headerSlideAnim, {
             toValue: 0,
-            duration: 400,
+            duration: 300,
             useNativeDriver: true,
           }),
         ]).start();
       } else {
-        // Chỉ thêm những bài học chưa có để tránh trùng lặp
+        // Add only new lessons to avoid duplicates
         setAllLessons((prevLessons) => {
-          const existingIds = new Set(
-            prevLessons.map((l: LessonProgress) => l.id)
-          );
+          const existingIds = new Set(prevLessons.map((l: LessonProgress) => l.id));
           const uniqueNewLessons = newLessons.filter(
             (l: LessonProgress) => !existingIds.has(l.id)
           );
@@ -122,9 +122,7 @@ const LessonsScreen = () => {
         });
       }
 
-      if (newLessons.length < PAGE_SIZE) {
-        setHasMore(false);
-      }
+      setHasMore(newLessons.length >= PAGE_SIZE);
     }
     setLoadingMore(false);
   }, [progressData, currentPage, headerFadeAnim, headerSlideAnim]);
@@ -149,7 +147,7 @@ const LessonsScreen = () => {
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
     setHasMore(true);
-    setCurrentPage(1); // Tự động trigger useEffect để fetch lại
+    setCurrentPage(1);
     setRefreshing(false);
   }, []);
 

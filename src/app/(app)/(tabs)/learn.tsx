@@ -5,10 +5,15 @@ import { Badge } from "@components/ui/Badge";
 import ErrorState from "@components/ui/ErrorState";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import { Skeleton } from "@components/ui/Skeleton";
-import { useLessons, useUserProgress } from "@hooks/useLessons";
+import { useLessonCategories, useUserProgress } from "@hooks/useLessons";
 import { LessonProgress } from "@models/lesson/lesson.common";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
+import {
+  getJLPTLevelColor,
+  getSkillCategoryColor,
+  getSkillCategoryIcon,
+} from "@utils/lesson.utils";
 import { router } from "expo-router";
 import React, {
   useCallback,
@@ -26,57 +31,61 @@ import {
   View,
 } from "react-native";
 
-// Animated wrapper for LessonCategory
-const AnimatedLessonCategory = ({
-  category,
-  onLessonPress,
-  onCategoryPress,
-  delay,
-  isLoaded,
-}: {
-  category: any;
-  onLessonPress: (lesson: LessonProgress) => void;
-  onCategoryPress?: (category: any) => void;
-  delay: number;
-  isLoaded: boolean;
-}) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+// Optimized animated wrapper for LessonCategory
+const AnimatedLessonCategory = React.memo(
+  ({
+    category,
+    onLessonPress,
+    onCategoryPress,
+    delay,
+    isLoaded,
+  }: {
+    category: any;
+    onLessonPress: (lesson: LessonProgress) => void;
+    onCategoryPress?: (category: any) => void;
+    delay: number;
+    isLoaded: boolean;
+  }) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(30)).current;
 
-  useEffect(() => {
-    if (isLoaded) {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 400,
-          delay: delay,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 400,
-          delay: delay,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [isLoaded, delay, fadeAnim, slideAnim]);
+    useEffect(() => {
+      if (isLoaded) {
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            delay: delay,
+            useNativeDriver: true,
+          }),
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 300,
+            delay: delay,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
+    }, [isLoaded, delay, fadeAnim, slideAnim]);
 
-  return (
-    <Animated.View
-      style={{
-        opacity: fadeAnim,
-        transform: [{ translateY: slideAnim }],
-      }}
-    >
-      <LessonCategory
-        category={category}
-        onLessonPress={onLessonPress}
-        onCategoryPress={onCategoryPress}
-      />
-    </Animated.View>
-  );
-};
+    return (
+      <Animated.View
+        style={{
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        }}
+      >
+        <LessonCategory
+          category={category}
+          onLessonPress={onLessonPress}
+          onCategoryPress={onCategoryPress}
+        />
+      </Animated.View>
+    );
+  }
+);
+
+AnimatedLessonCategory.displayName = "AnimatedLessonCategory";
 
 const CategoriesScreen = () => {
   const { t } = useTranslation();
@@ -89,46 +98,43 @@ const CategoriesScreen = () => {
   const progressAnim = useRef(new Animated.Value(0)).current;
 
   const { level: userLevel } = useUserStore();
-  const {
-    data: lessonsData,
-    isLoading: lessonsLoading,
-    error: lessonsError,
-    refetch,
-  } = useLessons(userLevel || "N5");
-  const { data: progressData, isLoading: progressLoading } = useUserProgress();
 
-  // Animation effect when data loads
+  const { data: progressData, isLoading: progressLoading } = useUserProgress();
+  const {
+    data: lessonCategoriesData,
+    isLoading: lessonCategoriesLoading,
+    error: lessonCategoriesError,
+  } = useLessonCategories();
+
+  // Optimized animation effect when data loads
   useEffect(() => {
-    if (!lessonsLoading && !progressLoading && !lessonsError) {
+    const isDataReady = !progressLoading && !lessonCategoriesLoading;
+
+    if (isDataReady) {
       setIsLoaded(true);
 
-      // Staggered animation for different elements
-      Animated.sequence([
-        // Progress card animation
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-          Animated.timing(slideAnim, {
-            toValue: 0,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-        ]),
-        // Progress bar animation
+      // Simplified animation sequence
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
         Animated.timing(progressAnim, {
           toValue: 1,
-          duration: 600,
+          duration: 500,
           useNativeDriver: false,
         }),
       ]).start();
     }
   }, [
-    lessonsLoading,
     progressLoading,
-    lessonsError,
+    lessonCategoriesLoading,
     fadeAnim,
     slideAnim,
     progressAnim,
@@ -137,11 +143,10 @@ const CategoriesScreen = () => {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await refetch();
     } finally {
       setRefreshing(false);
     }
-  }, [refetch]);
+  }, []);
 
   const handleLessonPress = useCallback((lesson: LessonProgress) => {
     // Navigate to lesson detail or start lesson
@@ -163,82 +168,71 @@ const CategoriesScreen = () => {
   }, []);
 
   const handleSkillCategoryPress = useCallback((category: any) => {
-    // Handle skill categories (Reading, Speaking, Listening)
-    if (category.route === "reading") {
-      router.push(ROUTES.TABS.READING);
-    } else if (category.route === "speaking") {
-      router.push(ROUTES.TABS.SPEAKING);
-    } else if (category.route === "listening") {
-      router.push(ROUTES.TABS.LISTENING);
+    const routeMap: Record<string, any> = {
+      reading: ROUTES.TABS.READING,
+      speaking: ROUTES.TABS.SPEAKING,
+      listening: ROUTES.TABS.LISTENING,
+    };
+
+    const route = routeMap[category.route];
+    if (route) {
+      router.push(route as any);
     }
   }, []);
 
-  // Memoized level categories (N5, N4, N3)
+  // Memoized level categories - filter by "jlpt-" prefix and sort N5 to N1
   const levelCategories = useMemo(
-    () => [
-      {
-        id: "1",
-        name: t("lessons.level_categories.n5_basic"),
-        description: t("lessons.level_names.N5"),
-        color: "#10b981",
-        level: "N5" as const,
-        icon: "1.circle.fill",
-        lessons: [],
-      },
-      {
-        id: "2",
-        name: t("lessons.level_categories.n4_intermediate"),
-        description: t("lessons.level_names.N4"),
-        color: "#3b82f6",
-        level: "N4" as const,
-        icon: "2.circle.fill",
-        lessons: [],
-      },
-      {
-        id: "3",
-        name: t("lessons.level_categories.n3_advanced"),
-        description: t("lessons.level_names.N3"),
-        color: "#8b5cf6",
-        level: "N3" as const,
-        icon: "3.circle.fill",
-        lessons: [],
-      },
-    ],
-    [t]
+    () =>
+      lessonCategoriesData?.data.results
+        .filter((category: any) => {
+          const slug = category.slug.toLowerCase();
+          return slug.startsWith("jlpt-");
+        })
+        .sort((a: any, b: any) => {
+          // Sort JLPT levels from N5 to N1 (ascending order)
+          const levelOrder = [
+            "jlpt-n5",
+            "jlpt-n4",
+            "jlpt-n3",
+            "jlpt-n2",
+            "jlpt-n1",
+          ];
+          const aIndex = levelOrder.indexOf(a.slug.toLowerCase());
+          const bIndex = levelOrder.indexOf(b.slug.toLowerCase());
+          return aIndex - bIndex;
+        })
+        .map((category: any) => ({
+          id: category.id.toString(),
+          name: category.name,
+          description: category.name,
+          color: getJLPTLevelColor(category.slug),
+          level: category.slug.toUpperCase(),
+          icon: "1.circle.fill",
+          lessons: [],
+        })) || [],
+    [lessonCategoriesData?.data.results]
   );
 
-  // Memoized skill categories (Reading, Speaking, Listening)
+  // Memoized skill categories - non-JLPT categories from API
   const skillCategories = useMemo(
-    () => [
-      {
-        id: "4",
-        name: `📖 ${t("lessons.skill_categories.reading")} Practice`,
-        description: t("lessons.lesson_types.reading"),
-        color: "#f59e0b",
-        icon: "book.fill",
-        route: "reading",
-      },
-      {
-        id: "5",
-        name: `🎤 ${t("lessons.skill_categories.speaking")} Practice`,
-        description: t("lessons.lesson_types.speaking"),
-        color: "#ef4444",
-        icon: "mic.fill",
-        route: "speaking",
-      },
-      {
-        id: "6",
-        name: `🎧 ${t("lessons.skill_categories.listening")} Practice`,
-        description: t("lessons.lesson_types.listening"),
-        color: "#8b5cf6",
-        icon: "headphones",
-        route: "listening",
-      },
-    ],
-    [t]
+    () =>
+      lessonCategoriesData?.data.results
+        .filter((category: any) => {
+          const slug = category.slug.toLowerCase();
+          return !slug.startsWith("jlpt-");
+        })
+        .map((category: any) => ({
+          id: category.id.toString(),
+          name: category.name,
+          description: category.name,
+          color: getSkillCategoryColor(category.slug),
+          icon: getSkillCategoryIcon(category.slug),
+          route: category.slug,
+        })) || [],
+    [lessonCategoriesData?.data.results]
   );
 
-  if (lessonsLoading || progressLoading) {
+  if (progressLoading || lessonCategoriesLoading) {
     return (
       <HomeLayout>
         <ThemedText type="title" style={styles.title}>
@@ -252,7 +246,7 @@ const CategoriesScreen = () => {
     );
   }
 
-  if (lessonsError) {
+  if (lessonCategoriesError) {
     return (
       <HomeLayout>
         <ThemedText type="title" style={styles.title}>
@@ -261,8 +255,10 @@ const CategoriesScreen = () => {
         <ErrorState
           title="Lỗi tải dữ liệu"
           description="Không thể tải danh sách bài học. Vui lòng kiểm tra kết nối mạng và thử lại."
-          error={lessonsError?.message || "Unknown error"}
-          onRetry={() => refetch()}
+          error={lessonCategoriesError?.message || "Unknown error"}
+          onRetry={() => {
+            // TODO: Implement retry
+          }}
           retryText="Thử lại"
         />
       </HomeLayout>
@@ -300,7 +296,15 @@ const CategoriesScreen = () => {
             <View style={styles.progressStats}>
               <View style={styles.progressStatItem}>
                 <ThemedText style={styles.progressStatNumber}>
-                  {lessonsData?.data.completedLessons || 0}
+                  {lessonCategoriesData?.data.results
+                    .filter((category: any) =>
+                      category.slug.startsWith("jlpt-")
+                    )
+                    .reduce(
+                      (acc: number, category: any) =>
+                        acc + category.completedLessons,
+                      0
+                    ) || 0}
                 </ThemedText>
                 <ThemedText style={styles.progressStatLabel}>
                   {t("lessons.lessons_completed")}
@@ -308,7 +312,9 @@ const CategoriesScreen = () => {
               </View>
               <View style={styles.progressStatItem}>
                 <ThemedText style={styles.progressStatNumber}>
-                  {lessonsData?.data.totalLessons || 0}
+                  {lessonCategoriesData?.data.results.filter((category: any) =>
+                    category.slug.startsWith("jlpt-")
+                  ).length || 0}
                 </ThemedText>
                 <ThemedText style={styles.progressStatLabel}>
                   {t("lessons.overall_progress")}
@@ -316,7 +322,7 @@ const CategoriesScreen = () => {
               </View>
               <View style={styles.progressStatItem}>
                 <ThemedText style={styles.progressStatNumber}>
-                  {userLevel}
+                  {userLevel||"N5"}
                 </ThemedText>
                 <ThemedText style={styles.progressStatLabel}>
                   {t("lessons.select_level")}
@@ -484,33 +490,6 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     textAlign: "center",
   },
-  levelInfoCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  levelInfoTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  levelInfoDescription: {
-    fontSize: 14,
-    color: "#6b7280",
-    textAlign: "center",
-    lineHeight: 20,
-  },
   categoriesSection: {
     marginBottom: 20,
   },
@@ -575,30 +554,6 @@ const styles = StyleSheet.create({
   },
   skillCategoryArrow: {
     marginLeft: 8,
-  },
-  debugInfo: {
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: "rgba(59, 130, 246, 0.1)",
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: "#3b82f6",
-  },
-  debugTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1e40af",
-    marginBottom: 8,
-  },
-  debugText: {
-    fontSize: 12,
-    color: "#3730a3",
-    marginBottom: 4,
-  },
-  debugError: {
-    fontSize: 12,
-    color: "#dc2626",
-    marginTop: 4,
   },
 });
 

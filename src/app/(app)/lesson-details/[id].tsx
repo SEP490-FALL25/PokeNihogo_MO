@@ -8,15 +8,16 @@ import { IconSymbol } from "@components/ui/IconSymbol";
 import { Progress } from "@components/ui/Progress";
 import { Skeleton } from "@components/ui/Skeleton";
 import { useLesson } from "@hooks/useLessons";
+import { getDifficultyColor, getRarityColor, getTypeColor, getTypeIcon } from "@utils/lesson.utils";
 import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    Image,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 const LessonDetailScreen = () => {
@@ -58,69 +59,6 @@ const LessonDetailScreen = () => {
     );
   }
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "beginner":
-        return "#10b981";
-      case "intermediate":
-        return "#f59e0b";
-      case "advanced":
-        return "#ef4444";
-      default:
-        return "#6b7280";
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "vocabulary":
-        return "textformat.abc";
-      case "grammar":
-        return "textformat.123";
-      case "reading":
-        return "book.fill";
-      case "listening":
-        return "headphones";
-      case "kanji":
-        return "character";
-      default:
-        return "doc.text";
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "vocabulary":
-        return "#10b981";
-      case "grammar":
-        return "#f59e0b";
-      case "reading":
-        return "#3b82f6";
-      case "listening":
-        return "#8b5cf6";
-      case "kanji":
-        return "#ef4444";
-      default:
-        return "#6b7280";
-    }
-  };
-
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case "COMMON":
-        return "#6b7280";
-      case "UNCOMMON":
-        return "#3b82f6";
-      case "RARE":
-        return "#8b5cf6";
-      case "EPIC":
-        return "#a855f7";
-      case "LEGENDARY":
-        return "#eab308";
-      default:
-        return "#6b7280";
-    }
-  };
 
   const handleStartLesson = () => {
     // Navigate to lesson content

@@ -1,7 +1,14 @@
 import { IQueryRequest } from "@models/common/common.request";
+import { ILessonCategoryResponse } from "@models/lesson-category/lesson-category.response";
 import { lessonService } from "@services/lesson";
+import lessonCategoriesService from "@services/lesson-categories";
 import userProgressService from "@services/user-progres";
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 export const useLessons = (level: "N5" | "N4" | "N3") => {
   return useQuery({
@@ -61,24 +68,40 @@ export const useUserProgressWithParams = (params: IQueryRequest) => {
   });
 };
 
-export const useUserProgressInfinite = (params: Omit<IQueryRequest, 'currentPage'>) => {
+export const useUserProgressInfinite = (
+  params: Omit<IQueryRequest, "currentPage">
+) => {
   return useInfiniteQuery({
     queryKey: ["userProgressInfinite", params],
-    queryFn: ({ pageParam = 1 }) => 
-      userProgressService.getMyProgress({ 
-        ...params, 
+    queryFn: ({ pageParam = 1 }) =>
+      userProgressService.getMyProgress({
+        ...params,
         currentPage: pageParam as number,
-        pageSize: params.pageSize || 10 
+        pageSize: params.pageSize || 10,
       }),
     initialPageParam: 1,
     staleTime: 2 * 60 * 1000, // 2 minutes
     retry: 1, // Only retry once
     getNextPageParam: (lastPage: any, allPages: any[]) => {
       const { data } = lastPage;
-      if (data && data.results && data.results.length === (params.pageSize || 10)) {
+      if (
+        data &&
+        data.results &&
+        data.results.length === (params.pageSize || 10)
+      ) {
         return allPages.length + 1;
       }
       return undefined;
     },
+  });
+};
+
+export const useLessonCategories = () => {
+  return useQuery<ILessonCategoryResponse>({
+    queryKey: ["lessonCategories"],
+    queryFn: () => lessonCategoriesService.getAllLessonCategories(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1, // Only retry once
+    enabled: true, // Only run query if enabled
   });
 };

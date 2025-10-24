@@ -1,8 +1,10 @@
-import { axiosClient, axiosPrivate } from "@configs/axios";
+import { axiosPrivate } from "@configs/axios";
+import { ILessonCategoryResponse } from "@models/lesson-category/lesson-category.response";
 
 const lessonCategoriesService = {
-  getAllLessonCategories: async () => {
-    return axiosPrivate.get(`/lesson-categories`);
+  getAllLessonCategories: async (): Promise<ILessonCategoryResponse> => {
+    const response = await axiosPrivate.get(`/lesson-categories`);
+    return response.data;
   },
 };
 

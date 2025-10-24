@@ -3,7 +3,7 @@ import { IconSymbol } from "@components/ui/IconSymbol";
 import { LessonProgress } from "@models/lesson/lesson.common";
 import { ROUTES } from "@routes/routes";
 import { router } from "expo-router";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
@@ -28,11 +28,11 @@ const LessonCard: React.FC<LessonCardProps> = React.memo(
       }
     }, [onPress, lesson]);
 
-    // Memoized type configurations for better performance
-    const typeConfig = useMemo(() => ({
+    // Simplified type configuration
+    const typeConfig = {
       icon: "textformat.abc",
       color: "#10b981",
-    }), []);
+    };
 
 
     return (
@@ -154,17 +154,6 @@ const styles = StyleSheet.create({
   lessonDescription: {
     fontSize: 14,
     color: "#6b7280",
-  },
-  difficultyBadge: {
-    backgroundColor: "#f3f4f6",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  difficultyText: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontWeight: "500",
   },
   progressContainer: {
     flexDirection: "row",
