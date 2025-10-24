@@ -1,8 +1,9 @@
-import AudioRecorder from "@components/AudioRecorder";
+import { AudioRecorder } from "@components/AudioRecorder";
 import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { IconSymbol } from "@components/ui/IconSymbol";
+import * as FileSystem from 'expo-file-system';
 import React, { useState } from "react";
 import {
   Alert,
@@ -196,7 +197,25 @@ export default function SpeakingScreen() {
       if (response.ok) {
         const result = await response.json();
         console.log("Upload successful:", result);
+        
+        // Xóa file khỏi thiết bị sau khi upload thành công
+        try {
+          if (uri && uri.startsWith('file://')) {
+            const fileExists = await FileSystem.getInfoAsync(uri);
+            if (fileExists.exists) {
+              await FileSystem.deleteAsync(uri);
+              console.log("File deleted from device after successful upload");
+            }
+          }
+        } catch (deleteError) {
+          console.error("Failed to delete file after upload:", deleteError);
+        }
+        
         Alert.alert("Thành công", "Bản ghi âm đã được gửi lên server!");
+        
+        // Reset recording state
+        setRecordingUri(null);
+        setRecordingDuration(0);
       } else {
         throw new Error("Upload failed");
       }
@@ -255,6 +274,7 @@ export default function SpeakingScreen() {
               onPlaybackStop={handlePlaybackStop}
               maxDuration={60}
               showPlayback={true}
+              customSavePath={`${FileSystem.documentDirectory}recordings/${new Date().toISOString().split('T')[0]}`}
             />
 
             {recordingUri && (

@@ -2,8 +2,9 @@ import { ThemedText } from '@components/ThemedText';
 import { IconSymbol } from '@components/ui/IconSymbol';
 import { useMicrophonePermission } from '@hooks/useMicrophonePermission';
 import { Audio } from 'expo-av';
-import React, { useEffect, useState } from 'react';
-import { Alert, PanResponder, StyleSheet, TouchableOpacity, View } from 'react-native';
+import * as FileSystem from 'expo-file-system';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, PanResponder, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface AudioRecorderProps {
   onRecordingComplete?: (uri: string, duration: number) => void;
@@ -15,9 +16,10 @@ interface AudioRecorderProps {
   disabled?: boolean;
   exerciseTitle?: string;
   showPlayback?: boolean;
+  customSavePath?: string; // Custom path for saving recordings
 }
 
-export const AudioRecorder: React.FC<AudioRecorderProps> = ({
+const AudioRecorder: React.FC<AudioRecorderProps> = ({
   onRecordingComplete,
   onRecordingStart,
   onRecordingStop,
@@ -27,6 +29,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   disabled = false,
   exerciseTitle = "Bài tập phát âm",
   showPlayback = true,
+  customSavePath,
 }) => {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -39,9 +42,48 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   const [playbackDuration, setPlaybackDuration] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
   
+  // Animation values for smooth progress
+  const recordingProgressAnim = useRef(new Animated.Value(0)).current;
+  const playbackProgressAnim = useRef(new Animated.Value(0)).current;
+  const recordingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const playbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recordingAnimationRef = useRef<number | null>(null);
+  const playbackAnimationRef = useRef<number | null>(null);
+  
   const { hasPermission, requestMicrophonePermission } = useMicrophonePermission();
 
+  // Function to delete file from device
+  const deleteFileFromDevice = async (uri: string) => {
+    try {
+      if (uri && uri.startsWith('file://')) {
+        const fileExists = await FileSystem.getInfoAsync(uri);
+        if (fileExists.exists) {
+          await FileSystem.deleteAsync(uri);
+          console.log('File deleted from device:', uri);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete file from device:', error);
+    }
+  };
+
+  // Function to create custom save path
+  const createCustomSavePath = () => {
+    if (customSavePath) {
+      // Ensure directory exists
+      const dirPath = customSavePath.endsWith('/') ? customSavePath : `${customSavePath}/`;
+      return `${dirPath}recording_${Date.now()}.m4a`;
+    }
+    return null;
+  };
+
   useEffect(() => {
+    // Store ref values at effect creation time
+    const recordingTimer = recordingTimerRef.current;
+    const playbackTimer = playbackTimerRef.current;
+    const recordingAnimation = recordingAnimationRef.current;
+    const playbackAnimation = playbackAnimationRef.current;
+    
     return () => {
       // Cleanup on unmount
       if (recording) {
@@ -49,6 +91,19 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       }
       if (sound) {
         sound.unloadAsync();
+      }
+      // Clear timers and animations
+      if (recordingTimer) {
+        clearTimeout(recordingTimer);
+      }
+      if (playbackTimer) {
+        clearTimeout(playbackTimer);
+      }
+      if (recordingAnimation) {
+        cancelAnimationFrame(recordingAnimation);
+      }
+      if (playbackAnimation) {
+        cancelAnimationFrame(playbackAnimation);
       }
     };
   }, [recording, sound]);
@@ -60,6 +115,11 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
     }
 
     try {
+      // Delete previous recording file if exists
+      if (recordedUri) {
+        await deleteFileFromDevice(recordedUri);
+      }
+
       // Configure audio mode for recording
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
@@ -68,34 +128,44 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         playThroughEarpieceAndroid: false,
       });
 
-      const { recording: newRecording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
+      // Create recording options with custom path if provided
+      const recordingOptions = customSavePath 
+        ? {
+            ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
+            uri: createCustomSavePath(),
+          }
+        : Audio.RecordingOptionsPresets.HIGH_QUALITY;
+
+      const { recording: newRecording } = await Audio.Recording.createAsync(recordingOptions);
 
       setRecording(newRecording);
       setIsRecording(true);
       setRecordingDuration(0);
+      recordingProgressAnim.setValue(0);
       onRecordingStart?.();
 
-      // Start duration counter
-      const interval = setInterval(() => {
-        setRecordingDuration((prev) => {
-          if (prev >= maxDuration) {
-            stopRecording();
-            clearInterval(interval);
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 1000);
+      // Start smooth duration counter with animation using requestAnimationFrame
+      let startTime = Date.now();
+      const updateRecording = () => {
+        const elapsed = (Date.now() - startTime) / 1000;
+        setRecordingDuration(elapsed);
+        
+        // Update progress bar smoothly with direct value setting
+        const progress = Math.min((elapsed / maxDuration) * 100, 100);
+        recordingProgressAnim.setValue(progress);
 
-      // Auto-stop after max duration
-      setTimeout(() => {
-        if (isRecording) {
+        if (elapsed >= maxDuration) {
           stopRecording();
+          if (recordingAnimationRef.current) {
+            cancelAnimationFrame(recordingAnimationRef.current);
+            recordingAnimationRef.current = null;
+          }
+        } else {
+          recordingAnimationRef.current = requestAnimationFrame(updateRecording);
         }
-        clearInterval(interval);
-      }, maxDuration * 1000);
+      };
+      
+      recordingAnimationRef.current = requestAnimationFrame(updateRecording);
 
     } catch (error) {
       console.error('Failed to start recording:', error);
@@ -108,6 +178,13 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
 
     try {
       setIsRecording(false);
+      
+      // Clear recording animation
+      if (recordingAnimationRef.current) {
+        cancelAnimationFrame(recordingAnimationRef.current);
+        recordingAnimationRef.current = null;
+      }
+      
       await recording.stopAndUnloadAsync();
       
       const uri = recording.getURI();
@@ -117,6 +194,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       setRecordingDuration(0);
       setRecordedUri(uri);
       setRecordedDuration(duration);
+      recordingProgressAnim.setValue(0);
       onRecordingStop?.();
       
       if (uri) {
@@ -139,17 +217,24 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       const { sound: newSound } = await Audio.Sound.createAsync({ uri: recordedUri });
       setSound(newSound);
       setIsPlaying(true);
+      playbackProgressAnim.setValue(0);
       onPlaybackStart?.();
+
 
       newSound.setOnPlaybackStatusUpdate((status) => {
         if (status.isLoaded) {
           if (status.didJustFinish) {
             setIsPlaying(false);
             setPlaybackPosition(0);
+            playbackProgressAnim.setValue(0);
             onPlaybackStop?.();
           } else if (status.positionMillis !== undefined && status.durationMillis !== undefined) {
             setPlaybackPosition(status.positionMillis / 1000);
             setPlaybackDuration(status.durationMillis / 1000);
+            
+            // Update progress animation based on actual position
+            const progress = (status.positionMillis / status.durationMillis) * 100;
+            playbackProgressAnim.setValue(progress);
           }
         }
       });
@@ -166,15 +251,23 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       await sound.stopAsync();
       setIsPlaying(false);
       setPlaybackPosition(0);
+      playbackProgressAnim.setValue(0);
       onPlaybackStop?.();
     }
   };
 
-  const deleteRecording = () => {
+  const deleteRecording = async () => {
+    // Delete file from device if it exists
+    if (recordedUri) {
+      await deleteFileFromDevice(recordedUri);
+    }
+    
     setRecordedUri(null);
     setRecordedDuration(0);
     setPlaybackPosition(0);
     setPlaybackDuration(0);
+    playbackProgressAnim.setValue(0);
+    
     if (sound) {
       sound.unloadAsync();
       setSound(null);
@@ -184,7 +277,14 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.floor(seconds % 60);
+    const millis = Math.floor((seconds % 1) * 1000); // Get milliseconds (0-999)
+    return `${mins}:${secs.toString().padStart(2, '0')}:${Math.floor(millis / 10).toString().padStart(2, '0')}`;
+  };
+
+  const formatDurationSimple = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -194,6 +294,9 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         const seekPosition = (position / 100) * playbackDuration * 1000; // Convert to milliseconds
         await sound.setPositionAsync(seekPosition);
         setPlaybackPosition(position / 100 * playbackDuration);
+        
+        // Update animation value directly
+        playbackProgressAnim.setValue(position);
       } catch (error) {
         console.error('Failed to seek:', error);
       }
@@ -211,6 +314,9 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
         const progressBarWidth = 300; // Approximate width of progress bar
         const percentage = Math.max(0, Math.min(100, (gestureState.moveX / progressBarWidth) * 100));
         setPlaybackPosition((percentage / 100) * playbackDuration);
+        
+        // Update animation value immediately for smooth seeking
+        playbackProgressAnim.setValue(percentage);
       }
     },
     onPanResponderRelease: (evt, gestureState) => {
@@ -276,16 +382,20 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
               {formatDuration(recordingDuration)}
             </ThemedText>
             <ThemedText style={styles.maxDurationText}>
-              / {formatDuration(maxDuration)}
+              / {formatDurationSimple(maxDuration)}
             </ThemedText>
           </View>
           <View style={styles.progressBarContainer}>
             <View style={styles.progressBar}>
-              <View 
+              <Animated.View 
                 style={[
                   styles.progressFill, 
                   { 
-                    width: `${(recordingDuration / maxDuration) * 100}%`,
+                    width: recordingProgressAnim.interpolate({
+                      inputRange: [0, 100],
+                      outputRange: ['0%', '100%'],
+                      extrapolate: 'clamp',
+                    }),
                     backgroundColor: '#ef4444'
                   }
                 ]} 
@@ -299,7 +409,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       {recordedUri && showPlayback && (
         <View style={styles.playbackContainer}>
           <ThemedText style={styles.playbackTitle}>
-            🎵 Bản ghi âm của bạn ({formatDuration(recordedDuration)})
+            🎵 Bản ghi âm của bạn ({formatDurationSimple(recordedDuration)})
           </ThemedText>
           
           {/* Playback Progress */}
@@ -309,16 +419,20 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
                 {formatDuration(playbackPosition)}
               </ThemedText>
               <ThemedText style={styles.playbackTimeText}>
-                {formatDuration(playbackDuration || recordedDuration)}
+                {formatDurationSimple(playbackDuration || recordedDuration)}
               </ThemedText>
             </View>
             <View style={styles.progressBarContainer} {...panResponder.panHandlers}>
               <View style={styles.progressBar}>
-                <View 
+                <Animated.View 
                   style={[
                     styles.progressFill, 
                     { 
-                      width: playbackDuration > 0 ? `${(playbackPosition / playbackDuration) * 100}%` : '0%',
+                      width: playbackProgressAnim.interpolate({
+                        inputRange: [0, 100],
+                        outputRange: ['0%', '100%'],
+                        extrapolate: 'clamp',
+                      }),
                       backgroundColor: isSeeking ? '#f59e0b' : '#10b981'
                     }
                   ]} 
@@ -510,4 +624,5 @@ const styles = StyleSheet.create({
   },
 });
 
+export { AudioRecorder };
 export default AudioRecorder;
