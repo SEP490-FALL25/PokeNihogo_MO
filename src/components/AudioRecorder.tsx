@@ -3,7 +3,7 @@ import { IconSymbol } from '@components/ui/IconSymbol';
 import { useMicrophonePermission } from '@hooks/useMicrophonePermission';
 import { Audio } from 'expo-av';
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, PanResponder, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface AudioRecorderProps {
   onRecordingComplete?: (uri: string, duration: number) => void;
@@ -35,6 +35,9 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [recordedUri, setRecordedUri] = useState<string | null>(null);
   const [recordedDuration, setRecordedDuration] = useState(0);
+  const [playbackPosition, setPlaybackPosition] = useState(0);
+  const [playbackDuration, setPlaybackDuration] = useState(0);
+  const [isSeeking, setIsSeeking] = useState(false);
   
   const { hasPermission, requestMicrophonePermission } = useMicrophonePermission();
 
@@ -139,9 +142,15 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       onPlaybackStart?.();
 
       newSound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          setIsPlaying(false);
-          onPlaybackStop?.();
+        if (status.isLoaded) {
+          if (status.didJustFinish) {
+            setIsPlaying(false);
+            setPlaybackPosition(0);
+            onPlaybackStop?.();
+          } else if (status.positionMillis !== undefined && status.durationMillis !== undefined) {
+            setPlaybackPosition(status.positionMillis / 1000);
+            setPlaybackDuration(status.durationMillis / 1000);
+          }
         }
       });
 
@@ -156,6 +165,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
     if (sound) {
       await sound.stopAsync();
       setIsPlaying(false);
+      setPlaybackPosition(0);
       onPlaybackStop?.();
     }
   };
@@ -163,6 +173,8 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   const deleteRecording = () => {
     setRecordedUri(null);
     setRecordedDuration(0);
+    setPlaybackPosition(0);
+    setPlaybackDuration(0);
     if (sound) {
       sound.unloadAsync();
       setSound(null);
@@ -175,6 +187,41 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const seekToPosition = async (position: number) => {
+    if (sound && playbackDuration > 0) {
+      try {
+        const seekPosition = (position / 100) * playbackDuration * 1000; // Convert to milliseconds
+        await sound.setPositionAsync(seekPosition);
+        setPlaybackPosition(position / 100 * playbackDuration);
+      } catch (error) {
+        console.error('Failed to seek:', error);
+      }
+    }
+  };
+
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (evt) => {
+      setIsSeeking(true);
+    },
+    onPanResponderMove: (evt, gestureState) => {
+      if (playbackDuration > 0) {
+        const progressBarWidth = 300; // Approximate width of progress bar
+        const percentage = Math.max(0, Math.min(100, (gestureState.moveX / progressBarWidth) * 100));
+        setPlaybackPosition((percentage / 100) * playbackDuration);
+      }
+    },
+    onPanResponderRelease: (evt, gestureState) => {
+      if (playbackDuration > 0) {
+        const progressBarWidth = 300;
+        const percentage = Math.max(0, Math.min(100, (gestureState.moveX / progressBarWidth) * 100));
+        seekToPosition(percentage);
+      }
+      setIsSeeking(false);
+    },
+  });
 
   if (!hasPermission) {
     return (
@@ -223,13 +270,28 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       </View>
 
       {isRecording && (
-        <View style={styles.durationContainer}>
-          <ThemedText style={styles.durationText}>
-            {formatDuration(recordingDuration)}
-          </ThemedText>
-          <ThemedText style={styles.maxDurationText}>
-            / {formatDuration(maxDuration)}
-          </ThemedText>
+        <View style={styles.recordingProgressContainer}>
+          <View style={styles.durationContainer}>
+            <ThemedText style={styles.durationText}>
+              {formatDuration(recordingDuration)}
+            </ThemedText>
+            <ThemedText style={styles.maxDurationText}>
+              / {formatDuration(maxDuration)}
+            </ThemedText>
+          </View>
+          <View style={styles.progressBarContainer}>
+            <View style={styles.progressBar}>
+              <View 
+                style={[
+                  styles.progressFill, 
+                  { 
+                    width: `${(recordingDuration / maxDuration) * 100}%`,
+                    backgroundColor: '#ef4444'
+                  }
+                ]} 
+              />
+            </View>
+          </View>
         </View>
       )}
 
@@ -239,6 +301,31 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
           <ThemedText style={styles.playbackTitle}>
             🎵 Bản ghi âm của bạn ({formatDuration(recordedDuration)})
           </ThemedText>
+          
+          {/* Playback Progress */}
+          <View style={styles.playbackProgressContainer}>
+            <View style={styles.playbackTimeContainer}>
+              <ThemedText style={styles.playbackTimeText}>
+                {formatDuration(playbackPosition)}
+              </ThemedText>
+              <ThemedText style={styles.playbackTimeText}>
+                {formatDuration(playbackDuration || recordedDuration)}
+              </ThemedText>
+            </View>
+            <View style={styles.progressBarContainer} {...panResponder.panHandlers}>
+              <View style={styles.progressBar}>
+                <View 
+                  style={[
+                    styles.progressFill, 
+                    { 
+                      width: playbackDuration > 0 ? `${(playbackPosition / playbackDuration) * 100}%` : '0%',
+                      backgroundColor: isSeeking ? '#f59e0b' : '#10b981'
+                    }
+                  ]} 
+                />
+              </View>
+            </View>
+          </View>
           
           <View style={styles.playbackControls}>
             {!isPlaying ? (
@@ -316,10 +403,15 @@ const styles = StyleSheet.create({
   stopButtonText: {
     color: '#ffffff',
   },
+  recordingProgressContainer: {
+    marginTop: 12,
+    width: '100%',
+  },
   durationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 12,
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   durationText: {
     fontSize: 18,
@@ -329,6 +421,24 @@ const styles = StyleSheet.create({
   maxDurationText: {
     fontSize: 14,
     color: '#6b7280',
+  },
+  progressBarContainer: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  progressBar: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
   },
   exerciseTitle: {
     fontSize: 16,
@@ -352,6 +462,19 @@ const styles = StyleSheet.create({
     color: '#3b82f6',
     marginBottom: 12,
     textAlign: 'center',
+  },
+  playbackProgressContainer: {
+    marginBottom: 16,
+  },
+  playbackTimeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  playbackTimeText: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '500',
   },
   playbackControls: {
     flexDirection: 'row',
