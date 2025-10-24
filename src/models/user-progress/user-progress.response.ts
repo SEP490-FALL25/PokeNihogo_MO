@@ -1,20 +1,7 @@
-import {
-  IUserProgress,
-  IUserProgressPagination,
-  IUserProgressResponse,
-  UserProgressPaginationSchema,
-  UserProgressResponseSchema,
-  UserProgressSchema
-} from "./user-progress.common";
+import { UserProgressSchema } from "./user-progress.common";
+import { BackendResponsePaginationModel } from "@models/backend/common";
+import { z } from "zod";
 
-// Re-export types for backward compatibility
-export type UserProgress = IUserProgress;
-export type UserProgressPagination = IUserProgressPagination;
-export type UserProgressResponse = IUserProgressResponse;
-
-// Export schemas for validation
-export {
-  UserProgressPaginationSchema,
-  UserProgressResponseSchema, UserProgressSchema
-};
-
+export const UserProgressResponseSchema =
+  BackendResponsePaginationModel(UserProgressSchema);
+export type IUserProgressResponse = z.infer<typeof UserProgressResponseSchema>;

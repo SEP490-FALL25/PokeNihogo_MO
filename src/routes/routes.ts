@@ -47,11 +47,17 @@ enum TABS {
   PROFILE = "/(app)/(tabs)/profile",
 }
 
+enum LESSON {
+  LIST_WITH_ID = "/(app)/lessons-list/[id]",
+  DETAIL = "/(app)/lesson-details/[id]",
+}
+
 export const ROUTES = {
   AUTH,
   TABS,
   STARTER,
   QUIZ,
   ME,
+  LESSON,
   APP,
 };

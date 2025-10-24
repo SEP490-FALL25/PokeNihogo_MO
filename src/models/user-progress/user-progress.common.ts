@@ -1,4 +1,4 @@
-import { PaginationSchema } from "@models/user-pokemon/user-pokemon.common";
+
 import { z } from "zod";
 
 // User Progress Lesson schema
@@ -8,6 +8,7 @@ export const UserProgressLessonSchema = z.object({
   levelJlpt: z.number(),
   isPublished: z.boolean(),
 });
+export type IUserProgressLesson = z.infer<typeof UserProgressLessonSchema>;
 
 // User Progress User schema
 export const UserProgressUserSchema = z.object({
@@ -15,7 +16,7 @@ export const UserProgressUserSchema = z.object({
   name: z.string(),
   email: z.string(),
 });
-
+export type IUserProgressUser = z.infer<typeof UserProgressUserSchema>;
 // User Progress schema
 export const UserProgressSchema = z.object({
   id: z.number(),
@@ -28,25 +29,6 @@ export const UserProgressSchema = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   lesson: UserProgressLessonSchema,
-  user: UserProgressUserSchema,
+  user: UserProgressUserSchema.optional(),
 });
-
-// User Progress Pagination schema
-export const UserProgressPaginationSchema = PaginationSchema;
-
-// User Progress Response schema
-export const UserProgressResponseSchema = z.object({
-  statusCode: z.number(),
-  data: z.object({
-    results: z.array(UserProgressSchema),
-    pagination: UserProgressPaginationSchema,
-  }),
-  message: z.string(),
-});
-
-// Export types
-export type IUserProgressLesson = z.infer<typeof UserProgressLessonSchema>;
-export type IUserProgressUser = z.infer<typeof UserProgressUserSchema>;
 export type IUserProgress = z.infer<typeof UserProgressSchema>;
-export type IUserProgressPagination = z.infer<typeof UserProgressPaginationSchema>;
-export type IUserProgressResponse = z.infer<typeof UserProgressResponseSchema>;

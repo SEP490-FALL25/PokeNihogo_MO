@@ -26,6 +26,7 @@ interface HomeLayoutProps {
     expToNextLevel: number;
     avatar?: string;
   };
+  refreshControl?: React.ReactElement<any>;
 }
 
 export interface HomeLayoutRef {
@@ -33,7 +34,7 @@ export interface HomeLayoutRef {
 }
 
 const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
-  function HomeLayout({ children }, ref) {
+  function HomeLayout({ children, refreshControl }, ref) {
     const scrollViewRef = useRef<ScrollView>(null);
     const currentUser = sampleUser;
 
@@ -61,6 +62,7 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
+            refreshControl={refreshControl}
           >
             {/* User Profile Header */}
             <View style={styles.profileSection}>

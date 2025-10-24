@@ -1,0 +1,228 @@
+import { ThemedText } from "@components/ThemedText";
+import { IconSymbol } from "@components/ui/IconSymbol";
+import { LessonProgress } from "@models/lesson/lesson.common";
+import { ROUTES } from "@routes/routes";
+import { router } from "expo-router";
+import React, { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+
+interface LessonCardProps {
+  lesson: LessonProgress;
+  onPress?: (lesson: LessonProgress) => void;
+}
+
+const LessonCard: React.FC<LessonCardProps> = React.memo(
+  ({ lesson, onPress }) => {
+    const { t } = useTranslation();
+
+    const handlePress = useCallback(() => {
+      if (onPress) {
+        onPress(lesson);
+      } else {
+        // Navigate to lesson detail
+        router.push({
+          pathname: ROUTES.LESSON.DETAIL,
+          params: { id: lesson.lessonId.toString() },
+        });
+      }
+    }, [onPress, lesson]);
+
+    // Memoized type configurations for better performance
+    const typeConfig = useMemo(() => ({
+      icon: "textformat.abc",
+      color: "#10b981",
+    }), []);
+
+
+    return (
+      <TouchableOpacity
+        style={[styles.lessonCard, { borderLeftColor: typeConfig.color }]}
+        onPress={handlePress}
+        activeOpacity={0.8}
+      >
+        <View style={styles.lessonHeader}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: typeConfig.color },
+            ]}
+          >
+            <IconSymbol
+              name={typeConfig.icon as any}
+              size={24}
+              color="#ffffff"
+            />
+          </View>
+          <View style={styles.lessonInfo}>
+            <ThemedText type="subtitle" style={styles.lessonTitle}>
+              {lesson.lesson.titleJp}
+            </ThemedText>
+            <ThemedText style={styles.lessonDescription}>
+              Bài học N{lesson.lesson.levelJlpt}
+            </ThemedText>
+          </View>
+        </View>
+
+
+        {/* Progress */}
+        {lesson.progressPercentage > 0 && (
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBar}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${lesson.progressPercentage}%`,
+                    backgroundColor: typeConfig.color,
+                  },
+                ]}
+              />
+            </View>
+            <ThemedText style={styles.progressText}>
+              {lesson.progressPercentage}% {t("common.complete")}
+            </ThemedText>
+          </View>
+        )}
+
+        {/* Status and Level */}
+        <View style={styles.statusContainer}>
+          <View style={styles.statusInfo}>
+            {lesson.status === "COMPLETED" ? (
+              <ThemedText style={styles.statusCompleted}>
+                ✅ {t("lessons.lesson_status.completed")}
+              </ThemedText>
+            ) : lesson.progressPercentage > 0 ? (
+              <ThemedText style={styles.statusInProgress}>
+                🔄 {t("lessons.lesson_status.in_progress")}
+              </ThemedText>
+            ) : (
+              <ThemedText style={styles.statusNotStarted}>
+                ⭕ {t("lessons.lesson_status.not_started")}
+              </ThemedText>
+            )}
+          </View>
+          <View style={styles.levelBadge}>
+            <ThemedText style={styles.levelText}>N{lesson.lesson.levelJlpt}</ThemedText>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+);
+
+LessonCard.displayName = "LessonCard";
+
+const styles = StyleSheet.create({
+  lessonCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    borderRadius: 12,
+    padding: 16,
+    borderLeftWidth: 4,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  lessonHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 12,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  lessonInfo: {
+    flex: 1,
+  },
+  lessonTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginBottom: 4,
+  },
+  lessonDescription: {
+    fontSize: 14,
+    color: "#6b7280",
+  },
+  difficultyBadge: {
+    backgroundColor: "#f3f4f6",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  difficultyText: {
+    fontSize: 12,
+    color: "#6b7280",
+    fontWeight: "500",
+  },
+  progressContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 12,
+  },
+  progressBar: {
+    flex: 1,
+    height: 6,
+    backgroundColor: "#e5e7eb",
+    borderRadius: 3,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 3,
+  },
+  progressText: {
+    fontSize: 12,
+    color: "#6b7280",
+    fontWeight: "500",
+  },
+  statusContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  statusInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  statusCompleted: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#059669",
+  },
+  statusInProgress: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#2563eb",
+  },
+  statusNotStarted: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#6b7280",
+  },
+  levelBadge: {
+    backgroundColor: "#e5e7eb",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  levelText: {
+    fontSize: 10,
+    color: "#374151",
+    fontWeight: "600",
+  },
+});
+
+export default LessonCard;

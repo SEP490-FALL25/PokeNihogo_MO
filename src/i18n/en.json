@@ -12,7 +12,10 @@
         "continue": "Continue",
         "next": "Next",
         "finish": "Finish",
-        "processing": "Processing..."
+        "complete": "Complete",
+        "retry": "Retry",
+        "processing": "Processing...",
+        "loading": "Loading..."
     },
     "auth": {
         "email": "Email",
@@ -98,12 +101,20 @@
         "progress_title": "Learning Progress",
         "overall_progress": "Overall Progress",
         "level_progress": "Level Progress",
-        "lessons_completed": "lessons completed",
+        "lessons_completed": "Lessons completed",
+        "total_lessons": "Total Lessons",
+        "lessons_list": "Lessons List",
+        "lessons_count": "lessons",
+        "load_more": "Load More",
+        "end_of_results": "That's all the results",
+        "no_lessons": "No lessons available",
+        "no_lessons_description": "You don't have any lessons in this category. Please contact admin to add lessons.",
+        "error_loading_lessons": "Error loading lessons",
+        "error_loading_lessons_description": "Unable to load lessons list. Please check your network connection and try again.",
         "select_level": "Select Level",
         "all_levels": "All",
         "categories": "Lesson Categories",
         "categories_count": "categories",
-        "no_lessons": "No lessons available for level",
         "contact_admin": "Try selecting a different level or contact admin to add content",
         "lesson_status": {
             "completed": "Completed",
@@ -126,6 +137,28 @@
             "N5": "Beginner",
             "N4": "Elementary",
             "N3": "Intermediate"
+        },
+        "skill_categories": {
+            "title": "Skill Practice",
+            "reading": "Reading",
+            "speaking": "Speaking",
+            "listening": "Listening"
+        },
+        "level_categories": {
+            "title": "Learning Levels",
+            "n5_basic": "N5 - Basic",
+            "n4_intermediate": "N4 - Intermediate",
+            "n3_advanced": "N3 - Advanced"
+        },
+        "lesson_info": {
+            "title": "Lesson Information",
+            "lesson_type": "Lesson Type",
+            "level": "Level",
+            "difficulty": "Difficulty",
+            "estimated_time": "Estimated Time",
+            "minutes": "minutes",
+            "reward": "Reward",
+            "status": "Status"
         }
     },
     "zod": {

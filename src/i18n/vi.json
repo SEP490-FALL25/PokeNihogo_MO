@@ -12,7 +12,10 @@
         "continue": "Tiếp tục",
         "next": "Tiếp theo",
         "finish": "Hoàn tất",
-        "processing": "Đang xử lý..."
+        "complete": "Hoàn thành",
+        "retry": "Thử lại",
+        "processing": "Đang xử lý...",
+        "loading": "Đang tải..."
 
     },
     "auth": {
@@ -99,12 +102,20 @@
         "progress_title": "Tiến độ học tập",
         "overall_progress": "Tổng tiến độ",
         "level_progress": "Tiến độ theo cấp độ",
-        "lessons_completed": "bài học hoàn thành",
+        "lessons_completed": "Bài học hoàn thành",
+        "total_lessons": "Tổng bài học",
+        "lessons_list": "Danh sách bài học",
+        "lessons_count": "bài",
+        "load_more": "Xem thêm",
+        "end_of_results": "Đây là toàn bộ kết quả",
+        "no_lessons": "Chưa có bài học nào",
+        "no_lessons_description": "Bạn chưa có bài học nào trong danh mục này. Vui lòng liên hệ admin để được thêm bài học.",
+        "error_loading_lessons": "Lỗi tải danh sách bài học",
+        "error_loading_lessons_description": "Không thể tải danh sách bài học. Vui lòng kiểm tra kết nối mạng và thử lại.",
         "select_level": "Chọn cấp độ",
         "all_levels": "Tất cả",
         "categories": "Danh mục bài học",
         "categories_count": "danh mục",
-        "no_lessons": "Không có bài học nào cho cấp độ",
         "contact_admin": "Thử chọn cấp độ khác hoặc liên hệ admin để thêm nội dung",
         "lesson_status": {
             "completed": "Hoàn thành",
@@ -127,6 +138,28 @@
             "N5": "Sơ cấp",
             "N4": "Sơ trung cấp",
             "N3": "Trung cấp"
+        },
+        "skill_categories": {
+            "title": "Luyện tập kỹ năng",
+            "reading": "Đọc hiểu",
+            "speaking": "Nói",
+            "listening": "Nghe hiểu"
+        },
+        "level_categories": {
+            "title": "Cấp độ học tập",
+            "n5_basic": "N5 - Cơ bản",
+            "n4_intermediate": "N4 - Trung cấp", 
+            "n3_advanced": "N3 - Nâng cao"
+        },
+        "lesson_info": {
+            "title": "Thông tin bài học",
+            "lesson_type": "Loại bài học",
+            "level": "Cấp độ",
+            "difficulty": "Độ khó",
+            "estimated_time": "Thời gian ước tính",
+            "minutes": "phút",
+            "reward": "Phần thưởng",
+            "status": "Trạng thái"
         }
     },
     "zod": {

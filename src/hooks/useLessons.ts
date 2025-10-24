@@ -1,7 +1,7 @@
 import { IQueryRequest } from "@models/common/common.request";
 import { lessonService } from "@services/lesson";
 import userProgressService from "@services/user-progres";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useLessons = (level: "N5" | "N4" | "N3") => {
   return useQuery({
@@ -58,5 +58,27 @@ export const useUserProgressWithParams = (params: IQueryRequest) => {
     queryFn: () => userProgressService.getMyProgress(params),
     staleTime: 2 * 60 * 1000, // 2 minutes
     retry: 1, // Only retry once
+  });
+};
+
+export const useUserProgressInfinite = (params: Omit<IQueryRequest, 'currentPage'>) => {
+  return useInfiniteQuery({
+    queryKey: ["userProgressInfinite", params],
+    queryFn: ({ pageParam = 1 }) => 
+      userProgressService.getMyProgress({ 
+        ...params, 
+        currentPage: pageParam as number,
+        pageSize: params.pageSize || 10 
+      }),
+    initialPageParam: 1,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: 1, // Only retry once
+    getNextPageParam: (lastPage: any, allPages: any[]) => {
+      const { data } = lastPage;
+      if (data && data.results && data.results.length === (params.pageSize || 10)) {
+        return allPages.length + 1;
+      }
+      return undefined;
+    },
   });
 };

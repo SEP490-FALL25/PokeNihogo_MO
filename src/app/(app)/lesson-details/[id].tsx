@@ -1,22 +1,28 @@
-import HomeLayout from '@components/layouts/HomeLayout';
-import { ThemedText } from '@components/ThemedText';
-import { ThemedView } from '@components/ThemedView';
-import { Alert } from '@components/ui/Alert';
-import { Badge } from '@components/ui/Badge';
-import { Button } from '@components/ui/Button';
-import { IconSymbol } from '@components/ui/IconSymbol';
-import { Progress } from '@components/ui/Progress';
-import { Skeleton } from '@components/ui/Skeleton';
-import { useLesson } from '@hooks/useLessons';
-import { router, useLocalSearchParams } from 'expo-router';
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import HomeLayout from "@components/layouts/HomeLayout";
+import { ThemedText } from "@components/ThemedText";
+import { ThemedView } from "@components/ThemedView";
+import { Badge } from "@components/ui/Badge";
+import { Button } from "@components/ui/Button";
+import ErrorState from "@components/ui/ErrorState";
+import { IconSymbol } from "@components/ui/IconSymbol";
+import { Progress } from "@components/ui/Progress";
+import { Skeleton } from "@components/ui/Skeleton";
+import { useLesson } from "@hooks/useLessons";
+import { router, useLocalSearchParams } from "expo-router";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const LessonDetailScreen = () => {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: lessonData, isLoading, error } = useLesson(id || '');
+  const { data: lessonData, isLoading, error } = useLesson(id || "");
 
   const lesson = lessonData?.data;
 
@@ -24,7 +30,7 @@ const LessonDetailScreen = () => {
     return (
       <HomeLayout>
         <ThemedText type="title" style={styles.title}>
-          📚 {t('lessons.title')}
+          📚 {t("lessons.title")}
         </ThemedText>
         <Skeleton className="h-8 w-3/4 mb-4 rounded" />
         <Skeleton className="h-4 w-full mb-2 rounded" />
@@ -39,87 +45,86 @@ const LessonDetailScreen = () => {
     return (
       <HomeLayout>
         <ThemedText type="title" style={styles.title}>
-          📚 {t('lessons.title')}
+          📚 {t("lessons.title")}
         </ThemedText>
-        <Alert variant="destructive" className="mb-4">
-          <ThemedText style={styles.errorText}>
-            Không thể tải thông tin bài học. Vui lòng thử lại.
-          </ThemedText>
-        </Alert>
-        <Button onPress={() => router.back()}>
-          Quay lại
-        </Button>
+        <ErrorState
+          title="Không thể tải bài học"
+          description="Không thể tải thông tin bài học. Vui lòng kiểm tra kết nối mạng và thử lại."
+          error={error?.message || "Lesson not found"}
+          onRetry={() => router.back()}
+          retryText="Quay lại"
+        />
       </HomeLayout>
     );
   }
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'beginner':
-        return '#10b981';
-      case 'intermediate':
-        return '#f59e0b';
-      case 'advanced':
-        return '#ef4444';
+      case "beginner":
+        return "#10b981";
+      case "intermediate":
+        return "#f59e0b";
+      case "advanced":
+        return "#ef4444";
       default:
-        return '#6b7280';
+        return "#6b7280";
     }
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'vocabulary':
-        return 'textformat.abc';
-      case 'grammar':
-        return 'textformat.123';
-      case 'reading':
-        return 'book.fill';
-      case 'listening':
-        return 'headphones';
-      case 'kanji':
-        return 'character';
+      case "vocabulary":
+        return "textformat.abc";
+      case "grammar":
+        return "textformat.123";
+      case "reading":
+        return "book.fill";
+      case "listening":
+        return "headphones";
+      case "kanji":
+        return "character";
       default:
-        return 'doc.text';
+        return "doc.text";
     }
   };
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'vocabulary':
-        return '#10b981';
-      case 'grammar':
-        return '#f59e0b';
-      case 'reading':
-        return '#3b82f6';
-      case 'listening':
-        return '#8b5cf6';
-      case 'kanji':
-        return '#ef4444';
+      case "vocabulary":
+        return "#10b981";
+      case "grammar":
+        return "#f59e0b";
+      case "reading":
+        return "#3b82f6";
+      case "listening":
+        return "#8b5cf6";
+      case "kanji":
+        return "#ef4444";
       default:
-        return '#6b7280';
+        return "#6b7280";
     }
   };
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {
-      case 'COMMON':
-        return '#6b7280';
-      case 'UNCOMMON':
-        return '#3b82f6';
-      case 'RARE':
-        return '#8b5cf6';
-      case 'EPIC':
-        return '#a855f7';
-      case 'LEGENDARY':
-        return '#eab308';
+      case "COMMON":
+        return "#6b7280";
+      case "UNCOMMON":
+        return "#3b82f6";
+      case "RARE":
+        return "#8b5cf6";
+      case "EPIC":
+        return "#a855f7";
+      case "LEGENDARY":
+        return "#eab308";
       default:
-        return '#6b7280';
+        return "#6b7280";
     }
   };
 
   const handleStartLesson = () => {
     // Navigate to lesson content
-    alert('Bắt đầu bài học: ' + lesson.title);
+    alert("Bắt đầu bài học: " + lesson.title);
   };
 
   return (
@@ -127,8 +132,11 @@ const LessonDetailScreen = () => {
       <ThemedText type="title" style={styles.title}>
         📚 {lesson.title}
       </ThemedText>
-      
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View className="mb-6">
           <TouchableOpacity
@@ -138,11 +146,20 @@ const LessonDetailScreen = () => {
             <IconSymbol name="chevron.left" size={20} color="#3b82f6" />
             <ThemedText style={styles.backButtonText}>Quay lại</ThemedText>
           </TouchableOpacity>
-          
+
           <ThemedView style={styles.lessonHeaderCard}>
             <View style={styles.lessonHeader}>
-              <View style={[styles.iconContainer, { backgroundColor: getTypeColor(lesson.type) }]}>
-                <IconSymbol name={getTypeIcon(lesson.type) as any} size={32} color="#ffffff" />
+              <View
+                style={[
+                  styles.iconContainer,
+                  { backgroundColor: getTypeColor(lesson.type) },
+                ]}
+              >
+                <IconSymbol
+                  name={getTypeIcon(lesson.type) as any}
+                  size={32}
+                  color="#ffffff"
+                />
               </View>
               <View style={styles.lessonInfo}>
                 <ThemedText type="subtitle" style={styles.lessonTitle}>
@@ -158,7 +175,16 @@ const LessonDetailScreen = () => {
                     source={{ uri: lesson.pokemonReward.image }}
                     style={styles.pokemonImage}
                   />
-                  <View style={[styles.rarityIndicator, { backgroundColor: getRarityColor(lesson.pokemonReward.rarity) }]} />
+                  <View
+                    style={[
+                      styles.rarityIndicator,
+                      {
+                        backgroundColor: getRarityColor(
+                          lesson.pokemonReward.rarity
+                        ),
+                      },
+                    ]}
+                  />
                 </View>
               )}
             </View>
@@ -167,15 +193,15 @@ const LessonDetailScreen = () => {
           {/* Tags */}
           <ThemedView style={styles.tagsCard}>
             <View style={styles.tagsContainer}>
-              <Badge variant="secondary">
-                {lesson.level}
-              </Badge>
-              <Badge style={{ backgroundColor: getDifficultyColor(lesson.difficulty) }}>
+              <Badge variant="secondary">{lesson.level}</Badge>
+              <Badge
+                style={{
+                  backgroundColor: getDifficultyColor(lesson.difficulty),
+                }}
+              >
                 {lesson.difficulty}
               </Badge>
-              <Badge variant="outline">
-                {`⏱️ ${lesson.estimatedTime}m`}
-              </Badge>
+              <Badge variant="outline">{`⏱️ ${lesson.estimatedTime}m`}</Badge>
             </View>
           </ThemedView>
 
@@ -184,7 +210,7 @@ const LessonDetailScreen = () => {
             <ThemedView style={styles.progressCard}>
               <View style={styles.progressHeader}>
                 <ThemedText type="subtitle" style={styles.progressTitle}>
-                  📊 Tiến độ học tập
+                  📊 {t("lessons.progress_title")}
                 </ThemedText>
                 <ThemedText style={styles.progressPercentage}>
                   {lesson.progress}%
@@ -198,41 +224,53 @@ const LessonDetailScreen = () => {
         {/* Lesson Info */}
         <ThemedView style={styles.infoCard}>
           <ThemedText type="subtitle" style={styles.infoTitle}>
-            ℹ️ Thông tin bài học
+            ℹ️ {t("lessons.lesson_info.title")}
           </ThemedText>
-          
+
           <View style={styles.infoGrid}>
             <View style={styles.infoRow}>
-              <ThemedText style={styles.infoLabel}>Loại bài học:</ThemedText>
-              <ThemedText style={styles.infoValue}>{t(`lessons.lesson_types.${lesson.type}`)}</ThemedText>
+              <ThemedText style={styles.infoLabel}>{t("lessons.lesson_info.lesson_type")}:</ThemedText>
+              <ThemedText style={styles.infoValue}>
+                {t(`lessons.lesson_types.${lesson.type}`)}
+              </ThemedText>
             </View>
-            
+
             <View style={styles.infoRow}>
-              <ThemedText style={styles.infoLabel}>Cấp độ:</ThemedText>
+              <ThemedText style={styles.infoLabel}>{t("lessons.lesson_info.level")}:</ThemedText>
               <Badge variant="secondary">{lesson.level}</Badge>
             </View>
-            
+
             <View style={styles.infoRow}>
-              <ThemedText style={styles.infoLabel}>Độ khó:</ThemedText>
-              <Badge style={{ backgroundColor: getDifficultyColor(lesson.difficulty) }}>
+              <ThemedText style={styles.infoLabel}>{t("lessons.lesson_info.difficulty")}:</ThemedText>
+              <Badge
+                style={{
+                  backgroundColor: getDifficultyColor(lesson.difficulty),
+                }}
+              >
                 {t(`lessons.difficulty.${lesson.difficulty}`)}
               </Badge>
             </View>
-            
+
             <View style={styles.infoRow}>
-              <ThemedText style={styles.infoLabel}>Thời gian ước tính:</ThemedText>
-              <ThemedText style={styles.infoValue}>{lesson.estimatedTime} phút</ThemedText>
+              <ThemedText style={styles.infoLabel}>
+                {t("lessons.lesson_info.estimated_time")}:
+              </ThemedText>
+              <ThemedText style={styles.infoValue}>
+                {lesson.estimatedTime} {t("lessons.lesson_info.minutes")}
+              </ThemedText>
             </View>
 
             {lesson.pokemonReward && (
               <View style={styles.infoRow}>
-                <ThemedText style={styles.infoLabel}>Phần thưởng:</ThemedText>
+                <ThemedText style={styles.infoLabel}>{t("lessons.lesson_info.reward")}:</ThemedText>
                 <View style={styles.pokemonRewardInfo}>
                   <Image
                     source={{ uri: lesson.pokemonReward.image }}
                     style={styles.pokemonRewardImage}
                   />
-                  <ThemedText style={styles.pokemonRewardName}>{lesson.pokemonReward.name}</ThemedText>
+                  <ThemedText style={styles.pokemonRewardName}>
+                    {lesson.pokemonReward.name}
+                  </ThemedText>
                 </View>
               </View>
             )}
@@ -242,25 +280,25 @@ const LessonDetailScreen = () => {
         {/* Status */}
         <ThemedView style={styles.statusCard}>
           <ThemedText type="subtitle" style={styles.statusTitle}>
-            📋 Trạng thái
+            📋 {t("lessons.lesson_info.status")}
           </ThemedText>
-          
+
           {lesson.isCompleted ? (
             <View style={styles.statusContainer}>
               <ThemedText style={styles.statusCompleted}>
-                ✅ {t('lessons.lesson_status.completed')}
+                ✅ {t("lessons.lesson_status.completed")}
               </ThemedText>
             </View>
           ) : lesson.progress > 0 ? (
             <View style={styles.statusContainer}>
               <ThemedText style={styles.statusInProgress}>
-                🔄 {t('lessons.lesson_status.in_progress')}
+                🔄 {t("lessons.lesson_status.in_progress")}
               </ThemedText>
             </View>
           ) : (
             <View style={styles.statusContainer}>
               <ThemedText style={styles.statusNotStarted}>
-                ⭕ {t('lessons.lesson_status.not_started')}
+                ⭕ {t("lessons.lesson_status.not_started")}
               </ThemedText>
             </View>
           )}
@@ -273,7 +311,11 @@ const LessonDetailScreen = () => {
             style={styles.actionButton}
             size="lg"
           >
-            {lesson.isCompleted ? 'Ôn tập lại' : lesson.progress > 0 ? 'Tiếp tục học' : 'Bắt đầu học'}
+            {lesson.isCompleted
+              ? "Ôn tập lại"
+              : lesson.progress > 0
+                ? "Tiếp tục học"
+                : "Bắt đầu học"}
           </Button>
         </View>
         <View style={styles.bottomSpacing} />
@@ -507,9 +549,6 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 80,
-  },
-  errorText: {
-    color: "#dc2626",
   },
 });
 
