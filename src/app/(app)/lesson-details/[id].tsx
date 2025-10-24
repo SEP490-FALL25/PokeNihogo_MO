@@ -1,10 +1,11 @@
+import KanjiWriter from "@components/KanjiWriter";
 import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import { Skeleton } from "@components/ui/Skeleton";
 import { useLesson } from "@hooks/useLessons"; // Assuming this hook fetches real data
 import { router, useLocalSearchParams } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, TouchableOpacity, View } from "react-native";
 
@@ -109,20 +110,23 @@ const LessonDetailScreen = () => {
   const lesson = lessonData?.data; // Modify this based on your actual data structure
   const lessonContent = mockLessonContent; // Use mock data for now
 
+  // --- Kanji Writer State ---
+  const [selectedKanji, setSelectedKanji] = useState<string | null>(null);
+
   // --- Alert Handling ---
   const showAlert = (title: string, message: string) => {
     Alert.alert(title, message, [
       {
         text: "Hủy",
-        style: "cancel"
+        style: "cancel",
       },
       {
         text: "Bắt đầu",
         onPress: () => {
           // Add navigation logic here if needed
           console.log("User confirmed:", title);
-        }
-      }
+        },
+      },
     ]);
   };
 
@@ -131,7 +135,10 @@ const LessonDetailScreen = () => {
   };
 
   const handleTestGrammar = () => {
-    showAlert("Kiểm tra Ngữ pháp", "Bạn có muốn bắt đầu bài kiểm tra ngữ pháp?");
+    showAlert(
+      "Kiểm tra Ngữ pháp",
+      "Bạn có muốn bắt đầu bài kiểm tra ngữ pháp?"
+    );
   };
 
   const handleTestKanji = () => {
@@ -139,7 +146,10 @@ const LessonDetailScreen = () => {
   };
 
   const handleFinalTest = () => {
-    showAlert("Kiểm tra Tổng hợp", "Bạn có muốn bắt đầu bài kiểm tra tổng hợp cho bài học này?");
+    showAlert(
+      "Kiểm tra Tổng hợp",
+      "Bạn có muốn bắt đầu bài kiểm tra tổng hợp cho bài học này?"
+    );
   };
 
   // --- Loading State ---
@@ -261,6 +271,14 @@ const LessonDetailScreen = () => {
                 ({char.reading})
               </ThemedText>
             </View>
+            <TouchableOpacity
+              className="bg-amber-500 px-3 py-2 rounded-lg"
+              onPress={() => setSelectedKanji(char.kanji)}
+            >
+              <ThemedText className="text-white text-sm font-medium">
+                Viết
+              </ThemedText>
+            </TouchableOpacity>
           </View>
           <View className="mt-1 space-y-1">
             {char.examples.map((example: any, idx: number) => (
@@ -294,7 +312,10 @@ const LessonDetailScreen = () => {
             </ThemedText>
           </TouchableOpacity>
 
-          <ThemedText type="title" className="text-3xl text-center text-gray-800 font-bold mb-1">
+          <ThemedText
+            type="title"
+            className="text-3xl text-center text-gray-800 font-bold mb-1"
+          >
             {lesson?.title || "Bài học"}
           </ThemedText>
           {/* Optional: Add lesson description or level */}
@@ -307,15 +328,28 @@ const LessonDetailScreen = () => {
         {/* Part 1: Vocabulary */}
         <View className="mb-6">
           <View className="flex-row justify-between items-center mb-4">
-            <ThemedText type="subtitle" className="text-xl font-semibold text-gray-700">
-              <IconSymbol name="book.closed" size={20} color="#3b82f6" style={{ marginRight: 6 }}/>
+            <ThemedText
+              type="subtitle"
+              className="text-xl font-semibold text-gray-700"
+            >
+              <IconSymbol
+                name="book.closed"
+                size={20}
+                color="#3b82f6"
+                style={{ marginRight: 6 }}
+              />
               Từ vựng
             </ThemedText>
             <TouchableOpacity
               className="bg-blue-500 py-2 px-4 rounded-full flex-row items-center active:bg-blue-600"
               onPress={handleTestVocabulary}
             >
-               <IconSymbol name="pencil.and.scribble" size={14} color="#ffffff" style={{ marginRight: 4 }}/>
+              <IconSymbol
+                name="pencil.and.scribble"
+                size={14}
+                color="#ffffff"
+                style={{ marginRight: 4 }}
+              />
               <ThemedText className="text-white text-sm font-medium">
                 Kiểm tra
               </ThemedText>
@@ -328,18 +362,31 @@ const LessonDetailScreen = () => {
 
         {/* Part 2: Grammar */}
         <View className="mb-6">
-           <View className="flex-row justify-between items-center mb-4">
-            <ThemedText type="subtitle" className="text-xl font-semibold text-gray-700">
-              <IconSymbol name="pencil.line" size={20} color="#0ea5e9" style={{ marginRight: 6 }}/>
+          <View className="flex-row justify-between items-center mb-4">
+            <ThemedText
+              type="subtitle"
+              className="text-xl font-semibold text-gray-700"
+            >
+              <IconSymbol
+                name="pencil.line"
+                size={20}
+                color="#0ea5e9"
+                style={{ marginRight: 6 }}
+              />
               Ngữ pháp
             </ThemedText>
             <TouchableOpacity
               className="bg-sky-500 py-2 px-4 rounded-full flex-row items-center active:bg-sky-600"
               onPress={handleTestGrammar}
             >
-               <IconSymbol name="pencil.and.scribble" size={14} color="#ffffff" style={{ marginRight: 4 }}/>
+              <IconSymbol
+                name="pencil.and.scribble"
+                size={14}
+                color="#ffffff"
+                style={{ marginRight: 4 }}
+              />
               <ThemedText className="text-white text-sm font-medium">
-                 Kiểm tra
+                Kiểm tra
               </ThemedText>
             </TouchableOpacity>
           </View>
@@ -350,18 +397,31 @@ const LessonDetailScreen = () => {
 
         {/* Part 3: Kanji */}
         <View className="mb-8">
-           <View className="flex-row justify-between items-center mb-4">
-            <ThemedText type="subtitle" className="text-xl font-semibold text-gray-700">
-             <IconSymbol name="character.book.closed.fill" size={20} color="#f59e0b" style={{ marginRight: 6 }}/>
+          <View className="flex-row justify-between items-center mb-4">
+            <ThemedText
+              type="subtitle"
+              className="text-xl font-semibold text-gray-700"
+            >
+              <IconSymbol
+                name="character.book.closed.fill"
+                size={20}
+                color="#f59e0b"
+                style={{ marginRight: 6 }}
+              />
               Kanji
             </ThemedText>
             <TouchableOpacity
               className="bg-amber-500 py-2 px-4 rounded-full flex-row items-center active:bg-amber-600"
               onPress={handleTestKanji}
             >
-               <IconSymbol name="pencil.and.scribble" size={14} color="#ffffff" style={{ marginRight: 4 }}/>
+              <IconSymbol
+                name="pencil.and.scribble"
+                size={14}
+                color="#ffffff"
+                style={{ marginRight: 4 }}
+              />
               <ThemedText className="text-white text-sm font-medium">
-                 Kiểm tra
+                Kiểm tra
               </ThemedText>
             </TouchableOpacity>
           </View>
@@ -376,14 +436,54 @@ const LessonDetailScreen = () => {
             className="bg-green-500 py-4 px-8 rounded-xl flex-row items-center shadow-lg active:bg-green-600"
             onPress={handleFinalTest}
           >
-            <IconSymbol name="checkmark.seal.fill" size={20} color="#ffffff" style={{ marginRight: 8 }}/>
+            <IconSymbol
+              name="checkmark.seal.fill"
+              size={20}
+              color="#ffffff"
+              style={{ marginRight: 8 }}
+            />
             <ThemedText className="text-white text-lg font-bold">
               Bài kiểm tra Tổng hợp
             </ThemedText>
           </TouchableOpacity>
         </View>
-      </ScrollView>
 
+        {/* Kanji Writer Section */}
+        {selectedKanji && (
+          <View className="mb-6">
+            <View className="flex-row justify-between items-center mb-4">
+              <ThemedText className="text-lg font-semibold text-gray-700">
+                Viết Kanji: {selectedKanji}
+              </ThemedText>
+              <TouchableOpacity
+                className="bg-gray-500 px-3 py-2 rounded-lg"
+                onPress={() => setSelectedKanji(null)}
+              >
+                <ThemedText className="text-white text-sm font-medium">
+                  Đóng
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+            <KanjiWriter
+              character={selectedKanji}
+              mode="practice" // Có thể thay đổi thành 'quiz' hoặc 'review'
+              onComplete={(totalMistakes) => {
+                Alert.alert(
+                  "Hoàn thành!",
+                  `Bạn đã viết xong ký tự ${selectedKanji} với ${totalMistakes} lỗi.`,
+                  [{ text: "OK", onPress: () => setSelectedKanji(null) }]
+                );
+              }}
+              onCorrectStroke={() => {
+                console.log("Viết đúng nét!");
+              }}
+              onMistake={(strokeData) => {
+                console.log("Viết sai nét:", strokeData);
+              }}
+            />
+          </View>
+        )}
+      </ScrollView>
     </HomeLayout>
   );
 };
