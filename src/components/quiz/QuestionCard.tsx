@@ -1,5 +1,6 @@
 import { QuizQuestion } from "@models/quiz/quiz.common";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, Text, View, ViewStyle } from "react-native";
 import { Card, CardContent } from "../ui/Card";
 import { AnswerOption } from "./AnswerOption";
@@ -19,6 +20,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   showResult = false,
   style,
 }) => {
+  const { t } = useTranslation();
   const [localSelectedAnswers, setLocalSelectedAnswers] =
     useState<string[]>(selectedAnswers);
 
@@ -48,15 +50,15 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   const getQuestionTypeLabel = (): string => {
     switch (question.type) {
       case "single-choice":
-        return "Chọn 1 đáp án đúng";
+        return t("quiz.question_types.single_choice");
       case "multiple-choice":
-        return "Chọn tất cả đáp án đúng";
+        return t("quiz.question_types.multiple_choice");
       case "text-input":
-        return "Nhập câu trả lời";
+        return t("quiz.question_types.text_input");
       case "audio":
-        return "Nghe và chọn đáp án";
+        return t("quiz.question_types.audio");
       case "image":
-        return "Quan sát hình ảnh và chọn đáp án";
+        return t("quiz.question_types.image");
       default:
         return "";
     }
@@ -67,8 +69,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       return (
         <View style={styles.audioContainer}>
           <View style={styles.audioPlayer}>
-            <Text style={styles.playButton}>▶️</Text>
-            <Text style={styles.audioText}>Nhấn để phát âm thanh</Text>
+            <Text style={styles.playButton}>{t("quiz.audio_player.play_button")}</Text>
+            <Text style={styles.audioText}>{t("quiz.audio_player.press_to_play")}</Text>
           </View>
         </View>
       );
@@ -80,7 +82,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     if (question.questionImage) {
       return (
         <View style={styles.imageContainer}>
-          <Text style={styles.imagePlaceholder}>🖼️ Hình ảnh câu hỏi</Text>
+          <Text style={styles.imagePlaceholder}>{t("quiz.image_placeholder")}</Text>
         </View>
       );
     }
@@ -131,7 +133,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           {/* Explanation (shown after answering) */}
           {showResult && question.explanation && (
             <View style={styles.explanationContainer}>
-              <Text style={styles.explanationLabel}>Giải thích:</Text>
+              <Text style={styles.explanationLabel}>{t("quiz.explanation_label")}</Text>
               <Text style={styles.explanationText}>{question.explanation}</Text>
             </View>
           )}
@@ -145,7 +147,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                 </View>
               ))}
             </View>
-            <Text style={styles.pointsText}>{question.points} điểm</Text>
+            <Text style={styles.pointsText}>{question.points} {t("quiz.points_label")}</Text>
           </View>
         </ScrollView>
       </CardContent>

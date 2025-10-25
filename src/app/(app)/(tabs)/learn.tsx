@@ -1,77 +1,93 @@
 import HomeLayout from "@components/layouts/HomeLayout";
-import LessonCategory from "@components/molecules/LessonCategory";
+import LessonCategory from "@components/lesson/LessonCategory";
 import { ThemedText } from "@components/ThemedText";
-import { Alert } from "@components/ui/Alert";
 import { Badge } from "@components/ui/Badge";
+import ErrorState from "@components/ui/ErrorState";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import { Skeleton } from "@components/ui/Skeleton";
-import {
-  useLessons,
-  useUserProgress,
-  useUserProgressWithParams,
-} from "@hooks/useLessons";
-import { Lesson } from "@models/lesson/lesson.common";
+import { useLessonCategories, useUserProgress } from "@hooks/useLessons";
+import { LessonProgress } from "@models/lesson/lesson.common";
+import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
+import {
+  getJLPTLevelColor,
+  getSkillCategoryColor,
+  getSkillCategoryIcon,
+} from "@utils/lesson.utils";
 import { router } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import {
   Animated,
   RefreshControl,
-  ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
-// Animated wrapper for LessonCategory
-const AnimatedLessonCategory = ({
-  category,
-  onLessonPress,
-  delay,
-  isLoaded,
-}: {
-  category: any;
-  onLessonPress: (lesson: Lesson) => void;
-  delay: number;
-  isLoaded: boolean;
-}) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
+// Optimized animated wrapper for LessonCategory
+const AnimatedLessonCategory = React.memo(
+  ({
+    category,
+    onLessonPress,
+    onCategoryPress,
+    delay,
+    isLoaded,
+  }: {
+    category: any;
+    onLessonPress: (lesson: LessonProgress) => void;
+    onCategoryPress?: (category: any) => void;
+    delay: number;
+    isLoaded: boolean;
+  }) => {
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(30)).current;
 
-  useEffect(() => {
-    if (isLoaded) {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 400,
-          delay: delay,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 400,
-          delay: delay,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [isLoaded, delay, fadeAnim, slideAnim]);
+    useEffect(() => {
+      if (isLoaded) {
+        Animated.parallel([
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            delay: delay,
+            useNativeDriver: true,
+          }),
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 300,
+            delay: delay,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
+    }, [isLoaded, delay, fadeAnim, slideAnim]);
 
-  return (
-    <Animated.View
-      style={{
-        opacity: fadeAnim,
-        transform: [{ translateY: slideAnim }],
-      }}
-    >
-      <LessonCategory category={category} onLessonPress={onLessonPress} />
-    </Animated.View>
-  );
-};
+    return (
+      <Animated.View
+        style={{
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        }}
+      >
+        <LessonCategory
+          category={category}
+          onLessonPress={onLessonPress}
+          onCategoryPress={onCategoryPress}
+        />
+      </Animated.View>
+    );
+  }
+);
 
-const LessonsScreen = () => {
+AnimatedLessonCategory.displayName = "AnimatedLessonCategory";
+
+const CategoriesScreen = () => {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -82,137 +98,141 @@ const LessonsScreen = () => {
   const progressAnim = useRef(new Animated.Value(0)).current;
 
   const { level: userLevel } = useUserStore();
-  const {
-    data: lessonsData,
-    isLoading: lessonsLoading,
-    error: lessonsError,
-    refetch,
-  } = useLessons(userLevel || "N5");
+
   const { data: progressData, isLoading: progressLoading } = useUserProgress();
-
-  // Test useUserProgressWithParams hook with some parameters
   const {
-    data: progressWithParamsData,
-    isLoading: progressWithParamsLoading,
-    error: progressWithParamsError,
-  } = useUserProgressWithParams({
-    currentPage: 1,
-    pageSize: 10,
-    lessonCategoryId: 1,
-  });
+    data: lessonCategoriesData,
+    isLoading: lessonCategoriesLoading,
+    error: lessonCategoriesError,
+  } = useLessonCategories();
 
-  // Animation effect when data loads
+  // Optimized animation effect when data loads
   useEffect(() => {
-    if (!lessonsLoading && !progressLoading && !lessonsError) {
+    const isDataReady = !progressLoading && !lessonCategoriesLoading;
+
+    if (isDataReady) {
       setIsLoaded(true);
 
-      // Staggered animation for different elements
-      Animated.sequence([
-        // Progress card animation
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-          Animated.timing(slideAnim, {
-            toValue: 0,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-        ]),
-        // Progress bar animation
+      // Simplified animation sequence
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
         Animated.timing(progressAnim, {
           toValue: 1,
-          duration: 600,
+          duration: 500,
           useNativeDriver: false,
         }),
       ]).start();
     }
   }, [
-    lessonsLoading,
     progressLoading,
-    lessonsError,
+    lessonCategoriesLoading,
     fadeAnim,
     slideAnim,
     progressAnim,
   ]);
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await refetch();
     } finally {
       setRefreshing(false);
     }
-  };
+  }, []);
 
-  const handleLessonPress = (lesson: Lesson) => {
+  const handleLessonPress = useCallback((lesson: LessonProgress) => {
     // Navigate to lesson detail or start lesson
-    router.push(`/(app)/lesson/${lesson.id}`);
-  };
+    router.push({
+      pathname: ROUTES.LESSON.DETAIL,
+      params: { id: lesson.lessonId.toString() },
+    });
+  }, []);
 
-  const handleNavigationPress = (route: string) => {
-    if (route === "reading") {
-      router.push("/(app)/(tabs)/reading");
-    } else if (route === "speaking") {
-      router.push("/(app)/(tabs)/speaking");
+  const handleCategoryPress = useCallback((category: any) => {
+    // Navigate to dedicated lessons screen with category ID
+    router.push({
+      pathname: ROUTES.LESSON.LIST_WITH_ID,
+      params: {
+        id: category.id,
+        title: category.name,
+      },
+    });
+  }, []);
+
+  const handleSkillCategoryPress = useCallback((category: any) => {
+    const routeMap: Record<string, any> = {
+      reading: ROUTES.TABS.READING,
+      speaking: ROUTES.TABS.SPEAKING,
+      listening: ROUTES.TABS.LISTENING,
+    };
+
+    const route = routeMap[category.route];
+    if (route) {
+      router.push(route as any);
     }
-  };
+  }, []);
 
-  // Create lessons from real progress data
-  const createLessonsFromProgress = (progressData: any[]): Lesson[] => {
-    return progressData.map((progressItem) => ({
-      id: progressItem.lessonId.toString(),
-      title: progressItem.lesson.titleJp,
-      description: `Bài học N${progressItem.lesson.levelJlpt}`,
-      isCompleted: progressItem.status === "COMPLETED",
-      level: `N${progressItem.lesson.levelJlpt}` as "N5" | "N4" | "N3",
-      estimatedTime: 15,
-      type: "vocabulary" as const,
-      difficulty: "beginner" as const,
-      progress: progressItem.progressPercentage,
-      tags: ["basic"],
-      createdAt: progressItem.createdAt,
-      updatedAt: progressItem.updatedAt,
-    }));
-  };
+  // Memoized level categories - filter by "jlpt-" prefix and sort N5 to N1
+  const levelCategories = useMemo(
+    () =>
+      lessonCategoriesData?.data.results
+        .filter((category: any) => {
+          const slug = category.slug.toLowerCase();
+          return slug.startsWith("jlpt-");
+        })
+        .sort((a: any, b: any) => {
+          // Sort JLPT levels from N5 to N1 (ascending order)
+          const levelOrder = [
+            "jlpt-n5",
+            "jlpt-n4",
+            "jlpt-n3",
+            "jlpt-n2",
+            "jlpt-n1",
+          ];
+          const aIndex = levelOrder.indexOf(a.slug.toLowerCase());
+          const bIndex = levelOrder.indexOf(b.slug.toLowerCase());
+          return aIndex - bIndex;
+        })
+        .map((category: any) => ({
+          id: category.id.toString(),
+          name: category.name,
+          description: category.name,
+          color: getJLPTLevelColor(category.slug),
+          level: category.slug.toUpperCase(),
+          icon: "1.circle.fill",
+          lessons: [],
+        })) || [],
+    [lessonCategoriesData?.data.results]
+  );
 
-  // Create categories with real data only
-  const levelCategories = [
-    {
-      id: "1",
-      name: "N5 - Cơ bản",
-      description: "Học tiếng Nhật cơ bản cho người mới bắt đầu",
-      color: "#10b981",
-      level: "N5" as const,
-      icon: "1.circle.fill",
-      lessons: progressWithParamsData?.data?.results
-        ? createLessonsFromProgress(progressWithParamsData.data.results)
-        : [],
-    },
-  ];
+  // Memoized skill categories - non-JLPT categories from API
+  const skillCategories = useMemo(
+    () =>
+      lessonCategoriesData?.data.results
+        .filter((category: any) => {
+          const slug = category.slug.toLowerCase();
+          return !slug.startsWith("jlpt-");
+        })
+        .map((category: any) => ({
+          id: category.id.toString(),
+          name: category.name,
+          description: category.name,
+          color: getSkillCategoryColor(category.slug),
+          icon: getSkillCategoryIcon(category.slug),
+          route: category.slug,
+        })) || [],
+    [lessonCategoriesData?.data.results]
+  );
 
-  const navigationCategories = [
-    {
-      id: "4",
-      name: "📖 Reading Practice",
-      description: "Luyện tập đọc hiểu tiếng Nhật",
-      color: "#f59e0b",
-      icon: "book.fill",
-      route: "reading",
-    },
-    {
-      id: "5",
-      name: "🎤 Speaking Practice",
-      description: "Luyện tập nói tiếng Nhật",
-      color: "#ef4444",
-      icon: "mic.fill",
-      route: "speaking",
-    },
-  ];
-
-  if (lessonsLoading || progressLoading) {
+  if (progressLoading || lessonCategoriesLoading) {
     return (
       <HomeLayout>
         <ThemedText type="title" style={styles.title}>
@@ -226,37 +246,39 @@ const LessonsScreen = () => {
     );
   }
 
-  if (lessonsError) {
+  if (lessonCategoriesError) {
     return (
       <HomeLayout>
         <ThemedText type="title" style={styles.title}>
           📚 {t("lessons.title")}
         </ThemedText>
-        <Alert variant="destructive" className="mb-4">
-          <Text className="text-red-800">
-            Có lỗi xảy ra khi tải danh sách bài học. Vui lòng thử lại.
-          </Text>
-        </Alert>
+        <ErrorState
+          title={t("lessons.error_loading_lessons")}
+          description={t("lessons.error_loading_lessons_description")}
+          error={lessonCategoriesError?.message || "Unknown error"}
+          onRetry={() => {
+            // TODO: Implement retry
+          }}
+          retryText={t("common.retry")}
+        />
       </HomeLayout>
     );
   }
 
   return (
-    <HomeLayout>
+    <HomeLayout
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }
+    >
       <ThemedText type="title" style={styles.title}>
         📚 {t("lessons.title")}
       </ThemedText>
       <ThemedText style={styles.subtitle}>
-        Tiếp tục hành trình học tập tiếng Nhật của bạn
+        {t("lessons.progress_title")}
       </ThemedText>
 
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.contentContainer}>
         {/* Progress Header */}
         {progressData && isLoaded && (
           <Animated.View
@@ -269,118 +291,85 @@ const LessonsScreen = () => {
             ]}
           >
             <ThemedText type="subtitle" style={styles.progressTitle}>
-              📊 Tiến độ học tập
+              📊 {t("lessons.progress_title")}
             </ThemedText>
             <View style={styles.progressStats}>
               <View style={styles.progressStatItem}>
                 <ThemedText style={styles.progressStatNumber}>
-                  {lessonsData?.data.completedLessons || 0}
+                  {lessonCategoriesData?.data.results
+                    .filter((category: any) =>
+                      category.slug.startsWith("jlpt-")
+                    )
+                    .reduce(
+                      (acc: number, category: any) =>
+                        acc + category.completedLessons,
+                      0
+                    ) || 0}
                 </ThemedText>
                 <ThemedText style={styles.progressStatLabel}>
-                  Bài hoàn thành
+                  {t("lessons.lessons_completed")}
                 </ThemedText>
               </View>
               <View style={styles.progressStatItem}>
                 <ThemedText style={styles.progressStatNumber}>
-                  {lessonsData?.data.totalLessons || 0}
+                  {lessonCategoriesData?.data.results.filter((category: any) =>
+                    category.slug.startsWith("jlpt-")
+                  ).length || 0}
                 </ThemedText>
                 <ThemedText style={styles.progressStatLabel}>
-                  Tổng bài học
+                  {t("lessons.overall_progress")}
                 </ThemedText>
               </View>
               <View style={styles.progressStatItem}>
                 <ThemedText style={styles.progressStatNumber}>
-                  {userLevel}
+                  {userLevel||"N5"}
                 </ThemedText>
-                <ThemedText style={styles.progressStatLabel}>Cấp độ</ThemedText>
+                <ThemedText style={styles.progressStatLabel}>
+                  {t("lessons.select_level")}
+                </ThemedText>
               </View>
             </View>
-
-            {/* Debug info for useUserProgressWithParams */}
-            {progressWithParamsData && (
-              <View style={styles.debugInfo}>
-                <ThemedText style={styles.debugTitle}>
-                  🔍 Debug Info (useUserProgressWithParams):
-                </ThemedText>
-                <ThemedText style={styles.debugText}>
-                  Status: {progressWithParamsLoading ? "Loading..." : "Loaded"}
-                </ThemedText>
-                <ThemedText style={styles.debugText}>
-                  Total Items:{" "}
-                  {progressWithParamsData?.data?.pagination?.totalItem || 0}
-                </ThemedText>
-                <ThemedText style={styles.debugText}>
-                  Current Page:{" "}
-                  {progressWithParamsData?.data?.pagination?.current || 0}
-                </ThemedText>
-                {progressWithParamsError && (
-                  <ThemedText style={styles.debugError}>
-                    Error: {JSON.stringify(progressWithParamsError)}
-                  </ThemedText>
-                )}
-              </View>
-            )}
           </Animated.View>
         )}
 
-        {/* Level Categories - Only show if has real data */}
-        {levelCategories.some((category) => category.lessons.length > 0) ? (
-          <View style={styles.categoriesSection}>
-            <View style={styles.categoriesHeader}>
-              <ThemedText type="subtitle" style={styles.categoriesTitle}>
-                🎯 Cấp độ học tập
-              </ThemedText>
-              <Badge variant="outline">
-                {
-                  levelCategories.filter(
-                    (category) => category.lessons.length > 0
-                  ).length
-                }{" "}
-                cấp độ
-              </Badge>
-            </View>
-
-            <View style={styles.categoriesContainer}>
-              {levelCategories
-                .filter((category) => category.lessons.length > 0)
-                .map((category, index) => (
-                  <AnimatedLessonCategory
-                    key={category.id}
-                    category={category}
-                    onLessonPress={handleLessonPress}
-                    delay={index * 100}
-                    isLoaded={isLoaded}
-                  />
-                ))}
-            </View>
-          </View>
-        ) : (
-          !progressWithParamsLoading && (
-            <View style={styles.emptyState}>
-              <ThemedText style={styles.emptyStateTitle}>
-                📚 Chưa có bài học nào
-              </ThemedText>
-              <ThemedText style={styles.emptyStateDescription}>
-                Bạn chưa có bài học nào trong hệ thống. Vui lòng liên hệ admin
-                để được thêm bài học.
-              </ThemedText>
-            </View>
-          )
-        )}
-
-        {/* Navigation Categories (Reading, Speaking) */}
+        {/* Level Categories (N5, N4, N3) */}
         <View style={styles.categoriesSection}>
           <View style={styles.categoriesHeader}>
             <ThemedText type="subtitle" style={styles.categoriesTitle}>
-              🚀 Luyện tập kỹ năng
+              🎯 {t("lessons.level_categories.title")}
             </ThemedText>
             <Badge variant="outline">
-              {navigationCategories.length} kỹ năng
+              {levelCategories.length} {t("lessons.categories_count")}
             </Badge>
           </View>
 
-          <View style={styles.navigationContainer}>
-            {navigationCategories.map((category, index) => (
+          <View style={styles.categoriesContainer}>
+            {levelCategories.map((category, index) => (
+              <AnimatedLessonCategory
+                key={category.id}
+                category={category}
+                onLessonPress={handleLessonPress}
+                onCategoryPress={handleCategoryPress}
+                delay={index * 100}
+                isLoaded={isLoaded}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Skill Categories (Reading, Speaking, Listening) */}
+        <View style={styles.categoriesSection}>
+          <View style={styles.categoriesHeader}>
+            <ThemedText type="subtitle" style={styles.categoriesTitle}>
+              🚀 {t("lessons.skill_categories.title")}
+            </ThemedText>
+            <Badge variant="outline">
+              {skillCategories.length} {t("lessons.categories_count")}
+            </Badge>
+          </View>
+
+          <View style={styles.skillCategoriesContainer}>
+            {skillCategories.map((category, index) => (
               <Animated.View
                 key={category.id}
                 style={{
@@ -394,16 +383,16 @@ const LessonsScreen = () => {
               >
                 <TouchableOpacity
                   style={[
-                    styles.navigationCard,
+                    styles.skillCategoryCard,
                     { borderLeftColor: category.color },
                   ]}
-                  onPress={() => handleNavigationPress(category.route)}
+                  onPress={() => handleSkillCategoryPress(category)}
                   activeOpacity={0.8}
                 >
-                  <View style={styles.navigationHeader}>
+                  <View style={styles.skillCategoryHeader}>
                     <View
                       style={[
-                        styles.navigationIcon,
+                        styles.skillCategoryIcon,
                         { backgroundColor: category.color },
                       ]}
                     >
@@ -413,18 +402,18 @@ const LessonsScreen = () => {
                         color="#ffffff"
                       />
                     </View>
-                    <View style={styles.navigationInfo}>
+                    <View style={styles.skillCategoryInfo}>
                       <ThemedText
                         type="subtitle"
-                        style={styles.navigationTitle}
+                        style={styles.skillCategoryTitle}
                       >
                         {category.name}
                       </ThemedText>
-                      <ThemedText style={styles.navigationDescription}>
+                      <ThemedText style={styles.skillCategoryDescription}>
                         {category.description}
                       </ThemedText>
                     </View>
-                    <View style={styles.navigationArrow}>
+                    <View style={styles.skillCategoryArrow}>
                       <IconSymbol
                         name="chevron.right"
                         size={20}
@@ -435,12 +424,17 @@ const LessonsScreen = () => {
                 </TouchableOpacity>
               </Animated.View>
             ))}
+            <TouchableOpacity onPress={() => router.push(ROUTES.TABS.SPEAKING)}>
+              <ThemedText type="subtitle" style={styles.categoriesTitle}>
+                {t("lessons.view_all_categories")}
+              </ThemedText>
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* Bottom Spacing */}
         <View style={styles.bottomSpacing} />
-      </ScrollView>
+      </View>
     </HomeLayout>
   );
 };
@@ -459,7 +453,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
-  scrollView: {
+  contentContainer: {
     flex: 1,
   },
   progressCard: {
@@ -501,33 +495,6 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     textAlign: "center",
   },
-  levelInfoCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  levelInfoTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  levelInfoDescription: {
-    fontSize: 14,
-    color: "#6b7280",
-    textAlign: "center",
-    lineHeight: 20,
-  },
   categoriesSection: {
     marginBottom: 20,
   },
@@ -548,10 +515,10 @@ const styles = StyleSheet.create({
   bottomSpacing: {
     height: 80,
   },
-  navigationContainer: {
+  skillCategoriesContainer: {
     gap: 16,
   },
-  navigationCard: {
+  skillCategoryCard: {
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 12,
     padding: 16,
@@ -565,11 +532,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  navigationHeader: {
+  skillCategoryHeader: {
     flexDirection: "row",
     alignItems: "center",
   },
-  navigationIcon: {
+  skillCategoryIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
@@ -577,74 +544,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 12,
   },
-  navigationInfo: {
+  skillCategoryInfo: {
     flex: 1,
   },
-  navigationTitle: {
+  skillCategoryTitle: {
     fontSize: 16,
     fontWeight: "600",
     color: "#1f2937",
     marginBottom: 4,
   },
-  navigationDescription: {
+  skillCategoryDescription: {
     fontSize: 14,
     color: "#6b7280",
   },
-  navigationArrow: {
+  skillCategoryArrow: {
     marginLeft: 8,
-  },
-  debugInfo: {
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: "rgba(59, 130, 246, 0.1)",
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: "#3b82f6",
-  },
-  debugTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1e40af",
-    marginBottom: 8,
-  },
-  debugText: {
-    fontSize: 12,
-    color: "#3730a3",
-    marginBottom: 4,
-  },
-  debugError: {
-    fontSize: 12,
-    color: "#dc2626",
-    marginTop: 4,
-  },
-  emptyState: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 16,
-    padding: 40,
-    alignItems: "center",
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#6b7280",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  emptyStateDescription: {
-    fontSize: 14,
-    color: "#9ca3af",
-    textAlign: "center",
-    lineHeight: 20,
   },
 });
 
-export default LessonsScreen;
+export default CategoriesScreen;

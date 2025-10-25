@@ -1,3 +1,23 @@
+// BE Response format for lesson progress
+export interface LessonProgress {
+  id: number;
+  userId: number;
+  lessonId: number;
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+  progressPercentage: number;
+  completedAt: string | null;
+  lastAccessedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  lesson: {
+    id: number;
+    titleJp: string;
+    levelJlpt: number;
+    isPublished: boolean;
+  };
+}
+
+// Legacy Lesson interface for backward compatibility
 export interface Lesson {
   id: string;
   title: string;
@@ -26,17 +46,8 @@ export interface LessonCategory {
   name: string;
   description: string;
   level: 'N5' | 'N4' | 'N3';
-  lessons: Lesson[];
+  lessons: LessonProgress[]; // Use BE format
   icon: string;
   color: string;
 }
 
-export interface LessonProgress {
-  lessonId: string;
-  userId: string;
-  isCompleted: boolean;
-  progress: number;
-  completedAt?: string;
-  timeSpent: number; // in minutes
-  score?: number; // 0-100
-}

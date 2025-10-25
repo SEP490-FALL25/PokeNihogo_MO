@@ -339,6 +339,7 @@ export default function ProfileScreen() {
               <View className="flex-row justify-center gap-2.5 pt-5 border-t border-slate-100">
                 {pokemonsData?.data?.results?.map((p: IPokemon) => (
                   <Image
+                    key={p?.id}
                     source={{ uri: p?.imageUrl }}
                     className="w-24 h-24 rounded-2xl"
                     resizeMode="contain"

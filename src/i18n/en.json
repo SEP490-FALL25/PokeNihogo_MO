@@ -12,7 +12,10 @@
         "continue": "Continue",
         "next": "Next",
         "finish": "Finish",
-        "processing": "Processing..."
+        "complete": "Complete",
+        "retry": "Retry",
+        "processing": "Processing...",
+        "loading": "Loading..."
     },
     "auth": {
         "email": "Email",
@@ -98,12 +101,20 @@
         "progress_title": "Learning Progress",
         "overall_progress": "Overall Progress",
         "level_progress": "Level Progress",
-        "lessons_completed": "lessons completed",
+        "lessons_completed": "Lessons completed",
+        "total_lessons": "Total Lessons",
+        "lessons_list": "Lessons List",
+        "lessons_count": "lessons",
+        "load_more": "Load More",
+        "end_of_results": "That's all the results",
+        "no_lessons": "No lessons available",
+        "no_lessons_description": "You don't have any lessons in this category. Please contact admin to add lessons.",
+        "error_loading_lessons": "Error loading lessons",
+        "error_loading_lessons_description": "Unable to load lessons list. Please check your network connection and try again.",
         "select_level": "Select Level",
         "all_levels": "All",
         "categories": "Lesson Categories",
         "categories_count": "categories",
-        "no_lessons": "No lessons available for level",
         "contact_admin": "Try selecting a different level or contact admin to add content",
         "lesson_status": {
             "completed": "Completed",
@@ -126,7 +137,113 @@
             "N5": "Beginner",
             "N4": "Elementary",
             "N3": "Intermediate"
+        },
+        "skill_categories": {
+            "title": "Skill Practice",
+            "reading": "Reading",
+            "speaking": "Speaking",
+            "listening": "Listening"
+        },
+        "level_categories": {
+            "title": "Learning Levels",
+            "n5_basic": "N5 - Basic",
+            "n4_intermediate": "N4 - Intermediate",
+            "n3_advanced": "N3 - Advanced"
+        },
+        "lesson_info": {
+            "title": "Lesson Information",
+            "lesson_type": "Lesson Type",
+            "level": "Level",
+            "difficulty": "Difficulty",
+            "estimated_time": "Estimated Time",
+            "minutes": "minutes",
+            "reward": "Reward",
+            "status": "Status"
         }
+    },
+    "home": {
+        "welcome_back": "Welcome back, {{username}}! 👋",
+        "ready_to_continue": "Ready to continue your Japanese learning journey?",
+        "test_tour_guide": "🧪 Test Tour Guide",
+        "clear_overlay_position": "🗑️ Clear Overlay Position",
+        "test_daily_login_modal": "🎉 Test Daily Login Modal",
+        "quick_start": "🚀 Quick Start",
+        "start_new_lesson": "Start New Lesson",
+        "learning_path": "📚 Your Learning Path",
+        "current_level": "Current Level: {{level}}",
+        "next_goal": "Next Goal: {{level}}",
+        "basic_japanese": "Basic Japanese - Hiragana & Katakana",
+        "intermediate_japanese": "Intermediate Japanese - Kanji & Grammar",
+        "partner_pokemon": "Your Partner Pokémon",
+        "take_care_description": "Take care of your partner Pokémon and evolve together!",
+        "take_care_me": "Take care of me!",
+        "partner_pokemon_short": "Partner Pokémon"
+    },
+    "quiz": {
+        "question_types": {
+            "single_choice": "Choose 1 correct answer",
+            "multiple_choice": "Choose all correct answers",
+            "text_input": "Enter your answer",
+            "audio": "Listen and choose answer",
+            "image": "Observe image and choose answer"
+        },
+        "audio_player": {
+            "play_button": "▶️",
+            "press_to_play": "Press to play audio"
+        },
+        "image_placeholder": "🖼️ Question image",
+        "explanation_label": "Explanation:",
+        "points_label": "points"
+    },
+    "daily_login": {
+        "title": "Daily Check-in",
+        "subtitle": "Maintain good habits every day",
+        "consecutive_days": "consecutive days",
+        "motivation": {
+            "start_streak": "Start your check-in streak!",
+            "keep_going": "Great! Keep going!",
+            "excellent": "Excellent! You're doing great!",
+            "legendary": "Amazing! You're a legend!"
+        },
+        "check_in_button": "Check-in now 🎯",
+        "already_checked": "✓ Already checked in today",
+        "close": "Close",
+        "day_names": {
+            "sun": "Sun",
+            "mon": "Mon",
+            "tue": "Tue",
+            "wed": "Wed",
+            "thu": "Thu",
+            "fri": "Fri",
+            "sat": "Sat"
+        }
+    },
+    "welcome_modal": {
+        "title": "Welcome, {{username}}!",
+        "message": "{{pokemonName}} is ready to join you on your journey!",
+        "lets_begin": "Let's Begin! 🚀"
+    },
+    "tabs": {
+        "home": "Home",
+        "learn": "Learn",
+        "reading": "Reading",
+        "listening": "Listening",
+        "speaking": "Speaking",
+        "battle": "Battle",
+        "quiz_demo": "Quiz Demo"
+    },
+    "lesson_card": {
+        "lesson_description": "Lesson N{{level}}"
+    },
+    "error_state": {
+        "default_title": "An error occurred",
+        "default_description": "An error occurred while loading data. Please try again.",
+        "default_retry": "Retry",
+        "pokemon_footer": "⚡ Don't give up! Try again to continue your journey!"
+    },
+    "search": {
+        "placeholder": "Search lessons...",
+        "found_results": "Found {{count}} results"
     },
     "zod": {
         "errors": {
