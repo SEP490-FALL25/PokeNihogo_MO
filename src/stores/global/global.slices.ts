@@ -8,6 +8,18 @@ export const createGlobalSlice = (set: any): ZUSTAND.IGlobalState => ({
 
   setLanguage: (language: string) => set({ language }),
 
+  // Initialize language from i18n
+  initializeLanguage: () => {
+    try {
+      const i18n = require('@i18n/i18n').default;
+      const currentLanguage = i18n.language || 'en';
+      set({ language: currentLanguage });
+    } catch {
+      // Fallback to 'en' if i18n is not available
+      set({ language: 'en' });
+    }
+  },
+
 
   // Overlay position management
   setOverlayPosition: (position: { x: number; y: number }) =>

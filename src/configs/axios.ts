@@ -2,17 +2,19 @@ import * as SecureStore from 'expo-secure-store';
 
 import { ROUTES } from '@routes/routes';
 import { useAuthStore } from '@stores/auth/auth.config';
-import { useLanguageSelector } from '@stores/global/global.selectors';
+import { useGlobalStore } from '@stores/global/global.config';
 import axios, { AxiosError } from 'axios';
 import { router } from 'expo-router';
 
-const locale = useLanguageSelector();
+// Function to get current language from store
+const getCurrentLanguage = () => {
+    return useGlobalStore.getState().language;
+};
 
 const axiosClient = axios.create({
     baseURL: process.env.EXPO_PUBLIC_API_URL,
     headers: {
         'Content-Type': 'application/json',
-        'Accept-Language': locale,
     },
 });
 
@@ -20,14 +22,13 @@ const axiosPrivate = axios.create({
     baseURL: process.env.EXPO_PUBLIC_API_URL,
     headers: {
         'Content-Type': 'application/json',
-        'Accept-Language': locale,
     },
     withCredentials: true,
 });
 
 // Token refresh concurrency control
 let isRefreshing = false;
-let pendingRequestsQueue: Array<(token: string | null) => void> = [];
+let pendingRequestsQueue: ((token: string | null) => void)[] = [];
 
 const processQueue = (token: string | null) => {
     pendingRequestsQueue.forEach((callback) => callback(token));
@@ -40,10 +41,11 @@ const refreshAccessToken = async (): Promise<{ accessToken: string; refreshToken
         if (!refreshToken) return null;
 
         // Call refresh token endpoint
+        const currentLanguage = getCurrentLanguage();
         const response = await axios.post(
             `${process.env.EXPO_PUBLIC_API_URL}/auth/refresh-token`,
             { refreshToken },
-            { headers: { 'Content-Type': 'application/json', 'Accept-Language': locale } }
+            { headers: { 'Content-Type': 'application/json', 'Accept-Language': currentLanguage } }
         );
 
         const newAccessToken: string | undefined = response?.data?.data?.accessToken;
@@ -59,30 +61,37 @@ const refreshAccessToken = async (): Promise<{ accessToken: string; refreshToken
         useAuthStore.getState().setAccessToken(newAccessToken);
 
         return { accessToken: newAccessToken, refreshToken: newRefreshToken };
-    } catch (e) {
+    } catch {
         return null;
     }
 };
 
-// Interceptors cho axiosPrivate
+// Interceptors cho axiosClient (public requests)
+axiosClient.interceptors.request.use(
+    (config) => {
+        // Add language header to all requests
+        const currentLanguage = getCurrentLanguage();
+        config.headers['Accept-Language'] = currentLanguage;
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    },
+);
+
+// Interceptors cho axiosPrivate (authenticated requests)
 axiosPrivate.interceptors.request.use(
     async (config) => {
-
         const token = useAuthStore.getState().accessToken;
         console.log('accessTokenAxios: ', token);
 
-        // const decodedToken = await decodeToken();
-        // const userRole = decodedToken?.role;
+        // Add language header to all requests
+        const currentLanguage = getCurrentLanguage();
+        config.headers['Accept-Language'] = currentLanguage;
 
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
         }
-        // if (userRole) {
-        //     config.headers['X-User-Role'] = userRole; // Gửi role trong header (tuỳ backend có cần hay không)
-        // }
-        // if (userRole) {
-        //     config.headers['X-User-Role'] = userRole;
-        // }
         return config;
     },
     (error) => {
