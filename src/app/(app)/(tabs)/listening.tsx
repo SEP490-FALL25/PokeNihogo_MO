@@ -3,6 +3,7 @@ import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 const sampleListeningExercises = [
@@ -135,6 +136,8 @@ const ListeningCard: React.FC<{
 };
 
 export default function ListeningScreen() {
+  const { t } = useTranslation();
+  
   const handleListeningPress = (exerciseId: number) => {
     console.log(`Listening exercise ${exerciseId} pressed`);
     // Navigate to listening detail screen
@@ -143,13 +146,13 @@ export default function ListeningScreen() {
   return (
     <HomeLayout>
       <ThemedText type="title" style={styles.title}>
-        🎧 Listening Practice
+        🎧 {t("listening.title")}
       </ThemedText>
       <ThemedText style={styles.subtitle}>
-        Improve your Japanese listening skills with audio exercises
+        {t("listening.subtitle")}
       </ThemedText>
       <ThemedText type="subtitle" style={styles.sectionTitle}>
-        🎵 Audio Exercises
+        🎵 {t("listening.audio_exercises")}
       </ThemedText>
 
       <View style={styles.exercisesContainer}>
@@ -164,48 +167,47 @@ export default function ListeningScreen() {
 
       <ThemedView style={styles.statsCard}>
         <ThemedText type="subtitle" style={styles.statsTitle}>
-          📊 Listening Progress
+          📊 {t("listening.progress_title")}
         </ThemedText>
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>15</ThemedText>
-            <ThemedText style={styles.statLabel}>Exercises Done</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("listening.exercises_done")}</ThemedText>
           </View>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>2.5h</ThemedText>
-            <ThemedText style={styles.statLabel}>Total Time</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("listening.total_time")}</ThemedText>
           </View>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>88%</ThemedText>
-            <ThemedText style={styles.statLabel}>Accuracy</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("listening.accuracy")}</ThemedText>
           </View>
         </View>
       </ThemedView>
 
       <ThemedView style={styles.tipsCard}>
         <ThemedText type="subtitle" style={styles.tipsTitle}>
-          🎯 Listening Tips
+          🎯 {t("listening.tips_title")}
         </ThemedText>
         <View style={styles.tipsList}>
           <ThemedText style={styles.tipItem}>
-            • Listen multiple times - first for general understanding, then for
-            details
+            • {t("listening.tip_1")}
           </ThemedText>
           <ThemedText style={styles.tipItem}>
-            • Focus on intonation and rhythm patterns
+            • {t("listening.tip_2")}
           </ThemedText>
           <ThemedText style={styles.tipItem}>
-            • Use subtitles initially, then try without them
+            • {t("listening.tip_3")}
           </ThemedText>
           <ThemedText style={styles.tipItem}>
-            • Practice with different accents and speaking speeds
+            • {t("listening.tip_4")}
           </ThemedText>
         </View>
       </ThemedView>
 
       <ThemedView style={styles.controlsCard}>
         <ThemedText type="subtitle" style={styles.controlsTitle}>
-          🎛️ Audio Controls
+          🎛️ {t("listening.controls_title")}
         </ThemedText>
         <View style={styles.controlsRow}>
           <TouchableOpacity style={styles.controlButton}>
@@ -231,7 +233,7 @@ export default function ListeningScreen() {
           </TouchableOpacity>
         </View>
         <ThemedText style={styles.controlsHint}>
-          Tap any exercise above to start listening practice
+          {t("listening.controls_hint")}
         </ThemedText>
       </ThemedView>
     </HomeLayout>

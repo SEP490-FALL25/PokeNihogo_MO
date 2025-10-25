@@ -5,6 +5,7 @@ import { ROUTES } from "@routes/routes";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Pressable,
   StyleSheet,
@@ -32,6 +33,8 @@ export default function ExpandedContent({
   onClose,
   style,
 }: ExpandedContentProps) {
+  const { t } = useTranslation();
+  
   const handleAvatarPress = () => {
     onClose(); // Close the modal first
     router.push(ROUTES.ME.PROFILE);
@@ -81,20 +84,20 @@ export default function ExpandedContent({
               <Text style={styles.statValue}>
                 {user.currentExp.toLocaleString()}
               </Text>
-              <Text style={styles.statLabel}>Current XP</Text>
+              <Text style={styles.statLabel}>{t("profile.current_xp")}</Text>
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statValue}>
                 {user.expToNextLevel.toLocaleString()}
               </Text>
-              <Text style={styles.statLabel}>Next Level</Text>
+              <Text style={styles.statLabel}>{t("profile.next_level")}</Text>
             </View>
           </View>
 
           {/* Progress Section */}
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>
-              <Text style={styles.progressTitle}>Experience Progress</Text>
+              <Text style={styles.progressTitle}>{t("profile.experience_progress")}</Text>
             </View>
 
             <ExpProgressBar

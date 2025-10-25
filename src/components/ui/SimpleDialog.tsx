@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface SimpleDialogProps {
@@ -8,6 +9,7 @@ interface SimpleDialogProps {
 }
 
 export const SimpleDialog = ({ open, onOpenChange, children }: SimpleDialogProps) => {
+  const { t } = useTranslation();
   console.log('SimpleDialog render - open:', open);
   
   if (!open) return null;
@@ -21,13 +23,13 @@ export const SimpleDialog = ({ open, onOpenChange, children }: SimpleDialogProps
     >
       <View style={styles.overlay}>
         <View style={styles.dialog}>
-          <Text style={styles.title}>Simple Dialog</Text>
-          <Text style={styles.description}>This is a simple dialog test</Text>
+          <Text style={styles.title}>{t("common.simple_dialog")}</Text>
+          <Text style={styles.description}>{t("common.simple_dialog_test")}</Text>
           <TouchableOpacity
             style={styles.button}
             onPress={() => onOpenChange(false)}
           >
-            <Text style={styles.buttonText}>Close</Text>
+            <Text style={styles.buttonText}>{t("common.close")}</Text>
           </TouchableOpacity>
         </View>
       </View>

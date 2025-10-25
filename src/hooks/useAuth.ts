@@ -23,6 +23,9 @@ export const useAuth = () => {
         isAuthenticated: !!user,
         isLoading,
         user: user?.data,
+        // isAuthenticated: true, // Temporarily bypass authentication
+        // isLoading: false,
+        // user: user?.data || { id: 'temp-user', name: 'Test User' }, // Mock user data
     };
 };
 

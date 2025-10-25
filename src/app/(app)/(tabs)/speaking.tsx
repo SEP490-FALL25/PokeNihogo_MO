@@ -5,12 +5,13 @@ import { ThemedView } from "@components/ThemedView";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import * as FileSystem from 'expo-file-system';
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 const sampleSpeakingExercises = [
@@ -143,6 +144,7 @@ const SpeakingCard: React.FC<{
 };
 
 export default function SpeakingScreen() {
+  const { t } = useTranslation();
   const [selectedExercise, setSelectedExercise] = useState<number | null>(null);
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
@@ -211,7 +213,7 @@ export default function SpeakingScreen() {
           console.error("Failed to delete file after upload:", deleteError);
         }
         
-        Alert.alert("Thành công", "Bản ghi âm đã được gửi lên server!");
+        Alert.alert(t("speaking.upload_success"), t("speaking.upload_success_message"));
         
         // Reset recording state
         setRecordingUri(null);
@@ -221,20 +223,20 @@ export default function SpeakingScreen() {
       }
     } catch (error) {
       console.error("Upload error:", error);
-      Alert.alert("Lỗi", "Không thể gửi bản ghi âm lên server.");
+      Alert.alert(t("speaking.upload_error"), t("speaking.upload_error_message"));
     }
   };
 
   return (
     <HomeLayout>
       <ThemedText type="title" style={styles.title}>
-        🎤 Speaking Practice
+        🎤 {t("speaking.title")}
       </ThemedText>
       <ThemedText style={styles.subtitle}>
-        Improve your Japanese speaking skills with interactive exercises
+        {t("speaking.subtitle")}
       </ThemedText>
       <ThemedText type="subtitle" style={styles.sectionTitle}>
-        🗣️ Speaking Exercises
+        🗣️ {t("speaking.exercises_title")}
       </ThemedText>
 
       <ScrollView
@@ -255,17 +257,17 @@ export default function SpeakingScreen() {
         {selectedExercise && (
           <ThemedView style={styles.recorderSection}>
             <ThemedText type="subtitle" style={styles.recorderTitle}>
-              🎙️ Ghi âm bài tập
+              🎙️ {t("speaking.recorder_title")}
             </ThemedText>
             <ThemedText style={styles.recorderDescription}>
-              Chọn bài tập và bắt đầu ghi âm để luyện tập phát âm
+              {t("speaking.recorder_description")}
             </ThemedText>
 
             <AudioRecorder
               exerciseTitle={
                 selectedExercise
                   ? sampleSpeakingExercises[selectedExercise - 1]?.title
-                  : "Bài tập phát âm"
+                  : t("speaking.default_exercise")
               }
               onRecordingComplete={handleRecordingComplete}
               onRecordingStart={handleRecordingStart}
@@ -280,12 +282,11 @@ export default function SpeakingScreen() {
             {recordingUri && (
               <ThemedView style={styles.recordingResult}>
                 <ThemedText style={styles.resultTitle}>
-                  ✅ Ghi âm hoàn thành! ({Math.floor(recordingDuration / 60)}:
+                  ✅ {t("speaking.recording_complete")} ({Math.floor(recordingDuration / 60)}:
                   {(recordingDuration % 60).toString().padStart(2, "0")})
                 </ThemedText>
                 <ThemedText style={styles.resultDescription}>
-                  Bạn có thể nghe lại bản ghi âm, ghi âm lại hoặc gửi lên server
-                  để phân tích
+                  {t("speaking.recording_description")}
                 </ThemedText>
 
                 <View style={styles.uploadContainer}>
@@ -299,7 +300,7 @@ export default function SpeakingScreen() {
                       color="#ffffff"
                     />
                     <ThemedText style={styles.uploadButtonText}>
-                      Gửi lên server
+                      {t("speaking.upload_to_server")}
                     </ThemedText>
                   </TouchableOpacity>
                 </View>
@@ -310,48 +311,47 @@ export default function SpeakingScreen() {
 
         <ThemedView style={styles.statsCard}>
           <ThemedText type="subtitle" style={styles.statsTitle}>
-            📊 Speaking Progress
+            📊 {t("speaking.progress_title")}
           </ThemedText>
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
               <ThemedText style={styles.statNumber}>12</ThemedText>
-              <ThemedText style={styles.statLabel}>Exercises Done</ThemedText>
+              <ThemedText style={styles.statLabel}>{t("speaking.exercises_done")}</ThemedText>
             </View>
             <View style={styles.statItem}>
               <ThemedText style={styles.statNumber}>1.5h</ThemedText>
-              <ThemedText style={styles.statLabel}>Practice Time</ThemedText>
+              <ThemedText style={styles.statLabel}>{t("speaking.practice_time")}</ThemedText>
             </View>
             <View style={styles.statItem}>
               <ThemedText style={styles.statNumber}>85%</ThemedText>
-              <ThemedText style={styles.statLabel}>Pronunciation</ThemedText>
+              <ThemedText style={styles.statLabel}>{t("speaking.pronunciation")}</ThemedText>
             </View>
           </View>
         </ThemedView>
 
         <ThemedView style={styles.tipsCard}>
           <ThemedText type="subtitle" style={styles.tipsTitle}>
-            🎯 Speaking Tips
+            🎯 {t("speaking.tips_title")}
           </ThemedText>
           <View style={styles.tipsList}>
             <ThemedText style={styles.tipItem}>
-              • Practice speaking out loud regularly, even if alone
+              • {t("speaking.tip_1")}
             </ThemedText>
             <ThemedText style={styles.tipItem}>
-              • Record yourself and listen back to identify areas for
-              improvement
+              • {t("speaking.tip_2")}
             </ThemedText>
             <ThemedText style={styles.tipItem}>
-              • Focus on pronunciation and intonation patterns
+              • {t("speaking.tip_3")}
             </ThemedText>
             <ThemedText style={styles.tipItem}>
-              • Try to think in Japanese rather than translating from English
+              • {t("speaking.tip_4")}
             </ThemedText>
           </View>
         </ThemedView>
 
         <ThemedView style={styles.controlsCard}>
           <ThemedText type="subtitle" style={styles.controlsTitle}>
-            🎛️ Recording Controls
+            🎛️ {t("speaking.controls_title")}
           </ThemedText>
           <View style={styles.controlsRow}>
             <TouchableOpacity style={styles.controlButton}>
@@ -377,7 +377,7 @@ export default function SpeakingScreen() {
             </TouchableOpacity>
           </View>
           <ThemedText style={styles.controlsHint}>
-            Tap any exercise above to start speaking practice
+            {t("speaking.controls_hint")}
           </ThemedText>
         </ThemedView>
       </ScrollView>

@@ -179,7 +179,6 @@ const CategoriesScreen = () => {
       router.push(route as any);
     }
   }, []);
-
   // Memoized level categories - filter by "jlpt-" prefix and sort N5 to N1
   const levelCategories = useMemo(
     () =>
@@ -212,7 +211,6 @@ const CategoriesScreen = () => {
         })) || [],
     [lessonCategoriesData?.data.results]
   );
-
   // Memoized skill categories - non-JLPT categories from API
   const skillCategories = useMemo(
     () =>
@@ -255,7 +253,7 @@ const CategoriesScreen = () => {
         <ErrorState
           title={t("lessons.error_loading_lessons")}
           description={t("lessons.error_loading_lessons_description")}
-          error={lessonCategoriesError?.message || "Unknown error"}
+          error={lessonCategoriesError?.message || t("common.error")}
           onRetry={() => {
             // TODO: Implement retry
           }}
@@ -322,7 +320,7 @@ const CategoriesScreen = () => {
               </View>
               <View style={styles.progressStatItem}>
                 <ThemedText style={styles.progressStatNumber}>
-                  {userLevel||"N5"}
+                  {userLevel || "N5"}
                 </ThemedText>
                 <ThemedText style={styles.progressStatLabel}>
                   {t("lessons.select_level")}

@@ -4,6 +4,7 @@ import { IconSymbol } from "@components/ui/IconSymbol";
 import { ROUTES } from "@routes/routes";
 import { router } from "expo-router";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 import { TourStep } from "./ui/HomeTourGuide";
 
@@ -37,6 +38,8 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
 };
 
 const MainNavigation: React.FC = () => {
+  const { t } = useTranslation();
+  
   const handleLearn = () => {
     // Navigate to learning screen
     console.log("Learn pressed");
@@ -77,18 +80,18 @@ const MainNavigation: React.FC = () => {
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="subtitle" style={styles.title}>
-        🎯 Main Navigation
+        🎯 {t("navigation.title")}
       </ThemedText>
 
       <View style={styles.grid}>
         {/* Main Navigation Section */}
         <TourStep
           stepIndex={2}
-          title="Start Learning"
-          description="Start your journey here!"
+          title={t("navigation.tour_start_learning")}
+          description={t("navigation.tour_description")}
         >
           <NavigationButton
-            title="Learn"
+            title={t("navigation.learn")}
             icon="book.fill"
             onPress={handleLearn}
             color="#10b981"
@@ -96,31 +99,31 @@ const MainNavigation: React.FC = () => {
         </TourStep>
 
         <NavigationButton
-          title="Reading"
+          title={t("navigation.reading")}
           icon="book.fill"
           onPress={handleReading}
           color="#f59e0b"
         />
         <NavigationButton
-          title="Listening"
+          title={t("navigation.listening")}
           icon="speaker.wave.2.fill"
           onPress={handleListening}
           color="#8b5cf6"
         />
         <NavigationButton
-          title="Battle"
+          title={t("navigation.battle")}
           icon="gamecontroller.fill"
           onPress={handleBattle}
           color="#ef4444"
         />
         <NavigationButton
-          title="User Info"
+          title={t("navigation.user_info")}
           icon="person.fill"
           onPress={handleUserInfo}
           color="#06b6d4"
         />
         <NavigationButton
-          title="Other"
+          title={t("navigation.other")}
           icon="ellipsis.circle"
           onPress={handleOther}
           color="#6b7280"

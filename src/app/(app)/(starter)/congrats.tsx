@@ -11,6 +11,7 @@ import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Image, StyleSheet, View } from "react-native";
 import ConfettiCannon from "react-native-confetti-cannon";
 
@@ -70,6 +71,7 @@ const CongratsScreen = React.memo(() => {
   // ============================================================================
   // HOOKS & STATE
   // ============================================================================
+  const { t } = useTranslation();
   const starterId = useUserStore((state) => state.starterId);
   const { confettiRef } = useConfetti(CONFETTI_DELAY);
   const params = useLocalSearchParams();
@@ -110,7 +112,7 @@ const CongratsScreen = React.memo(() => {
       <View style={containerStyle}>
         {/* Celebration Badge */}
         <View style={badgeStyle}>
-          <ThemedText>Hurray!!</ThemedText>
+          <ThemedText>{t("auth.congrats.celebration")}</ThemedText>
         </View>
 
         {/* Starter Image */}
@@ -122,17 +124,17 @@ const CongratsScreen = React.memo(() => {
 
         {/* Welcome Message */}
         <ThemedText type="title" style={styles.title}>
-          Welcome <HelloWave />
+          {t("auth.congrats.welcome")} <HelloWave />
         </ThemedText>
 
         {/* Success Message */}
         <ThemedText style={styles.successMessage}>
-          Your profile has been created successfully.
+          {t("auth.congrats.profile_created")}
         </ThemedText>
 
         {/* Starter Name */}
         <ThemedText style={styles.starterName}>
-          Your starter: {selectedPokemon.name}
+          {t("auth.congrats.your_starter")}: {selectedPokemon.name}
         </ThemedText>
       </View>
 
@@ -144,7 +146,7 @@ const CongratsScreen = React.memo(() => {
           withHaptics
           onPress={handleGoHome}
         >
-          CONTINUE TO HOME
+          {t("auth.congrats.continue_to_home")}
         </BounceButton>
       </View>
     </StarterScreenLayout>

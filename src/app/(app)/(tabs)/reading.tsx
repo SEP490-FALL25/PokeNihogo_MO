@@ -3,6 +3,7 @@ import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 const sampleReadingMaterials = [
@@ -128,6 +129,8 @@ const ReadingCard: React.FC<{
 };
 
 export default function ReadingScreen() {
+  const { t } = useTranslation();
+  
   const handleReadingPress = (materialId: number) => {
     console.log(`Reading material ${materialId} pressed`);
     // Navigate to reading detail screen
@@ -136,13 +139,13 @@ export default function ReadingScreen() {
   return (
     <HomeLayout>
       <ThemedText type="title" style={styles.title}>
-        📖 Reading Practice
+        📖 {t("reading.title")}
       </ThemedText>
       <ThemedText style={styles.subtitle}>
-        Improve your Japanese reading skills with various texts
+        {t("reading.subtitle")}
       </ThemedText>
       <ThemedText type="subtitle" style={styles.sectionTitle}>
-        📚 Reading Materials
+        📚 {t("reading.materials_title")}
       </ThemedText>
 
       <View style={styles.materialsContainer}>
@@ -157,40 +160,40 @@ export default function ReadingScreen() {
 
       <ThemedView style={styles.statsCard}>
         <ThemedText type="subtitle" style={styles.statsTitle}>
-          📊 Reading Progress
+          📊 {t("reading.progress_title")}
         </ThemedText>
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>8</ThemedText>
-            <ThemedText style={styles.statLabel}>Articles Read</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("reading.articles_read")}</ThemedText>
           </View>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>245</ThemedText>
-            <ThemedText style={styles.statLabel}>Words Learned</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("reading.words_learned")}</ThemedText>
           </View>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>92%</ThemedText>
-            <ThemedText style={styles.statLabel}>Comprehension</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("reading.comprehension")}</ThemedText>
           </View>
         </View>
       </ThemedView>
 
       <ThemedView style={styles.tipsCard}>
         <ThemedText type="subtitle" style={styles.tipsTitle}>
-          💡 Reading Tips
+          💡 {t("reading.tips_title")}
         </ThemedText>
         <View style={styles.tipsList}>
           <ThemedText style={styles.tipItem}>
-            • Start with simple texts and gradually increase difficulty
+            • {t("reading.tip_1")}
           </ThemedText>
           <ThemedText style={styles.tipItem}>
-            • Look up unknown words but try to guess meaning from context first
+            • {t("reading.tip_2")}
           </ThemedText>
           <ThemedText style={styles.tipItem}>
-            • Read aloud to improve pronunciation and rhythm
+            • {t("reading.tip_3")}
           </ThemedText>
           <ThemedText style={styles.tipItem}>
-            • Practice reading different types of texts (news, stories, etc.)
+            • {t("reading.tip_4")}
           </ThemedText>
         </View>
       </ThemedView>

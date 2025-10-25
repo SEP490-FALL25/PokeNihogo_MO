@@ -1,5 +1,5 @@
 import BackScreen from '@components/molecules/Back';
-import useAuth from '@hooks/useAuth';
+import { useAuth } from '@hooks/useAuth';
 import { useListPokemons } from '@hooks/usePokemonData';
 import { IPokemon } from '@models/pokemon/pokemon.common';
 import { ROUTES } from '@routes/routes';
@@ -17,8 +17,8 @@ import {
   Trophy
 } from 'lucide-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-  Dimensions,
   Image,
   ScrollView,
   StatusBar,
@@ -30,7 +30,6 @@ import {
 import * as Progress from 'react-native-progress';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width } = Dimensions.get('window');
 
 // Properly typed interfaces
 interface LevelData {
@@ -64,28 +63,28 @@ interface UserData {
   collectionPreview: CollectionItem[];
 }
 
-const mockUserData: UserData = {
+const getMockUserData = (t: (key: string) => string): UserData => ({
   name: 'Satoshi',
   joinDate: '10/2025',
   avatarUrl: 'https://cdn-icons-png.flaticon.com/512/219/219969.png',
   level: {
-    name: 'Sơ cấp N5',
+    name: t('profile.level_beginner'),
     progress: 0.75,
   },
   stats: {
     learningPoints: 12580,
     streak: 12,
-    league: 'Bạc',
+    league: t('profile.league_silver'),
   },
   achievements: [
-    { name: 'Tuần Hoàn Hảo', icon: '🎯', colors: ['#fbbf24', '#f59e0b'] },
-    { name: 'Học Giả', icon: '🧠', colors: ['#e0e7ff', '#c7d2fe'] },
-    { name: 'Lửa Nhiệt Huyết', icon: '🔥', colors: ['#fecaca', '#ef4444'] },
-    { name: 'Thông Thái', icon: '🦉', colors: ['#ddd6fe', '#a78bfa'] },
-    { name: 'Chăm Chỉ', icon: '✍️', colors: ['#d1fae5', '#34d399'] },
+    { name: t('profile.achievement_perfect_week'), icon: '🎯', colors: ['#fbbf24', '#f59e0b'] },
+    { name: t('profile.achievement_scholar'), icon: '🧠', colors: ['#e0e7ff', '#c7d2fe'] },
+    { name: t('profile.achievement_fire'), icon: '🔥', colors: ['#fecaca', '#ef4444'] },
+    { name: t('profile.achievement_wise'), icon: '🦉', colors: ['#ddd6fe', '#a78bfa'] },
+    { name: t('profile.achievement_diligent'), icon: '✍️', colors: ['#d1fae5', '#34d399'] },
   ],
   collectionPreview: [{ id: 4 }, { id: 7 }, { id: 1 }]
-};
+});
 
 // Properly typed StatItem component
 interface StatItemProps {
@@ -169,15 +168,18 @@ const AchievementBadge: React.FC<AchievementBadgeProps> = ({ name, icon, colors 
 );
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const userProfile = user?.data;
 
-  const { data: pokemonsData, isLoading: isLoadingPokemons, isError: isErrorPokemons } = useListPokemons({
+  const { data: pokemonsData } = useListPokemons({
     pageSize: 3,
     currentPage: 1,
     sortBy: 'id',
     sortOrder: 'asc' as 'asc' | 'desc',
   });
+  
+  const mockUserData = getMockUserData(t);
   //------------------------End------------------------//
 
   return (
@@ -204,7 +206,7 @@ export default function ProfileScreen() {
           <BackScreen
             onPress={() => router.back()}
             color='white'
-            title='Hồ sơ'
+            title={t('profile.title')}
             className='mb-6'
           >
             <TouchableOpacity
@@ -267,7 +269,7 @@ export default function ProfileScreen() {
 
             <View className="flex-row items-center gap-1.5">
               <Calendar size={15} color="rgba(255,255,255,0.95)" strokeWidth={2.5} />
-              <Text className="text-sm font-semibold text-white/95 tracking-wide">Tham gia {formatDateToMMYYYY(userProfile?.createdAt)}</Text>
+              <Text className="text-sm font-semibold text-white/95 tracking-wide">{t('profile.joined')} {formatDateToMMYYYY(userProfile?.createdAt)}</Text>
             </View>
           </View>
         </LinearGradient>
@@ -279,21 +281,21 @@ export default function ProfileScreen() {
             <StatItem
               icon={Star}
               value={mockUserData?.stats?.learningPoints?.toLocaleString()}
-              label="Điểm"
+              label={t('profile.points')}
               color="#f59e0b"
               accentColor="#fbbf24"
             />
             <StatItem
               icon={Flame}
               value={mockUserData?.stats?.streak}
-              label="Streak"
+              label={t('profile.streak')}
               color="#ef4444"
               accentColor="#f87171"
             />
             <StatItem
               icon={Shield}
               value={mockUserData?.stats?.league}
-              label="Giải đấu"
+              label={t('profile.league')}
               color="#6FAFB2"
               accentColor="#7EC5C8"
             />
@@ -324,9 +326,9 @@ export default function ProfileScreen() {
                 </LinearGradient>
 
                 <View className="flex-1">
-                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">Bộ sưu tập</Text>
+                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('profile.collection')}</Text>
                   <Text className="text-sm font-semibold text-slate-500 tracking-wide">
-                    Xem toàn bộ Pokédex của bạn
+                    {t('profile.collection_description')}
                   </Text>
                 </View>
 
@@ -358,9 +360,9 @@ export default function ProfileScreen() {
             {/* Header */}
             <View className="flex-row justify-between items-center mb-6">
               <View>
-                <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">Thành tích</Text>
+                <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('profile.achievements')}</Text>
                 <Text className="text-sm font-semibold text-slate-500 tracking-wide">
-                  {mockUserData.achievements.length} huy hiệu đã đạt được
+                  {mockUserData.achievements.length} {t('profile.achievements_earned')}
                 </Text>
               </View>
 
@@ -369,7 +371,7 @@ export default function ProfileScreen() {
                 className="bg-blue-50 px-4.5 py-2.5 rounded-2xl"
                 activeOpacity={0.7}
               >
-                <Text className="text-sm font-extrabold text-blue-600 tracking-wide">Xem tất cả</Text>
+                <Text className="text-sm font-extrabold text-blue-600 tracking-wide">{t('profile.view_all')}</Text>
               </TouchableOpacity>
             </View>
 

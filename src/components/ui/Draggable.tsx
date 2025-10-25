@@ -1,12 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  Animated,
-  Dimensions,
-  PanResponder,
-  StyleSheet,
-  Text,
-  View,
+    Animated,
+    Dimensions,
+    PanResponder,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import { useGlobalStore } from "../../stores/global/global.config";
 import { useUserStore } from "../../stores/user/user.config";
@@ -56,6 +57,7 @@ const DraggableOverlay = ({
   showText = false,
   text = "Kéo Thả Tự Do",
 }: DraggableOverlayProps) => {
+  const { t } = useTranslation();
   // Global store for overlay position
   const {
     overlayPosition,
@@ -277,7 +279,7 @@ const DraggableOverlay = ({
           // Fallback to text if no image provided
           <>
             <Text style={styles.headerText}>{text}</Text>
-            <Text style={styles.bodyText}>Vị trí được ghi nhớ!</Text>
+            <Text style={styles.bodyText}>{t("common.position_saved")}</Text>
           </>
         )}
 
