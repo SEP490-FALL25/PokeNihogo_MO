@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 
 interface ExpProgressBarProps {
@@ -10,8 +11,8 @@ interface ExpProgressBarProps {
 }
 
 export default function ExpProgressBar({
-  currentExp=0,
-  expToNextLevel=0,
+  currentExp = 0,
+  expToNextLevel = 0,
   size = "small",
   showText = true,
   style,
@@ -19,7 +20,7 @@ export default function ExpProgressBar({
   const percentage =
     expToNextLevel > 0 ? (currentExp / expToNextLevel) * 100 : 0;
   const isLarge = size === "large";
-
+  const { t } = useTranslation();
   return (
     <View style={[styles.container, style]}>
       {showText && (
@@ -30,11 +31,12 @@ export default function ExpProgressBar({
               isLarge ? styles.progressTextLarge : styles.progressTextSmall,
             ]}
           >
-            {currentExp?.toLocaleString()} / {expToNextLevel.toLocaleString()} XP
+            {currentExp?.toLocaleString()} / {expToNextLevel.toLocaleString()}{" "}
+            {t("profile.xp")}
           </Text>
-          {isLarge && (
+          {/* {isLarge && (
             <Text style={styles.percentageText}>{percentage.toFixed(1)}%</Text>
-          )}
+          )} */}
         </View>
       )}
 
@@ -55,7 +57,8 @@ export default function ExpProgressBar({
 
       {isLarge && showText && (
         <Text style={styles.remainingText}>
-          {(expToNextLevel - currentExp).toLocaleString()} XP to Level{" "}
+          {(expToNextLevel - currentExp).toLocaleString()} {t("profile.xp")}{" "}
+          {t("profile.to")} {t("profile.level")}{" "}
           {Math.floor(currentExp / 1000) + 1}
         </Text>
       )}
@@ -85,8 +88,9 @@ const styles = StyleSheet.create({
   },
   percentageText: {
     color: "#ffffff",
-    fontSize: 18,
+    fontSize: 12,
     fontWeight: "700",
+    marginLeft: 4,
   },
   progressBarBg: {
     backgroundColor: "rgba(255, 255, 255, 0.2)",

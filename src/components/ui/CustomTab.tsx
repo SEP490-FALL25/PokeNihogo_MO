@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ROUTES } from "@routes/routes";
 import { usePathname, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Animated,
   StyleSheet,
@@ -26,59 +27,60 @@ interface TabButtonProps {
   onPress: () => void;
 }
 
-const TAB_CONFIG: Tab[] = [
+const getTabConfig = (t: (key: string) => string): Tab[] => [
   // {
   //   name: "learn",
   //   icon: "book",
-  //   label: "Learn",
+  //   label: t("tabs.learn"),
   //   route: ROUTES.TABS.LEARN,
   //   color: "#10b981",
   // },
   {
     name: "demo quiz",
     icon: "game-controller",
-    label: "Demo Quiz",
+    label: t("tabs.demo_quiz"),
     route: "/quiz-demo",
     color: "#ef4444",
   },
   {
     name: "learn",
     icon: "library",
-    label: "Learn",
+    label: t("tabs.learn"),
     route: ROUTES.TABS.LEARN,
     color: "#06b6d4",
   },
   {
     name: "reading",
     icon: "text",
-    label: "Reading",
+    label: t("tabs.reading"),
     route: ROUTES.TABS.READING,
     color: "#f59e0b",
   },
   {
     name: "home",
     icon: "home",
-    label: "Home",
+    label: t("tabs.home"),
     route: ROUTES.TABS.HOME,
     color: "#3b82f6",
   },
   {
     name: "listening",
     icon: "volume-high",
-    label: "Listening",
+    label: t("tabs.listening"),
     route: ROUTES.TABS.LISTENING,
     color: "#8b5cf6",
   },
   {
     name: "battle",
     icon: "game-controller",
-    label: "Battle",
+    label: t("tabs.battle"),
     route: ROUTES.TABS.BATTLE,
     color: "#ef4444",
   },
 ];
 
 const CustomTab = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -98,10 +100,12 @@ const CustomTab = () => {
     [router]
   );
 
+  const tabConfig = getTabConfig(t);
+
   return (
     <View style={styles.container}>
       <View style={styles.tabBar}>
-        {TAB_CONFIG.map((tab) => (
+        {tabConfig.map((tab) => (
           <TabButton
             key={tab.name}
             tab={tab}

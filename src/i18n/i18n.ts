@@ -2,31 +2,21 @@
 
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import { useGlobalStore } from "@stores/global/global.config";
 import en from "./en.json";
+import ja from "./ja.json";
 import vi from "./vi.json";
 
 export const resources = {
   en: { translation: en },
   vi: { translation: vi },
+  ja: { translation: ja },
 };
 
-// Get initial language from store
-const getInitialLanguage = () => {
-  try {
-    // Try to get language from global store
-
-    const language = useGlobalStore.getState().language;
-    return language || "en";
-  } catch {
-    // Fallback to 'en' if store is not available
-    return "en";
-  }
-};
-
+// Initialize i18n with default language
+// LanguageProvider will handle loading the saved language
 i18n.use(initReactI18next).init({
   resources,
-  lng: getInitialLanguage(),
+  lng: "en", // Default language, will be overridden by LanguageProvider
   fallbackLng: "en",
   interpolation: {
     escapeValue: false,

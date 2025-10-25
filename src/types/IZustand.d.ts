@@ -2,8 +2,8 @@ declare namespace ZUSTAND {
 
     export interface IGlobalState {
         language: string;
-        setLanguage: (language: string) => void;
-        initializeLanguage: () => void;
+        setLanguage: (language: string) => Promise<void>;
+        initializeLanguage: () => Promise<void>;
 
         // DraggableOverlay position management
         overlayPosition: { x: number; y: number };

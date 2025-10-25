@@ -3,6 +3,7 @@ import { ILessonCategoryResponse } from "@models/lesson-category/lesson-category
 import { lessonService } from "@services/lesson";
 import lessonCategoriesService from "@services/lesson-categories";
 import userProgressService from "@services/user-progres";
+import { useGlobalStore } from "@stores/global/global.config";
 import {
   useInfiniteQuery,
   useMutation,
@@ -11,8 +12,10 @@ import {
 } from "@tanstack/react-query";
 
 export const useLessons = (level: "N5" | "N4" | "N3") => {
+  const language = useGlobalStore((state) => state.language);
+  
   return useQuery({
-    queryKey: ["lessons", level],
+    queryKey: ["lessons", level, language],
     queryFn: () => lessonService.getLessonsByLevel(level),
     staleTime: 5 * 60 * 1000, // 5 minutes
     enabled: !!level, // Only run query if level is provided
@@ -20,8 +23,10 @@ export const useLessons = (level: "N5" | "N4" | "N3") => {
 };
 
 export const useLesson = (lessonId: string) => {
+  const language = useGlobalStore((state) => state.language);
+  
   return useQuery({
-    queryKey: ["lesson", lessonId],
+    queryKey: ["lesson", lessonId, language],
     queryFn: () => lessonService.getLessonById(lessonId),
     enabled: !!lessonId,
   });
@@ -52,16 +57,20 @@ export const useUpdateLessonProgress = () => {
 };
 
 export const useUserProgress = () => {
+  const language = useGlobalStore((state) => state.language);
+  
   return useQuery({
-    queryKey: ["userProgress"],
+    queryKey: ["userProgress", language],
     queryFn: () => lessonService.getUserProgress(),
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 };
 
 export const useUserProgressWithParams = (params: IQueryRequest) => {
+  const language = useGlobalStore((state) => state.language);
+  
   return useQuery({
-    queryKey: ["userProgress", params],
+    queryKey: ["userProgress", params, language],
     queryFn: () => userProgressService.getMyProgress(params),
     staleTime: 2 * 60 * 1000, // 2 minutes
     retry: 1, // Only retry once
@@ -71,8 +80,10 @@ export const useUserProgressWithParams = (params: IQueryRequest) => {
 export const useUserProgressInfinite = (
   params: Omit<IQueryRequest, "currentPage">
 ) => {
+  const language = useGlobalStore((state) => state.language);
+  
   return useInfiniteQuery({
-    queryKey: ["userProgressInfinite", params],
+    queryKey: ["userProgressInfinite", params, language],
     queryFn: ({ pageParam = 1 }) =>
       userProgressService.getMyProgress({
         ...params,
@@ -100,8 +111,10 @@ export const useUserProgressInfinite = (
  * Infinite list of user lessons with pagination support
  */
 export const useInfiniteUserLessons = (params: Omit<IQueryRequest, "currentPage">) => {
+  const language = useGlobalStore((state) => state.language);
+  
   return useInfiniteQuery({
-    queryKey: ["user-lessons-infinite", params],
+    queryKey: ["user-lessons-infinite", params, language],
     queryFn: ({ pageParam = 1 }) =>
       userProgressService.getMyProgress({
         ...params,
@@ -121,8 +134,10 @@ export const useInfiniteUserLessons = (params: Omit<IQueryRequest, "currentPage"
 };
 
 export const useLessonCategories = () => {
+  const language = useGlobalStore((state) => state.language);
+  
   return useQuery<ILessonCategoryResponse>({
-    queryKey: ["lessonCategories"],
+    queryKey: ["lessonCategories", language],
     queryFn: () => lessonCategoriesService.getAllLessonCategories(),
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1, // Only retry once

@@ -15,8 +15,11 @@ export default function LanguageProvider({ children }: LanguageProviderProps) {
     const initializeLanguage = useGlobalStore((state) => state.initializeLanguage);
 
     useEffect(() => {
-        // Initialize language from i18n on mount
-        initializeLanguage();
+        // Initialize language from storage on mount
+        const initLanguage = async () => {
+            await initializeLanguage();
+        };
+        initLanguage();
     }, [initializeLanguage]);
 
     useEffect(() => {

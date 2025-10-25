@@ -1,10 +1,10 @@
 import { deleteSecureStorage, getValueForSecureStorage, saveSecureStorage } from "@utils/secure-storage";
 
 export const createAuthSlice = (set: any): ZUSTAND.IAuthState => ({
-  // accessToken: "",
-  // isLoading: true,
-  accessToken: "temp-bypass-token", // TODO: TEMPORARY BYPASS - Remove this after testing
-  isLoading: false, // Set to false to avoid loading state
+  accessToken: "",
+  isLoading: true,
+  // accessToken: "temp-bypass-token", // TODO: TEMPORARY BYPASS - Remove this after testing
+  // isLoading: false, // Set to false to avoid loading state
 
 
   initialize: async () => {

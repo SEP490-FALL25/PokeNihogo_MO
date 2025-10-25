@@ -1,267 +1,400 @@
 {
-    "common": {
-        "start": "BẮT ĐẦU NGAY",
-        "i-already-have-an-account": "TÔI ĐÃ CÓ TÀI KHOẢN",
-        "learn": "Học",
-        "learn-again": "Học nữa",
-        "learn-forever": "Học mãi",
-        "home": "Trang chủ",
-        "explore": "Khám phá",
-        "welcome": "Chào mừng",
-        "demo": "DEMO",
-        "continue": "Tiếp tục",
-        "next": "Tiếp theo",
-        "finish": "Hoàn tất",
-        "complete": "Hoàn thành",
-        "retry": "Thử lại",
-        "processing": "Đang xử lý...",
-        "loading": "Đang tải..."
-
+  "common": {
+    "start": "BẮT ĐẦU NGAY",
+    "i-already-have-an-account": "TÔI ĐÃ CÓ TÀI KHOẢN",
+    "learn": "Học",
+    "learn-again": "Học nữa",
+    "learn-forever": "Học mãi",
+    "home": "Trang chủ",
+    "explore": "Khám phá",
+    "welcome": "Chào mừng",
+    "demo": "DEMO",
+    "continue": "Tiếp tục",
+    "next": "Tiếp theo",
+    "finish": "Hoàn tất",
+    "complete": "Hoàn thành",
+    "retry": "Thử lại",
+    "processing": "Đang xử lý...",
+    "loading": "Đang tải...",
+    "position_saved": "Vị trí được ghi nhớ!",
+    "simple_dialog": "Hộp thoại đơn giản",
+    "simple_dialog_test": "Đây là test hộp thoại đơn giản",
+    "close": "Đóng"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Mật khẩu",
+    "enter-your-email": "Nhập email",
+    "enter-your-password": "Nhập mật khẩu",
+    "log-in": "Đăng nhập",
+    "welcome-back": "Chào mừng trở lại!",
+    "forgot-your-password": "Quên mật khẩu?",
+    "dont-have-an-account": "Không có tài khoản?",
+    "sign-up": "Đăng ký",
+    "login-success": "Đăng nhập thành công",
+    "login-failed": "Đăng nhập thất bại",
+    "sign-in-with-google": "Đăng nhập với Google",
+    "already-have-an-account": "Đã có tài khoản?",
+    "create-account": "Tạo tài khoản",
+    "confirm-password": "Xác nhận mật khẩu",
+    "name": "Tên",
+    "enter-your-name": "Nhập tên",
+    "enter-code": "Nhập mã",
+    "we-sent-a-6-digit-code-to": "Chúng tôi đã gửi mã 6 chữ số đến",
+    "didnt-receive-a-code": "Không nhận được mã?",
+    "resend": "Gửi lại",
+    "verify": "Xác nhận",
+    "logged-in-successfully": "Đăng nhập thành công!",
+    "invalid-otp-please-try-again": "Mã OTP không hợp lệ. Vui lòng thử lại.",
+    "an-unexpected-error-occurred": "Đã xảy ra lỗi không mong muốn.",
+    "a-new-code-has-been-sent-to-your-email": "Một mã mới đã được gửi đến email của bạn.",
+    "complete-profile": "Hoàn thành hồ sơ",
+    "whats-your-name": "Tên của bạn là gì?",
+    "next": "Tiếp tục",
+    "reset-your-password": "Đặt lại mật khẩu",
+    "create-new-password": "Tạo mật khẩu mới",
+    "new-password-description": "Nhập mật khẩu mới.",
+    "new-password": "Mật khẩu mới",
+    "confirm-new-password": "Xác nhận mật khẩu mới",
+    "enter-new-password": "Nhập mật khẩu mới",
+    "enter-confirm-new-password": "Nhập xác nhận mật khẩu mới",
+    "save-password": "Lưu mật khẩu",
+    "select_level": {
+      "title": "Trình độ hiện tại của bạn là gì?",
+      "n5": "N5 (Sơ cấp)",
+      "n4": "N4 (Sơ trung cấp)",
+      "n3": "N3 (Trung cấp)",
+      "take_test": "Tôi không chắc, hãy kiểm tra trình độ!",
+      "test_result_title": "🎉 Kết quả Placement Test",
+      "test_result_desc": "Dựa trên kết quả test, chúng tôi đề xuất bạn bắt đầu với level {{level}}",
+      "recommended_from_test": "✨ Được đề xuất từ test"
     },
-    "auth": {
-        "email": "Email",
-        "password": "Mật khẩu",
-        "enter-your-email": "Nhập email",
-        "enter-your-password": "Nhập mật khẩu",
-        "log-in": "Đăng nhập",
-        "welcome-back": "Chào mừng trở lại!",
-        "forgot-your-password": "Quên mật khẩu?",
-        "dont-have-an-account": "Không có tài khoản?",
-        "sign-up": "Đăng ký",
-        "login-success": "Đăng nhập thành công",
-        "login-failed": "Đăng nhập thất bại",
-        "sign-in-with-google": "Đăng nhập với Google",
-        "already-have-an-account": "Đã có tài khoản?",
-        "create-account": "Tạo tài khoản",
-        "confirm-password": "Xác nhận mật khẩu",
-        "name": "Tên",
-        "enter-your-name": "Nhập tên",
-        "enter-code": "Nhập mã",
-        "we-sent-a-6-digit-code-to": "Chúng tôi đã gửi mã 6 chữ số đến",
-        "didnt-receive-a-code": "Không nhận được mã?",
-        "resend": "Gửi lại",
-        "verify": "Xác nhận",
-        "logged-in-successfully": "Đăng nhập thành công!",
-        "invalid-otp-please-try-again": "Mã OTP không hợp lệ. Vui lòng thử lại.",
-        "an-unexpected-error-occurred": "Đã xảy ra lỗi không mong muốn.",
-        "a-new-code-has-been-sent-to-your-email": "Một mã mới đã được gửi đến email của bạn.",
-        "complete-profile": "Hoàn thành hồ sơ",
-        "whats-your-name": "Tên của bạn là gì?",
-        "next": "Tiếp tục",
-        "reset-your-password": "Đặt lại mật khẩu",
-        "create-new-password": "Tạo mật khẩu mới",
-        "new-password-description": "Nhập mật khẩu mới.",
-        "new-password": "Mật khẩu mới",
-        "confirm-new-password": "Xác nhận mật khẩu mới",
-        "enter-new-password": "Nhập mật khẩu mới",
-        "enter-confirm-new-password": "Nhập xác nhận mật khẩu mới",
-        "save-password": "Lưu mật khẩu",
-        "select_level": {
-            "title": "Trình độ hiện tại của bạn là gì?",
-            "n5": "N5 (Sơ cấp)",
-            "n4": "N4 (Sơ trung cấp)",
-            "n3": "N3 (Trung cấp)",
-            "take_test": "Tôi không chắc, hãy kiểm tra trình độ!",
-            "test_result_title": "🎉 Kết quả Placement Test",
-            "test_result_desc": "Dựa trên kết quả test, chúng tôi đề xuất bạn bắt đầu với level {{level}}",
-            "recommended_from_test": "✨ Được đề xuất từ test"
-        },
-        "placement_test": {
-            "no_questions": "Không có câu hỏi nào.",
-            "recommended_title": "Trình độ đề xuất của bạn",
-            "recommended_desc": "Dựa trên câu trả lời, đề xuất: {{level}}",
-            "choose_starter": "Chọn Pokémon khởi đầu",
-            "progress_title": "Kiểm tra trình độ",
-            "progress": "Câu hỏi {{current}} trên {{total}}",
-            "speak_question": "Đọc câu hỏi",
-            "stop_speaking": "Dừng đọc",
-            "play_audio": "Phát audio",
-            "pause_audio": "Tạm dừng audio",
-            "audio_question_instruction": "Nghe audio và chọn đáp án đúng"
-        },
-        "choose_starter": {
-            "title": "Chọn Đồng hành của bạn!",
-            "confirm": "Xác nhận"
-        },
-        "mascots": {
-            "pikachu": "Hãy chọn level phù hợp với bạn!",
-            "eevee": "Mỗi level sẽ có thử thách khác nhau!",
-            "bulbasaur": "Bắt đầu từ N5 để học từ cơ bản!",
-            "charmander": "N3 sẽ là thử thách lớn nhất!",
-            "squirtle": "Chọn level và bắt đầu hành trình!",
-            "jigglypuff": "Âm nhạc sẽ giúp bạn tập trung!",
-            "meowth": "Đừng lo, chúng ta sẽ học từ từ!",
-            "psyduck": "Chọn level rồi cùng giải đố nhé!",
-            "snorlax": "Đừng vội, chọn level phù hợp nhất với bạn!",
-            "mew": "Cùng bay vào thế giới tiếng Nhật!",
-            "togepi": "Bước nhỏ hôm nay, thành công ngày mai!"
-        }
+    "placement_test": {
+      "no_questions": "Không có câu hỏi nào.",
+      "recommended_title": "Trình độ đề xuất của bạn",
+      "recommended_desc": "Dựa trên câu trả lời, đề xuất: {{level}}",
+      "choose_starter": "Chọn Pokémon khởi đầu",
+      "progress_title": "Kiểm tra trình độ",
+      "progress": "Câu hỏi {{current}} trên {{total}}",
+      "speak_question": "Đọc câu hỏi",
+      "stop_speaking": "Dừng đọc",
+      "play_audio": "Phát audio",
+      "pause_audio": "Tạm dừng audio",
+      "audio_question_instruction": "Nghe audio và chọn đáp án đúng"
     },
-    "lessons": {
-        "title": "Bài học",
-        "progress_title": "Tiến độ học tập",
-        "overall_progress": "Tổng tiến độ",
-        "level_progress": "Tiến độ theo cấp độ",
-        "lessons_completed": "Bài học hoàn thành",
-        "total_lessons": "Tổng bài học",
-        "lessons_list": "Danh sách bài học",
-        "lessons_count": "bài",
-        "load_more": "Xem thêm",
-        "end_of_results": "Đây là toàn bộ kết quả",
-        "no_lessons": "Chưa có bài học nào",
-        "no_lessons_description": "Bạn chưa có bài học nào trong danh mục này. Vui lòng liên hệ admin để được thêm bài học.",
-        "error_loading_lessons": "Lỗi tải danh sách bài học",
-        "error_loading_lessons_description": "Không thể tải danh sách bài học. Vui lòng kiểm tra kết nối mạng và thử lại.",
-        "select_level": "Chọn cấp độ",
-        "all_levels": "Tất cả",
-        "categories": "Danh mục bài học",
-        "categories_count": "danh mục",
-        "contact_admin": "Thử chọn cấp độ khác hoặc liên hệ admin để thêm nội dung",
-        "lesson_status": {
-            "completed": "Hoàn thành",
-            "in_progress": "Đang học",
-            "not_started": "Chưa bắt đầu"
-        },
-        "lesson_types": {
-            "vocabulary": "Từ vựng",
-            "grammar": "Ngữ pháp",
-            "reading": "Đọc hiểu",
-            "listening": "Nghe hiểu",
-            "kanji": "Kanji"
-        },
-        "difficulty": {
-            "beginner": "Sơ cấp",
-            "intermediate": "Trung cấp",
-            "advanced": "Nâng cao"
-        },
-        "level_names": {
-            "N5": "Sơ cấp",
-            "N4": "Sơ trung cấp",
-            "N3": "Trung cấp"
-        },
-        "skill_categories": {
-            "title": "Luyện tập kỹ năng",
-            "reading": "Đọc hiểu",
-            "speaking": "Nói",
-            "listening": "Nghe hiểu"
-        },
-        "level_categories": {
-            "title": "Cấp độ học tập",
-            "n5_basic": "N5 - Cơ bản",
-            "n4_intermediate": "N4 - Trung cấp", 
-            "n3_advanced": "N3 - Nâng cao"
-        },
-        "lesson_info": {
-            "title": "Thông tin bài học",
-            "lesson_type": "Loại bài học",
-            "level": "Cấp độ",
-            "difficulty": "Độ khó",
-            "estimated_time": "Thời gian ước tính",
-            "minutes": "phút",
-            "reward": "Phần thưởng",
-            "status": "Trạng thái"
-        }
+    "choose_starter": {
+      "title": "Chọn Đồng hành của bạn!",
+      "confirm": "Xác nhận",
+      "loading": "Đang tải Pokemon khởi đầu...",
+      "fetch_error": "Không thể tải Pokemon khởi đầu. Vui lòng thử lại.",
+      "select_error": "Không thể chọn Pokemon khởi đầu. Vui lòng thử lại."
     },
-    "home": {
-        "welcome_back": "Chào mừng trở lại, {{username}}! 👋",
-        "ready_to_continue": "Sẵn sàng tiếp tục hành trình học tiếng Nhật của bạn?",
-        "test_tour_guide": "🧪 Test Tour Guide",
-        "clear_overlay_position": "🗑️ Clear Overlay Position",
-        "test_daily_login_modal": "🎉 Test Daily Login Modal",
-        "quick_start": "🚀 Bắt đầu nhanh",
-        "start_new_lesson": "Bắt đầu bài học mới",
-        "learning_path": "📚 Lộ trình học tập của bạn",
-        "current_level": "Cấp độ hiện tại: {{level}}",
-        "next_goal": "Mục tiêu tiếp theo: {{level}}",
-        "basic_japanese": "Tiếng Nhật cơ bản - Hiragana & Katakana",
-        "intermediate_japanese": "Tiếng Nhật trung cấp - Kanji & Ngữ pháp",
-        "partner_pokemon": "Pokémon đồng hành của bạn",
-        "take_care_description": "Chăm sóc Pokémon đồng hành và cùng nhau tiến hóa!",
-        "take_care_me": "Hãy chăm sóc tôi nhé!",
-        "partner_pokemon_short": "Pokémon đồng hành"
+    "congrats": {
+      "celebration": "Hoan hô!!",
+      "welcome": "Chào mừng",
+      "profile_created": "Hồ sơ của bạn đã được tạo thành công.",
+      "your_starter": "Pokemon khởi đầu của bạn",
+      "continue_to_home": "TIẾP TỤC ĐẾN TRANG CHỦ"
     },
-    "quiz": {
-        "question_types": {
-            "single_choice": "Chọn 1 đáp án đúng",
-            "multiple_choice": "Chọn tất cả đáp án đúng",
-            "text_input": "Nhập câu trả lời",
-            "audio": "Nghe và chọn đáp án",
-            "image": "Quan sát hình ảnh và chọn đáp án"
-        },
-        "audio_player": {
-            "play_button": "▶️",
-            "press_to_play": "Nhấn để phát âm thanh"
-        },
-        "image_placeholder": "🖼️ Hình ảnh câu hỏi",
-        "explanation_label": "Giải thích:",
-        "points_label": "điểm"
-    },
-    "daily_login": {
-        "title": "Điểm danh hàng ngày",
-        "subtitle": "Duy trì thói quen tốt mỗi ngày",
-        "consecutive_days": "ngày liên tiếp",
-        "motivation": {
-            "start_streak": "Bắt đầu chuỗi điểm danh của bạn!",
-            "keep_going": "Tuyệt vời! Hãy tiếp tục!",
-            "excellent": "Xuất sắc! Bạn đang làm rất tốt!",
-            "legendary": "Đỉnh cao! Bạn là huyền thoại!"
-        },
-        "check_in_button": "Điểm danh ngay 🎯",
-        "already_checked": "✓ Đã điểm danh hôm nay",
-        "close": "Đóng",
-        "day_names": {
-            "sun": "CN",
-            "mon": "T2",
-            "tue": "T3",
-            "wed": "T4",
-            "thu": "T5",
-            "fri": "T6",
-            "sat": "T7"
-        }
-    },
-    "welcome_modal": {
-        "title": "Chào mừng, {{username}}!",
-        "message": "{{pokemonName}} sẵn sàng đồng hành cùng bạn trong hành trình này!",
-        "lets_begin": "Bắt đầu thôi! 🚀"
-    },
-    "tabs": {
-        "home": "Trang chủ",
-        "learn": "Học",
-        "reading": "Đọc",
-        "listening": "Nghe",
-        "speaking": "Nói",
-        "battle": "Chiến đấu",
-        "quiz_demo": "Demo Quiz"
-    },
-    "lesson_card": {
-        "lesson_description": "Bài học N{{level}}"
-    },
-    "error_state": {
-        "default_title": "Đã xảy ra lỗi",
-        "default_description": "Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.",
-        "default_retry": "Thử lại",
-        "pokemon_footer": "⚡ Đừng bỏ cuộc! Hãy thử lại để tiếp tục hành trình!"
-    },
-    "search": {
-        "placeholder": "Tìm kiếm bài học...",
-        "found_results": "Tìm thấy {{count}} kết quả"
-    },
-    "zod": {
-        "errors": {
-            "auth": {
-                "too_small": {
-                    "string": "Mật khẩu phải có ít nhất {{minimum}} ký tự"
-                },
-                "invalid_email": {
-                    "email": "Email không hợp lệ"
-                },
-                "invalid_password": {
-                    "password": "Mật khẩu không hợp lệ"
-                },
-                "invalid_otp": {
-                    "otp": "OTP không hợp lệ"
-                }
-            }
-        }
+    "mascots": {
+      "pikachu": "Hãy chọn level phù hợp với bạn!",
+      "eevee": "Mỗi level sẽ có thử thách khác nhau!",
+      "bulbasaur": "Bắt đầu từ N5 để học từ cơ bản!",
+      "charmander": "N3 sẽ là thử thách lớn nhất!",
+      "squirtle": "Chọn level và bắt đầu hành trình!",
+      "jigglypuff": "Âm nhạc sẽ giúp bạn tập trung!",
+      "meowth": "Đừng lo, chúng ta sẽ học từ từ!",
+      "psyduck": "Chọn level rồi cùng giải đố nhé!",
+      "snorlax": "Đừng vội, chọn level phù hợp nhất với bạn!",
+      "mew": "Cùng bay vào thế giới tiếng Nhật!",
+      "togepi": "Bước nhỏ hôm nay, thành công ngày mai!"
     }
+  },
+  "reading": {
+    "title": "Luyện Đọc",
+    "subtitle": "Cải thiện kỹ năng đọc tiếng Nhật với nhiều loại văn bản khác nhau",
+    "materials_title": "Tài liệu đọc",
+    "progress_title": "Tiến độ đọc",
+    "articles_read": "Bài đã đọc",
+    "words_learned": "Từ đã học",
+    "comprehension": "Hiểu biết",
+    "tips_title": "Mẹo đọc",
+    "tip_1": "Bắt đầu với văn bản đơn giản và tăng dần độ khó",
+    "tip_2": "Tra từ chưa biết nhưng hãy thử đoán nghĩa từ ngữ cảnh trước",
+    "tip_3": "Đọc to để cải thiện phát âm và nhịp điệu",
+    "tip_4": "Luyện đọc nhiều loại văn bản khác nhau (tin tức, truyện, v.v.)"
+  },
+  "listening": {
+    "title": "Luyện Nghe",
+    "subtitle": "Cải thiện kỹ năng nghe tiếng Nhật với các bài tập âm thanh",
+    "audio_exercises": "Bài tập âm thanh",
+    "progress_title": "Tiến độ nghe",
+    "exercises_done": "Bài tập hoàn thành",
+    "total_time": "Tổng thời gian",
+    "accuracy": "Độ chính xác",
+    "tips_title": "Mẹo nghe",
+    "tip_1": "Nghe nhiều lần - lần đầu để hiểu tổng quan, sau đó để hiểu chi tiết",
+    "tip_2": "Tập trung vào ngữ điệu và nhịp điệu",
+    "tip_3": "Sử dụng phụ đề ban đầu, sau đó thử không có phụ đề",
+    "tip_4": "Luyện tập với các giọng nói và tốc độ nói khác nhau",
+    "controls_title": "Điều khiển âm thanh",
+    "controls_hint": "Chạm vào bất kỳ bài tập nào ở trên để bắt đầu luyện nghe"
+  },
+  "speaking": {
+    "title": "Luyện Nói",
+    "subtitle": "Cải thiện kỹ năng nói tiếng Nhật với các bài tập tương tác",
+    "exercises_title": "Bài tập nói",
+    "recorder_title": "Ghi âm bài tập",
+    "recorder_description": "Chọn bài tập và bắt đầu ghi âm để luyện tập phát âm",
+    "default_exercise": "Bài tập phát âm",
+    "recording_complete": "Ghi âm hoàn thành!",
+    "recording_description": "Bạn có thể nghe lại bản ghi âm, ghi âm lại hoặc gửi lên server để phân tích",
+    "upload_to_server": "Gửi lên server",
+    "upload_success": "Thành công",
+    "upload_success_message": "Bản ghi âm đã được gửi lên server!",
+    "upload_error": "Lỗi",
+    "upload_error_message": "Không thể gửi bản ghi âm lên server.",
+    "progress_title": "Tiến độ nói",
+    "exercises_done": "Bài tập hoàn thành",
+    "practice_time": "Thời gian luyện tập",
+    "pronunciation": "Phát âm",
+    "tips_title": "Mẹo nói",
+    "tip_1": "Luyện nói to thường xuyên, kể cả khi một mình",
+    "tip_2": "Ghi âm và nghe lại để xác định những điểm cần cải thiện",
+    "tip_3": "Tập trung vào phát âm và ngữ điệu",
+    "tip_4": "Cố gắng suy nghĩ bằng tiếng Nhật thay vì dịch từ tiếng Anh",
+    "controls_title": "Điều khiển ghi âm",
+    "controls_hint": "Chạm vào bất kỳ bài tập nào ở trên để bắt đầu luyện nói"
+  },
+  "battle": {
+    "title": "Đấu Trường",
+    "subtitle": "Thách thức người chơi khác trong các trận chiến ngôn ngữ tiếng Nhật",
+    "available_battles": "Trận chiến có sẵn",
+    "statistics_title": "Thống kê trận chiến",
+    "battles_won": "Trận thắng",
+    "battles_lost": "Trận thua",
+    "win_rate": "Tỷ lệ thắng",
+    "top_players": "Người chơi hàng đầu",
+    "tips_title": "Mẹo chiến đấu",
+    "tip_1": "Luyện tập thường xuyên để cải thiện thời gian phản ứng",
+    "tip_2": "Tập trung vào độ chính xác hơn là tốc độ lúc đầu",
+    "tip_3": "Nghiên cứu lỗi sai để tránh lặp lại",
+    "tip_4": "Tham gia các trận chiến phù hợp với trình độ hiện tại"
+  },
+  "navigation": {
+    "title": "Điều hướng chính",
+    "tour_start_learning": "Bắt đầu học",
+    "tour_description": "Bắt đầu hành trình của bạn tại đây!",
+    "learn": "Học",
+    "reading": "Đọc",
+    "listening": "Nghe",
+    "battle": "Chiến đấu",
+    "user_info": "Thông tin người dùng",
+    "other": "Khác"
+  },
+  "lessons": {
+    "title": "Bài học",
+    "progress_title": "Tiến độ học tập",
+    "overall_progress": "Tổng tiến độ",
+    "level_progress": "Tiến độ theo cấp độ",
+    "lessons_completed": "Bài học hoàn thành",
+    "total_lessons": "Tổng bài học",
+    "lessons_list": "Danh sách bài học",
+    "lessons_count": "bài",
+    "load_more": "Xem thêm",
+    "end_of_results": "Đây là toàn bộ kết quả",
+    "no_lessons": "Chưa có bài học nào",
+    "no_lessons_description": "Bạn chưa có bài học nào trong danh mục này. Vui lòng liên hệ admin để được thêm bài học.",
+    "error_loading_lessons": "Lỗi tải danh sách bài học",
+    "error_loading_lessons_description": "Không thể tải danh sách bài học. Vui lòng kiểm tra kết nối mạng và thử lại.",
+    "select_level": "Chọn cấp độ",
+    "all_levels": "Tất cả",
+    "categories": "Danh mục bài học",
+    "categories_count": "danh mục",
+    "contact_admin": "Thử chọn cấp độ khác hoặc liên hệ admin để thêm nội dung",
+    "lesson_status": {
+      "completed": "Hoàn thành",
+      "in_progress": "Đang học",
+      "not_started": "Chưa bắt đầu"
+    },
+    "lesson_types": {
+      "vocabulary": "Từ vựng",
+      "grammar": "Ngữ pháp",
+      "reading": "Đọc hiểu",
+      "listening": "Nghe hiểu",
+      "kanji": "Kanji"
+    },
+    "difficulty": {
+      "beginner": "Sơ cấp",
+      "intermediate": "Trung cấp",
+      "advanced": "Nâng cao"
+    },
+    "level_names": {
+      "N5": "Sơ cấp",
+      "N4": "Sơ trung cấp",
+      "N3": "Trung cấp"
+    },
+    "skill_categories": {
+      "title": "Danh mục kỹ năng",
+      "reading": "Đọc hiểu",
+      "speaking": "Nói",
+      "listening": "Nghe hiểu"
+    },
+    "level_categories": {
+      "title": "Cấp độ học tập",
+      "n5_basic": "N5 - Cơ bản",
+      "n4_intermediate": "N4 - Trung cấp",
+      "n3_advanced": "N3 - Nâng cao"
+    },
+    "view_all_categories": "Xem tất cả danh mục",
+    "lesson_info": {
+      "title": "Thông tin bài học",
+      "lesson_type": "Loại bài học",
+      "level": "Cấp độ",
+      "difficulty": "Độ khó",
+      "estimated_time": "Thời gian ước tính",
+      "minutes": "phút",
+      "reward": "Phần thưởng",
+      "status": "Trạng thái"
+    }
+  },
+  "home": {
+    "welcome_back": "Chào mừng trở lại, {{username}}! 👋",
+    "ready_to_continue": "Sẵn sàng tiếp tục hành trình học tiếng Nhật của bạn?",
+    "test_tour_guide": "🧪 Test Tour Guide",
+    "clear_overlay_position": "🗑️ Clear Overlay Position",
+    "test_daily_login_modal": "🎉 Test Daily Login Modal",
+    "quick_start": "🚀 Bắt đầu nhanh",
+    "start_new_lesson": "Bắt đầu bài học mới",
+    "learning_path": "📚 Lộ trình học tập của bạn",
+    "current_level": "Cấp độ hiện tại: {{level}}",
+    "next_goal": "Mục tiêu tiếp theo: {{level}}",
+    "basic_japanese": "Tiếng Nhật cơ bản - Hiragana & Katakana",
+    "intermediate_japanese": "Tiếng Nhật trung cấp - Kanji & Ngữ pháp",
+    "partner_pokemon": "Pokémon đồng hành của bạn",
+    "take_care_description": "Chăm sóc Pokémon đồng hành và cùng nhau tiến hóa!",
+    "take_care_me": "Hãy chăm sóc tôi nhé!",
+    "partner_pokemon_short": "Pokémon đồng hành"
+  },
+  "quiz": {
+    "question_types": {
+      "single_choice": "Chọn 1 đáp án đúng",
+      "multiple_choice": "Chọn tất cả đáp án đúng",
+      "text_input": "Nhập câu trả lời",
+      "audio": "Nghe và chọn đáp án",
+      "image": "Quan sát hình ảnh và chọn đáp án"
+    },
+    "audio_player": {
+      "play_button": "▶️",
+      "press_to_play": "Nhấn để phát âm thanh"
+    },
+    "image_placeholder": "🖼️ Hình ảnh câu hỏi",
+    "explanation_label": "Giải thích:",
+    "points_label": "điểm"
+  },
+  "daily_login": {
+    "title": "Điểm danh hàng ngày",
+    "subtitle": "Duy trì thói quen tốt mỗi ngày",
+    "consecutive_days": "ngày liên tiếp",
+    "motivation": {
+      "start_streak": "Bắt đầu chuỗi điểm danh của bạn!",
+      "keep_going": "Tuyệt vời! Hãy tiếp tục!",
+      "excellent": "Xuất sắc! Bạn đang làm rất tốt!",
+      "legendary": "Đỉnh cao! Bạn là huyền thoại!"
+    },
+    "check_in_button": "Điểm danh ngay 🎯",
+    "already_checked": "✓ Đã điểm danh hôm nay",
+    "close": "Đóng",
+    "day_names": {
+      "sun": "CN",
+      "mon": "T2",
+      "tue": "T3",
+      "wed": "T4",
+      "thu": "T5",
+      "fri": "T6",
+      "sat": "T7"
+    }
+  },
+  "welcome_modal": {
+    "title": "Chào mừng, {{username}}!",
+    "message": "{{pokemonName}} sẵn sàng đồng hành cùng bạn trong hành trình này!",
+    "lets_begin": "Bắt đầu thôi! 🚀"
+  },
+  "tabs": {
+    "home": "Trang chủ",
+    "learn": "Học",
+    "reading": "Đọc",
+    "listening": "Nghe",
+    "speaking": "Nói",
+    "battle": "Chiến đấu",
+    "quiz_demo": "Demo Quiz"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "logout": "Đăng xuất",
+    "logout_title": "Đăng xuất",
+    "logout_message": "Bạn có chắc chắn muốn đăng xuất không?",
+    "cancel": "Hủy",
+    "language": "Ngôn ngữ",
+    "language_subtitle": "Chọn ngôn ngữ ưa thích của bạn"
+  },
+  "profile": {
+    "title": "Hồ sơ",
+    "joined": "Tham gia",
+    "points": "Điểm",
+    "streak": "Streak",
+    "league": "Giải đấu",
+    "collection": "Bộ sưu tập",
+    "collection_description": "Xem toàn bộ Pokédex của bạn",
+    "achievements": "Thành tích",
+    "achievements_earned": "huy hiệu đã đạt được",
+    "view_all": "Xem tất cả",
+    "level_beginner": "Sơ cấp N5",
+    "league_silver": "Bạc",
+    "achievement_perfect_week": "Tuần Hoàn Hảo",
+    "achievement_scholar": "Học Giả",
+    "achievement_fire": "Lửa Nhiệt Huyết",
+    "achievement_wise": "Thông Thái",
+    "achievement_diligent": "Chăm Chỉ",
+    "your_progress": "Tiến độ của bạn",
+    "progress_description": "Đây là tiến độ của bạn. Hoàn thành các bài học để lên cấp!",
+    "xp": "Điểm",
+    "level": "Cấp độ",
+    "level_small": "Cấp",
+    "current_xp": "Điểm hiện tại",
+    "next_level": "Cấp tiếp theo",
+    "experience_progress": "Tiến độ kinh nghiệm",
+    "to": "đến"
+  },
+  "lesson_card": {
+    "lesson_description": "Bài học N{{level}}"
+  },
+  "error_state": {
+    "default_title": "Đã xảy ra lỗi",
+    "default_description": "Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.",
+    "default_retry": "Thử lại",
+    "pokemon_footer": "⚡ Đừng bỏ cuộc! Hãy thử lại để tiếp tục hành trình!"
+  },
+  "search": {
+    "placeholder": "Tìm kiếm bài học...",
+    "found_results": "Tìm thấy {{count}} kết quả"
+  },
+  "zod": {
+    "errors": {
+      "auth": {
+        "too_small": {
+          "string": "Mật khẩu phải có ít nhất {{minimum}} ký tự"
+        },
+        "invalid_email": {
+          "email": "Email không hợp lệ"
+        },
+        "invalid_password": {
+          "password": "Mật khẩu không hợp lệ"
+        },
+        "invalid_otp": {
+          "otp": "OTP không hợp lệ"
+        }
+      }
+    }
+  }
 }

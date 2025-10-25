@@ -3,6 +3,7 @@ import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 const sampleBattles = [
@@ -134,6 +135,8 @@ const BattleCard: React.FC<{
 };
 
 export default function BattleScreen() {
+  const { t } = useTranslation();
+  
   const handleBattlePress = (battleId: number) => {
     console.log(`Battle ${battleId} pressed`);
     // Navigate to battle detail screen
@@ -142,14 +145,14 @@ export default function BattleScreen() {
   return (
     <HomeLayout>
       <ThemedText type="title" style={styles.title}>
-        ⚔️ Battle Arena
+        ⚔️ {t("battle.title")}
       </ThemedText>
       <ThemedText style={styles.subtitle}>
-        Challenge other players in Japanese language battles
+        {t("battle.subtitle")}
       </ThemedText>
 
       <ThemedText type="subtitle" style={styles.sectionTitle}>
-        🏆 Available Battles
+        🏆 {t("battle.available_battles")}
       </ThemedText>
 
       <View style={styles.battlesContainer}>
@@ -164,27 +167,27 @@ export default function BattleScreen() {
 
       <ThemedView style={styles.statsCard}>
         <ThemedText type="subtitle" style={styles.statsTitle}>
-          🏅 Battle Statistics
+          🏅 {t("battle.statistics_title")}
         </ThemedText>
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>24</ThemedText>
-            <ThemedText style={styles.statLabel}>Battles Won</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("battle.battles_won")}</ThemedText>
           </View>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>8</ThemedText>
-            <ThemedText style={styles.statLabel}>Battles Lost</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("battle.battles_lost")}</ThemedText>
           </View>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>75%</ThemedText>
-            <ThemedText style={styles.statLabel}>Win Rate</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("battle.win_rate")}</ThemedText>
           </View>
         </View>
       </ThemedView>
 
       <ThemedView style={styles.leaderboardCard}>
         <ThemedText type="subtitle" style={styles.leaderboardTitle}>
-          🥇 Top Players
+          🥇 {t("battle.top_players")}
         </ThemedText>
         <View style={styles.leaderboardList}>
           <View style={styles.leaderboardItem}>
@@ -207,20 +210,20 @@ export default function BattleScreen() {
 
       <ThemedView style={styles.tipsCard}>
         <ThemedText type="subtitle" style={styles.tipsTitle}>
-          💪 Battle Tips
+          💪 {t("battle.tips_title")}
         </ThemedText>
         <View style={styles.tipsList}>
           <ThemedText style={styles.tipItem}>
-            • Practice regularly to improve your reaction time
+            • {t("battle.tip_1")}
           </ThemedText>
           <ThemedText style={styles.tipItem}>
-            • Focus on accuracy over speed in the beginning
+            • {t("battle.tip_2")}
           </ThemedText>
           <ThemedText style={styles.tipItem}>
-            • Study your mistakes to avoid repeating them
+            • {t("battle.tip_3")}
           </ThemedText>
           <ThemedText style={styles.tipItem}>
-            • Join battles that match your current skill level
+            • {t("battle.tip_4")}
           </ThemedText>
         </View>
       </ThemedView>

@@ -94,7 +94,6 @@ const LessonCategory: React.FC<LessonCategoryProps> = React.memo(
         }
       }
     }, []);
-
     // Memoized calculations for better performance
     const { completedLessons, totalLessons, progressPercentage } =
       useMemo(() => {
