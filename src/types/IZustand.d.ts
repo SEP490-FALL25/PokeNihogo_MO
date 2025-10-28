@@ -34,4 +34,11 @@ declare namespace ZUSTAND {
         hasCompletedPlacementTest: boolean;
         setHasCompletedPlacementTest: (value: boolean) => void;
     }
+
+    export interface IWalletState {
+        sparklesBalance: number;
+        pokeCoinsBalance: number;
+        setSparklesBalance: (balance: number) => void;
+        setPokeCoinsBalance: (balance: number) => void;
+    }
 }

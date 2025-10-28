@@ -1,6 +1,9 @@
+import StoreIcon from "@components/atoms/StoreIcon";
+import RewardShopModal from "@components/Organism/ShopPokemon";
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
+import { useWalletUser } from "@hooks/useWallet";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { forwardRef, useImperativeHandle, useRef } from "react";
+import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -37,6 +40,9 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
   function HomeLayout({ children, refreshControl }, ref) {
     const scrollViewRef = useRef<ScrollView>(null);
     const currentUser = sampleUser;
+    const [isShopVisible, setIsShopVisible] = useState(false);
+
+    useWalletUser();
 
     // Note: Main pokemon logic moved to tab layout level to prevent re-mounting
 
@@ -50,6 +56,14 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
         }
       },
     }));
+
+    const handleStorePress = () => {
+      setIsShopVisible(true);
+    };
+
+    const handleShopClose = () => {
+      setIsShopVisible(false);
+    };
 
     return (
       <LinearGradient
@@ -79,6 +93,20 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
             <View style={styles.contentSection}>{children}</View>
           </ScrollView>
         </SafeAreaView>
+
+        {/* Store Icon - positioned at bottom right */}
+        <View className="absolute top-44 right-4">
+          <StoreIcon
+            onPress={handleStorePress}
+            size="small"
+          />
+        </View>
+
+        {/* Shop Modal */}
+        <RewardShopModal
+          isVisible={isShopVisible}
+          onClose={handleShopClose}
+        />
       </LinearGradient>
     );
   }
@@ -107,6 +135,12 @@ const styles = StyleSheet.create({
   contentSection: {
     paddingHorizontal: 16,
     marginBottom: 24,
+  },
+  storeIconContainer: {
+    position: "absolute",
+    bottom: 100, // Position above the tab bar
+    right: 20,
+    zIndex: 1000,
   },
   statsSection: {
     paddingHorizontal: 16,

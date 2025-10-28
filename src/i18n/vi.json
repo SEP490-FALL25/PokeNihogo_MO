@@ -19,7 +19,9 @@
     "position_saved": "Vị trí được ghi nhớ!",
     "simple_dialog": "Hộp thoại đơn giản",
     "simple_dialog_test": "Đây là test hộp thoại đơn giản",
-    "close": "Đóng"
+    "close": "Đóng",
+    "shop": "Cửa hàng",
+    "open-shop": "Mở cửa hàng"
   },
   "auth": {
     "email": "Email",
@@ -378,6 +380,19 @@
   "search": {
     "placeholder": "Tìm kiếm bài học...",
     "found_results": "Tìm thấy {{count}} kết quả"
+  },
+  "reward_shop": {
+    "title": "ポイント交換",
+    "subtitle": "Cửa hàng Điểm thưởng",
+    "your_points": "Điểm của bạn:",
+    "exchange": "Đổi",
+    "loading": "Đang tải...",
+    "no_products": "Không có sản phẩm nào",
+    "days": "ngày",
+    "already_owned": "Đã có",
+    "insufficient_points": "Điểm không đủ",
+    "purchase_success": "Mua thành công",
+    "purchase_failed": "Mua thất bại"
   },
   "zod": {
     "errors": {

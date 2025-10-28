@@ -19,7 +19,9 @@
     "position_saved": "Position saved!",
     "simple_dialog": "Simple Dialog",
     "simple_dialog_test": "This is a simple dialog test",
-    "close": "Close"
+    "close": "Close",
+    "shop": "Shop",
+    "open-shop": "Open Shop"
   },
   "auth": {
     "email": "Email",
@@ -378,6 +380,19 @@
   "search": {
     "placeholder": "Search lessons...",
     "found_results": "Found {{count}} results"
+  },
+  "reward_shop": {
+    "title": "Point Exchange",
+    "subtitle": "Reward Shop",
+    "your_points": "Your points:",
+    "exchange": "Exchange",
+    "loading": "Loading...",
+    "no_products": "No products available",
+    "days": "days",
+    "already_owned": "Already owned",
+    "insufficient_points": "Insufficient points",
+    "purchase_success": "Purchase successful",
+    "purchase_failed": "Purchase failed"
   },
   "zod": {
     "errors": {
