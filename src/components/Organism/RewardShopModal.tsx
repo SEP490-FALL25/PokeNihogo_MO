@@ -2,7 +2,6 @@
 import { CountdownTimer } from '@components/atoms/CountdownTimer';
 import { TWLinearGradient } from '@components/atoms/TWLinearGradient';
 import { useShopBanner } from '@hooks/useShopBanner';
-import { useWalletUser } from '@hooks/useWallet';
 import { useSparklesBalanceSelector } from '@stores/wallet/wallet.selectors';
 import { Sparkles, X } from 'lucide-react-native';
 import React, { useEffect, useRef } from 'react';
@@ -22,9 +21,9 @@ export default function RewardShopModal({ isVisible, onClose }: RewardShopModalP
     const { shopBanner, isLoading } = useShopBanner();
 
     /**
-     * Get sparkles balance
+     * Get sparkles balance from Zustand store
+     * Note: useWalletUser() is called at HomeLayout level to ensure data is always available
      */
-    useWalletUser();
     const sparklesBalance = useSparklesBalanceSelector();
     //------------------------End------------------------//
 

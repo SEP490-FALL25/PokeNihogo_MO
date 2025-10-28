@@ -11,28 +11,31 @@ import { useEffect } from "react";
  */
 export const useWalletUser = () => {
     const setSparklesBalance = useWalletStore((state) => state.setSparklesBalance);
-    const currentBalance = useWalletStore((state) => state.sparklesBalance);
     const setPokeCoinsBalance = useWalletStore((state) => state.setPokeCoinsBalance);
-    const currentPokeCoinsBalance = useWalletStore((state) => state.pokeCoinsBalance);
 
-    const { data: walletUser, isLoading, isError, error } = useQuery({
+    const { data: walletUser, isLoading, isError, error, refetch } = useQuery({
         queryKey: ['wallet-user'],
         queryFn: () => walletService.getWalletUser(),
     });
 
     useEffect(() => {
-        if (walletUser?.data && Array.isArray(walletUser.data)) {
-            const sparklesWallet = walletUser.data.find((wallet) => wallet.type === WALLET.WALLET_TYPES.FREE_COIN);
-            if (sparklesWallet && sparklesWallet.balance !== currentBalance) {
+        const walletsArray = walletUser?.data?.data;
+
+        if (walletsArray && Array.isArray(walletsArray)) {
+
+            const sparklesWallet = walletsArray.find((wallet) => wallet.type === WALLET.WALLET_TYPES.FREE_COIN);
+            const pokeCoinsWallet = walletsArray.find((wallet) => wallet.type === WALLET.WALLET_TYPES.PAID_COINS);
+
+            if (sparklesWallet) {
                 setSparklesBalance(sparklesWallet.balance);
             }
-            const pokeCoinsWallet = walletUser.data.find((wallet) => wallet.type === WALLET.WALLET_TYPES.PAID_COINS);
-            if (pokeCoinsWallet && pokeCoinsWallet.balance !== currentPokeCoinsBalance) {
+
+            if (pokeCoinsWallet) {
                 setPokeCoinsBalance(pokeCoinsWallet.balance);
             }
         }
-    }, [walletUser?.data, currentBalance, setSparklesBalance, currentPokeCoinsBalance, setPokeCoinsBalance]);
+    }, [walletUser?.data, setSparklesBalance, setPokeCoinsBalance]);
 
-    return { walletUser: walletUser?.data, isLoading, isError, error };
+    return { walletUser: walletUser?.data?.data, isLoading, isError, error, refetch };
 };
 //----------------------End----------------------//

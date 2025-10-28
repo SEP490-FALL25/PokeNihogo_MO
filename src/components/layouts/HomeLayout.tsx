@@ -1,6 +1,7 @@
 import StoreIcon from "@components/atoms/StoreIcon";
 import RewardShopModal from "@components/Organism/RewardShopModal";
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
+import { useWalletUser } from "@hooks/useWallet";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
@@ -40,6 +41,8 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     const scrollViewRef = useRef<ScrollView>(null);
     const currentUser = sampleUser;
     const [isShopVisible, setIsShopVisible] = useState(false);
+
+    useWalletUser();
 
     // Note: Main pokemon logic moved to tab layout level to prevent re-mounting
 
