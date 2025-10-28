@@ -17,6 +17,29 @@ interface RewardShopModalProps {
     userPoints: number;
 }
 
+const rarityBackgroundConfig: Record<string, { colors: readonly [string, string, string], borderColor: string }> = {
+    COMMON: {
+        colors: ['#f8fafc', '#e2e8f0', '#cbd5e1'] as const, // gray - elegant
+        borderColor: '#94a3b8',
+    },
+    UNCOMMON: {
+        colors: ['#ecfdf5', '#a7f3d0', '#6ee7b7'] as const, // green - fresh
+        borderColor: '#34d399',
+    },
+    RARE: {
+        colors: ['#eff6ff', '#93c5fd', '#60a5fa'] as const, // blue - calm
+        borderColor: '#3b82f6',
+    },
+    EPIC: {
+        colors: ['#faf5ff', '#c4b5fd', '#a78bfa'] as const, // purple - majestic
+        borderColor: '#8b5cf6',
+    },
+    LEGENDARY: {
+        colors: ['#fefce8', '#fef08a', '#fde047'] as const, // yellow - golden
+        borderColor: '#facc15',
+    },
+};
+
 const CountdownTimer = ({ endDate, daysLabel }: { endDate: string; daysLabel: string }) => {
     const [timeLeft, setTimeLeft] = useState({
         days: 0,
@@ -74,6 +97,7 @@ const CountdownTimer = ({ endDate, daysLabel }: { endDate: string; daysLabel: st
 const ShopItemCapsule = ({ item, userPoints, exchangeLabel }: { item: IShopItemRandomTodayResponseSchema, userPoints: number, exchangeLabel: string }) => {
     const canAfford = userPoints >= item.price && item.canBuy;
     const pokemonName = item.pokemon.nameTranslations.en || item.pokemon.nameJp;
+    const backgroundConfig = rarityBackgroundConfig[item.pokemon.rarity] || rarityBackgroundConfig.COMMON;
 
     const handlePurchase = () => {
         // TODO: Implement purchase logic
@@ -82,15 +106,20 @@ const ShopItemCapsule = ({ item, userPoints, exchangeLabel }: { item: IShopItemR
 
     return (
         <View className="w-1/2 p-2">
-            <View className="bg-white border border-slate-300 rounded-3xl shadow-lg shadow-slate-300 overflow-hidden">
-                {/* Phần hiển thị Pokémon */}
-                <View className="items-center p-4 bg-slate-100">
+            <View className="bg-white border-2 rounded-3xl shadow-lg overflow-hidden" style={{ borderColor: backgroundConfig.borderColor }}>
+                {/* Phần hiển thị Pokémon với background gradient theo rarity */}
+                <TWLinearGradient
+                    colors={[...backgroundConfig.colors]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    className="items-center p-4"
+                >
                     <Image
                         source={{ uri: item.pokemon.imageUrl }}
                         className="w-24 h-24"
                         style={{ resizeMode: 'contain' }}
                     />
-                </View>
+                </TWLinearGradient>
 
                 {/* Phần thông tin */}
                 <View className="p-3">
