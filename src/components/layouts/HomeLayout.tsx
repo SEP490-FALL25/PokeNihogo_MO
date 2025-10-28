@@ -103,7 +103,6 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
         <RewardShopModal
           isVisible={isShopVisible}
           onClose={handleShopClose}
-          userPoints={1250}
         />
       </LinearGradient>
     );

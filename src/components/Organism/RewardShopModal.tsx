@@ -2,6 +2,8 @@
 import { CountdownTimer } from '@components/atoms/CountdownTimer';
 import { TWLinearGradient } from '@components/atoms/TWLinearGradient';
 import { useShopBanner } from '@hooks/useShopBanner';
+import { useWalletUser } from '@hooks/useWallet';
+import { useSparklesBalanceSelector } from '@stores/wallet/wallet.selectors';
 import { Sparkles, X } from 'lucide-react-native';
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,17 +13,27 @@ import ShopItemCapsule from './ShopItemCapsule';
 interface RewardShopModalProps {
     isVisible: boolean;
     onClose: () => void;
-    userPoints: number;
 }
 
-export default function RewardShopModal({ isVisible, onClose, userPoints }: RewardShopModalProps) {
-    // Animation
+export default function RewardShopModal({ isVisible, onClose }: RewardShopModalProps) {
+
+
+    const { t } = useTranslation();
+    const { shopBanner, isLoading } = useShopBanner();
+
+    /**
+     * Get sparkles balance
+     */
+    useWalletUser();
+    const sparklesBalance = useSparklesBalanceSelector();
+    //------------------------End------------------------//
+
+
+    /**
+     * Animation
+     */
     const scaleAnim = useRef(new Animated.Value(0.9)).current;
     const opacityAnim = useRef(new Animated.Value(0)).current;
-
-    const { shopBanner, isLoading } = useShopBanner();
-    const { t } = useTranslation();
-
     useEffect(() => {
         if (isVisible) {
             Animated.parallel([
@@ -37,6 +49,8 @@ export default function RewardShopModal({ isVisible, onClose, userPoints }: Rewa
     }, [isVisible]);
 
     if (!isVisible) return null;
+    //----------------------End----------------------//
+
 
     const shopItems = shopBanner?.shopItems || [];
 
@@ -80,7 +94,7 @@ export default function RewardShopModal({ isVisible, onClose, userPoints }: Rewa
                         <View className="p-2">
                             <View className="flex-row justify-center items-center my-2 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
                                 <Text className="text-base text-slate-600 mr-2">{t('reward_shop.your_points')}</Text>
-                                <Text className="text-amber-500 font-extrabold text-xl mr-1">{userPoints.toLocaleString()}</Text>
+                                <Text className="text-amber-500 font-extrabold text-xl mr-1">{sparklesBalance.toLocaleString()}</Text>
                                 <Sparkles size={20} color="#f59e0b" />
                             </View>
 
@@ -103,7 +117,7 @@ export default function RewardShopModal({ isVisible, onClose, userPoints }: Rewa
                                     data={shopItems}
                                     numColumns={2}
                                     keyExtractor={(item) => item.id.toString()}
-                                    renderItem={({ item }) => <ShopItemCapsule item={item} userPoints={userPoints} exchangeLabel={t('reward_shop.exchange')} />}
+                                    renderItem={({ item }) => <ShopItemCapsule item={item} userPoints={sparklesBalance} exchangeLabel={t('reward_shop.exchange')} />}
                                     showsVerticalScrollIndicator={false}
                                     style={{ height: 360 }}
                                     contentContainerStyle={{ padding: 4 }}

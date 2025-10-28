@@ -178,7 +178,7 @@ export default function ProfileScreen() {
     sortBy: 'id',
     sortOrder: 'asc' as 'asc' | 'desc',
   });
-  
+
   const mockUserData = getMockUserData(t);
   //------------------------End------------------------//
 
@@ -397,7 +397,6 @@ export default function ProfileScreen() {
         {/* <RewardShopModal
           isVisible={true}
           onClose={() => { }}
-          userPoints={mockUserData?.stats?.learningPoints}
         /> */}
         {/* Bottom Spacing */}
         <View className="h-8" />
