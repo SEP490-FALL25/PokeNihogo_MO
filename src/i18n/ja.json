@@ -273,5 +273,14 @@
             "title": "スキルカテゴリ"
         },
         "view_all_categories": "すべてのカテゴリを見る"
+    },
+    "reward_shop": {
+        "title": "ポイント交換",
+        "subtitle": "ポイントショップ",
+        "your_points": "あなたのポイント:",
+        "exchange": "交換",
+        "loading": "読み込み中...",
+        "no_products": "商品がありません",
+        "days": "日"
     }
 }

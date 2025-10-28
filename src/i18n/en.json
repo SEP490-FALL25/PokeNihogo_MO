@@ -381,6 +381,15 @@
     "placeholder": "Search lessons...",
     "found_results": "Found {{count}} results"
   },
+  "reward_shop": {
+    "title": "Point Exchange",
+    "subtitle": "Reward Shop",
+    "your_points": "Your points:",
+    "exchange": "Exchange",
+    "loading": "Loading...",
+    "no_products": "No products available",
+    "days": "days"
+  },
   "zod": {
     "errors": {
       "auth": {

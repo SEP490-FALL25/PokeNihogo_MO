@@ -381,6 +381,15 @@
     "placeholder": "Tìm kiếm bài học...",
     "found_results": "Tìm thấy {{count}} kết quả"
   },
+  "reward_shop": {
+    "title": "ポイント交換",
+    "subtitle": "Cửa hàng Điểm thưởng",
+    "your_points": "Điểm của bạn:",
+    "exchange": "Đổi",
+    "loading": "Đang tải...",
+    "no_products": "Không có sản phẩm nào",
+    "days": "ngày"
+  },
   "zod": {
     "errors": {
       "auth": {

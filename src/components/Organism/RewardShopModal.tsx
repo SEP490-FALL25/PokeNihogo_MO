@@ -1,10 +1,11 @@
 
-import { useLanguage } from '@hooks/useLanguage';
 import { useShopBanner } from '@hooks/useShopBanner';
+import { IShopItemRandomTodayResponseSchema } from '@models/shop/shop.response';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Clock, Star, X } from 'lucide-react-native';
+import { Clock, Sparkles, X } from 'lucide-react-native';
 import { cssInterop } from 'nativewind';
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, FlatList, Image, ImageBackground, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 cssInterop(LinearGradient, { className: 'style' });
@@ -16,31 +17,7 @@ interface RewardShopModalProps {
     userPoints: number;
 }
 
-interface ShopItem {
-    id: number;
-    shopBannerId: number;
-    pokemonId: number;
-    price: number;
-    purchaseLimit: number;
-    purchasedCount: number;
-    isActive: boolean;
-    canBuy: boolean;
-    pokemon: {
-        id: number;
-        pokedex_number: number;
-        nameJp: string;
-        nameTranslations: {
-            en: string;
-            ja: string;
-            vi: string;
-        };
-        imageUrl: string;
-        rarity: string;
-    };
-}
-
-// Component đếm ngược thời gian
-const CountdownTimer = ({ endDate }: { endDate: string }) => {
+const CountdownTimer = ({ endDate, daysLabel }: { endDate: string; daysLabel: string }) => {
     const [timeLeft, setTimeLeft] = useState({
         days: 0,
         hours: 0,
@@ -78,25 +55,25 @@ const CountdownTimer = ({ endDate }: { endDate: string }) => {
 
     const formatTime = () => {
         if (timeLeft.days > 0) {
-            return `${timeLeft.days} ngày ${String(timeLeft.hours).padStart(2, '0')}:${String(timeLeft.minutes).padStart(2, '0')}:${String(timeLeft.seconds).padStart(2, '0')}`;
+            return `${timeLeft.days} ${daysLabel} ${String(timeLeft.hours).padStart(2, '0')}:${String(timeLeft.minutes).padStart(2, '0')}:${String(timeLeft.seconds).padStart(2, '0')}`;
         }
         return `${String(timeLeft.hours).padStart(2, '0')}:${String(timeLeft.minutes).padStart(2, '0')}:${String(timeLeft.seconds).padStart(2, '0')}`;
     };
 
     return (
-        <View className="flex-row items-center justify-center bg-amber-50 px-4 py-2.5 rounded-lg border border-amber-200">
-            <Clock size={16} color="#f59e0b" />
-            <Text className="text-amber-700 font-semibold text-sm ml-2">
-                Còn lại: <Text className="font-bold">{formatTime()}</Text>
+        <View className="flex-row items-center justify-center px-4 pb-2.5 rounded-lg">
+            <Text className="text-gray-500 font-semibold text-sm mr-2">
+                <Text className="font-bold">{formatTime()}</Text>
             </Text>
+            <Clock size={15} color="#696969" />
         </View>
     );
 };
 
 // Component con cho mỗi "viên nang" Pokémon
-const ShopItemCapsule = ({ item, userPoints, language }: { item: ShopItem, userPoints: number, language: string }) => {
+const ShopItemCapsule = ({ item, userPoints, exchangeLabel }: { item: IShopItemRandomTodayResponseSchema, userPoints: number, exchangeLabel: string }) => {
     const canAfford = userPoints >= item.price && item.canBuy;
-    const pokemonName = item.pokemon.nameTranslations[language as keyof typeof item.pokemon.nameTranslations] || item.pokemon.nameJp;
+    const pokemonName = item.pokemon.nameTranslations.en || item.pokemon.nameJp;
 
     const handlePurchase = () => {
         // TODO: Implement purchase logic
@@ -105,7 +82,7 @@ const ShopItemCapsule = ({ item, userPoints, language }: { item: ShopItem, userP
 
     return (
         <View className="w-1/2 p-2">
-            <View className="bg-white rounded-3xl shadow-lg shadow-slate-300 overflow-hidden">
+            <View className="bg-white border border-slate-300 rounded-3xl shadow-lg shadow-slate-300 overflow-hidden">
                 {/* Phần hiển thị Pokémon */}
                 <View className="items-center p-4 bg-slate-100">
                     <Image
@@ -120,8 +97,8 @@ const ShopItemCapsule = ({ item, userPoints, language }: { item: ShopItem, userP
                     <Text className="text-slate-800 font-bold text-lg text-center" numberOfLines={1}>{item.pokemon.nameJp}</Text>
                     <Text className="text-slate-500 text-xs text-center mt-0.5" numberOfLines={1}>{pokemonName}</Text>
                     <View className="flex-row items-center justify-center my-2">
-                        <Star size={16} color="#f59e0b" fill="#fbbf24" />
-                        <Text className="text-amber-500 font-bold text-base ml-1">{item.price.toLocaleString()}</Text>
+                        <Text className="text-amber-500 font-bold text-base mr-1">{item.price.toLocaleString()}</Text>
+                        <Sparkles size={16} color="#f59e0b" />
                     </View>
                     <TouchableOpacity
                         onPress={handlePurchase}
@@ -131,7 +108,7 @@ const ShopItemCapsule = ({ item, userPoints, language }: { item: ShopItem, userP
                             colors={canAfford ? ['#22c55e', '#16a34a'] : ['#e2e8f0', '#cbd5e1']}
                             className="px-4 py-2.5 rounded-xl"
                         >
-                            <Text className={`font-bold text-center ${canAfford ? 'text-white' : 'text-slate-500'}`}>Đổi</Text>
+                            <Text className={`font-bold text-center ${canAfford ? 'text-white' : 'text-slate-500'}`}>{exchangeLabel}</Text>
                         </TWLinearGradient>
                     </TouchableOpacity>
                 </View>
@@ -147,7 +124,7 @@ export default function RewardShopModal({ isVisible, onClose, userPoints }: Rewa
     const opacityAnim = useRef(new Animated.Value(0)).current;
 
     const { shopBanner, isLoading } = useShopBanner();
-    const { language } = useLanguage();
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (isVisible) {
@@ -194,10 +171,10 @@ export default function RewardShopModal({ isVisible, onClose, userPoints }: Rewa
                                 </TouchableOpacity>
                                 <View className="items-center">
                                     <Text className="text-xl font-bold text-teal-700">
-                                        {shopBanner?.nameTranslation || 'ポイント交換'}
+                                        {shopBanner?.nameTranslation || t('reward_shop.title')}
                                     </Text>
                                     <Text className="text-slate-500 font-semibold text-sm mt-1">
-                                        Cửa hàng Điểm thưởng
+                                        {t('reward_shop.subtitle')}
                                     </Text>
                                 </View>
                             </View>
@@ -206,31 +183,31 @@ export default function RewardShopModal({ isVisible, onClose, userPoints }: Rewa
                         {/* Nội dung Modal */}
                         <View className="p-2">
                             <View className="flex-row justify-center items-center my-2 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
-                                <Text className="text-base text-slate-600 mr-2">Điểm của bạn:</Text>
-                                <Star size={20} color="#f59e0b" fill="#fbbf24" />
-                                <Text className="text-amber-500 font-extrabold text-xl ml-1">{userPoints.toLocaleString()}</Text>
+                                <Text className="text-base text-slate-600 mr-2">{t('reward_shop.your_points')}</Text>
+                                <Text className="text-amber-500 font-extrabold text-xl mr-1">{userPoints.toLocaleString()}</Text>
+                                <Sparkles size={20} color="#f59e0b" />
                             </View>
 
                             {shopBanner?.endDate && (
-                                <View className="my-2 items-center">
-                                    <CountdownTimer endDate={shopBanner.endDate} />
+                                <View className="my-2 items-end">
+                                    <CountdownTimer endDate={shopBanner.endDate} daysLabel={t('reward_shop.days')} />
                                 </View>
                             )}
 
                             {isLoading ? (
                                 <View className="items-center justify-center p-8" style={{ height: 360 }}>
-                                    <Text className="text-slate-500 text-base">Đang tải...</Text>
+                                    <Text className="text-slate-500 text-base">{t('reward_shop.loading')}</Text>
                                 </View>
                             ) : shopItems.length === 0 ? (
                                 <View className="items-center justify-center p-8" style={{ height: 360 }}>
-                                    <Text className="text-slate-500 text-base">Không có sản phẩm nào</Text>
+                                    <Text className="text-slate-500 text-base">{t('reward_shop.no_products')}</Text>
                                 </View>
                             ) : (
                                 <FlatList
                                     data={shopItems}
                                     numColumns={2} // Lưới 2 cột
                                     keyExtractor={(item) => item.id.toString()}
-                                    renderItem={({ item }) => <ShopItemCapsule item={item} userPoints={userPoints} language={language} />}
+                                    renderItem={({ item }) => <ShopItemCapsule item={item} userPoints={userPoints} exchangeLabel={t('reward_shop.exchange')} />}
                                     showsVerticalScrollIndicator={false}
                                     style={{ height: 360 }} // Giới hạn chiều cao
                                     contentContainerStyle={{ padding: 4 }}
