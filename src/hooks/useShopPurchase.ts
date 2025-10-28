@@ -1,18 +1,17 @@
 import { IShopPurchaseRequest } from "@models/shop-purchase/shop-purchase.request";
 import shopPurchaseService from "@services/shop-purchase";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Hook to purchase items from the shop
- * @param body  
- * @returns 
+ * @returns Mutation object with mutate function
  */
-export const useShopPurchase = (body: IShopPurchaseRequest) => {
+export const useShopPurchase = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (body: IShopPurchaseRequest) => shopPurchaseService.purchase(body),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['shop-purchase'] });
+            queryClient.invalidateQueries({ queryKey: ['shop-banner'] });
             queryClient.invalidateQueries({ queryKey: ['wallet-user'] });
         },
         onError: (error) => {

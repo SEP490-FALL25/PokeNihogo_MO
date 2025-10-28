@@ -281,6 +281,10 @@
         "exchange": "交換",
         "loading": "読み込み中...",
         "no_products": "商品がありません",
-        "days": "日"
+        "days": "日",
+        "already_owned": "既に所持",
+        "insufficient_points": "ポイントが不足しています",
+        "purchase_success": "購入成功",
+        "purchase_failed": "購入失敗"
     }
 }

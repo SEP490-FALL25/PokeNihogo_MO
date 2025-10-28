@@ -6,6 +6,7 @@ import z from "zod";
  * Shop Item Entity Schema
  */
 export const ShopItemRandomSchema = z.object({
+    id: z.number(),
     shopBannerId: z.number(),
     pokemonId: z.number(),
     price: z.number(),

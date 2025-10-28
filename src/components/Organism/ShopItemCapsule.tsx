@@ -1,9 +1,14 @@
 import MinimalAlert from "@components/atoms/MinimalAlert";
 import RarityBackground, { getRarityBorderColor } from "@components/atoms/RarityBackground";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useShopPurchase } from "@hooks/useShopPurchase";
+import { createShopPurchaseRequest, IShopPurchaseRequest } from "@models/shop-purchase/shop-purchase.request";
 import { IShopItemRandomTodayResponseSchema } from "@models/shop/shop.response";
 import { Sparkles } from "lucide-react-native";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
 interface ShopItemCapsuleProps {
@@ -13,6 +18,7 @@ interface ShopItemCapsuleProps {
 }
 
 const ShopItemCapsule = ({ item, userPoints, exchangeLabel }: ShopItemCapsuleProps) => {
+    const { t } = useTranslation();
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
     const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('error');
@@ -21,21 +27,57 @@ const ShopItemCapsule = ({ item, userPoints, exchangeLabel }: ShopItemCapsulePro
     const pokemonName = item.pokemon.nameTranslations.en || item.pokemon.nameJp;
     const borderColor = getRarityBorderColor(item.pokemon.rarity);
 
-    const handlePurchase = () => {
+    // Initialize form with react-hook-form using existing schema
+    const {
+        handleSubmit,
+        formState: { isSubmitting },
+    } = useForm<IShopPurchaseRequest>({
+        resolver: zodResolver(createShopPurchaseRequest),
+        defaultValues: {
+            shopItemId: item.id,
+            quantity: 1,
+        },
+        mode: 'onChange',
+    });
+
+    const { mutate: purchaseItem } = useShopPurchase();
+
+    const handleHideAlert = useCallback(() => {
+        setAlertVisible(false);
+    }, []);
+
+    const handlePurchase = handleSubmit(async () => {
+        if (!item.canBuy) {
+            setAlertMessage(t('reward_shop.already_owned'));
+            setAlertType('warning');
+            setAlertVisible(true);
+            return;
+        }
+
         if (!canAfford) {
-            setAlertMessage('Không đủ điểm để đổi!');
+            setAlertMessage(t('reward_shop.insufficient_points'));
             setAlertType('error');
             setAlertVisible(true);
             return;
         }
 
-        console.log('Purchase item:', item);
-
-        // Test success message
-        setAlertMessage(`Đã đổi thành công: ${item.pokemon.nameJp}!`);
-        setAlertType('success');
-        setAlertVisible(true);
-    };
+        purchaseItem(
+            { shopItemId: item.id, quantity: 1 },
+            {
+                onSuccess: (data) => {
+                    setAlertMessage(data.data.message || t('reward_shop.purchase_success'));
+                    setAlertType('success');
+                    setAlertVisible(true);
+                },
+                onError: (error: any) => {
+                    const errorMessage = error?.response?.data?.message || t('reward_shop.purchase_failed');
+                    setAlertMessage(errorMessage);
+                    setAlertType('error');
+                    setAlertVisible(true);
+                },
+            }
+        );
+    });
 
     return (
         <View className="w-1/2 p-2">
@@ -58,13 +100,19 @@ const ShopItemCapsule = ({ item, userPoints, exchangeLabel }: ShopItemCapsulePro
                     </View>
                     <TouchableOpacity
                         onPress={handlePurchase}
-                        disabled={!canAfford}
+                        disabled={!canAfford || !item.canBuy || isSubmitting}
                     >
                         <TWLinearGradient
-                            colors={canAfford ? ['#0ed557db', '#03a940d9'] : ['#e2e8f0', '#cbd5e1']}
+                            colors={canAfford && item.canBuy && !isSubmitting ? ['#0ed557db', '#03a940d9'] : ['#e2e8f0', '#cbd5e1']}
                             className="px-4 py-2.5 rounded-xl"
                         >
-                            <Text className={`font-bold text-center ${canAfford ? 'text-white' : 'text-slate-500'}`}>{exchangeLabel}</Text>
+                            <Text className={`font-bold text-center ${canAfford && item.canBuy && !isSubmitting ? 'text-white' : 'text-slate-500'}`}>
+                                {isSubmitting
+                                    ? t('common.loading') || 'Loading...'
+                                    : !item.canBuy
+                                        ? t('reward_shop.already_owned')
+                                        : exchangeLabel}
+                            </Text>
                         </TWLinearGradient>
                     </TouchableOpacity>
                 </View>
@@ -74,7 +122,7 @@ const ShopItemCapsule = ({ item, userPoints, exchangeLabel }: ShopItemCapsulePro
             <MinimalAlert
                 message={alertMessage}
                 visible={alertVisible}
-                onHide={() => setAlertVisible(false)}
+                onHide={handleHideAlert}
                 type={alertType}
             />
         </View>

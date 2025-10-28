@@ -388,7 +388,11 @@
     "exchange": "Exchange",
     "loading": "Loading...",
     "no_products": "No products available",
-    "days": "days"
+    "days": "days",
+    "already_owned": "Already owned",
+    "insufficient_points": "Insufficient points",
+    "purchase_success": "Purchase successful",
+    "purchase_failed": "Purchase failed"
   },
   "zod": {
     "errors": {

@@ -388,7 +388,11 @@
     "exchange": "Đổi",
     "loading": "Đang tải...",
     "no_products": "Không có sản phẩm nào",
-    "days": "ngày"
+    "days": "ngày",
+    "already_owned": "Đã có",
+    "insufficient_points": "Điểm không đủ",
+    "purchase_success": "Mua thành công",
+    "purchase_failed": "Mua thất bại"
   },
   "zod": {
     "errors": {
