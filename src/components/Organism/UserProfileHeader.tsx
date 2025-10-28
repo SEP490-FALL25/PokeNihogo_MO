@@ -52,7 +52,11 @@ export default function UserProfileHeaderAtomic({
         title={t("profile.your_progress")}
         description={t("profile.progress_description")}
       >
-        <CompactHeader user={user} onPress={handleOpen} style={style} />
+        <CompactHeader
+          user={user}
+          onPress={handleOpen}
+          style={style}
+        />
       </TourStep>
       {/* Overlay Modal */}
       <Modal

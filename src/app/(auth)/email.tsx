@@ -38,6 +38,7 @@ export default function EmailScreen() {
 
     const handleNextStep = async (data: IEmailFormDataRequest) => {
         const res = await authService.checkEmail(data.email) as IBackendResponse<any>
+        console.log('>>>>>>>res: ', res);
 
         switch (res.data.statusCode) {
             case 401:

@@ -47,6 +47,8 @@ export default function CreateAccountScreen() {
     const handleCompleteRegistration = async (data: ICreateAccountFormDataRequest) => {
         try {
             const res = await authService.register(data);
+            console.log('>>>>>>>res: ', res);
+            
 
             if (res.data.statusCode === 201) {
                 toast({ variant: 'Success', description: res.data.message });

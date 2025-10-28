@@ -19,7 +19,9 @@
     "position_saved": "Position saved!",
     "simple_dialog": "Simple Dialog",
     "simple_dialog_test": "This is a simple dialog test",
-    "close": "Close"
+    "close": "Close",
+    "shop": "Shop",
+    "open-shop": "Open Shop"
   },
   "auth": {
     "email": "Email",

@@ -19,7 +19,9 @@
     "position_saved": "Vị trí được ghi nhớ!",
     "simple_dialog": "Hộp thoại đơn giản",
     "simple_dialog_test": "Đây là test hộp thoại đơn giản",
-    "close": "Đóng"
+    "close": "Đóng",
+    "shop": "Cửa hàng",
+    "open-shop": "Mở cửa hàng"
   },
   "auth": {
     "email": "Email",
