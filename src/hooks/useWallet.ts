@@ -22,7 +22,6 @@ export const useWalletUser = () => {
         const walletsArray = walletUser?.data?.data;
 
         if (walletsArray && Array.isArray(walletsArray)) {
-
             const sparklesWallet = walletsArray.find((wallet) => wallet.type === WALLET.WALLET_TYPES.FREE_COIN);
             const pokeCoinsWallet = walletsArray.find((wallet) => wallet.type === WALLET.WALLET_TYPES.PAID_COINS);
 

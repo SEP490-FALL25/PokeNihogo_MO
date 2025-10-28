@@ -1,7 +1,9 @@
+import MinimalAlert from "@components/atoms/MinimalAlert";
 import RarityBackground, { getRarityBorderColor } from "@components/atoms/RarityBackground";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { IShopItemRandomTodayResponseSchema } from "@models/shop/shop.response";
 import { Sparkles } from "lucide-react-native";
+import { useState } from "react";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 
 interface ShopItemCapsuleProps {
@@ -11,13 +13,28 @@ interface ShopItemCapsuleProps {
 }
 
 const ShopItemCapsule = ({ item, userPoints, exchangeLabel }: ShopItemCapsuleProps) => {
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('error');
+
     const canAfford = userPoints >= item.price && item.canBuy;
     const pokemonName = item.pokemon.nameTranslations.en || item.pokemon.nameJp;
     const borderColor = getRarityBorderColor(item.pokemon.rarity);
 
     const handlePurchase = () => {
-        // TODO: Implement purchase logic
+        if (!canAfford) {
+            setAlertMessage('Không đủ điểm để đổi!');
+            setAlertType('error');
+            setAlertVisible(true);
+            return;
+        }
+
         console.log('Purchase item:', item);
+
+        // Test success message
+        setAlertMessage(`Đã đổi thành công: ${item.pokemon.nameJp}!`);
+        setAlertType('success');
+        setAlertVisible(true);
     };
 
     return (
@@ -52,6 +69,14 @@ const ShopItemCapsule = ({ item, userPoints, exchangeLabel }: ShopItemCapsulePro
                     </TouchableOpacity>
                 </View>
             </View>
+
+            {/* Minimal Alert */}
+            <MinimalAlert
+                message={alertMessage}
+                visible={alertVisible}
+                onHide={() => setAlertVisible(false)}
+                type={alertType}
+            />
         </View>
     );
 };

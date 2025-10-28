@@ -9,12 +9,12 @@ import { useTranslation } from 'react-i18next';
 import { Animated, FlatList, ImageBackground, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ShopItemCapsule from './ShopItemCapsule';
 
-interface RewardShopModalProps {
+interface ShopPokemonModalProps {
     isVisible: boolean;
     onClose: () => void;
 }
 
-export default function RewardShopModal({ isVisible, onClose }: RewardShopModalProps) {
+export default function ShopPokemonModal({ isVisible, onClose }: ShopPokemonModalProps) {
 
 
     const { t } = useTranslation();

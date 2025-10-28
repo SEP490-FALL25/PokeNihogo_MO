@@ -1,5 +1,5 @@
 import StoreIcon from "@components/atoms/StoreIcon";
-import RewardShopModal from "@components/Organism/RewardShopModal";
+import RewardShopModal from "@components/Organism/ShopPokemon";
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
 import { useWalletUser } from "@hooks/useWallet";
 import { LinearGradient } from "expo-linear-gradient";
