@@ -99,6 +99,18 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
         style={styles.container}
       >
         <SafeAreaView style={styles.safeArea}>
+          {/* Fixed Header */}
+          <View style={styles.fixedHeader}>
+            <TourStep
+              stepIndex={0}
+              title="Your Progress"
+              description="Here's your progress. Complete the lessons to level up!"
+            >
+              <UserProfileHeaderAtomic user={currentUser} />
+            </TourStep>
+          </View>
+
+          {/* Scrollable Content */}
           <ScrollView
             ref={scrollViewRef}
             style={styles.scrollView}
@@ -106,24 +118,13 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
             showsVerticalScrollIndicator={false}
             refreshControl={refreshControl}
           >
-            {/* User Profile Header */}
-            <View style={styles.profileSection}>
-              <TourStep
-                stepIndex={0}
-                title="Your Progress"
-                description="Here's your progress. Complete the lessons to level up!"
-              >
-                <UserProfileHeaderAtomic user={currentUser} />
-              </TourStep>
-            </View>
-
             {/* Main Content Area */}
             <View style={styles.contentSection}>{children}</View>
           </ScrollView>
         </SafeAreaView>
 
         {/* Store Icon - positioned at bottom right */}
-        <View className="absolute top-44 right-4">
+        <View className="absolute top-52 right-4">
           <StoreIcon
             onPress={handleStorePress}
             size="small"
@@ -165,6 +166,13 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  fixedHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 16,
+    backgroundColor: "transparent",
+    zIndex: 10,
   },
   scrollView: {
     flex: 1,
