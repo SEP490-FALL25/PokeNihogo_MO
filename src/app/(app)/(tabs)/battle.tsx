@@ -8,10 +8,12 @@ import { ThemedView } from "@components/ThemedView";
 import TypingText from "@components/ui/TypingText";
 import React from "react";
 import { Alert, ImageBackground, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function BattleLobbyScreen() {
   const [mode, setMode] = React.useState<"ranked" | "casual">("ranked");
   const [inQueue, setInQueue] = React.useState(false);
+  const insets = useSafeAreaInsets();
 
   const handleStartRanked = () => {
     setInQueue(true);
@@ -53,8 +55,8 @@ export default function BattleLobbyScreen() {
           style={styles.overlay}
         />
 
-        {/* Top status bar */}
-        <View className="px-5 pt-5">
+        {/* Top status bar (respect safe area) */}
+        <View className="px-5" style={{ paddingTop: insets.top + 8 }}>
           <View className="flex-row items-center justify-between rounded-2xl border border-white/15 bg-white/5 px-4 py-3">
             <View className="flex-row items-center gap-2">
               <ThemedText style={{ color: "#93c5fd", fontWeight: "700" }}>Season 1</ThemedText>
@@ -105,14 +107,24 @@ export default function BattleLobbyScreen() {
                   <ThemedText style={{ color: "#cbd5e1", fontSize: 12 }}>{inQueue ? "Đang tìm đối thủ" : "Chưa sẵn sàng"}</ThemedText>
                 </View>
               </View>
-              <HapticPressable
-                className="mt-2 bg-green-500 px-6 py-3 rounded-full shadow"
-                onPress={handleStartRanked}
-              >
-                <ThemedText style={{ color: "#ffffff", fontSize: 16, fontWeight: "700", letterSpacing: 1 }}>
-                  {inQueue ? "ĐANG TÌM TRẬN..." : "TÌM TRẬN NGAY"}
-                </ThemedText>
-              </HapticPressable>
+              <View className="flex-row items-center gap-3 mt-2">
+                <HapticPressable
+                  className={`px-6 py-3 rounded-full shadow ${inQueue ? "bg-emerald-500/90" : "bg-green-500"}`}
+                  onPress={handleStartRanked}
+                >
+                  <ThemedText style={{ color: "#ffffff", fontSize: 16, fontWeight: "700", letterSpacing: 1 }}>
+                    {inQueue ? "ĐANG TÌM TRẬN..." : "TÌM TRẬN NGAY"}
+                  </ThemedText>
+                </HapticPressable>
+                {inQueue ? (
+                  <HapticPressable
+                    className="px-4 py-3 rounded-full border border-white/20 bg-white/10"
+                    onPress={() => setInQueue(false)}
+                  >
+                    <ThemedText style={{ color: "#e5e7eb", fontWeight: "700" }}>Hủy</ThemedText>
+                  </HapticPressable>
+                ) : null}
+              </View>
               <ThemedText style={{ color: "#cbd5e1", fontSize: 12, marginTop: 4 }}>MMR: 1200 • Bậc: Bronze II</ThemedText>
             </View>
           </View>
@@ -147,6 +159,9 @@ export default function BattleLobbyScreen() {
             <ThemedText style={{ color: "#cbd5e1", fontSize: 12 }}>Cơ chế thăng hạng, bảo lưu điểm</ThemedText>
           </HapticPressable>
         </View>
+
+        {/* Subtle scanline overlay for game feel */}
+        <View pointerEvents="none" style={styles.scanline} />
       </ImageBackground>
     </ThemedView>
   );
@@ -164,6 +179,10 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
+  },
+  scanline: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255,255,255,0.02)",
   },
   // Most layout styles moved to Tailwind classes above
 });
