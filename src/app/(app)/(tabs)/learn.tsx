@@ -105,7 +105,6 @@ const CategoriesScreen = () => {
     isLoading: lessonCategoriesLoading,
     error: lessonCategoriesError,
   } = useLessonCategories();
-
   // Optimized animation effect when data loads
   useEffect(() => {
     const isDataReady = !progressLoading && !lessonCategoriesLoading;

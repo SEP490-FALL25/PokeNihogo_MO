@@ -103,7 +103,6 @@ const LessonsScreen = () => {
     pageSize: 5,
     lessonCategoryId: parseInt(id as string),
   });
-
   // Get all lessons from all pages
   const allLessons = useMemo(() => {
     return (data?.pages ?? []).flatMap((p: any) => p?.data?.results ?? []);
