@@ -108,6 +108,20 @@
         "user_info": "ユーザー情報",
         "other": "その他"
     },
+    "tour": {
+        "header_title": "あなたのプロフィール",
+        "header_description": "ここをタップしてプロフィール、レベル、進捗を確認",
+        "pokemon_title": "ポケモンパートナー",
+        "pokemon_description": "これはあなたのポケモンパートナーです！画面の好きな位置にドラッグできます",
+        "store_title": "ショップ",
+        "store_description": "ショップを訪れてアイテム、ポケモン、報酬を購入",
+        "quest_title": "デイリークエスト",
+        "quest_description": "デイリークエストを完了して報酬と経験値を獲得",
+        "gacha_title": "ガチャ",
+        "gacha_description": "ガチャで運試しをして新しいポケモンやアイテムを獲得",
+        "navigation_title": "学習ボタン",
+        "navigation_description": "学習ボタンをタップして日本語学習の旅を始めましょう"
+    },
     "tabs": {
         "home": "ホーム",
         "learn": "学習",

@@ -1,6 +1,4 @@
-import { TourStep } from "@components/ui/HomeTourGuide";
 import React, { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { Animated, Modal, Pressable, StyleSheet } from "react-native";
 import CompactHeader from "../molecules/CompactHeader";
 import ExpandedContent from "../molecules/ExpandedContent";
@@ -22,7 +20,6 @@ export default function UserProfileHeaderAtomic({
   user,
   style,
 }: UserProfileHeaderAtomicProps) {
-  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [slideAnim] = useState(new Animated.Value(-300));
 
@@ -47,17 +44,11 @@ export default function UserProfileHeaderAtomic({
   return (
     <>
       {/* Compact Header Bar */}
-      <TourStep
-        stepIndex={0}
-        title={t("profile.your_progress")}
-        description={t("profile.progress_description")}
-      >
-        <CompactHeader
-          user={user}
-          onPress={handleOpen}
-          style={style}
-        />
-      </TourStep>
+      <CompactHeader
+        user={user}
+        onPress={handleOpen}
+        style={style}
+      />
       {/* Overlay Modal */}
       <Modal
         visible={isExpanded}

@@ -3,41 +3,40 @@ import HomeLayout, { HomeLayoutRef } from "@components/layouts/HomeLayout";
 import MainNavigation from "@components/MainNavigation";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
-import HomeTourGuide, { TourStep } from "@components/ui/HomeTourGuide";
 import WelcomeModal from "@components/ui/WelcomeModal";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useGlobalStore } from "@stores/global/global.config";
 import { useUserStore } from "@stores/user/user.config";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
 
-// Constants for fake overlay (same as DraggableOverlay)
-const OVERLAY_SIZE = 150;
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+import { Button } from "@components/ui/Button";
+import { useCopilot } from "react-native-copilot";
 
 /**
  * HomeScreen Component
  *
  * Main home screen displaying user progress, partner Pokemon, and learning content.
- * Features tour guide functionality and welcome modal for new users.
  *
  * @returns JSX.Element
  */
 export default function HomeScreen() {
   const { t } = useTranslation();
 
-  // Tour and modal state management
+  // Modal state management
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showDailyLogin, setShowDailyLogin] = useState(false);
-  const [shouldStartTour, setShouldStartTour] = useState(false);
   const homeLayoutRef = useRef<HomeLayoutRef>(null);
 
   // Global state from user store
-  const { isFirstTimeLogin, setIsFirstTimeLogin, starterId, email } =
-    useUserStore();
+  const { isFirstTimeLogin, starterId, email } = useUserStore();
 
   // Global state for overlay position
   const { resetOverlayPosition } = useGlobalStore();
@@ -53,38 +52,6 @@ export default function HomeScreen() {
     );
   }, [starterId]);
 
-  const mockCheckinHistory = [
-    { date: "Day -6", status: "missed" as const },
-    { date: "Day -5", status: "checked" as const },
-    { date: "Day -4", status: "checked" as const },
-    { date: "Day -3", status: "checked" as const },
-    { date: "Day -2", status: "checked" as const },
-    { date: "Day -1", status: "checked" as const },
-    { date: "Today", status: "today" as const }, // Hôm nay chưa check-in
-  ];
-
-  /**
-   * Extract username from email (part before @)
-   * Falls back to "Trainer" if email is invalid
-   */
-  const username = email.split("@")[0] || "Trainer";
-
-  /**
-   * Handle tour completion - called when user finishes the tour guide
-   */
-  const handleTourComplete = async () => {
-    setIsFirstTimeLogin(false);
-    setShouldStartTour(false);
-
-    // Clear overlay position from AsyncStorage so it uses the default center position
-    // This ensures first-time users always start with the overlay in the center
-    try {
-      await AsyncStorage.removeItem("@DraggableOverlay:position");
-      console.log("✅ Cleared overlay position for first-time user");
-    } catch (error) {
-      console.error("❌ Error clearing overlay position:", error);
-    }
-  };
 
   /**
    * Show welcome modal for first-time users
@@ -97,13 +64,10 @@ export default function HomeScreen() {
   }, [isFirstTimeLogin]);
 
   /**
-   * Handle welcome modal close - starts tour guide after modal is dismissed
+   * Handle welcome modal close
    */
   const handleWelcomeModalClose = () => {
     setShowWelcomeModal(false);
-    if (isFirstTimeLogin === true) {
-      setShouldStartTour(true);
-    }
   };
 
   /**
@@ -112,14 +76,6 @@ export default function HomeScreen() {
    */
   const handleStartLesson = () => {
     // Navigate to lesson screen
-  };
-
-  /**
-   * Test function to simulate first-time login (for development/testing)
-   * Allows developers to trigger welcome flow manually
-   */
-  const handleTestTour = () => {
-    setIsFirstTimeLogin(true);
   };
 
   /**
@@ -134,12 +90,6 @@ export default function HomeScreen() {
     // - Update daily login status
   };
 
-  /**
-   * Handle daily login modal close
-   */
-  const handleCloseDailyModal = () => {
-    setShowDailyLogin(false);
-  };
 
   /**
    * Test function to show daily login modal (for development/testing)
@@ -147,7 +97,6 @@ export default function HomeScreen() {
   const handleTestDailyLogin = () => {
     setShowDailyLogin(true);
   };
-
 
   /**
    * Clear AsyncStorage for DraggableOverlay position
@@ -166,151 +115,116 @@ export default function HomeScreen() {
       console.error("❌ Error clearing AsyncStorage:", error);
     }
   };
+  const { start, copilotEvents } = useCopilot();
 
-  /**
-   * Calculate default position for fake overlay (same formula as DraggableOverlay)
-   */
-  const getDefaultOverlayPosition = () => {
-    return {
-      x: screenWidth / 2 - OVERLAY_SIZE / 2,
-      y: screenHeight / 2 - OVERLAY_SIZE / 2,
+
+  // Handle tour step changes for auto-scroll
+  React.useEffect(() => {
+    const handleStepChange = (step: any) => {
+      if (step.name === "navigation" && homeLayoutRef.current) {
+        // Scroll to bottom to show the Learn button
+        setTimeout(() => {
+          homeLayoutRef.current?.scrollTo(1000); // Scroll down to show navigation
+        }, 500); // Small delay to ensure the step is rendered
+      }
     };
-  };
 
+    copilotEvents.on("stepChange", handleStepChange);
+
+    return () => {
+      copilotEvents.off("stepChange", handleStepChange);
+    };
+  }, [copilotEvents]);
   return (
-    <HomeTourGuide
-      onTourComplete={handleTourComplete}
-      shouldStartTour={shouldStartTour}
-      scrollTo={(y: number) => homeLayoutRef.current?.scrollTo(y)}
-    >
-      <HomeLayout ref={homeLayoutRef}>
-        {/* Main content container for home screen */}
-        <View style={styles.customContent}>
-          {/* Welcome message with username */}
-          <ThemedText type="subtitle" style={styles.welcomeTitle}>
-            {t("home.welcome_back", { username })}
-          </ThemedText>
+    <HomeLayout ref={homeLayoutRef}>
+      {/* Main content container for home screen */}
+      <View style={styles.customContent}>
+        {/* Welcome message with username */}
+        <ThemedText type="subtitle" style={styles.welcomeTitle}>
+          {t("home.welcome_back", {
+            username: email.split("@")[0] || "Trainer",
+          })}
+        </ThemedText>
+        {/* Subtitle encouraging continued learning */}
+        <ThemedText style={styles.welcomeSubtitle}>
+          {t("home.ready_to_continue")}
+        </ThemedText>
 
-          {/* Subtitle encouraging continued learning */}
-          <ThemedText style={styles.welcomeSubtitle}>
-            {t("home.ready_to_continue")}
-          </ThemedText>
-
-          {/* Development/Testing: Buttons for testing and debugging */}
-          <TouchableOpacity style={styles.testButton} onPress={handleTestTour}>
-            <ThemedText style={styles.testButtonText}>
-              {t("home.test_tour_guide")}
-            </ThemedText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.testButton}
-            onPress={handleClearAsyncStorage}
-          >
-            <ThemedText style={styles.testButtonText}>
-              {t("home.clear_overlay_position")}
-            </ThemedText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.testButton}
-            onPress={handleTestDailyLogin}
-          >
-            <ThemedText style={styles.testButtonText}>
-              {t("home.test_daily_login_modal")}
-            </ThemedText>
-          </TouchableOpacity>
-
-
-          {/* Quick Start Section - Main action card */}
-          <ThemedView style={styles.quickStartCard}>
-            <ThemedText type="subtitle" style={styles.cardTitle}>
-              {t("home.quick_start")}
-            </ThemedText>
-
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={handleStartLesson}
-              activeOpacity={0.8}
-            >
-              <ThemedText style={styles.primaryButtonText}>
-                {t("home.start_new_lesson")}
-              </ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
-
-          {/* Learning Path Section */}
-          <ThemedView style={styles.learningPathCard}>
-            <ThemedText type="subtitle" style={styles.cardTitle}>
-              {t("home.learning_path")}
-            </ThemedText>
-
-            <View style={styles.pathItem}>
-              <ThemedText style={styles.pathItemTitle}>
-                {t("home.current_level", { level: "N5" })}
-              </ThemedText>
-              <ThemedText style={styles.pathItemSubtitle}>
-                {t("home.basic_japanese")}
-              </ThemedText>
-            </View>
-
-            <View style={styles.pathItem}>
-              <ThemedText style={styles.pathItemTitle}>
-                {t("home.next_goal", { level: "N4" })}
-              </ThemedText>
-              <ThemedText style={styles.pathItemSubtitle}>
-                {t("home.intermediate_japanese")}
-              </ThemedText>
-            </View>
-          </ThemedView>
-
-          <MainNavigation />
-        </View>
-      </HomeLayout>
-
-      {/* Fake Overlay for Tour Step - positioned at default DraggableOverlay location */}
-      <View
-        style={[
-          styles.fakeOverlay,
-          {
-            position: "absolute",
-            left: getDefaultOverlayPosition().x,
-            top: getDefaultOverlayPosition().y,
-          },
-        ]}
-        pointerEvents="none"
-      >
-        <TourStep
-          stepIndex={1}
-          title={t("home.partner_pokemon")}
-          description={t("home.take_care_description")}
+        {/* Development/Testing */}
+        <TouchableOpacity
+          style={styles.testButton}
+          onPress={handleClearAsyncStorage}
         >
-          <ThemedText style={styles.fakeOverlayText}>
-            {t("home.partner_pokemon_short")}
+          <ThemedText style={styles.testButtonText}>
+            {t("home.clear_overlay_position")}
           </ThemedText>
-          <ThemedText style={styles.fakeOverlaySubtext}>
-            {t("home.take_care_me")}
+        </TouchableOpacity>
+        <Button onPress={() => start()}>
+          <ThemedText style={styles.testButtonText}>
+            {t("home.test_tour_guide")}
           </ThemedText>
-          <ThemedText style={styles.fakeOverlaySubtext}>
-            {t("home.partner_pokemon_short")}
+        </Button>
+        <TouchableOpacity
+          style={styles.testButton}
+          onPress={handleTestDailyLogin}
+        >
+          <ThemedText style={styles.testButtonText}>
+            {t("home.test_daily_login_modal")}
           </ThemedText>
-          <ThemedText style={styles.fakeOverlaySubtext}>
-            {t("home.take_care_me")}
+        </TouchableOpacity>
+
+        {/* Quick Start Section - Main action card */}
+        <ThemedView style={styles.quickStartCard}>
+          <ThemedText type="subtitle" style={styles.cardTitle}>
+            {t("home.quick_start")}
           </ThemedText>
-          <ThemedText style={styles.fakeOverlaySubtext}>
-            {t("home.partner_pokemon_short")}
+
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={handleStartLesson}
+            activeOpacity={0.8}
+          >
+            <ThemedText style={styles.primaryButtonText}>
+              {t("home.start_new_lesson")}
+            </ThemedText>
+          </TouchableOpacity>
+        </ThemedView>
+
+        {/* Learning Path Section */}
+        <ThemedView style={styles.learningPathCard}>
+          <ThemedText type="subtitle" style={styles.cardTitle}>
+            {t("home.learning_path")}
           </ThemedText>
-          <ThemedText style={styles.fakeOverlaySubtext}>
-            {t("home.partner_pokemon_short")}
-          </ThemedText>
-        </TourStep>
+
+          <View style={styles.pathItem}>
+            <ThemedText style={styles.pathItemTitle}>
+              {t("home.current_level", { level: "N5" })}
+            </ThemedText>
+            <ThemedText style={styles.pathItemSubtitle}>
+              {t("home.basic_japanese")}
+            </ThemedText>
+          </View>
+
+          <View style={styles.pathItem}>
+            <ThemedText style={styles.pathItemTitle}>
+              {t("home.next_goal", { level: "N4" })}
+            </ThemedText>
+            <ThemedText style={styles.pathItemSubtitle}>
+              {t("home.intermediate_japanese")}
+            </ThemedText>
+          </View>
+        </ThemedView>
+
+      
+          <MainNavigation />
+ 
       </View>
 
       {/* Welcome Modal */}
       <WelcomeModal
         visible={showWelcomeModal}
         onClose={handleWelcomeModalClose}
-        username={username}
+        username={email.split("@")[0] || "Trainer"}
         pokemonName={selectedStarter.name}
       />
 
@@ -320,7 +234,7 @@ export default function HomeScreen() {
         onClose={() => setShowDailyLogin(false)}
         onCheckIn={handleDailyCheckin}
       />
-    </HomeTourGuide>
+      </HomeLayout>
   );
 }
 
@@ -472,14 +386,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-  // Fake overlay styles (same dimensions as DraggableOverlay) - INVISIBLE
+  // Fake overlay styles (kept if needed elsewhere)
   fakeOverlay: {
     position: "absolute",
-    width: OVERLAY_SIZE,
-    height: OVERLAY_SIZE,
+    width: 150,
+    height: 150,
     borderRadius: 10,
-    backgroundColor: "transparent", // No background - invisible
-    elevation: 0, // No shadow
+    backgroundColor: "transparent",
+    elevation: 0,
     shadowColor: "transparent",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0,
@@ -488,20 +402,19 @@ const styles = StyleSheet.create({
   },
   fakeOverlayContent: {
     flex: 1,
-
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "red",
   },
   fakeOverlayText: {
-    color: "transparent", // Invisible text
+    color: "transparent",
     fontWeight: "bold",
     fontSize: 16,
     textAlign: "center",
     marginBottom: 5,
   },
   fakeOverlaySubtext: {
-    color: "transparent", // Invisible text
+    color: "transparent",
     fontSize: 12,
     textAlign: "center",
   },

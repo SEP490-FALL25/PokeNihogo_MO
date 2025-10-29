@@ -6,7 +6,7 @@ import { router } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
-import { TourStep } from "./ui/HomeTourGuide";
+import { CopilotStep, walkthroughable } from "react-native-copilot";
 
 const { width } = Dimensions.get("window");
 
@@ -15,6 +15,10 @@ interface NavigationButtonProps {
   icon: any;
   onPress: () => void;
   color?: string;
+  // Optional tour props
+  tourStepName?: string;
+  tourOrder?: number;
+  tourText?: string;
 }
 
 const NavigationButton: React.FC<NavigationButtonProps> = ({
@@ -22,23 +26,49 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
   icon,
   onPress,
   color = "#3b82f6",
+  tourStepName,
+  tourOrder,
+  tourText,
 }) => {
+  const WTTouchable = walkthroughable(TouchableOpacity);
+
+  const ButtonContent = (
+    <>
+      <View style={[styles.iconContainer, { backgroundColor: color }]}>
+        <IconSymbol name={icon} size={24} color="#ffffff" />
+      </View>
+      <ThemedText style={styles.buttonText}>{title}</ThemedText>
+    </>
+  );
+
+  if (tourStepName && tourOrder && tourText) {
+    return (
+      <CopilotStep text={tourText} order={tourOrder} name={tourStepName}>
+        <WTTouchable
+          style={[styles.navButton, { borderColor: color }]}
+          onPress={onPress}
+          activeOpacity={0.8}
+        >
+          {ButtonContent}
+        </WTTouchable>
+      </CopilotStep>
+    );
+  }
+
   return (
     <TouchableOpacity
       style={[styles.navButton, { borderColor: color }]}
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <View style={[styles.iconContainer, { backgroundColor: color }]}>
-        <IconSymbol name={icon} size={24} color="#ffffff" />
-      </View>
-      <ThemedText style={styles.buttonText}>{title}</ThemedText>
+      {ButtonContent}
     </TouchableOpacity>
   );
 };
 
 const MainNavigation: React.FC = () => {
   const { t } = useTranslation();
+  // const WTView = walkthroughable(View);
   
   const handleLearn = () => {
     // Navigate to learning screen
@@ -84,19 +114,15 @@ const MainNavigation: React.FC = () => {
       </ThemedText>
 
       <View style={styles.grid}>
-        {/* Main Navigation Section */}
-        <TourStep
-          stepIndex={2}
-          title={t("navigation.tour_start_learning")}
-          description={t("navigation.tour_description")}
-        >
-          <NavigationButton
-            title={t("navigation.learn")}
-            icon="book.fill"
-            onPress={handleLearn}
-            color="#10b981"
-          />
-        </TourStep>
+        <NavigationButton
+          title={t("navigation.learn")}
+          icon="book.fill"
+          onPress={handleLearn}
+          color="#10b981"
+          tourStepName="navigation"
+          tourOrder={6}
+          tourText={t("tour.navigation_description")}
+        />
 
         <NavigationButton
           title={t("navigation.reading")}
