@@ -76,4 +76,19 @@ export const useListPokemons = (params: IQueryRequest) => {
   });
   return { data: data?.data, isLoading, isError };
 };
-//------------------------End------------------------//Userpro
+//------------------------End------------------------//
+
+
+/**
+ * Get pokemon by id
+ * @param id 
+ * @returns 
+ */
+export const usePokemonById = (id: string) => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['pokemon', id],
+    queryFn: () => pokemonService.getById(id),
+  });
+  return { data: data?.data.data, isLoading, isError };
+};
+//------------------------End------------------------//

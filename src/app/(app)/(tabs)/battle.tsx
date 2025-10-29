@@ -1,465 +1,177 @@
-import HomeLayout from "@components/layouts/HomeLayout";
+import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
+import { HapticPressable } from "@components/HapticPressable";
+import GlowingRingEffect from "@components/molecules/GlowingRingEffect";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
-import { IconSymbol } from "@components/ui/IconSymbol";
 import React from "react";
-import { useTranslation } from "react-i18next";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, ImageBackground, StyleSheet, View } from "react-native";
 
-const sampleBattles = [
-  {
-    id: 1,
-    title: "Vocabulary Duel",
-    description: "Test your vocabulary knowledge against other players",
-    difficulty: "Easy",
-    players: 2,
-    duration: "5 min",
-    icon: "textformat.abc",
-    color: "#10b981",
-    isActive: true,
-  },
-  {
-    id: 2,
-    title: "Grammar Challenge",
-    description: "Battle with Japanese grammar questions",
-    difficulty: "Medium",
-    players: 4,
-    duration: "8 min",
-    icon: "doc.text.fill",
-    color: "#f59e0b",
-    isActive: true,
-  },
-  {
-    id: 3,
-    title: "Kanji Master",
-    description: "Compete in kanji recognition and writing",
-    difficulty: "Hard",
-    players: 6,
-    duration: "12 min",
-    icon: "character.book.closed.fill",
-    color: "#ef4444",
-    isActive: false,
-  },
-  {
-    id: 4,
-    title: "Speed Reading",
-    description: "Fast-paced reading comprehension battles",
-    difficulty: "Medium",
-    players: 3,
-    duration: "10 min",
-    icon: "eye.fill",
-    color: "#3b82f6",
-    isActive: true,
-  },
-  {
-    id: 5,
-    title: "Listening Warrior",
-    description: "Audio-based comprehension challenges",
-    difficulty: "Hard",
-    players: 2,
-    duration: "15 min",
-    icon: "ear.fill",
-    color: "#8b5cf6",
-    isActive: false,
-  },
-  {
-    id: 6,
-    title: "Culture Quiz",
-    description: "Test your knowledge of Japanese culture",
-    difficulty: "Easy",
-    players: 8,
-    duration: "6 min",
-    icon: "globe.asia.australia.fill",
-    color: "#06b6d4",
-    isActive: true,
-  },
-];
+export default function BattleLobbyScreen() {
+  const handleStartRanked = () => {
+    Alert.alert(
+      "Xếp hạng",
+      "Đang tìm trận phù hợp theo trình độ của bạn...",
+    );
+  };
 
-const BattleCard: React.FC<{
-  battle: (typeof sampleBattles)[0];
-  onPress: () => void;
-}> = ({ battle, onPress }) => {
-  return (
-    <TouchableOpacity
-      style={[
-        styles.battleCard,
-        { borderLeftColor: battle.color },
-        !battle.isActive && styles.inactiveCard,
-      ]}
-      onPress={onPress}
-      activeOpacity={0.8}
-      disabled={!battle.isActive}
-    >
-      <View style={styles.cardHeader}>
-        <View style={[styles.iconContainer, { backgroundColor: battle.color }]}>
-          <IconSymbol name={battle.icon as any} size={24} color="#ffffff" />
-        </View>
-        <View style={styles.battleInfo}>
-          <ThemedText type="subtitle" style={styles.battleTitle}>
-            {battle.title}
-          </ThemedText>
-          <ThemedText style={styles.battleDescription}>
-            {battle.description}
-          </ThemedText>
-        </View>
-        {battle.isActive ? (
-          <View style={styles.activeBadge}>
-            <ThemedText style={styles.activeText}>LIVE</ThemedText>
-          </View>
-        ) : (
-          <View style={styles.inactiveBadge}>
-            <ThemedText style={styles.inactiveText}>SOON</ThemedText>
-          </View>
-        )}
-      </View>
+  const handleOpenLeaderboard = () => {
+    Alert.alert(
+      "Bảng xếp hạng",
+      "Màn hình bảng xếp hạng sẽ hiển thị tại đây (WIP).",
+    );
+  };
 
-      <View style={styles.cardFooter}>
-        <View style={styles.metaInfo}>
-          <View
-            style={[styles.difficultyBadge, { backgroundColor: battle.color }]}
-          >
-            <ThemedText style={styles.difficultyText}>
-              {battle.difficulty}
-            </ThemedText>
-          </View>
-          <ThemedText style={styles.playersText}>
-            👥 {battle.players} players
-          </ThemedText>
-          <ThemedText style={styles.durationText}>
-            ⏱️ {battle.duration}
-          </ThemedText>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
+  const handleViewTopRewards = () => {
+    Alert.alert(
+      "Phần thưởng TOP",
+      "Xem phần thưởng theo thứ hạng mùa giải (WIP).",
+    );
+  };
 
-export default function BattleScreen() {
-  const { t } = useTranslation();
-  
-  const handleBattlePress = (battleId: number) => {
-    console.log(`Battle ${battleId} pressed`);
-    // Navigate to battle detail screen
+  const handleViewRankInfo = () => {
+    Alert.alert(
+      "Hệ thống Rank",
+      "Thông tin về bậc rank, lên hạng và bảo lưu điểm (WIP).",
+    );
   };
 
   return (
-    <HomeLayout>
-      <ThemedText type="title" style={styles.title}>
-        ⚔️ {t("battle.title")}
-      </ThemedText>
-      <ThemedText style={styles.subtitle}>
-        {t("battle.subtitle")}
-      </ThemedText>
+    <ThemedView style={styles.container}>
+      <ImageBackground
+        source={require("../../../../assets/images/list_pokemon_bg.png")}
+        style={styles.bg}
+        imageStyle={styles.bgImage}
+      >
+        <TWLinearGradient
+          colors={["rgba(17,24,39,0.85)", "rgba(17,24,39,0.6)", "rgba(17,24,39,0.85)"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.overlay}
+        />
 
-      <ThemedText type="subtitle" style={styles.sectionTitle}>
-        🏆 {t("battle.available_battles")}
-      </ThemedText>
-
-      <View style={styles.battlesContainer}>
-        {sampleBattles.map((battle) => (
-          <BattleCard
-            key={battle.id}
-            battle={battle}
-            onPress={() => handleBattlePress(battle.id)}
-          />
-        ))}
-      </View>
-
-      <ThemedView style={styles.statsCard}>
-        <ThemedText type="subtitle" style={styles.statsTitle}>
-          🏅 {t("battle.statistics_title")}
-        </ThemedText>
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <ThemedText style={styles.statNumber}>24</ThemedText>
-            <ThemedText style={styles.statLabel}>{t("battle.battles_won")}</ThemedText>
-          </View>
-          <View style={styles.statItem}>
-            <ThemedText style={styles.statNumber}>8</ThemedText>
-            <ThemedText style={styles.statLabel}>{t("battle.battles_lost")}</ThemedText>
-          </View>
-          <View style={styles.statItem}>
-            <ThemedText style={styles.statNumber}>75%</ThemedText>
-            <ThemedText style={styles.statLabel}>{t("battle.win_rate")}</ThemedText>
+        <View style={styles.heroSection}>
+          <View style={styles.ringContainer}>
+            <GlowingRingEffect color="#22d3ee" ringSize={260} particleCount={18} />
+            <View style={styles.ringCenter}>
+              <ThemedText style={styles.rankTitle}>RANKED MATCH</ThemedText>
+              <ThemedText style={styles.rankSubtitle}>Học thuật • PvE-PvP</ThemedText>
+              <HapticPressable style={styles.ctaButton} onPress={handleStartRanked}>
+                <ThemedText style={styles.ctaText}>TÌM TRẬN NGAY</ThemedText>
+              </HapticPressable>
+              <ThemedText style={styles.mmrText}>MMR: 1200 • Bậc: Bronze II</ThemedText>
+            </View>
           </View>
         </View>
-      </ThemedView>
 
-      <ThemedView style={styles.leaderboardCard}>
-        <ThemedText type="subtitle" style={styles.leaderboardTitle}>
-          🥇 {t("battle.top_players")}
-        </ThemedText>
-        <View style={styles.leaderboardList}>
-          <View style={styles.leaderboardItem}>
-            <ThemedText style={styles.rank}>1st</ThemedText>
-            <ThemedText style={styles.playerName}>Sakura_Chan</ThemedText>
-            <ThemedText style={styles.playerScore}>2,450 pts</ThemedText>
+        <View style={styles.bottomPanel}>
+          <View style={styles.row}>
+            <HapticPressable style={[styles.glassButton, styles.half]} onPress={handleOpenLeaderboard}>
+              <ThemedText style={styles.glassTitle}>Bảng xếp hạng</ThemedText>
+              <ThemedText style={styles.glassDesc}>Top người chơi theo mùa</ThemedText>
+            </HapticPressable>
+            <HapticPressable style={[styles.glassButton, styles.half]} onPress={handleViewTopRewards}>
+              <ThemedText style={styles.glassTitle}>Phần thưởng TOP</ThemedText>
+              <ThemedText style={styles.glassDesc}>Skin, huy hiệu, kim cương</ThemedText>
+            </HapticPressable>
           </View>
-          <View style={styles.leaderboardItem}>
-            <ThemedText style={styles.rank}>2nd</ThemedText>
-            <ThemedText style={styles.playerName}>NihongoMaster</ThemedText>
-            <ThemedText style={styles.playerScore}>2,380 pts</ThemedText>
-          </View>
-          <View style={styles.leaderboardItem}>
-            <ThemedText style={styles.rank}>3rd</ThemedText>
-            <ThemedText style={styles.playerName}>AnimeFan2024</ThemedText>
-            <ThemedText style={styles.playerScore}>2,250 pts</ThemedText>
-          </View>
-        </View>
-      </ThemedView>
 
-      <ThemedView style={styles.tipsCard}>
-        <ThemedText type="subtitle" style={styles.tipsTitle}>
-          💪 {t("battle.tips_title")}
-        </ThemedText>
-        <View style={styles.tipsList}>
-          <ThemedText style={styles.tipItem}>
-            • {t("battle.tip_1")}
-          </ThemedText>
-          <ThemedText style={styles.tipItem}>
-            • {t("battle.tip_2")}
-          </ThemedText>
-          <ThemedText style={styles.tipItem}>
-            • {t("battle.tip_3")}
-          </ThemedText>
-          <ThemedText style={styles.tipItem}>
-            • {t("battle.tip_4")}
-          </ThemedText>
+          <HapticPressable style={styles.glassButton} onPress={handleViewRankInfo}>
+            <ThemedText style={styles.glassTitle}>Thông tin rank</ThemedText>
+            <ThemedText style={styles.glassDesc}>Cơ chế thăng hạng, bảo lưu điểm</ThemedText>
+          </HapticPressable>
         </View>
-      </ThemedView>
-    </HomeLayout>
+      </ImageBackground>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1f2937",
-    marginBottom: 8,
-    textAlign: "center",
+  container: {
+    flex: 1,
   },
-  subtitle: {
-    fontSize: 16,
-    color: "#6b7280",
-    textAlign: "center",
-    marginBottom: 20,
+  bg: {
+    flex: 1,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 16,
+  bgImage: {
+    resizeMode: "cover",
   },
-  battlesContainer: {
-    gap: 16,
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
   },
-  battleCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 12,
-    padding: 16,
-    borderLeftWidth: 4,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  inactiveCard: {
-    opacity: 0.6,
-  },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  heroSection: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    paddingTop: 40,
   },
-  battleInfo: {
-    flex: 1,
+  ringContainer: {
+    alignItems: "center",
+    justifyContent: "center",
   },
-  battleTitle: {
+  ringCenter: {
+    position: "absolute",
+    alignItems: "center",
+    gap: 8,
+  },
+  rankTitle: {
+    color: "#e5e7eb",
     fontSize: 16,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 4,
+    letterSpacing: 2,
   },
-  battleDescription: {
-    fontSize: 14,
-    color: "#6b7280",
+  rankSubtitle: {
+    color: "#93c5fd",
+    fontSize: 12,
   },
-  activeBadge: {
-    backgroundColor: "#10b981",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+  ctaButton: {
+    marginTop: 6,
+    backgroundColor: "#22c55e",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 999,
+    shadowColor: "#22c55e",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 10,
   },
-  activeText: {
-    fontSize: 10,
+  ctaText: {
     color: "#ffffff",
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: 1,
   },
-  inactiveBadge: {
-    backgroundColor: "#6b7280",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+  mmrText: {
+    color: "#cbd5e1",
+    fontSize: 12,
+    marginTop: 4,
   },
-  inactiveText: {
-    fontSize: 10,
-    color: "#ffffff",
-    fontWeight: "bold",
-  },
-  cardFooter: {
-    gap: 8,
-  },
-  metaInfo: {
+  row: {
     flexDirection: "row",
-    alignItems: "center",
     gap: 12,
   },
-  difficultyBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  difficultyText: {
-    fontSize: 12,
-    color: "#ffffff",
-    fontWeight: "500",
-  },
-  playersText: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontWeight: "500",
-  },
-  durationText: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontWeight: "500",
-  },
-  statsCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 16,
+  bottomPanel: {
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  statsTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  statsGrid: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  statItem: {
-    alignItems: "center",
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#ef4444",
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    textAlign: "center",
-  },
-  leaderboardCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  leaderboardTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  leaderboardList: {
     gap: 12,
   },
-  leaderboardItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: "#f9fafb",
-    borderRadius: 8,
+  glassButton: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderColor: "rgba(255,255,255,0.18)",
+    borderWidth: 1,
+    padding: 16,
+    borderRadius: 16,
   },
-  rank: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#f59e0b",
-    width: 40,
-  },
-  playerName: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#1f2937",
+  half: {
     flex: 1,
-    marginLeft: 12,
   },
-  playerScore: {
-    fontSize: 14,
-    color: "#6b7280",
-    fontWeight: "500",
+  glassTitle: {
+    color: "#e5e7eb",
+    fontWeight: "700",
+    marginBottom: 4,
   },
-  tipsCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  tipsTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 16,
-  },
-  tipsList: {
-    gap: 8,
-  },
-  tipItem: {
-    fontSize: 14,
-    color: "#6b7280",
-    lineHeight: 20,
+  glassDesc: {
+    color: "#cbd5e1",
+    fontSize: 12,
   },
 });
+
+
