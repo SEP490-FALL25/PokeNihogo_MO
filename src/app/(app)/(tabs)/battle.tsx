@@ -1,17 +1,21 @@
+import { CountdownTimer } from "@components/atoms/CountdownTimer";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
+import UserAvatar from "@components/atoms/UserAvatar";
 import { HapticPressable } from "@components/HapticPressable";
 import GlowingRingEffect from "@components/molecules/GlowingRingEffect";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
+import TypingText from "@components/ui/TypingText";
 import React from "react";
 import { Alert, ImageBackground, StyleSheet, View } from "react-native";
 
 export default function BattleLobbyScreen() {
+  const [mode, setMode] = React.useState<"ranked" | "casual">("ranked");
+  const [inQueue, setInQueue] = React.useState(false);
+
   const handleStartRanked = () => {
-    Alert.alert(
-      "Xếp hạng",
-      "Đang tìm trận phù hợp theo trình độ của bạn...",
-    );
+    setInQueue(true);
+    Alert.alert("Xếp hạng", "Đang tìm trận phù hợp theo trình độ của bạn...");
   };
 
   const handleOpenLeaderboard = () => {
@@ -49,35 +53,98 @@ export default function BattleLobbyScreen() {
           style={styles.overlay}
         />
 
-        <View style={styles.heroSection}>
-          <View style={styles.ringContainer}>
-            <GlowingRingEffect color="#22d3ee" ringSize={260} particleCount={18} />
-            <View style={styles.ringCenter}>
-              <ThemedText style={styles.rankTitle}>RANKED MATCH</ThemedText>
-              <ThemedText style={styles.rankSubtitle}>Học thuật • PvE-PvP</ThemedText>
-              <HapticPressable style={styles.ctaButton} onPress={handleStartRanked}>
-                <ThemedText style={styles.ctaText}>TÌM TRẬN NGAY</ThemedText>
-              </HapticPressable>
-              <ThemedText style={styles.mmrText}>MMR: 1200 • Bậc: Bronze II</ThemedText>
+        {/* Top status bar */}
+        <View className="px-5 pt-5">
+          <View className="flex-row items-center justify-between rounded-2xl border border-white/15 bg-white/5 px-4 py-3">
+            <View className="flex-row items-center gap-2">
+              <ThemedText style={{ color: "#93c5fd", fontWeight: "700" }}>Season 1</ThemedText>
+              <ThemedText style={{ color: "#cbd5e1" }}>Kết thúc sau</ThemedText>
             </View>
+            <CountdownTimer endDate={new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString()} daysLabel="ngày" />
           </View>
         </View>
 
-        <View style={styles.bottomPanel}>
-          <View style={styles.row}>
-            <HapticPressable style={[styles.glassButton, styles.half]} onPress={handleOpenLeaderboard}>
-              <ThemedText style={styles.glassTitle}>Bảng xếp hạng</ThemedText>
-              <ThemedText style={styles.glassDesc}>Top người chơi theo mùa</ThemedText>
+        {/* Mode toggle */}
+        <View className="px-5 mt-4">
+          <View className="flex-row bg-white/10 rounded-full p-1">
+            <HapticPressable
+              className={`flex-1 items-center py-2 rounded-full ${mode === "ranked" ? "bg-green-500 shadow" : "bg-transparent"}`}
+              onPress={() => setMode("ranked")}
+            >
+              <ThemedText style={{ color: mode === "ranked" ? "#ffffff" : "#cbd5e1", fontWeight: "700" }}>Ranked</ThemedText>
             </HapticPressable>
-            <HapticPressable style={[styles.glassButton, styles.half]} onPress={handleViewTopRewards}>
-              <ThemedText style={styles.glassTitle}>Phần thưởng TOP</ThemedText>
-              <ThemedText style={styles.glassDesc}>Skin, huy hiệu, kim cương</ThemedText>
+            <HapticPressable
+              className={`flex-1 items-center py-2 rounded-full ${mode === "casual" ? "bg-green-500 shadow" : "bg-transparent"}`}
+              onPress={() => setMode("casual")}
+            >
+              <ThemedText style={{ color: mode === "casual" ? "#ffffff" : "#cbd5e1", fontWeight: "700" }}>Casual</ThemedText>
+            </HapticPressable>
+          </View>
+        </View>
+
+        {/* Versus slot */}
+        <View className="flex-1 items-center justify-center pt-4">
+          <View className="items-center justify-center">
+            <GlowingRingEffect color="#22d3ee" ringSize={260} particleCount={18} />
+            <View className="absolute items-center gap-2">
+              <ThemedText style={{ color: "#e5e7eb", letterSpacing: 2, fontSize: 16 }}>MATCH LOBBY</ThemedText>
+              <View className="flex-row items-center gap-5 mt-1">
+                <View className="items-center gap-1">
+                  <UserAvatar name="You" size="large" />
+                  <ThemedText style={{ color: "#cbd5e1", fontSize: 12 }}>Bạn</ThemedText>
+                </View>
+                <View className="px-3 py-1 rounded-full border border-white/20 bg-white/10">
+                  <ThemedText style={{ color: "#ffffff", fontWeight: "700" }}>VS</ThemedText>
+                </View>
+                <View className="items-center gap-1">
+                  {inQueue ? (
+                    <View className="w-24 h-24 rounded-full bg-white/20" />
+                  ) : (
+                    <View className="w-24 h-24 rounded-full bg-white/10 border border-white/20" />
+                  )}
+                  <ThemedText style={{ color: "#cbd5e1", fontSize: 12 }}>{inQueue ? "Đang tìm đối thủ" : "Chưa sẵn sàng"}</ThemedText>
+                </View>
+              </View>
+              <HapticPressable
+                className="mt-2 bg-green-500 px-6 py-3 rounded-full shadow"
+                onPress={handleStartRanked}
+              >
+                <ThemedText style={{ color: "#ffffff", fontSize: 16, fontWeight: "700", letterSpacing: 1 }}>
+                  {inQueue ? "ĐANG TÌM TRẬN..." : "TÌM TRẬN NGAY"}
+                </ThemedText>
+              </HapticPressable>
+              <ThemedText style={{ color: "#cbd5e1", fontSize: 12, marginTop: 4 }}>MMR: 1200 • Bậc: Bronze II</ThemedText>
+            </View>
+          </View>
+
+          {/* Queue status typing */}
+          <View className="mt-6">
+            {inQueue ? (
+              <TypingText
+                messages={["Đang tìm đối thủ phù hợp...", "Cân bằng MMR...", "Xếp phòng..."]}
+                loop
+                textStyle={{ color: "#93c5fd" }}
+              />
+            ) : null}
+          </View>
+        </View>
+
+        {/* Bottom actions */}
+        <View className="px-5 pb-6">
+          <View className="flex-row gap-3">
+            <HapticPressable className="flex-1 rounded-2xl border border-white/15 bg-white/10 p-4" onPress={handleOpenLeaderboard}>
+              <ThemedText style={{ color: "#e5e7eb", fontWeight: "700", marginBottom: 4 }}>Bảng xếp hạng</ThemedText>
+              <ThemedText style={{ color: "#cbd5e1", fontSize: 12 }}>Top người chơi theo mùa</ThemedText>
+            </HapticPressable>
+            <HapticPressable className="flex-1 rounded-2xl border border-white/15 bg-white/10 p-4" onPress={handleViewTopRewards}>
+              <ThemedText style={{ color: "#e5e7eb", fontWeight: "700", marginBottom: 4 }}>Phần thưởng TOP</ThemedText>
+              <ThemedText style={{ color: "#cbd5e1", fontSize: 12 }}>Skin, huy hiệu, kim cương</ThemedText>
             </HapticPressable>
           </View>
 
-          <HapticPressable style={styles.glassButton} onPress={handleViewRankInfo}>
-            <ThemedText style={styles.glassTitle}>Thông tin rank</ThemedText>
-            <ThemedText style={styles.glassDesc}>Cơ chế thăng hạng, bảo lưu điểm</ThemedText>
+          <HapticPressable className="mt-3 rounded-2xl border border-white/15 bg-white/10 p-4" onPress={handleViewRankInfo}>
+            <ThemedText style={{ color: "#e5e7eb", fontWeight: "700", marginBottom: 4 }}>Thông tin rank</ThemedText>
+            <ThemedText style={{ color: "#cbd5e1", fontSize: 12 }}>Cơ chế thăng hạng, bảo lưu điểm</ThemedText>
           </HapticPressable>
         </View>
       </ImageBackground>
@@ -98,80 +165,7 @@ const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
   },
-  heroSection: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: 40,
-  },
-  ringContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  ringCenter: {
-    position: "absolute",
-    alignItems: "center",
-    gap: 8,
-  },
-  rankTitle: {
-    color: "#e5e7eb",
-    fontSize: 16,
-    letterSpacing: 2,
-  },
-  rankSubtitle: {
-    color: "#93c5fd",
-    fontSize: 12,
-  },
-  ctaButton: {
-    marginTop: 6,
-    backgroundColor: "#22c55e",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 999,
-    shadowColor: "#22c55e",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  ctaText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 1,
-  },
-  mmrText: {
-    color: "#cbd5e1",
-    fontSize: 12,
-    marginTop: 4,
-  },
-  row: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  bottomPanel: {
-    padding: 20,
-    gap: 12,
-  },
-  glassButton: {
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderColor: "rgba(255,255,255,0.18)",
-    borderWidth: 1,
-    padding: 16,
-    borderRadius: 16,
-  },
-  half: {
-    flex: 1,
-  },
-  glassTitle: {
-    color: "#e5e7eb",
-    fontWeight: "700",
-    marginBottom: 4,
-  },
-  glassDesc: {
-    color: "#cbd5e1",
-    fontSize: 12,
-  },
+  // Most layout styles moved to Tailwind classes above
 });
 
 
