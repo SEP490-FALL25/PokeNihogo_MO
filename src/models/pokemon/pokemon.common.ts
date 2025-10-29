@@ -33,6 +33,8 @@ export const PokemonEvolutionSchema = z.object({
     nameTranslations: TranslationSchema,
     imageUrl: z.string(),
     rarity: z.enum([PokemonRarity.COMMON, PokemonRarity.UNCOMMON, PokemonRarity.RARE, PokemonRarity.EPIC, PokemonRarity.LEGENDARY]),
+    conditionLevel: z.number(),
+    isStarted: z.boolean(),
 });
 
 // Main Pokemon schema
