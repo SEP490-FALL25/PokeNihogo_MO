@@ -2,7 +2,8 @@
 
 import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Animated, Dimensions, Modal, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Animated, Dimensions, Modal, Text, TouchableOpacity, View } from "react-native";
+import DailyQuestList from "./DailyQuestList";
 
 interface DailyRequestItem {
     id: number;
@@ -58,59 +59,40 @@ export default function DailyQuestModal({ visible, onClose, requests }: DailyQue
 
     const renderTypeBadge = (type: string, isStreak: boolean) => {
         return (
-            <View style={[styles.badge, isStreak ? styles.badgeStreak : styles.badgeInfo]}>
-                <Text style={styles.badgeText}>
-                    {isStreak ? t("daily_quests.streak") : t("daily_quests.daily")}
-                    {" • "}
-                    {type}
+            <View className={`px-2.5 py-1 rounded-full border ${isStreak ? "bg-amber-100 border-amber-500" : "bg-sky-100 border-sky-400"}`}>
+                <Text className="text-[11px] text-slate-900 font-semibold">
+                    {isStreak ? t("daily_quests.streak") : t("daily_quests.daily")} {" • "} {type}
                 </Text>
             </View>
         );
     };
 
+
+
     return (
         <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
-            <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-                <Animated.View style={[styles.modalContainer, { transform: [{ scale: scaleAnim }] }]}>
-                    <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-                        <View style={styles.header}>
-                            <Text style={styles.title}>{t("daily_quests.title", "Nhiệm vụ hàng ngày")}</Text>
-                            <Text style={styles.subtitle}>{t("daily_quests.subtitle", "Hoàn thành nhiệm vụ để nhận thưởng")}</Text>
+            <Animated.View style={{ opacity: fadeAnim }} className="flex-1 bg-black/60 justify-center items-center">
+                <Animated.View style={{ transform: [{ scale: scaleAnim }], width: modalWidth, maxHeight: height * 0.85 }} className="bg-white rounded-3xl p-4 shadow-xl">
+                    <View>
+                        <View className="flex-row justify-end items-center">
+                            <View style={{ flex: 1 }} />
+                            <TouchableOpacity accessibilityRole="button" onPress={onClose} className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center">
+                                <Text className="text-2xl font-bold text-slate-900 leading-none">×</Text>
+                            </TouchableOpacity>
                         </View>
-
-                        <View style={styles.list}>
-                            {requests.map((req) => (
-                                <View key={req.id} style={styles.card}>
-                                    <View style={styles.cardHeader}>
-                                        <Text style={styles.cardTitle}>{req.nameTranslation}</Text>
-                                        {renderTypeBadge(req.dailyRequestType, req.isStreak)}
-                                    </View>
-                                    <Text style={styles.cardDesc}>{req.descriptionTranslation}</Text>
-
-                                    <View style={styles.metaRow}>
-                                        <View style={[styles.metaPill, styles.metaBlue]}>
-                                            <Text style={styles.metaText}>{t("daily_quests.condition", { value: req.conditionValue })}</Text>
-                                        </View>
-                                        <View style={[styles.metaPill, styles.metaAmber]}>
-                                            <Text style={styles.metaText}>{t("daily_quests.reward", { id: req.rewardId })}</Text>
-                                        </View>
-                                    </View>
-
-                                    <View style={styles.actions}>
-                                        <View style={[styles.actionBtn, styles.actionDisabled]}>
-                                            <Text style={styles.actionTextDisabled}>{t("daily_quests.coming_soon", "Sắp có")}</Text>
-                                        </View>
-                                    </View>
-                                </View>
-                            ))}
+                        <View className="items-center mb-2">
+                            <Text className="text-xl font-extrabold text-slate-900 text-center mb-1 tracking-tight">{t("daily_quests.title", "Nhiệm vụ hàng ngày")}</Text>
+                            <Text className="text-xs text-slate-500 text-center">{t("daily_quests.subtitle", "Hoàn thành nhiệm vụ để nhận thưởng")}</Text>
                         </View>
+                    </View>
 
-                        <View style={styles.footer}>
-                            <View style={styles.closeBtn}>
-                                <Text onPress={onClose} style={styles.closeBtnText}>{t("daily_quests.close", "Đóng")}</Text>
-                            </View>
+                    <DailyQuestList requests={requests} />
+
+                    <View className="mt-2">
+                        <View className="h-11 rounded-xl items-center justify-center bg-slate-100">
+                            <Text onPress={onClose} className="text-slate-900 font-bold text-sm">{t("daily_quests.close", "Đóng")}</Text>
                         </View>
-                    </ScrollView>
+                    </View>
                 </Animated.View>
             </Animated.View>
         </Modal>
@@ -120,142 +102,6 @@ export default function DailyQuestModal({ visible, onClose, requests }: DailyQue
 const { width, height } = Dimensions.get("window");
 const modalWidth = Math.min(width * 0.92, 420);
 
-const styles = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    modalContainer: {
-        width: modalWidth,
-        maxHeight: height * 0.85,
-        backgroundColor: "#ffffff",
-        borderRadius: 24,
-        padding: 24,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
-        elevation: 10,
-    },
-    header: {
-        alignItems: "center",
-        marginBottom: 16,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: "800",
-        textAlign: "center",
-        color: "#0f172a",
-        marginBottom: 6,
-        letterSpacing: -0.5,
-    },
-    subtitle: {
-        fontSize: 14,
-        color: "#64748b",
-        textAlign: "center",
-    },
-    list: {
-        gap: 12,
-        marginTop: 8,
-        marginBottom: 12,
-    },
-    card: {
-        backgroundColor: "#f8fafc",
-        borderRadius: 16,
-        padding: 16,
-        borderWidth: 1,
-        borderColor: "#e2e8f0",
-    },
-    cardHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 6,
-    },
-    cardTitle: {
-        fontSize: 16,
-        fontWeight: "700",
-        color: "#0f172a",
-        flex: 1,
-        marginRight: 10,
-    },
-    cardDesc: {
-        fontSize: 13,
-        color: "#475569",
-    },
-    badge: {
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 999,
-        borderWidth: 1,
-    },
-    badgeStreak: {
-        backgroundColor: "#fef3c7",
-        borderColor: "#f59e0b",
-    },
-    badgeInfo: {
-        backgroundColor: "#e0f2fe",
-        borderColor: "#38bdf8",
-    },
-    badgeText: {
-        fontSize: 12,
-        color: "#0f172a",
-        fontWeight: "600",
-    },
-    metaRow: {
-        flexDirection: "row",
-        gap: 8,
-        marginTop: 10,
-    },
-    metaPill: {
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 999,
-    },
-    metaBlue: {
-        backgroundColor: "#dbeafe",
-    },
-    metaAmber: {
-        backgroundColor: "#fef3c7",
-    },
-    metaText: {
-        fontSize: 12,
-        color: "#0f172a",
-        fontWeight: "600",
-    },
-    actions: {
-        marginTop: 12,
-    },
-    actionBtn: {
-        height: 44,
-        borderRadius: 12,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    actionDisabled: {
-        backgroundColor: "#e5e7eb",
-    },
-    actionTextDisabled: {
-        color: "#6b7280",
-        fontWeight: "700",
-    },
-    footer: {
-        marginTop: 8,
-    },
-    closeBtn: {
-        height: 48,
-        borderRadius: 12,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#f1f5f9",
-    },
-    closeBtnText: {
-        color: "#0f172a",
-        fontWeight: "700",
-        fontSize: 15,
-    },
-});
+// Tailwind via NativeWind is used for styling above; minimal inline styles are kept for exact width/height.
 
 
