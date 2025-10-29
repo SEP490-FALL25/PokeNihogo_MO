@@ -4,15 +4,17 @@ import StoreIcon from "@components/atoms/StoreIcon";
 import RewardShopModal from "@components/Organism/ShopPokemon";
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
 import DailyQuestModal from "@components/ui/DailyQuestModal";
+import HomeTourGuide from "@components/ui/HomeTourGuide";
 import { useWalletUser } from "@hooks/useWallet";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { CopilotStep, walkthroughable } from "react-native-copilot";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ROUTES } from "@routes/routes";
-import { TourStep } from "../ui/HomeTourGuide";
 
 // Placeholder component để tour có thể track được vị trí
 
@@ -43,6 +45,7 @@ export interface HomeLayoutRef {
 
 const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
   function HomeLayout({ children, refreshControl }, ref) {
+    const { t } = useTranslation();
     const scrollViewRef = useRef<ScrollView>(null);
     const currentUser = sampleUser;
     const [isShopVisible, setIsShopVisible] = useState(false);
@@ -93,66 +96,75 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
       },
     ];
 
+    // Walkthroughable container for attaching steps to real elements
+    const WTView = walkthroughable(View);
+
     return (
-      <LinearGradient
-        colors={["#dbeafe", "#ffffff", "#e0e7ff"]} // bg-gradient-to-br from-blue-50 via-white to-indigo-100
-        style={styles.container}
-      >
-        <SafeAreaView style={styles.safeArea}>
-          <ScrollView
-            ref={scrollViewRef}
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            refreshControl={refreshControl}
-          >
-            {/* User Profile Header */}
-            <View style={styles.profileSection}>
-              <TourStep
-                stepIndex={0}
-                title="Your Progress"
-                description="Here's your progress. Complete the lessons to level up!"
-              >
+      <HomeTourGuide>
+        <LinearGradient
+          colors={["#dbeafe", "#ffffff", "#e0e7ff"]} // bg-gradient-to-br from-blue-50 via-white to-indigo-100
+          style={styles.container}
+        >
+          <SafeAreaView style={styles.safeArea}>
+            {/* Fixed Header */}
+            <CopilotStep text={t("tour.header_description")} order={1} name="header">
+              <WTView style={styles.fixedHeader}>
                 <UserProfileHeaderAtomic user={currentUser} />
-              </TourStep>
-            </View>
+              </WTView>
+            </CopilotStep>
 
-            {/* Main Content Area */}
-            <View style={styles.contentSection}>{children}</View>
-          </ScrollView>
-        </SafeAreaView>
+            {/* Scrollable Content */}
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              refreshControl={refreshControl}
+            >
+              {/* Main Content Area */}
+              <View style={styles.contentSection}>{children}</View>
+            </ScrollView>
+          </SafeAreaView>
 
-        {/* Store Icon - positioned at bottom right */}
-        <View className="absolute top-44 right-4">
-          <StoreIcon
-            onPress={handleStorePress}
-            size="small"
+          {/* Store Icon - positioned at bottom right */}
+          <View className="absolute top-52 right-4">
+            <CopilotStep text={t("tour.store_description")} order={3} name="store">
+              <WTView>
+                <StoreIcon onPress={handleStorePress} size="small" />
+              </WTView>
+            </CopilotStep>
+            <CopilotStep text={t("tour.quest_description")} order={4} name="quest">
+              <WTView style={{ marginTop: 12, alignSelf: "flex-end" }}>
+                <QuestIcon
+                  onPress={() => setShowDailyQuests(true)}
+                  size="small"
+                />
+              </WTView>
+            </CopilotStep>
+            <CopilotStep text={t("tour.gacha_description")} order={5} name="gacha">
+              <WTView style={{ marginTop: 12, alignSelf: "flex-end" }}>
+                <GachaIcon
+                  onPress={() => router.push(ROUTES.APP.GACHA)}
+                  size="small"
+                />
+              </WTView>
+            </CopilotStep>
+          </View>
+
+          {/* Shop Modal */}
+          <RewardShopModal
+            isVisible={isShopVisible}
+            onClose={handleShopClose}
           />
-          <QuestIcon
-            onPress={() => setShowDailyQuests(true)}
-            size="small"
-            style={{ marginTop: 12, alignSelf: "flex-end" }}
-          />
-          <GachaIcon
-            onPress={() => router.push(ROUTES.APP.GACHA)}
-            size="small"
-            style={{ marginTop: 12, alignSelf: "flex-end" }}
-          />
-        </View>
 
-        {/* Shop Modal */}
-        <RewardShopModal
-          isVisible={isShopVisible}
-          onClose={handleShopClose}
-        />
-
-        {/* Daily Quest Modal */}
-        <DailyQuestModal
-          visible={showDailyQuests}
-          onClose={() => setShowDailyQuests(false)}
-          requests={dailyQuestsMock}
-        />
-      </LinearGradient>
+          {/* Daily Quest Modal */}
+          <DailyQuestModal
+            visible={showDailyQuests}
+            onClose={() => setShowDailyQuests(false)}
+            requests={dailyQuestsMock}
+          />
+        </LinearGradient>
+      </HomeTourGuide>
     );
   }
 );
@@ -165,6 +177,13 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  fixedHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 16,
+    backgroundColor: "transparent",
+    zIndex: 10,
   },
   scrollView: {
     flex: 1,

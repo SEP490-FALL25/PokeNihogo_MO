@@ -194,6 +194,20 @@
     "user_info": "User Info",
     "other": "Other"
   },
+  "tour": {
+    "header_title": "Your Profile",
+    "header_description": "Tap here to view your profile, level, and progress",
+    "pokemon_title": "Your Pokemon Partner",
+    "pokemon_description": "This is your Pokemon partner! You can drag it around the screen to any position you like",
+    "store_title": "Shop",
+    "store_description": "Visit the shop to buy items, Pokemon, and rewards",
+    "quest_title": "Daily Quests",
+    "quest_description": "Complete daily quests to earn rewards and experience",
+    "gacha_title": "Gacha",
+    "gacha_description": "Try your luck with the gacha to get new Pokemon and items",
+    "navigation_title": "Learn Button",
+    "navigation_description": "Tap the Learn button to start your Japanese learning journey"
+  },
   "lessons": {
     "title": "Lessons",
     "progress_title": "Learning Progress",

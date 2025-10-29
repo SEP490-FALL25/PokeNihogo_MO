@@ -194,6 +194,20 @@
     "user_info": "Thông tin người dùng",
     "other": "Khác"
   },
+  "tour": {
+    "header_title": "Hồ sơ của bạn",
+    "header_description": "Nhấn vào đây để xem hồ sơ, cấp độ và tiến độ của bạn",
+    "pokemon_title": "Pokemon đồng hành",
+    "pokemon_description": "Đây là Pokemon đồng hành của bạn! Bạn có thể kéo thả nó quanh màn hình đến vị trí bất kỳ",
+    "store_title": "Cửa hàng",
+    "store_description": "Ghé thăm cửa hàng để mua vật phẩm, Pokemon và phần thưởng",
+    "quest_title": "Nhiệm vụ hàng ngày",
+    "quest_description": "Hoàn thành nhiệm vụ hàng ngày để nhận phần thưởng và kinh nghiệm",
+    "gacha_title": "Gacha",
+    "gacha_description": "Thử vận may với gacha để có được Pokemon và vật phẩm mới",
+    "navigation_title": "Nút Học",
+    "navigation_description": "Nhấn nút Học để bắt đầu hành trình học tiếng Nhật của bạn"
+  },
   "lessons": {
     "title": "Bài học",
     "progress_title": "Tiến độ học tập",
