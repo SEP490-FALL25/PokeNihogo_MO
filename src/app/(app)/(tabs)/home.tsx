@@ -28,7 +28,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
  */
 export default function HomeScreen() {
   const { t } = useTranslation();
-  
+
   // Tour and modal state management
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showDailyLogin, setShowDailyLogin] = useState(false);
@@ -148,6 +148,7 @@ export default function HomeScreen() {
     setShowDailyLogin(true);
   };
 
+
   /**
    * Clear AsyncStorage for DraggableOverlay position
    * Resets the overlay position to default center position
@@ -219,6 +220,7 @@ export default function HomeScreen() {
               {t("home.test_daily_login_modal")}
             </ThemedText>
           </TouchableOpacity>
+
 
           {/* Quick Start Section - Main action card */}
           <ThemedView style={styles.quickStartCard}>

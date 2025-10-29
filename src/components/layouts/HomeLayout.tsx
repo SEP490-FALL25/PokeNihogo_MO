@@ -1,12 +1,17 @@
+import GachaIcon from "@components/atoms/GachaIcon";
+import QuestIcon from "@components/atoms/QuestIcon";
 import StoreIcon from "@components/atoms/StoreIcon";
 import RewardShopModal from "@components/Organism/ShopPokemon";
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
+import DailyQuestModal from "@components/ui/DailyQuestModal";
 import { useWalletUser } from "@hooks/useWallet";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { ROUTES } from "@routes/routes";
 import { TourStep } from "../ui/HomeTourGuide";
 
 // Placeholder component để tour có thể track được vị trí
@@ -41,6 +46,7 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     const scrollViewRef = useRef<ScrollView>(null);
     const currentUser = sampleUser;
     const [isShopVisible, setIsShopVisible] = useState(false);
+    const [showDailyQuests, setShowDailyQuests] = useState(false);
 
     useWalletUser();
 
@@ -64,6 +70,28 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     const handleShopClose = () => {
       setIsShopVisible(false);
     };
+
+    // Mock data for Daily Quests (UI preview)
+    const dailyQuestsMock = [
+      {
+        id: 3,
+        nameKey: "daily_request.name.3",
+        descriptionKey: "daily_request.description.3",
+        dailyRequestType: "STREAK_LOGIN",
+        conditionValue: 7,
+        rewardId: 2,
+        isStreak: true,
+        isActive: true,
+        createdById: 1,
+        updatedById: null,
+        deletedById: null,
+        deletedAt: null,
+        createdAt: "2025-10-26T08:28:36.900Z",
+        updatedAt: "2025-10-26T08:28:36.930Z",
+        nameTranslation: "Điểm danh chuỗi 7 ngày liên tục",
+        descriptionTranslation: "Điểm danh chuỗi 7 ngày liên tục để nhận thưởng.",
+      },
+    ];
 
     return (
       <LinearGradient
@@ -100,12 +128,29 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
             onPress={handleStorePress}
             size="small"
           />
+          <QuestIcon
+            onPress={() => setShowDailyQuests(true)}
+            size="small"
+            style={{ marginTop: 12, alignSelf: "flex-end" }}
+          />
+          <GachaIcon
+            onPress={() => router.push(ROUTES.APP.GACHA)}
+            size="small"
+            style={{ marginTop: 12, alignSelf: "flex-end" }}
+          />
         </View>
 
         {/* Shop Modal */}
         <RewardShopModal
           isVisible={isShopVisible}
           onClose={handleShopClose}
+        />
+
+        {/* Daily Quest Modal */}
+        <DailyQuestModal
+          visible={showDailyQuests}
+          onClose={() => setShowDailyQuests(false)}
+          requests={dailyQuestsMock}
         />
       </LinearGradient>
     );
@@ -142,6 +187,7 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 1000,
   },
+
   statsSection: {
     paddingHorizontal: 16,
     marginBottom: 24,
