@@ -389,6 +389,27 @@
     "experience_progress": "Tiến độ kinh nghiệm",
     "to": "đến"
   },
+  "ownership": {
+    "owned": "Đã sở hữu",
+    "not_owned": "Chưa sở hữu"
+  },
+  "pokemon_detail": {
+    "tabs": {
+      "intro": "Giới thiệu",
+      "evolution": "Tiến hóa"
+    },
+    "next_evolution_title": "Tiến hóa tiếp theo đề xuất",
+    "can_evolve_to": "có thể tiến hóa thành",
+    "level_label": "Level",
+    "exp_unknown": "EXP chưa xác định",
+    "load_error": "Không tải được dữ liệu",
+    "require_level": "Yêu cầu Lv. {{level}}",
+    "weakness_section": {
+      "title": "Thông tin khắc hệ",
+      "weak_against": "Yếu thế trước",
+      "takes_more_damage": "Nhận thêm sát thương"
+    }
+  },
   "lesson_card": {
     "lesson_description": "Bài học N{{level}}"
   },

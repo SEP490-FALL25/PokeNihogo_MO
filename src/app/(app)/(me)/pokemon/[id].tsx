@@ -9,16 +9,18 @@ import { IEvolutionPokemonSchema } from '@models/pokemon/pokemon.response';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Award, Shield, Sparkles, TrendingUp, Zap } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, StatusBar, Text, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import * as Progress from 'react-native-progress';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const TABS = ['Giới thiệu', 'Tiến hóa'] as const;
+const TABS = ['intro', 'evolution'] as const;
 
 export default function PokemonDetailScreen() {
+    const { t } = useTranslation();
     const { id } = useLocalSearchParams();
-    const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>('Giới thiệu');
+    const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>('intro');
     const { data, isLoading, isError } = useGetPokemonByIdWithEvolechain(String(id));
 
     const detail = data as IEvolutionPokemonSchema | undefined;
@@ -43,7 +45,7 @@ export default function PokemonDetailScreen() {
     const renderTabContent = () => {
         if (!pokemon) return null;
 
-        if (activeTab === 'Tiến hóa') {
+        if (activeTab === 'evolution') {
             return (
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
                     <EvolutionPaths pokemon={pokemon} />
@@ -75,7 +77,7 @@ export default function PokemonDetailScreen() {
                                 >
                                     <TrendingUp size={20} color="white" strokeWidth={2.8} />
                                 </TWLinearGradient>
-                                <Text className="flex-1 text-[19px] font-black text-white tracking-[0.3px]">Tiến hóa tiếp theo đề xuất</Text>
+                                <Text className="flex-1 text-[19px] font-black text-white tracking-[0.3px]">{t('pokemon_detail.next_evolution_title')}</Text>
                                 <OwnershipBadge owned={nextEvolution?.userPokemon} />
                             </View>
 
@@ -100,7 +102,7 @@ export default function PokemonDetailScreen() {
 
                                 <View className="flex-1">
                                     <Text className="text-[14px] font-semibold text-slate-300 leading-5 tracking-[0.2px] mb-2">
-                                        {displayName} có thể tiến hóa thành
+                                        {displayName} {t('pokemon_detail.can_evolve_to')}
                                     </Text>
                                     <Text className="text-[22px] font-black text-white tracking-[0.5px] mb-2 capitalize">
                                         {nextEvolution.nameTranslations?.vi || nextEvolution.nameTranslations?.en || nextEvolution.nameJp}
@@ -112,7 +114,7 @@ export default function PokemonDetailScreen() {
                                         >
                                             <Zap size={14} color="white" fill="white" strokeWidth={2.5} />
                                             <Text className="text-[14px] font-black text-white tracking-[0.5px]">
-                                                Level {nextEvolution.conditionLevel ?? pokemon.conditionLevel ?? 1}
+                                                {t('pokemon_detail.level_label')} {nextEvolution.conditionLevel ?? pokemon.conditionLevel ?? 1}
                                             </Text>
                                         </TWLinearGradient>
                                     </View>
@@ -131,7 +133,7 @@ export default function PokemonDetailScreen() {
                             >
                                 <Shield size={22} color="white" strokeWidth={2.8} />
                             </TWLinearGradient>
-                            <Text className="flex-1 text-[19px] font-black text-white tracking-[0.3px]">Thông tin khắc hệ</Text>
+                            <Text className="flex-1 text-[19px] font-black text-white tracking-[0.3px]">{t('pokemon_detail.weakness_section.title')}</Text>
                             <View className="w-8 h-8 rounded-2xl bg-[#6FAFB233] items-center justify-center">
                                 <Award size={16} color="#6FAFB2" strokeWidth={2.5} />
                             </View>
@@ -156,8 +158,8 @@ export default function PokemonDetailScreen() {
                                         <Shield size={18} color="white" strokeWidth={2.8} />
                                     </TWLinearGradient>
                                     <View className="flex-1">
-                                        <Text className="text-[17px] font-black text-white tracking-[0.3px] mb-0.5">Yếu thế trước</Text>
-                                        <Text className="text-[12px] font-semibold text-white/70 tracking-[0.2px]">Nhận thêm sát thương</Text>
+                                        <Text className="text-[17px] font-black text-white tracking-[0.3px] mb-0.5">{t('pokemon_detail.weakness_section.weak_against')}</Text>
+                                        <Text className="text-[12px] font-semibold text-white/70 tracking-[0.2px]">{t('pokemon_detail.weakness_section.takes_more_damage')}</Text>
                                     </View>
                                 </View>
 
@@ -241,11 +243,11 @@ export default function PokemonDetailScreen() {
                         >
                             <Zap size={12} color="white" fill="white" strokeWidth={2.5} />
                             <Text className="text-md font-black text-white tracking-[0.8px]">
-                                Lv. {levelInfo?.levelNumber ?? 1}
+                                {t('profile.level_small')}. {levelInfo?.levelNumber ?? 1}
                             </Text>
                         </TWLinearGradient>
                         <Text className="text-[14px] font-bold text-slate-400 tracking-[0.5px]">
-                            {expRequired > 0 ? `${currentExp}/${expRequired} EXP` : 'EXP chưa xác định'}
+                            {expRequired > 0 ? `${currentExp}/${expRequired} EXP` : t('pokemon_detail.exp_unknown')}
                         </Text>
                     </View>
                     <View className="relative">
@@ -279,7 +281,7 @@ export default function PokemonDetailScreen() {
                         >
                             <View className={`flex-row items-center pl-2 pr-1 pb-1.5 ${activeTab === tab ? 'gap-2' : 'gap-1.5'}`}>
                                 <Text className={`text-[17px] font-bold tracking-[0.5px] ${activeTab === tab ? 'text-white font-extrabold' : 'text-slate-500'}`}>
-                                    {tab}
+                                    {tab === 'intro' ? t('pokemon_detail.tabs.intro') : t('pokemon_detail.tabs.evolution')}
                                 </Text>
                                 {activeTab === tab && (
                                     <View className="w-[22px] h-[22px] rounded-[11px] bg-[#6FAFB233] items-center justify-center">
@@ -302,7 +304,7 @@ export default function PokemonDetailScreen() {
                 <View className="flex-1">
                     {isError ? (
                         <View className="flex-1 items-center justify-center">
-                            <Text className="text-white">Không tải được dữ liệu</Text>
+                            <Text className="text-white">{t('pokemon_detail.load_error')}</Text>
                         </View>
                     ) : isLoading || !pokemon ? (
                         <View className="flex-1 items-center justify-center">

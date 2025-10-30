@@ -2,6 +2,7 @@ import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { OwnershipBadge } from "@components/pokemon-detail/ownership-badge";
 import { IEvolutionPokemonEntityType } from "@models/pokemon/pokemon.entity";
 import { Star } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Image, Text, View } from "react-native";
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
@@ -14,6 +15,7 @@ export const EvolutionCard = ({
     isCurrent?: boolean;
     onPress?: (id: number) => void;
 }) => {
+    const { t } = useTranslation();
     const displayName = entity.nameTranslations?.vi || entity.nameTranslations?.en || entity.nameJp || '???';
 
     return (
@@ -71,7 +73,7 @@ export const EvolutionCard = ({
                                 colors={['#fbbf24', '#f59e0b']}
                                 className="px-3 py-1 rounded-xl items-center"
                             >
-                                <Text className="text-[12px] font-bold text-white tracking-[0.4px]">Yêu cầu Lv. {entity.conditionLevel}</Text>
+                                <Text className="text-[12px] font-bold text-white tracking-[0.4px]">{t('pokemon_detail.require_level', { level: entity.conditionLevel })}</Text>
                             </TWLinearGradient>
                         </View>
                     )}
