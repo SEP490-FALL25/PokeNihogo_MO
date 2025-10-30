@@ -390,8 +390,41 @@
     "experience_progress": "Experience Progress",
     "to": "to"
   },
+  "ownership": {
+    "owned": "Owned",
+    "not_owned": "Not owned"
+  },
+  "pokemon_detail": {
+    "tabs": {
+      "intro": "Overview",
+      "evolution": "Evolution"
+    },
+    "next_evolution_title": "Suggested next evolution",
+    "can_evolve_to": "can evolve into",
+    "level_label": "Level",
+    "exp_unknown": "EXP unknown",
+    "load_error": "Failed to load data",
+    "require_level": "Requires Lv. {{level}}",
+    "weakness_section": {
+      "title": "Type weaknesses",
+      "weak_against": "Weak against",
+      "takes_more_damage": "Takes increased damage"
+    }
+  },
   "lesson_card": {
     "lesson_description": "Lesson N{{level}}"
+  },
+  "collection": {
+    "title": "Your Collection",
+    "progress": "{{owned}} / {{total}} Pokémon",
+    "filters": {
+      "all": "All",
+      "owned": "Owned",
+      "unowned": "Unowned"
+    },
+    "search_placeholder": "Search by name or Pokédex number...",
+    "search_results": "Found {{count}} results",
+    "load_error": "Unable to load Pokémon data"
   },
   "error_state": {
     "default_title": "An error occurred",

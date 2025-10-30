@@ -6,7 +6,8 @@ import { IUserPokemonResponse } from '@models/user-pokemon/user-pokemon.response
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Search, Trophy } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Dimensions, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,11 +16,13 @@ const { width } = Dimensions.get('window');
 const CARD_SIZE = (width - 48) / 3;
 
 export default function PokemonCollectionScreen() {
+    const { t } = useTranslation();
     /**
      * Handle use Hook useListUserPokemons
      */
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [debouncedQuery, setDebouncedQuery] = useState<string>('');
+    const [ownershipFilter, setOwnershipFilter] = useState<'all' | 'owned' | 'unowned'>('all');
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -33,12 +36,26 @@ export default function PokemonCollectionScreen() {
         sortBy: 'id',
         sortOrder: 'asc' as 'asc' | 'desc',
         search: debouncedQuery || undefined,
+        hasPokemon:
+            ownershipFilter === 'owned'
+                ? true
+                : ownershipFilter === 'unowned'
+                    ? false
+                    : undefined,
     });
+    const flattenedPokemons = useMemo(
+        () => (data?.pages ?? []).flatMap((p: any) => p?.data?.data?.results ?? []),
+        [data]
+    );
+    const resultsCount = flattenedPokemons.length;
     //------------------------End------------------------//
 
 
+    /**
+     * Handle use Hook useGetUserPokemonStats
+     */
     const { data: collectionStats, isLoading: isLoadingCollectionStats, isError: isErrorCollectionStats } = useGetUserPokemonStats();
-
+    //------------------------End------------------------//
 
     return (
         <SafeAreaView className="flex-1 bg-slate-100">
@@ -68,9 +85,9 @@ export default function PokemonCollectionScreen() {
                                 </View>
 
                                 <View className="flex-1">
-                                    <Text className="text-lg font-extrabold text-white mb-1 tracking-tight">Bộ sưu tập của bạn</Text>
+                                    <Text className="text-lg font-extrabold text-white mb-1 tracking-tight">{t('collection.title')}</Text>
                                     <Text className="text-sm font-semibold text-white/90 tracking-wide">
-                                        {collectionStats?.userPokemonsCount} / {collectionStats?.totalPokemons} Pokémon
+                                        {t('collection.progress', { owned: collectionStats?.userPokemonsCount ?? 0, total: collectionStats?.totalPokemons ?? 0 })}
                                     </Text>
                                 </View>
 
@@ -115,6 +132,27 @@ export default function PokemonCollectionScreen() {
 
             {/* Search and collection area */}
             <View className="flex-1 px-4">
+                {/* Ownership Filter Buttons */}
+                <View className="flex-row justify-between mb-3">
+                    <Pressable
+                        className={`flex-1 px-4 py-2 rounded-2xl mr-2 ${ownershipFilter === 'all' ? 'bg-teal-500' : 'bg-slate-200'}`}
+                        onPress={() => setOwnershipFilter('all')}
+                    >
+                        <Text className={`text-center font-bold ${ownershipFilter === 'all' ? 'text-white' : 'text-teal-700'}`}>{t('collection.filters.all')}</Text>
+                    </Pressable>
+                    <Pressable
+                        className={`flex-1 px-4 py-2 rounded-2xl mr-2 ${ownershipFilter === 'owned' ? 'bg-teal-500' : 'bg-slate-200'}`}
+                        onPress={() => setOwnershipFilter('owned')}
+                    >
+                        <Text className={`text-center font-bold ${ownershipFilter === 'owned' ? 'text-white' : 'text-teal-700'}`}>{t('collection.filters.owned')}</Text>
+                    </Pressable>
+                    <Pressable
+                        className={`flex-1 px-4 py-2 rounded-2xl ${ownershipFilter === 'unowned' ? 'bg-teal-500' : 'bg-slate-200'}`}
+                        onPress={() => setOwnershipFilter('unowned')}
+                    >
+                        <Text className={`text-center font-bold ${ownershipFilter === 'unowned' ? 'text-white' : 'text-teal-700'}`}>{t('collection.filters.unowned')}</Text>
+                    </Pressable>
+                </View>
                 {/* Enhanced Search Bar */}
                 <View className="mb-3">
                     <LinearGradient
@@ -125,7 +163,7 @@ export default function PokemonCollectionScreen() {
                             <Search size={20} color="#6FAFB2" strokeWidth={2.5} />
                         </View>
                         <TextInput
-                            placeholder="Tìm kiếm theo tên hoặc số thứ tự..."
+                            placeholder={t('collection.search_placeholder')}
                             placeholderTextColor="#94A3B8"
                             className="flex-1 text-base font-semibold text-slate-800 tracking-wide"
                             value={searchQuery}
@@ -145,7 +183,7 @@ export default function PokemonCollectionScreen() {
                 {/* Results count */}
                 {debouncedQuery.length > 0 && (
                     <Text className="text-sm font-bold text-slate-500 mb-3 ml-1 tracking-wide">
-                        Tìm thấy {data?.pages?.[0]?.data?.data?.pagination?.totalItem ?? 0} kết quả
+                        {t('collection.search_results', { count: resultsCount })}
                     </Text>
                 )}
 
@@ -167,11 +205,11 @@ export default function PokemonCollectionScreen() {
                     />
                 ) : isError ? (
                     <View className="flex-1 items-center justify-center">
-                        <Text className="text-slate-500 font-semibold">Không thể tải dữ liệu Pokémon</Text>
+                        <Text className="text-slate-500 font-semibold">{t('collection.load_error')}</Text>
                     </View>
                 ) : (
                     <FlatList
-                        data={(data?.pages ?? []).flatMap((p: any) => p?.data?.data?.results ?? [])}
+                        data={flattenedPokemons}
                         numColumns={3}
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={({ item }: { item: IUserPokemonResponse }) => <PokemonGridItem item={item} />}

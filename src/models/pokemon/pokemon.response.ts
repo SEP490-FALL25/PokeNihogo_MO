@@ -1,7 +1,10 @@
 import { PokemonRarity } from "@constants/pokemon.enum";
+import { at } from "@models/common/common.request";
+import { LevelSchema } from "@models/user-pokemon/user-pokemon.common";
 import { z } from "zod";
 import { BackendResponseModel } from "../backend/common";
-import { PokemonSchema } from "./pokemon.common";
+import { PokemonResponseSchema } from "./pokemon.common";
+import { EvolutionPokemonEntitySchema } from "./pokemon.entity";
 
 // Request schemas for Pokemon operations
 export const GetPokemonListRequestSchema = z.object({
@@ -29,18 +32,39 @@ export const PaginationSchema = z.object({
 });
 
 // Response schemas using BackendResponseModel
-export const PokemonResponseSchema = BackendResponseModel(PokemonSchema);
+export const PokemonResponseDataSchema = BackendResponseModel(PokemonResponseSchema);
 export const PokemonListResponseSchema = BackendResponseModel(
     z.object({
-        results: z.array(PokemonSchema),
+        results: z.array(PokemonResponseSchema),
         pagination: PaginationSchema,
     })
 );
+
+/**
+ * Evolution Pokemon Response Schema
+ */
+export const EvolutionPokemonSchema = z.object({
+    id: z.number(),
+    userId: z.number(),
+    pokemonId: z.number(),
+    levelId: z.number(),
+    nickname: z.string().nullable(),
+    exp: z.number(),
+    isEvolved: z.boolean(),
+    isMain: z.boolean(),
+    ...at,
+    pokemon: PokemonResponseSchema,
+    nextPokemons: z.array(EvolutionPokemonEntitySchema),
+    previousPokemons: z.array(EvolutionPokemonEntitySchema),
+    level: LevelSchema,
+});
+export type IEvolutionPokemonSchema = z.infer<typeof EvolutionPokemonSchema>;
+//------------------------End------------------------//
 
 // Export types
 export type IGetPokemonListRequest = z.infer<typeof GetPokemonListRequestSchema>;
 export type IGetPokemonByIdRequest = z.infer<typeof GetPokemonByIdRequestSchema>;
 export type IGetPokemonByPokedexNumberRequest = z.infer<typeof GetPokemonByPokedexNumberRequestSchema>;
 export type IPagination = z.infer<typeof PaginationSchema>;
-export type IPokemonResponse = z.infer<typeof PokemonResponseSchema>;
+export type IPokemonResponse = z.infer<typeof PokemonResponseDataSchema>;
 export type IPokemonListResponse = z.infer<typeof PokemonListResponseSchema>;

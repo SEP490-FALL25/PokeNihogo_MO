@@ -168,6 +168,27 @@
         "experience_progress": "経験値進捗",
         "to": "に"
     },
+    "ownership": {
+        "owned": "所持済み",
+        "not_owned": "未所持"
+    },
+    "pokemon_detail": {
+        "tabs": {
+            "intro": "概要",
+            "evolution": "進化"
+        },
+        "next_evolution_title": "次の進化候補",
+        "can_evolve_to": "は次に進化できます",
+        "level_label": "レベル",
+        "exp_unknown": "EXP 不明",
+        "load_error": "データを読み込めませんでした",
+        "require_level": "必要レベル {{level}}",
+        "weakness_section": {
+            "title": "タイプ相性（弱点）",
+            "weak_against": "弱点",
+            "takes_more_damage": "ダメージ増加"
+        }
+    },
     "home": {
         "welcome_back": "おかえりなさい、{{username}}さん！👋",
         "ready_to_continue": "日本語学習の旅を続ける準備はできていますか？",
@@ -308,5 +329,17 @@
     "do_vocab_exercise": "語彙練習",
     "do_grammar_exercise": "文法練習",
     "do_kanji_exercise": "漢字練習",
-    "usage": "使用例"
+    "usage": "使用例",
+    "collection": {
+        "title": "あなたのコレクション",
+        "progress": "{{owned}} / {{total}} ポケモン",
+        "filters": {
+            "all": "すべて",
+            "owned": "所持",
+            "unowned": "未所持"
+        },
+        "search_placeholder": "名前または図鑑番号で検索...",
+        "search_results": "{{count}} 件見つかりました",
+        "load_error": "ポケモンのデータを読み込めません"
+    }
 }

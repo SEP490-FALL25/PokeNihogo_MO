@@ -9,6 +9,7 @@ const userPokemonService = {
 
     if (params.currentPage) queryParams.append('currentPage', params.currentPage.toString());
     if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+    if (params.hasPokemon) queryParams.append('hasPokemon', params.hasPokemon.toString());
 
     if (params.types && params.types !== 'all') {
       filters.push(`types=${params.types}`);
@@ -46,6 +47,9 @@ const userPokemonService = {
   },
   getUserPokemonStats: async () => {
     return axiosPrivate.get(`/user-pokemon/user/pokemons/stats`);
+  },
+  getbyPokemonIdWithEvolechain: async (id: string) => {
+    return axiosPrivate.get(`/user-pokemon/evolves/${id}`);
   },
 };
 
