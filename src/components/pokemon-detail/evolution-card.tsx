@@ -16,7 +16,7 @@ export const EvolutionCard = ({
     onPress?: (id: number) => void;
 }) => {
     const { t } = useTranslation();
-    const displayName = entity.nameTranslations?.vi || entity.nameTranslations?.en || entity.nameJp || '???';
+    const displayName = entity.nameTranslations?.en;
 
     return (
         <TouchableOpacity

@@ -105,7 +105,7 @@ export default function PokemonDetailScreen() {
                                         {displayName} {t('pokemon_detail.can_evolve_to')}
                                     </Text>
                                     <Text className="text-[22px] font-black text-white tracking-[0.5px] mb-2 capitalize">
-                                        {nextEvolution.nameTranslations?.vi || nextEvolution.nameTranslations?.en || nextEvolution.nameJp}
+                                        {nextEvolution.nameTranslations.en}
                                     </Text>
                                     <View className="items-start">
                                         <TWLinearGradient
