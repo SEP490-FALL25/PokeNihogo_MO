@@ -20,6 +20,7 @@ export default function PokemonCollectionScreen() {
      */
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [debouncedQuery, setDebouncedQuery] = useState<string>('');
+    const [ownershipFilter, setOwnershipFilter] = useState<'all' | 'owned' | 'unowned'>('all');
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -33,6 +34,12 @@ export default function PokemonCollectionScreen() {
         sortBy: 'id',
         sortOrder: 'asc' as 'asc' | 'desc',
         search: debouncedQuery || undefined,
+        hasPokemon:
+            ownershipFilter === 'owned'
+                ? true
+                : ownershipFilter === 'unowned'
+                    ? false
+                    : undefined,
     });
     //------------------------End------------------------//
 
@@ -115,6 +122,27 @@ export default function PokemonCollectionScreen() {
 
             {/* Search and collection area */}
             <View className="flex-1 px-4">
+                {/* Ownership Filter Buttons */}
+                <View className="flex-row justify-between mb-3">
+                    <Pressable
+                        className={`flex-1 px-4 py-2 rounded-2xl mr-2 ${ownershipFilter === 'all' ? 'bg-teal-500' : 'bg-slate-200'}`}
+                        onPress={() => setOwnershipFilter('all')}
+                    >
+                        <Text className={`text-center font-bold ${ownershipFilter === 'all' ? 'text-white' : 'text-teal-700'}`}>Tất cả</Text>
+                    </Pressable>
+                    <Pressable
+                        className={`flex-1 px-4 py-2 rounded-2xl mr-2 ${ownershipFilter === 'owned' ? 'bg-teal-500' : 'bg-slate-200'}`}
+                        onPress={() => setOwnershipFilter('owned')}
+                    >
+                        <Text className={`text-center font-bold ${ownershipFilter === 'owned' ? 'text-white' : 'text-teal-700'}`}>Đã sở hữu</Text>
+                    </Pressable>
+                    <Pressable
+                        className={`flex-1 px-4 py-2 rounded-2xl ${ownershipFilter === 'unowned' ? 'bg-teal-500' : 'bg-slate-200'}`}
+                        onPress={() => setOwnershipFilter('unowned')}
+                    >
+                        <Text className={`text-center font-bold ${ownershipFilter === 'unowned' ? 'text-white' : 'text-teal-700'}`}>Chưa có</Text>
+                    </Pressable>
+                </View>
                 {/* Enhanced Search Bar */}
                 <View className="mb-3">
                     <LinearGradient
