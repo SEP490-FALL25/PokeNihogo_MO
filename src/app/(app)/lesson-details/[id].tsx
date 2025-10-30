@@ -1,6 +1,7 @@
 import KanjiWriter from "@components/KanjiWriter";
 import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
+import BounceButton from "@components/ui/BounceButton";
 import { useLesson } from "@hooks/useLessons";
 import { Audio } from "expo-av";
 import * as Haptics from "expo-haptics";
@@ -13,7 +14,7 @@ import {
   X,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   Animated,
@@ -160,7 +161,9 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
 
           <View className="mt-4 items-center">
             <ThemedText className="text-xs text-gray-400">
-              {showMeaning ? t('lessons.hide_meaning') : t('lessons.press_to_see_meaning')}
+              {showMeaning
+                ? t("lessons.hide_meaning")
+                : t("lessons.press_to_see_meaning")}
             </ThemedText>
           </View>
         </TouchableOpacity>
@@ -239,7 +242,7 @@ const KanjiCard = ({
 }) => {
   const { t } = useTranslation();
   const meaning =
-    item.meaning?.split("##")[0] || item.meaning || t('lessons.no_meaning');
+    item.meaning?.split("##")[0] || item.meaning || t("lessons.no_meaning");
 
   return (
     <ModernCard>
@@ -261,7 +264,7 @@ const KanjiCard = ({
           <View className="flex-row items-center mt-2">
             <Sparkles size={14} color="#f59e0b" />
             <ThemedText className="text-xs text-amber-600 ml-1">
-              {item.strokeCount} {t('lessons.stroke')}
+              {item.strokeCount} {t("lessons.stroke")}
             </ThemedText>
           </View>
         </View>
@@ -317,9 +320,9 @@ const LessonDetailScreen = () => {
         <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft size={24} color="#6b7280" />
         </TouchableOpacity>
-        <View style={{ flex: 1, alignItems: 'center' }}>
+        <View style={{ flex: 1, alignItems: "center" }}>
           <ThemedText className="text-xl font-bold text-gray-800">
-            {t('lessons.title')} { id }
+            {t("lessons.title")} {id}
           </ThemedText>
         </View>
         {/* Optionally, right side can be left blank or add a View for space if no control exists */}
@@ -332,11 +335,11 @@ const LessonDetailScreen = () => {
           <View className="mb-8">
             <View className="flex-row justify-between items-center mb-4">
               <ThemedText className="text-2xl font-bold text-indigo-600">
-                {t('lessons.lesson_types.vocabulary')}
+                {t("lessons.lesson_types.vocabulary")}
               </ThemedText>
               <TouchableOpacity className="bg-indigo-100 px-4 py-2 rounded-full">
                 <ThemedText className="text-indigo-700 text-sm font-medium">
-                  {t('common.continue')}
+                  {t("common.continue")}
                 </ThemedText>
               </TouchableOpacity>
             </View>
@@ -357,11 +360,11 @@ const LessonDetailScreen = () => {
           <View className="mb-8">
             <View className="flex-row justify-between items-center mb-4">
               <ThemedText className="text-2xl font-bold text-cyan-700">
-                {t('lessons.lesson_types.grammar')}
+                {t("lessons.lesson_types.grammar")}
               </ThemedText>
               <TouchableOpacity className="bg-cyan-100 px-4 py-2 rounded-full">
                 <ThemedText className="text-cyan-700 text-sm font-medium">
-                  {t('common.continue')}
+                  {t("common.continue")}
                 </ThemedText>
               </TouchableOpacity>
             </View>
@@ -376,11 +379,11 @@ const LessonDetailScreen = () => {
           <View className="mb-10">
             <View className="flex-row justify-between items-center mb-4">
               <ThemedText className="text-2xl font-bold text-amber-700">
-                {t('lessons.lesson_types.kanji')}
+                {t("lessons.lesson_types.kanji")}
               </ThemedText>
               <TouchableOpacity className="bg-amber-100 px-4 py-2 rounded-full">
                 <ThemedText className="text-amber-700 text-sm font-medium">
-                  {t('common.continue')}
+                  {t("common.continue")}
                 </ThemedText>
               </TouchableOpacity>
             </View>
@@ -392,22 +395,24 @@ const LessonDetailScreen = () => {
           </View>
 
           {/* === FINAL TEST BUTTON === */}
-          <TouchableOpacity className="bg-gradient-to-r from-emerald-500 to-teal-600 py-5 rounded-3xl items-center shadow-xl">
+          <BounceButton
+            variant="solid"
+            size="full"
+            onPress={() => setModalVisible(true)}
+          >
             <ThemedText className="text-white text-lg font-bold flex-row items-center">
               <Sparkles size={20} color="white" className="mr-2" />
-              {t('common.start')}
+              {t("common.start")}
             </ThemedText>
-          </TouchableOpacity>
+          </BounceButton>
         </View>
       </ScrollView>
 
       {/* === KANJI WRITER MODAL === */}
+
       <Modal visible={modalVisible} animationType="slide">
-        <View className="flex-1 bg-gradient-to-b from-amber-50 to-white p-6">
-          <View className="flex-row justify-between items-center mb-6">
-            <ThemedText className="text-3xl font-bold text-amber-700">
-              {t('lessons:lesson_types.kanji')}: {selectedKanji}
-            </ThemedText>
+        <View className="flex-1 mt-36 bg-gradient-to-b from-amber-50 to-white p-6">
+          <View className="flex-row justify-end items-center mb-6">
             <TouchableOpacity onPress={() => setModalVisible(false)}>
               <X size={28} color="#6b7280" />
             </TouchableOpacity>
@@ -416,9 +421,16 @@ const LessonDetailScreen = () => {
             character={selectedKanji!}
             mode="practice"
             onComplete={(mistakes) => {
-              Alert.alert(t('common:complete'), `${t('common:finish')}: ${mistakes}`,[
-                { text: t('common:close'), onPress: () => setModalVisible(false) },
-              ]);
+              Alert.alert(
+                t("common.complete"),
+                `${t("common.finish")}: ${mistakes}`,
+                [
+                  {
+                    text: t("common.close"),
+                    onPress: () => setModalVisible(false),
+                  },
+                ]
+              );
             }}
           />
         </View>
