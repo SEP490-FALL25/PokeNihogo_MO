@@ -304,5 +304,8 @@
     "hide_meaning": "意味を非表示",
     "press_to_see_meaning": "意味を表示",
     "no_meaning": "意味がありません",
-    "stroke": "画数"
+    "stroke": "画数",
+    "do_vocab_exercise": "語彙練習",
+    "do_grammar_exercise": "文法練習",
+    "do_kanji_exercise": "漢字練習"
 }

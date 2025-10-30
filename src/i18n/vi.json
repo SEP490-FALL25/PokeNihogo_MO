@@ -276,8 +276,10 @@
     "hide_meaning": "Ẩn nghĩa",
     "press_to_see_meaning": "Nhấn để xem nghĩa",
     "no_meaning": "Chưa có nghĩa",
-    "stroke": "nét"
-    
+    "stroke": "nét",
+    "do_vocab_exercise": "Luyện tập từ vựng",
+    "do_grammar_exercise": "Luyện tập ngữ pháp",
+    "do_kanji_exercise": "Luyện tập kanji"
   },
   "home": {
     "welcome_back": "Chào mừng trở lại, {{username}}! 👋",

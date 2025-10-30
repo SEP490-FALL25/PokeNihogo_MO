@@ -106,6 +106,18 @@ const playAudio = async (url: string) => {
   }
 };
 
+function getButtonColor(status?: string, base = "indigo") {
+  if (status === "completed") return `bg-${base}-300`;
+  if (status === "in_progress") return `bg-${base}-200`;
+  return `bg-gray-100`;
+}
+function getTextColor(status?: string, base = "indigo") {
+  if (status === "completed") return `text-${base}-900`;
+  if (status === "in_progress") return `text-${base}-900`;
+  return `text-${base}-700`;
+}
+
+
 // --- Vocabulary Card (Swipeable + Audio + Meaning Toggle) ---
 const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
   const { t } = useTranslation();
@@ -130,7 +142,7 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <ModernCard style={{ marginHorizontal: 4 }}>
-        <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+        <TouchableOpacity onPress={handlePress} activeOpacity={0.9} className={getButtonColor(item.status)}>
           <View className="flex-row justify-between items-start mb-3">
             <View>
               <ThemedText className="text-3xl font-bold text-indigo-600">
@@ -339,7 +351,7 @@ const LessonDetailScreen = () => {
               </ThemedText>
               <TouchableOpacity className="bg-indigo-100 px-4 py-2 rounded-full">
                 <ThemedText className="text-indigo-700 text-sm font-medium">
-                  {t("common.continue")}
+                  {t("lessons.do_vocab_exercise")}
                 </ThemedText>
               </TouchableOpacity>
             </View>
@@ -364,7 +376,7 @@ const LessonDetailScreen = () => {
               </ThemedText>
               <TouchableOpacity className="bg-cyan-100 px-4 py-2 rounded-full">
                 <ThemedText className="text-cyan-700 text-sm font-medium">
-                  {t("common.continue")}
+                  {t("lessons.do_grammar_exercise")}
                 </ThemedText>
               </TouchableOpacity>
             </View>
@@ -383,7 +395,7 @@ const LessonDetailScreen = () => {
               </ThemedText>
               <TouchableOpacity className="bg-amber-100 px-4 py-2 rounded-full">
                 <ThemedText className="text-amber-700 text-sm font-medium">
-                  {t("common.continue")}
+                  {t("lessons.do_kanji_exercise")}
                 </ThemedText>
               </TouchableOpacity>
             </View>
