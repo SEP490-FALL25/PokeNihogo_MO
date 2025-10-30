@@ -1,43 +1,47 @@
 import QuizLayout from "@components/layouts/QuizLayout";
 import { QuizProgress } from "@components/quiz/QuizProgress";
-import BounceButton from "@components/ui/BounceButton";
-import { Button } from "@components/ui/Button";
+// import BounceButton from "@components/ui/BounceButton";
+// import { Button } from "@components/ui/Button";
+import AudioPlayer from "@components/ui/AudioPlayer";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { QuizSession } from "@models/quiz/quiz.common";
 import { quizService } from "@services/quiz";
-import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
-import { Check, Volume2, X } from "lucide-react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronLeft } from "lucide-react-native";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Alert,
   Animated,
-  Easing,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import ConfettiCannon from "react-native-confetti-cannon";
 
 export default function QuizScreen() {
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
 
   const [session, setSession] = useState<QuizSession | null>(null);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
+  // Map lưu lựa chọn theo questionId
+  const [selections, setSelections] = useState<Record<string, string[]>>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState<number | undefined>();
-  const [answers, setAnswers] = useState<
-    { questionId: string; selectedAnswers: string[]; timeSpent: number }[]
-  >([]);
-
-  const [showResult, setShowResult] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [confetti, setConfetti] = useState(false);
-
-  const scaleAnims = useRef<Animated.Value[]>([]).current;
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+  // const [isSubmitting, setIsSubmitting] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+  type LocalAnswer = {
+    questionId: string;
+    selectedAnswers: string[];
+    timeSpent: number;
+  };
+  const scaleAnims = useRef<Record<string, Animated.Value[]>>({}).current;
+  const scrollRef = useRef<ScrollView | null>(null);
+  const questionOffsetsRef = useRef<Record<string, number>>({});
 
   // Load session
   useEffect(() => {
@@ -55,7 +59,7 @@ export default function QuizScreen() {
 
       if (response.statusCode === 201 && response.data?.session) {
         setSession(response.data.session);
-        setTimeRemaining(600);
+        setElapsedSeconds(0);
       }
     } catch (error) {
       console.error("Error loading quiz session:", error);
@@ -66,136 +70,80 @@ export default function QuizScreen() {
     }
   };
 
-  // Timer
+  // Timer (count-up, no limit)
   useEffect(() => {
-    if (session && timeRemaining !== undefined) {
+    if (session) {
       const timer = setInterval(() => {
-        setTimeRemaining((prev) => {
-          if (prev === undefined || prev <= 0) {
-            clearInterval(timer);
-            Alert.alert(
-              "Hết thời gian!",
-              "Thời gian làm bài đã hết. Quiz sẽ được nộp tự động.",
-              [{ text: "Nộp bài", onPress: () => completeQuiz(answers) }]
-            );
-            return 0;
-          }
-          return prev - 1;
-        });
+        setElapsedSeconds((prev) => prev + 1);
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [session, timeRemaining, answers]);
+  }, [session]);
 
-  // Reset animations khi đổi câu
-  useEffect(() => {
-    setSelectedAnswers([]);
-    setShowResult(false);
-    setIsCorrect(false);
-    fadeAnim.setValue(1);
-    scaleAnims.forEach((anim) => anim.setValue(1));
-  }, [currentQuestionIndex]);
+  const answeredCount = useMemo(() => {
+    return Object.values(selections).filter((arr) => arr.length > 0).length;
+  }, [selections]);
 
-  const currentQuestion = session?.questions[currentQuestionIndex];
-  const progress = session
-    ? ((currentQuestionIndex + 1) / session.questions.length) * 100
-    : 0;
+  // No single current question in all-in-one layout
 
   const handleAnswerSelect = useCallback(
-    (questionId: string, selectedAnswers: string[]) => {
-      if (showResult) return;
+    async (questionId: string, selected: string[], optionIndex?: number) => {
+      if (!session) return;
 
-      setSelectedAnswers(selectedAnswers);
-      setShowResult(true);
+      setSelections((prev) => ({ ...prev, [questionId]: selected }));
 
-      // Kiểm tra đúng/sai
-      const correct = currentQuestion?.correctAnswers.every((ans) =>
-        selectedAnswers.includes(ans)
-      );
-      const allSelected = selectedAnswers.every((ans) =>
-        currentQuestion?.correctAnswers.includes(ans)
-      );
-      const isFullyCorrect = correct && allSelected;
-
-      setIsCorrect(isFullyCorrect ?? false);
-
-      if (isFullyCorrect) {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setConfetti(true);
-        setTimeout(() => setConfetti(false), 2000);
-      } else {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      // small tap animation per question option
+      if (!scaleAnims[questionId]) {
+        const q = session.questions.find((q) => q.id === questionId);
+        if (q?.options) {
+          scaleAnims[questionId] = q.options.map(() => new Animated.Value(1));
+        }
       }
-
-      // Animation
-      const selectedIndex = currentQuestion?.options?.findIndex((opt) =>
-        selectedAnswers.includes(opt.id)
-      );
-      if (selectedIndex !== undefined && selectedIndex !== -1) {
+      if (optionIndex !== undefined && scaleAnims[questionId]?.[optionIndex]) {
         Animated.sequence([
-          Animated.timing(scaleAnims[selectedIndex], {
+          Animated.timing(scaleAnims[questionId][optionIndex], {
             toValue: 0.95,
-            duration: 100,
+            duration: 80,
             useNativeDriver: true,
           }),
-          Animated.spring(scaleAnims[selectedIndex], {
+          Animated.spring(scaleAnims[questionId][optionIndex], {
             toValue: 1,
             friction: 4,
             useNativeDriver: true,
           }),
         ]).start();
       }
+
+      try {
+        await quizService.submitAnswer({
+          sessionId: session.id,
+          questionId,
+          selectedAnswers: selected,
+          timeSpent: 0,
+        });
+      } catch (error) {
+        console.warn("Error logging answer", error);
+      }
     },
-    [currentQuestion, showResult]
+    [session, scaleAnims]
   );
 
-  const handleNextQuestion = async () => {
-    if (!session || !currentQuestion) return;
+  const buildFinalAnswers = useCallback((): LocalAnswer[] => {
+    if (!session) return [] as LocalAnswer[];
+    return session.questions.map((q) => ({
+      questionId: q.id,
+      selectedAnswers: selections[q.id] || [],
+      timeSpent: 0,
+    }));
+  }, [session, selections]);
 
-    const currentAnswer = {
-      questionId: currentQuestion.id,
-      selectedAnswers,
-      timeSpent: 30,
-    };
+  
 
-    const newAnswers = [...answers, currentAnswer];
-    setAnswers(newAnswers);
-
-    try {
-      setIsSubmitting(true);
-      await quizService.submitAnswer({
-        sessionId: session.id,
-        questionId: currentQuestion.id,
-        selectedAnswers,
-        timeSpent: 30,
-      });
-    } catch (error) {
-      console.error("Error submitting answer:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-
-    if (currentQuestionIndex < session.questions.length - 1) {
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 200,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }).start(() => {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-        Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
-      });
-    } else {
-      await completeQuiz(newAnswers);
-    }
-  };
-
-  const completeQuiz = async (finalAnswers: typeof answers) => {
+  const completeQuiz = async (finalAnswers: LocalAnswer[]) => {
     if (!session) return;
 
     try {
-      setIsSubmitting(true);
-      const totalTimeSpent = finalAnswers.reduce((sum, a) => sum + a.timeSpent, 0);
+      const totalTimeSpent = elapsedSeconds; // seconds
       const response = await quizService.completeQuiz({
         sessionId: session.id,
         answers: finalAnswers,
@@ -212,13 +160,14 @@ export default function QuizScreen() {
       console.error("Error completing quiz:", error);
       Alert.alert("Lỗi", "Không thể hoàn thành quiz.");
     } finally {
-      setIsSubmitting(false);
     }
   };
 
-  const canProceed = selectedAnswers.length > 0 && showResult;
+  // const canSubmit = session
+  //   ? answeredCount === session.questions.length
+  //   : false;
 
-  if (isLoading || !session || !currentQuestion) {
+  if (isLoading || !session) {
     return (
       <QuizLayout>
         <View style={styles.center}>
@@ -228,118 +177,164 @@ export default function QuizScreen() {
     );
   }
 
-  // Khởi tạo animation cho từng option
-  if (scaleAnims.length === 0) {
-    currentQuestion?.options?.forEach(() => {
-      scaleAnims.push(new Animated.Value(1));
-    });
-  }
+  // Animation values sẽ được khởi tạo lazy per-question khi render
 
   return (
     <QuizLayout
       showProgress={true}
       progressComponent={
-        <QuizProgress
-          currentQuestion={currentQuestionIndex}
-          totalQuestions={session.questions.length}
-          timeRemaining={timeRemaining}
-          style={styles.progress}
-        />
+        <View>
+          {/* Header row: back, title, submit */}
+          <View style={styles.topHeader}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              activeOpacity={0.8}
+              style={styles.backButton}
+            >
+              <ChevronLeft size={22} color="#111827" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle} numberOfLines={1}>
+              {session?.level
+                ? `Trình độ JLPT ${session.level}`
+                : "Làm bài kiểm tra"}
+            </Text>
+            <TouchableOpacity
+              onPress={() => completeQuiz(buildFinalAnswers())}
+              activeOpacity={0.8}
+              style={styles.submitIconButton}
+            >
+              <MaterialCommunityIcons
+                name="notebook-check"
+                size={26}
+                color="#0ea5e9"
+              />
+            </TouchableOpacity>
+          </View>
+          <QuizProgress
+            currentQuestion={answeredCount}
+            totalQuestions={session.questions.length}
+            elapsedSeconds={elapsedSeconds}
+            questionIds={session.questions.map((q) => q.id)}
+            answeredIds={session.questions
+              .filter((q) => (selections[q.id] || []).length > 0)
+              .map((q) => q.id)}
+            onPressQuestion={(idx, id) => {
+              const y = questionOffsetsRef.current[id] ?? 0;
+              scrollRef.current?.scrollTo({
+                y: Math.max(0, y - 16),
+                animated: true,
+              });
+            }}
+            style={styles.progress}
+          />
+        </View>
       }
     >
       <View style={styles.container}>
-        {/* Câu hỏi */}
-        <Animated.View style={[styles.questionWrapper, { opacity: fadeAnim }]}>
-          <View style={styles.questionCard}>
-            {currentQuestion.audioUrl && (
-              <TouchableOpacity style={styles.audioButton}>
-                <Volume2 size={20} color="#4f46e5" />
-              </TouchableOpacity>
-            )}
-            <Text style={styles.questionText}>{currentQuestion.question}</Text>
-          </View>
-        </Animated.View>
-
-        {/* Đáp án */}
-        <View style={styles.optionsContainer}>
-          {currentQuestion?.options?.map((option, index) => {
-            const isSelected = selectedAnswers.includes(option.id);
-            const isCorrectAnswer = currentQuestion.correctAnswers.includes(option.id);
-            const showCorrect = showResult && isCorrectAnswer;
-            const showWrong = showResult && isSelected && !isCorrectAnswer;
-
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: 0 }]}
+        >
+          {session.questions.map((q, qIdx) => {
+            const selected = selections[q.id] || [];
+            if (!scaleAnims[q.id] && q.options) {
+              scaleAnims[q.id] = q.options.map(() => new Animated.Value(1));
+            }
             return (
-              <Animated.View
-                key={option.id}
-                style={[
-                  styles.optionWrapper,
-                  { transform: [{ scale: scaleAnims[index] || 1 }] },
-                ]}
+              <View
+                key={q.id}
+                style={styles.block}
+                onLayout={(e) => {
+                  questionOffsetsRef.current[q.id] = e.nativeEvent.layout.y;
+                }}
               >
-                <TouchableOpacity
-                  onPress={() => handleAnswerSelect(currentQuestion.id, [option.id])}
-                  disabled={showResult}
-                  activeOpacity={0.8}
-                  style={[
-                    styles.optionButton,
-                    showCorrect && styles.optionCorrect,
-                    showWrong && styles.optionWrong,
-                    isSelected && !showResult && styles.optionSelected,
-                  ]}
-                >
-                  <View style={styles.optionContent}>
-                    <View
-                      style={[
-                        styles.optionCircle,
-                        showCorrect && styles.circleCorrect,
-                        showWrong && styles.circleWrong,
-                        isSelected && !showResult && styles.circleSelected,
-                      ]}
-                    >
-                      <Text style={styles.optionLabel}>
-                        {String.fromCharCode(65 + index)}
-                      </Text>
+                <View style={styles.questionWrapper}>
+                  <View style={styles.qaCard}>
+                    {/* Header with number badge and optional audio */}
+                    <View style={styles.headerRow}>
+                      <View style={styles.numberBadge}>
+                        <Text style={styles.numberText}>{qIdx + 1}</Text>
+                      </View>
+                      {q.audioUrl && (
+                        <AudioPlayer
+                          audioUrl={q.audioUrl}
+                          style={{ marginLeft: "auto" }}
+                        />
+                      )}
                     </View>
-                    <Text style={styles.optionText}>{option.text}</Text>
+
+                    {/* Question text */}
+                    <Text style={styles.questionText}>{q.question}</Text>
+
+                    {/* Options inside same card */}
+                    <View style={styles.optionsInCard}>
+                      {q.options?.map((opt, index) => {
+                        const isSelected = selected.includes(opt.id);
+                        return (
+                          <Animated.View
+                            key={opt.id}
+                            style={[
+                              styles.optionWrapper,
+                              {
+                                transform: [
+                                  { scale: scaleAnims[q.id]?.[index] || 1 },
+                                ],
+                              },
+                            ]}
+                          >
+                            <TouchableOpacity
+                              onPress={() =>
+                                handleAnswerSelect(q.id, [opt.id], index)
+                              }
+                              activeOpacity={0.85}
+                              style={[
+                                styles.optionButton,
+                                isSelected && styles.optionSelected,
+                              ]}
+                            >
+                              <View style={styles.optionContent}>
+                                <View
+                                  style={[
+                                    styles.optionCircle,
+                                    isSelected && styles.circleSelected,
+                                  ]}
+                                >
+                                  <Text style={styles.optionLabel}>
+                                    {String.fromCharCode(65 + index)}
+                                  </Text>
+                                </View>
+                                <Text style={styles.optionText}>
+                                  {opt.text}
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </Animated.View>
+                        );
+                      })}
+                    </View>
                   </View>
-                  {showCorrect && <Check size={24} color="#10b981" />}
-                  {showWrong && <X size={24} color="#ef4444" />}
-                </TouchableOpacity>
-              </Animated.View>
+                </View>
+              </View>
             );
           })}
-        </View>
+        </ScrollView>
 
-        {/* Nút điều hướng */}
-        <View style={styles.navigationContainer}>
+        {/* <View style={styles.navigationContainer}>
           <BounceButton
-            onPress={handleNextQuestion}
-            disabled={!canProceed || isSubmitting}
+            onPress={() => completeQuiz(buildFinalAnswers())}
+            disabled={isSubmitting || !canSubmit}
             loading={isSubmitting}
           >
-            {currentQuestionIndex < session.questions.length - 1
-              ? "Câu tiếp theo"
-              : "Hoàn thành"}
+            Nộp bài
           </BounceButton>
-
-          {currentQuestionIndex > 0 && (
-            <Button
-              variant="outline"
-              onPress={() => {
-                setCurrentQuestionIndex(currentQuestionIndex - 1);
-                setSelectedAnswers(
-                  answers[currentQuestionIndex - 1]?.selectedAnswers || []
-                );
-              }}
-              style={styles.previousButton}
-            >
-              Câu trước
-            </Button>
-          )}
-        </View>
-
-        {/* Confetti */}
-        {confetti && <ConfettiCannon count={50} origin={{ x: -10, y: 0 }} fadeOut />}
+          <Button
+            variant="outline"
+            onPress={() => router.back()}
+            style={styles.previousButton}
+          >
+            Thoát
+          </Button>
+        </View> */}
       </View>
     </QuizLayout>
   );
@@ -349,21 +344,75 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: { fontSize: 18, color: "#6b7280" },
-  progress: { backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" },
+  progress: {
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e7eb",
+  },
+  topHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 6,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#eef2ff",
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: "center",
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#111827",
+    paddingHorizontal: 8,
+  },
+  headerActionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  submitIconButton: {
+    backgroundColor: "#e0f2fe",
+    padding: 8,
+    borderRadius: 16,
+  },
+  scrollContent: { paddingBottom: 24 },
+  block: { marginBottom: 10 },
 
-  questionWrapper: { paddingHorizontal: 24, marginTop: 32, marginBottom: 32 },
-  questionCard: {
+  questionWrapper: { paddingHorizontal: 10 },
+  qaCard: {
     backgroundColor: "white",
-    borderRadius: 24,
+    borderRadius: 16,
     padding: 32,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 20,
     elevation: 10,
-    alignItems: "center",
     position: "relative",
   },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  numberBadge: {
+    backgroundColor: "#e0e7ff",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  numberText: { color: "#4338ca", fontWeight: "700" },
   audioButton: {
     position: "absolute",
     top: 16,
@@ -379,8 +428,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 36,
   },
-
-  optionsContainer: { paddingHorizontal: 24, flex: 1 },
+  optionsContainer: { paddingHorizontal: 24 },
+  optionsInCard: { marginTop: 12 },
   optionWrapper: { marginBottom: 16 },
   optionButton: {
     backgroundColor: "white",

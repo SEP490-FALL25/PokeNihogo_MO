@@ -76,6 +76,11 @@ export default function QuizResultScreen() {
     router.replace("/(app)/(tabs)/home");
   };
 
+  const handleViewAnswers = () => {
+    if (!result) return;
+    router.push({ pathname: "/quiz/review/[sessionId]", params: { sessionId: result.sessionId } });
+  };
+
   if (isLoading) {
     return (
       <QuizLayout>
@@ -154,6 +159,10 @@ export default function QuizResultScreen() {
         <View style={styles.ctaWrap}>
           <BounceButton variant="default" onPress={handleGoHome} >
             CONTINUE
+          </BounceButton>
+          <View style={{ height: 12 }} />
+          <BounceButton variant="secondary" onPress={handleViewAnswers} >
+            Xem đáp án
           </BounceButton>
         </View>
       </ScrollView>

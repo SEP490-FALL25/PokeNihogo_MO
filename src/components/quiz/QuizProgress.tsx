@@ -1,11 +1,16 @@
-import React from "react";
-import { Text, View, ViewStyle } from "react-native";
+import React, { useState } from "react";
+import { Text, TouchableOpacity, View, ViewStyle } from "react-native";
 import { Progress } from "../ui/Progress";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface QuizProgressProps {
   currentQuestion: number;
   totalQuestions: number;
-  timeRemaining?: number; // in seconds
+  elapsedSeconds?: number; // count-up timer in seconds
+  // Optional expand/collapse question grid
+  questionIds?: string[];
+  answeredIds?: string[];
+  onPressQuestion?: (index: number, id: string) => void;
   score?: number;
   style?: ViewStyle;
 }
@@ -13,10 +18,14 @@ interface QuizProgressProps {
 export const QuizProgress: React.FC<QuizProgressProps> = ({
   currentQuestion,
   totalQuestions,
-  timeRemaining,
+  elapsedSeconds,
+  questionIds,
+  answeredIds,
+  onPressQuestion,
   score,
   style,
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const progress =
     totalQuestions > 0 ? (currentQuestion / totalQuestions) * 100 : 0;
 
@@ -30,85 +39,143 @@ export const QuizProgress: React.FC<QuizProgressProps> = ({
     <View style={[{ paddingHorizontal: 16, paddingVertical: 12 }, style]}>
       {/* Progress Bar */}
       <View style={styles.progressContainer}>
-        <Progress value={progress} style={styles.progressBar} />
         <Text style={styles.progressText}>
-          {currentQuestion}/{totalQuestions}
+          Hoàn thành {currentQuestion}/{totalQuestions}
         </Text>
+        <Progress value={progress} style={styles.progressBar} />
       </View>
 
-      {/* Stats Row */}
+      {/* Stats Row + Expand */}
       <View style={styles.statsRow}>
-        <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Câu hỏi</Text>
-          <Text style={styles.statValue}>{currentQuestion + 1}</Text>
+        <View style={styles.statsLeft}>
+          {elapsedSeconds !== undefined && (
+            <View style={styles.statItem}>
+              <MaterialCommunityIcons name="timer" size={24} color="#0ea5e9" />
+              <Text style={styles.statValue}>{formatTime(elapsedSeconds)}</Text>
+            </View>
+          )}
         </View>
-
-        {timeRemaining !== undefined && (
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Thời gian</Text>
-            <Text
-              style={[
-                styles.statValue,
-                timeRemaining < 30 ? styles.timeWarning : styles.timeNormal,
-              ]}
-            >
-              {formatTime(timeRemaining)}
+        {questionIds && questionIds.length > 0 && (
+          <TouchableOpacity
+            onPress={() => setIsExpanded((v) => !v)}
+            activeOpacity={0.85}
+            style={styles.expandButton}
+          >
+            <Text style={styles.expandText}>
+              {isExpanded ? "Thu gọn" : "Mở rộng"}
             </Text>
-          </View>
-        )}
-
-        {score !== undefined && (
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Điểm</Text>
-            <Text style={styles.statValue}>{score}</Text>
-          </View>
+            <Text style={styles.expandChevron}>{isExpanded ? "▴" : "▾"}</Text>
+          </TouchableOpacity>
         )}
       </View>
+
+      {isExpanded && questionIds && questionIds.length > 0 && (
+        <View style={styles.gridWrap}>
+          <View style={styles.grid}>
+            {questionIds.map((id, idx) => {
+              const answered = answeredIds?.includes(id);
+              return (
+                <TouchableOpacity
+                  key={id}
+                  onPress={() => onPressQuestion?.(idx, id)}
+                  activeOpacity={0.85}
+                  style={[styles.numCell, answered && styles.numCellAnswered]}
+                >
+                  <Text
+                    style={[
+                      styles.numCellText,
+                      answered && styles.numCellTextAnswered,
+                    ]}
+                  >
+                    {idx + 1}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
     </View>
   );
 };
 
 const styles = {
   progressContainer: {
-    flexDirection: "row" as const,
-    alignItems: "center" as const,
     marginBottom: 12,
-    gap: 12,
   },
   progressBar: {
-    flex: 1,
-    height: 8,
+    height: 4,
   },
   progressText: {
-    fontSize: 14,
-    fontWeight: "600" as const,
-    color: "#374151",
-    minWidth: 60,
-    textAlign: "center" as const,
+    fontSize: 12,
+    color: "#6b7280",
+    marginBottom: 6,
   },
+  expandButton: {
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    gap: 6,
+    backgroundColor: "#f3f4f6",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  expandText: { color: "#111827", fontWeight: "600" as const },
+  expandChevron: { color: "#111827" },
   statsRow: {
     flexDirection: "row" as const,
     justifyContent: "space-between" as const,
     alignItems: "center" as const,
   },
-  statItem: {
+  statsLeft: {
+    flexDirection: "row" as const,
     alignItems: "center" as const,
+    gap: 16,
     flex: 1,
   },
-  statLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginBottom: 2,
+  statItem: {
+    display: "flex" as const,
+    flexDirection: "row" as const,
+    alignItems: "center" as const,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    padding: 4,
+    borderRadius: 12,
+    backgroundColor: "#ffffff",
   },
   statValue: {
     fontSize: 16,
     fontWeight: "700" as const,
     color: "#111827",
   },
-  timeNormal: {
-    color: "#059669",
+  gridWrap: {
+    paddingTop: 8,
   },
-  timeWarning: {
-    color: "#dc2626",
+  grid: {
+    flexDirection: "row" as const,
+    flexWrap: "wrap" as const,
+    gap: 12,
+  },
+  numCell: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    backgroundColor: "#ffffff",
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  },
+  numCellAnswered: {
+    backgroundColor: "#14b8a6",
+    borderColor: "#14b8a6",
+  },
+  numCellText: {
+    fontSize: 18,
+    color: "#374151",
+    fontWeight: "600" as const,
+  },
+  numCellTextAnswered: {
+    color: "#ffffff",
   },
 };
