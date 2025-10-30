@@ -2,7 +2,10 @@ import KanjiWriter from "@components/KanjiWriter";
 import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
+import type { ExerciseStatusResponse } from "@hooks/useLessonExerciseStatus";
+import { useLessonExerciseStatus } from "@hooks/useLessonExerciseStatus";
 import { useLesson } from "@hooks/useLessons";
+import { quizService } from "@services/quiz";
 import { Audio } from "expo-av";
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
@@ -25,7 +28,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Svg, { Circle } from "react-native-svg";
 
 const { width } = Dimensions.get("window");
 
@@ -48,44 +50,7 @@ const ModernCard = ({ children, style }: any) => (
   </Animated.View>
 );
 
-// --- Floating Progress Ring ---
-const ProgressRing = ({ progress }: { progress: number }) => {
-  const size = 60;
-  const strokeWidth = 5;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (progress / 100) * circumference;
-
-  return (
-    <View className="items-center justify-center">
-      <Svg width={size} height={size} style={{ position: "absolute" }}>
-        <Circle
-          stroke="#e5e7eb"
-          fill="none"
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          strokeWidth={strokeWidth}
-        />
-        <Circle
-          stroke="#10b981"
-          fill="none"
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        />
-      </Svg>
-      <ThemedText className="text-xs font-bold text-emerald-600">
-        {progress}%
-      </ThemedText>
-    </View>
-  );
-};
+// --- Floating Progress Ring (removed unused) ---
 
 // Helper: Play audio from URL
 const playAudio = async (url: string) => {
@@ -117,7 +82,6 @@ function getTextColor(status?: string, base = "indigo") {
   return `text-${base}-700`;
 }
 
-
 // --- Vocabulary Card (Swipeable + Audio + Meaning Toggle) ---
 const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
   const { t } = useTranslation();
@@ -142,7 +106,7 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
       <ModernCard style={{ marginHorizontal: 4 }}>
-        <TouchableOpacity onPress={handlePress} activeOpacity={0.9} className={getButtonColor(item.status)}>
+        <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
           <View className="flex-row justify-between items-start mb-3">
             <View>
               <ThemedText className="text-3xl font-bold text-indigo-600">
@@ -186,6 +150,7 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
 
 // --- Grammar Card (Collapsible + Example Highlight) ---
 const GrammarCard = ({ item }: { item: any }) => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const heightAnim = useRef(new Animated.Value(0)).current;
 
@@ -233,7 +198,7 @@ const GrammarCard = ({ item }: { item: any }) => {
           {item.usage && (
             <View className="bg-cyan-50 p-4 rounded-2xl">
               <ThemedText className="text-sm text-cyan-800">
-                <ThemedText style={{ fontWeight: "bold" }}>VD:</ThemedText>{" "}
+                <ThemedText style={{ fontWeight: "bold" }}>{t("lessons.usage")}:</ThemedText>{" "}
                 {item.usage}
               </ThemedText>
             </View>
@@ -298,6 +263,18 @@ const LessonDetailScreen = () => {
   const { data: lessonData, isLoading } = useLesson(id || "");
   const lesson: any = lessonData?.data || {};
 
+  const { data: exerciseStatus } = useLessonExerciseStatus(id || "");
+  type ExerciseCategory = "vocabulary" | "grammar" | "kanji";
+  const getStatusItem = (
+    category: ExerciseCategory,
+    data?: ExerciseStatusResponse
+  ) => {
+    if (!data) return undefined;
+    if (category === "vocabulary") return data.vocabulary;
+    if (category === "grammar") return data.grammar;
+    return data.kanji;
+  };
+
   const [selectedKanji, setSelectedKanji] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -310,6 +287,46 @@ const LessonDetailScreen = () => {
     setSelectedKanji(char);
     setModalVisible(true);
     Haptics.selectionAsync();
+  };
+
+  const startExercise = async (category: ExerciseCategory) => {
+    try {
+      const statusItem = getStatusItem(category, exerciseStatus);
+      const proceed = async () => {
+        Haptics.selectionAsync();
+        const res = await quizService.createQuizSession({
+          lessonId: id,
+          category,
+        });
+        const sessionId = res?.data?.session?.id;
+        if (sessionId) {
+          router.push({
+            pathname: "/(app)/quiz/[sessionId]",
+            params: { sessionId },
+          });
+        }
+      };
+
+      if (statusItem?.status === "completed") {
+        Alert.alert(
+          t("common.confirm") || "Confirm",
+          t("lessons.retake_warning") ||
+            "Bạn đã hoàn thành bài này. Lần làm lại chỉ nhận 90% phần thưởng. Tiếp tục?",
+          [
+            { text: t("common.cancel") || "Hủy", style: "cancel" },
+            { text: t("common.continue") || "Tiếp tục", onPress: proceed },
+          ]
+        );
+      } else {
+        proceed();
+      }
+    } catch (e) {
+      console.warn("Failed to start exercise", e);
+      Alert.alert(
+        t("common.error") || "Error",
+        t("common.something_wrong") || "Có lỗi xảy ra, vui lòng thử lại."
+      );
+    }
   };
 
   if (isLoading) {
@@ -349,8 +366,13 @@ const LessonDetailScreen = () => {
               <ThemedText className="text-2xl font-bold text-indigo-600">
                 {t("lessons.lesson_types.vocabulary")}
               </ThemedText>
-              <TouchableOpacity className="bg-indigo-100 px-4 py-2 rounded-full">
-                <ThemedText className="text-indigo-700 text-sm font-medium">
+              <TouchableOpacity
+                onPress={() => startExercise("vocabulary")}
+                className={`${getButtonColor(exerciseStatus?.vocabulary?.status, "indigo")} px-4 py-2 rounded-full`}
+              >
+                <ThemedText
+                  className={`${getTextColor(exerciseStatus?.vocabulary?.status, "indigo")} text-sm font-medium`}
+                >
                   {t("lessons.do_vocab_exercise")}
                 </ThemedText>
               </TouchableOpacity>
@@ -374,8 +396,13 @@ const LessonDetailScreen = () => {
               <ThemedText className="text-2xl font-bold text-cyan-700">
                 {t("lessons.lesson_types.grammar")}
               </ThemedText>
-              <TouchableOpacity className="bg-cyan-100 px-4 py-2 rounded-full">
-                <ThemedText className="text-cyan-700 text-sm font-medium">
+              <TouchableOpacity
+                onPress={() => startExercise("grammar")}
+                className={`${getButtonColor(exerciseStatus?.grammar?.status, "cyan")} px-4 py-2 rounded-full`}
+              >
+                <ThemedText
+                  className={`${getTextColor(exerciseStatus?.grammar?.status, "cyan")} text-sm font-medium`}
+                >
                   {t("lessons.do_grammar_exercise")}
                 </ThemedText>
               </TouchableOpacity>
@@ -393,8 +420,13 @@ const LessonDetailScreen = () => {
               <ThemedText className="text-2xl font-bold text-amber-700">
                 {t("lessons.lesson_types.kanji")}
               </ThemedText>
-              <TouchableOpacity className="bg-amber-100 px-4 py-2 rounded-full">
-                <ThemedText className="text-amber-700 text-sm font-medium">
+              <TouchableOpacity
+                onPress={() => startExercise("kanji")}
+                className={`${getButtonColor(exerciseStatus?.kanji?.status, "amber")} px-4 py-2 rounded-full`}
+              >
+                <ThemedText
+                  className={`${getTextColor(exerciseStatus?.kanji?.status, "amber")} text-sm font-medium`}
+                >
                   {t("lessons.do_kanji_exercise")}
                 </ThemedText>
               </TouchableOpacity>

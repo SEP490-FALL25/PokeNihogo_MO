@@ -279,7 +279,8 @@
     "stroke": "stroke",
     "do_vocab_exercise": "Do vocabulary exercise",
     "do_grammar_exercise": "Do grammar exercise",
-    "do_kanji_exercise": "Do kanji exercise"
+    "do_kanji_exercise": "Do kanji exercise",
+    "usage": "Usage example"
   },
   "home": {
     "welcome_back": "Welcome back, {{username}}! 👋",

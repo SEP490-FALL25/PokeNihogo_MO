@@ -1,18 +1,23 @@
 import QuizLayout from "@components/layouts/QuizLayout";
-import { QuestionCard } from "@components/quiz/QuestionCard";
 import { QuizProgress } from "@components/quiz/QuizProgress";
 import BounceButton from "@components/ui/BounceButton";
 import { Button } from "@components/ui/Button";
 import { QuizSession } from "@models/quiz/quiz.common";
 import { quizService } from "@services/quiz";
+import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import { Check, Volume2, X } from "lucide-react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
+  Easing,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
+import ConfettiCannon from "react-native-confetti-cannon";
 
 export default function QuizScreen() {
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
@@ -24,14 +29,17 @@ export default function QuizScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number | undefined>();
   const [answers, setAnswers] = useState<
-    {
-      questionId: string;
-      selectedAnswers: string[];
-      timeSpent: number;
-    }[]
+    { questionId: string; selectedAnswers: string[]; timeSpent: number }[]
   >([]);
 
-  // Load quiz session
+  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [confetti, setConfetti] = useState(false);
+
+  const scaleAnims = useRef<Animated.Value[]>([]).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Load session
   useEffect(() => {
     loadQuizSession();
   }, [sessionId]);
@@ -39,8 +47,6 @@ export default function QuizScreen() {
   const loadQuizSession = async () => {
     try {
       setIsLoading(true);
-      // In a real app, you would fetch the session by ID
-      // For now, we'll create a new session for demo purposes
       const response = await quizService.createQuizSession({
         questionCount: 5,
         level: "N5",
@@ -49,7 +55,6 @@ export default function QuizScreen() {
 
       if (response.statusCode === 201 && response.data?.session) {
         setSession(response.data.session);
-        // Set timer to 10 minutes (600 seconds) for demo
         setTimeRemaining(600);
       }
     } catch (error) {
@@ -61,29 +66,101 @@ export default function QuizScreen() {
     }
   };
 
+  // Timer
+  useEffect(() => {
+    if (session && timeRemaining !== undefined) {
+      const timer = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev === undefined || prev <= 0) {
+            clearInterval(timer);
+            Alert.alert(
+              "Hết thời gian!",
+              "Thời gian làm bài đã hết. Quiz sẽ được nộp tự động.",
+              [{ text: "Nộp bài", onPress: () => completeQuiz(answers) }]
+            );
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [session, timeRemaining, answers]);
+
+  // Reset animations khi đổi câu
+  useEffect(() => {
+    setSelectedAnswers([]);
+    setShowResult(false);
+    setIsCorrect(false);
+    fadeAnim.setValue(1);
+    scaleAnims.forEach((anim) => anim.setValue(1));
+  }, [currentQuestionIndex]);
+
+  const currentQuestion = session?.questions[currentQuestionIndex];
+  const progress = session
+    ? ((currentQuestionIndex + 1) / session.questions.length) * 100
+    : 0;
+
   const handleAnswerSelect = useCallback(
     (questionId: string, selectedAnswers: string[]) => {
+      if (showResult) return;
+
       setSelectedAnswers(selectedAnswers);
+      setShowResult(true);
+
+      // Kiểm tra đúng/sai
+      const correct = currentQuestion?.correctAnswers.every((ans) =>
+        selectedAnswers.includes(ans)
+      );
+      const allSelected = selectedAnswers.every((ans) =>
+        currentQuestion?.correctAnswers.includes(ans)
+      );
+      const isFullyCorrect = correct && allSelected;
+
+      setIsCorrect(isFullyCorrect ?? false);
+
+      if (isFullyCorrect) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setConfetti(true);
+        setTimeout(() => setConfetti(false), 2000);
+      } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
+
+      // Animation
+      const selectedIndex = currentQuestion?.options?.findIndex((opt) =>
+        selectedAnswers.includes(opt.id)
+      );
+      if (selectedIndex !== undefined && selectedIndex !== -1) {
+        Animated.sequence([
+          Animated.timing(scaleAnims[selectedIndex], {
+            toValue: 0.95,
+            duration: 100,
+            useNativeDriver: true,
+          }),
+          Animated.spring(scaleAnims[selectedIndex], {
+            toValue: 1,
+            friction: 4,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
     },
-    []
+    [currentQuestion, showResult]
   );
 
   const handleNextQuestion = async () => {
-    if (!session) return;
+    if (!session || !currentQuestion) return;
 
-    const currentQuestion = session.questions[currentQuestionIndex];
-
-    // Save current answer
     const currentAnswer = {
       questionId: currentQuestion.id,
       selectedAnswers,
-      timeSpent: 30, // Mock time spent
+      timeSpent: 30,
     };
 
     const newAnswers = [...answers, currentAnswer];
     setAnswers(newAnswers);
 
-    // Submit answer
     try {
       setIsSubmitting(true);
       await quizService.submitAnswer({
@@ -98,101 +175,65 @@ export default function QuizScreen() {
       setIsSubmitting(false);
     }
 
-    // Move to next question or complete quiz
     if (currentQuestionIndex < session.questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-      setSelectedAnswers([]);
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start(() => {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+      });
     } else {
       await completeQuiz(newAnswers);
     }
   };
 
-  const completeQuiz = useCallback(
-    async (finalAnswers: typeof answers) => {
-      if (!session) return;
+  const completeQuiz = async (finalAnswers: typeof answers) => {
+    if (!session) return;
 
-      try {
-        setIsSubmitting(true);
-        const totalTimeSpent = finalAnswers.reduce(
-          (sum, answer) => sum + answer.timeSpent,
-          0
-        );
+    try {
+      setIsSubmitting(true);
+      const totalTimeSpent = finalAnswers.reduce((sum, a) => sum + a.timeSpent, 0);
+      const response = await quizService.completeQuiz({
+        sessionId: session.id,
+        answers: finalAnswers,
+        totalTimeSpent,
+      });
 
-        const response = await quizService.completeQuiz({
-          sessionId: session.id,
-          answers: finalAnswers,
-          totalTimeSpent,
+      if (response.statusCode === 201 && response.data?.result) {
+        router.replace({
+          pathname: "/quiz/result/[resultId]",
+          params: { resultId: response.data.result.sessionId },
         });
-
-        if (response.statusCode === 201 && response.data?.result) {
-          // Navigate to results screen
-          router.replace({
-            pathname: "/quiz/result/[resultId]",
-            params: { resultId: response.data.result.sessionId },
-          });
-        }
-      } catch (error) {
-        console.error("Error completing quiz:", error);
-        Alert.alert("Lỗi", "Không thể hoàn thành quiz. Vui lòng thử lại.");
-      } finally {
-        setIsSubmitting(false);
       }
-    },
-    [session]
-  );
-
-  // Timer for quiz (optional)
-  useEffect(() => {
-    if (session && timeRemaining !== undefined) {
-      const timer = setInterval(() => {
-        setTimeRemaining((prev) => {
-          if (prev === undefined || prev <= 0) {
-            clearInterval(timer);
-            // Call handleTimeUp directly here to avoid dependency issue
-            Alert.alert(
-              "Hết thời gian!",
-              "Thời gian làm bài đã hết. Quiz sẽ được nộp tự động.",
-              [
-                {
-                  text: "Nộp bài",
-                  onPress: () => completeQuiz(answers),
-                },
-              ]
-            );
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
+    } catch (error) {
+      console.error("Error completing quiz:", error);
+      Alert.alert("Lỗi", "Không thể hoàn thành quiz.");
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [session, timeRemaining, answers, completeQuiz]);
+  };
 
-  const canProceed = selectedAnswers.length > 0;
+  const canProceed = selectedAnswers.length > 0 && showResult;
 
-  if (isLoading) {
+  if (isLoading || !session || !currentQuestion) {
     return (
       <QuizLayout>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Đang tải quiz...</Text>
+        <View style={styles.center}>
+          <Text style={styles.loadingText}>Đang tải...</Text>
         </View>
       </QuizLayout>
     );
   }
 
-  if (!session) {
-    return (
-      <QuizLayout>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Không tìm thấy quiz</Text>
-          <Button onPress={() => router.back()}>Quay lại</Button>
-        </View>
-      </QuizLayout>
-    );
+  // Khởi tạo animation cho từng option
+  if (scaleAnims.length === 0) {
+    currentQuestion?.options?.forEach(() => {
+      scaleAnims.push(new Animated.Value(1));
+    });
   }
-
-  const currentQuestion = session.questions[currentQuestionIndex];
 
   return (
     <QuizLayout
@@ -206,76 +247,172 @@ export default function QuizScreen() {
         />
       }
     >
-      {/* Question Card */}
-      <View style={styles.questionContainer}>
-        <QuestionCard
-          question={currentQuestion}
-          selectedAnswers={selectedAnswers}
-          onAnswerSelect={handleAnswerSelect}
-        />
-      </View>
+      <View style={styles.container}>
+        {/* Câu hỏi */}
+        <Animated.View style={[styles.questionWrapper, { opacity: fadeAnim }]}>
+          <View style={styles.questionCard}>
+            {currentQuestion.audioUrl && (
+              <TouchableOpacity style={styles.audioButton}>
+                <Volume2 size={20} color="#4f46e5" />
+              </TouchableOpacity>
+            )}
+            <Text style={styles.questionText}>{currentQuestion.question}</Text>
+          </View>
+        </Animated.View>
 
-      {/* Navigation Buttons */}
-      <View style={styles.navigationContainer}>
-        <BounceButton
-          onPress={handleNextQuestion}
-          disabled={!canProceed || isSubmitting}
-          loading={isSubmitting}
-          //   style={styles.nextButton}
-        >
-          {currentQuestionIndex < session.questions.length - 1
-            ? "Câu tiếp theo"
-            : "Hoàn thành"}
-        </BounceButton>
+        {/* Đáp án */}
+        <View style={styles.optionsContainer}>
+          {currentQuestion?.options?.map((option, index) => {
+            const isSelected = selectedAnswers.includes(option.id);
+            const isCorrectAnswer = currentQuestion.correctAnswers.includes(option.id);
+            const showCorrect = showResult && isCorrectAnswer;
+            const showWrong = showResult && isSelected && !isCorrectAnswer;
 
-        {currentQuestionIndex > 0 && (
-          <Button
-            variant="outline"
-            onPress={() => {
-              setCurrentQuestionIndex(currentQuestionIndex - 1);
-              setSelectedAnswers(
-                answers[currentQuestionIndex - 1]?.selectedAnswers || []
-              );
-            }}
-            style={styles.previousButton}
+            return (
+              <Animated.View
+                key={option.id}
+                style={[
+                  styles.optionWrapper,
+                  { transform: [{ scale: scaleAnims[index] || 1 }] },
+                ]}
+              >
+                <TouchableOpacity
+                  onPress={() => handleAnswerSelect(currentQuestion.id, [option.id])}
+                  disabled={showResult}
+                  activeOpacity={0.8}
+                  style={[
+                    styles.optionButton,
+                    showCorrect && styles.optionCorrect,
+                    showWrong && styles.optionWrong,
+                    isSelected && !showResult && styles.optionSelected,
+                  ]}
+                >
+                  <View style={styles.optionContent}>
+                    <View
+                      style={[
+                        styles.optionCircle,
+                        showCorrect && styles.circleCorrect,
+                        showWrong && styles.circleWrong,
+                        isSelected && !showResult && styles.circleSelected,
+                      ]}
+                    >
+                      <Text style={styles.optionLabel}>
+                        {String.fromCharCode(65 + index)}
+                      </Text>
+                    </View>
+                    <Text style={styles.optionText}>{option.text}</Text>
+                  </View>
+                  {showCorrect && <Check size={24} color="#10b981" />}
+                  {showWrong && <X size={24} color="#ef4444" />}
+                </TouchableOpacity>
+              </Animated.View>
+            );
+          })}
+        </View>
+
+        {/* Nút điều hướng */}
+        <View style={styles.navigationContainer}>
+          <BounceButton
+            onPress={handleNextQuestion}
+            disabled={!canProceed || isSubmitting}
+            loading={isSubmitting}
           >
-            Câu trước
-          </Button>
-        )}
+            {currentQuestionIndex < session.questions.length - 1
+              ? "Câu tiếp theo"
+              : "Hoàn thành"}
+          </BounceButton>
+
+          {currentQuestionIndex > 0 && (
+            <Button
+              variant="outline"
+              onPress={() => {
+                setCurrentQuestionIndex(currentQuestionIndex - 1);
+                setSelectedAnswers(
+                  answers[currentQuestionIndex - 1]?.selectedAnswers || []
+                );
+              }}
+              style={styles.previousButton}
+            >
+              Câu trước
+            </Button>
+          )}
+        </View>
+
+        {/* Confetti */}
+        {confetti && <ConfettiCannon count={50} origin={{ x: -10, y: 0 }} fadeOut />}
       </View>
     </QuizLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
+  container: { flex: 1 },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  loadingText: { fontSize: 18, color: "#6b7280" },
+  progress: { backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#e5e7eb" },
+
+  questionWrapper: { paddingHorizontal: 24, marginTop: 32, marginBottom: 32 },
+  questionCard: {
+    backgroundColor: "white",
+    borderRadius: 24,
+    padding: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 10,
     alignItems: "center",
+    position: "relative",
   },
-  loadingText: {
-    fontSize: 18,
-    color: "#6b7280",
+  audioButton: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    backgroundColor: "#eef2ff",
+    padding: 12,
+    borderRadius: 20,
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  questionText: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#1f2937",
+    textAlign: "center",
+    lineHeight: 36,
+  },
+
+  optionsContainer: { paddingHorizontal: 24, flex: 1 },
+  optionWrapper: { marginBottom: 16 },
+  optionButton: {
+    backgroundColor: "white",
+    borderRadius: 20,
     padding: 20,
+    borderWidth: 2,
+    borderColor: "#e5e7eb",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  errorText: {
-    fontSize: 18,
-    color: "#dc2626",
-    marginBottom: 20,
+  optionCorrect: { backgroundColor: "#ecfdf5", borderColor: "#10b981" },
+  optionWrong: { backgroundColor: "#fef2f2", borderColor: "#ef4444" },
+  optionSelected: { backgroundColor: "#eef2ff", borderColor: "#4f46e5" },
+
+  optionContent: { flexDirection: "row", alignItems: "center", flex: 1 },
+  optionCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#e5e7eb",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
   },
-  progress: {
-    backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  questionContainer: {
-    flex: 1,
-  },
+  circleCorrect: { backgroundColor: "#10b981" },
+  circleWrong: { backgroundColor: "#ef4444" },
+  circleSelected: { backgroundColor: "#4f46e5" },
+
+  optionLabel: { color: "white", fontWeight: "bold", fontSize: 16 },
+  optionText: { fontSize: 18, color: "#1f2937", flex: 1 },
+
   navigationContainer: {
     flexDirection: "row",
     padding: 16,
@@ -284,10 +421,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
   },
-  nextButton: {
-    flex: 1,
-  },
-  previousButton: {
-    minWidth: 120,
-  },
+  nextButton: { flex: 1 },
+  previousButton: { minWidth: 120 },
 });
