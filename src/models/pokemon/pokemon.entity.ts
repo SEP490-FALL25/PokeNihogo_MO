@@ -1,5 +1,6 @@
+import { PokemonRarity } from "@constants/pokemon.enum";
 import { at, byUser } from "@models/common/common.request";
-import { PokemonEvolutionSchema, PokemonTypeSchema, PokemonWeaknessSchema } from "@models/pokemon/pokemon.common";
+import { PokemonEvolutionSchema, PokemonTypeSchema, PokemonWeaknessSchema, TranslationSchema } from "@models/pokemon/pokemon.common";
 import z from "zod";
 
 /**
@@ -33,4 +34,25 @@ export const PokemonByIdEntitySchema = PokemonEntitySchema.extend({
     weaknesses: z.array(PokemonWeaknessSchema),
 });
 
-export type PokemonByIdEntityType = z.infer<typeof PokemonByIdEntitySchema>; 
+export type PokemonByIdEntityType = z.infer<typeof PokemonByIdEntitySchema>;
+//------------------------End------------------------//
+
+
+/**
+ * Evolution Pokemon Entity Schema
+ */
+export const EvolutionPokemonEntitySchema: z.ZodType<any> = z.lazy(() => z.object({
+    id: z.number(),
+    pokedex_number: z.number(),
+    nameJp: z.string(),
+    nameTranslations: TranslationSchema,
+    imageUrl: z.string().url(),
+    rarity: z.enum([PokemonRarity.COMMON, PokemonRarity.UNCOMMON, PokemonRarity.RARE, PokemonRarity.EPIC, PokemonRarity.LEGENDARY]),
+    conditionLevel: z.number(),
+    isStarted: z.boolean(),
+    userPokemon: z.boolean(),
+    nextPokemons: z.array(EvolutionPokemonEntitySchema),
+}));
+
+export type IEvolutionPokemonEntityType = z.infer<typeof EvolutionPokemonEntitySchema>;
+//------------------------End------------------------//

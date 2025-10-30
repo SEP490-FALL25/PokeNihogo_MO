@@ -48,6 +48,9 @@ const userPokemonService = {
   getUserPokemonStats: async () => {
     return axiosPrivate.get(`/user-pokemon/user/pokemons/stats`);
   },
+  getbyPokemonIdWithEvolechain: async (id: string) => {
+    return axiosPrivate.get(`/user-pokemon/evolves/${id}`);
+  },
 };
 
 export default userPokemonService;

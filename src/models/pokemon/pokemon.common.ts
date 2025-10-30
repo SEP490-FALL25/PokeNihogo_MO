@@ -1,4 +1,5 @@
 import { PokemonRarity } from "@constants/pokemon.enum";
+import { at, byUser } from "@models/common/common.request";
 import { z } from "zod";
 
 // Translation schema for multi-language support
@@ -35,6 +36,8 @@ export const PokemonEvolutionSchema = z.object({
     rarity: z.enum([PokemonRarity.COMMON, PokemonRarity.UNCOMMON, PokemonRarity.RARE, PokemonRarity.EPIC, PokemonRarity.LEGENDARY]),
     conditionLevel: z.number(),
     isStarted: z.boolean(),
+    // Indicates whether the user owns this evolution candidate (present in some responses)
+    userPokemon: z.boolean().optional(),
 });
 
 // Main Pokemon schema
@@ -48,17 +51,29 @@ export const PokemonSchema = z.object({
     isStarted: z.boolean(),
     imageUrl: z.string(),
     rarity: z.enum([PokemonRarity.COMMON, PokemonRarity.UNCOMMON, PokemonRarity.RARE, PokemonRarity.EPIC, PokemonRarity.LEGENDARY]),
-    createdById: z.number().nullable(),
-    updatedById: z.number().nullable(),
-    deletedById: z.number().nullable(),
-    deletedAt: z.string().nullable(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
+    ...byUser,
+    ...at,
     types: z.array(PokemonTypeSchema),
     nextPokemons: z.array(PokemonEvolutionSchema),
     previousPokemons: z.array(PokemonEvolutionSchema),
     weaknesses: z.array(PokemonWeaknessSchema),
 });
+
+/**
+ * Pokemon Evolution Response Schema
+ */
+export const PokemonResponseSchema = PokemonSchema.omit({
+    description: true,
+    isStarted: true,
+    createdById: true,
+    updatedById: true,
+    deletedById: true,
+    createdAt: true,
+    updatedAt: true,
+    deletedAt: true,
+});
+export type IPokemonResponseSchema = z.infer<typeof PokemonResponseSchema>;
+//------------------------End------------------------//
 
 // Export types
 export type ITranslation = z.infer<typeof TranslationSchema>;

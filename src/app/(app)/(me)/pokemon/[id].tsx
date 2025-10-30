@@ -1,297 +1,177 @@
+import { TWLinearGradient } from '@components/atoms/TWLinearGradient';
 import BackScreen from '@components/molecules/Back';
 import GlowingRingEffect from '@components/molecules/GlowingRingEffect';
-import { LinearGradient } from 'expo-linear-gradient';
+import { EvolutionPaths } from '@components/pokemon-detail/evolution-paths';
+import { OwnershipBadge } from '@components/pokemon-detail/ownership-badge';
+import { TypeBadge } from '@components/pokemon-detail/typebage';
+import { useGetPokemonByIdWithEvolechain } from '@hooks/useUserPokemon';
+import { IEvolutionPokemonSchema } from '@models/pokemon/pokemon.response';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowRight, Award, Shield, Sparkles, Star, TrendingUp, Zap } from 'lucide-react-native';
-import { cssInterop } from 'nativewind';
-import React, { useState } from 'react';
+import { Award, Shield, Sparkles, TrendingUp, Zap } from 'lucide-react-native';
+import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, StatusBar, Text, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import * as Progress from 'react-native-progress';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { usePokemonById } from '../../../../hooks/usePokemonData';
 
-cssInterop(LinearGradient, { className: 'style' });
-const TWLinearGradient = LinearGradient as unknown as React.ComponentType<React.ComponentProps<typeof LinearGradient> & { className?: string }>;
-
-type ApiPokemon = {
-    id: number;
-    pokedex_number: number;
-    nameJp: string;
-    nameTranslations: { en?: string; ja?: string; vi?: string };
-    description?: string;
-    conditionLevel?: number;
-    isStarted?: boolean;
-    imageUrl?: string;
-    rarity?: string;
-    types: { id: number; type_name: string; display_name: { en: string; ja: string; vi: string }; color_hex: string }[];
-    nextPokemons?: { id: number; pokedex_number: number; nameJp: string; nameTranslations: Record<string, string>; description?: string; conditionLevel?: number; isStarted?: boolean; imageUrl?: string; rarity?: string }[];
-    previousPokemons?: { id: number; pokedex_number: number; nameJp: string; nameTranslations: Record<string, string>; description?: string; conditionLevel?: number; isStarted?: boolean; imageUrl?: string; rarity?: string }[];
-    weaknesses?: { id: number; type_name: string; display_name: { en: string; ja: string; vi: string }; color_hex: string; effectiveness_multiplier?: number }[];
-};
-
-const TypeBadge = ({ label, color }: { label: string; color: string }) => {
-    const badgeColor = color || '#A8A878';
-
-    return (
-        <View className="relative">
-            <TWLinearGradient
-                colors={[badgeColor, `${badgeColor}DD`, `${badgeColor}BB`]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                className="px-4 py-[9px] rounded-[14px] shadow-black/30 shadow-md"
-            >
-                <View className="relative">
-                    <Text className="text-white text-[14px] font-extrabold capitalize tracking-[0.8px] drop-shadow">{label}</Text>
-                    <View className="absolute top-2.5 -left-2.5 w-5 h-5 bg-white/30 rounded-full" />
-                </View>
-            </TWLinearGradient>
-        </View>
-    );
-};
-
-// Premium Evolution Chain with Enhanced Design (API data)
-const EvolutionChain = ({ pokemon }: { pokemon: ApiPokemon }) => {
-    const chain: Array<{ id: number; name: string; imageUrl?: string }> = [
-        ...(pokemon.previousPokemons || []).map((p) => ({ id: p.id, name: p.nameTranslations?.en || p.nameJp, imageUrl: p.imageUrl })),
-        { id: pokemon.id, name: pokemon.nameTranslations?.en || pokemon.nameJp, imageUrl: pokemon.imageUrl },
-        ...(pokemon.nextPokemons || []).map((p) => ({ id: p.id, name: p.nameTranslations?.en || p.nameJp, imageUrl: p.imageUrl })),
-    ];
-
-    return (
-        <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingVertical: 16, paddingHorizontal: 8 }}
-        >
-            <View className="flex-row items-center">
-                {chain.map((evo: any, index: number) => (
-                    <React.Fragment key={evo.id}>
-                        <TouchableOpacity
-                            onPress={() => router.push(`/pokemon/${evo.id}`)}
-                            activeOpacity={0.8}
-                            className="relative"
-                        >
-                            {/* Outer Glow Effect */}
-                            {evo.id === pokemon.id && (
-                                <View className="absolute w-full h-full bg-teal-500/50 rounded-3xl shadow-[0_0_20px_rgba(20,184,166,0.6)]" />
-                            )}
-
-                            <TWLinearGradient
-                                colors={
-                                    evo.id === pokemon.id
-                                        ? ['#14b8a6', '#0d9488', '#0f766e']
-                                        : ['#1e293b', '#334155', '#475569']
-                                }
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                                className="w-[150px] rounded-3xl p-[18px] items-center overflow-hidden shadow-black/40 shadow-lg"
-                            >
-                                {/* Multiple Decorative Layers */}
-                                <View className="absolute -top-[30px] -right-[30px] w-20 h-20 rounded-[40px] bg-white/10" />
-                                <View className="absolute -bottom-5 -left-5 w-15 h-15 rounded-[30px] bg-white/5" />
-
-                                {/* Sparkle Effect for Current */}
-                                {evo.id === pokemon.id && (
-                                    <>
-                                        <View className="absolute w-2 h-2 bg-amber-400 rounded-sm shadow-[0_0_8px_rgba(251,191,36,0.8)] top-5 right-5" />
-                                        <View className="absolute w-2 h-2 bg-amber-400 rounded-sm shadow-[0_0_8px_rgba(251,191,36,0.8)] top-10 left-4" />
-                                        <View className="absolute w-2 h-2 bg-amber-400 rounded-sm shadow-[0_0_8px_rgba(251,191,36,0.8)] bottom-15 right-4" />
-                                    </>
-                                )}
-
-                                {/* Pokemon Image with Enhanced Container */}
-                                <View className={"w-24 h-24 rounded-[20px] items-center justify-center mb-3.5 overflow-hidden " + (evo.id === pokemon.id ? 'bg-white/15 shadow-[0_4px_8px_rgba(20,184,166,0.4)]' : 'bg-white/10')}>
-                                    <View className="absolute w-full h-full bg-teal-500/10" />
-                                    <Image
-                                        source={{
-                                            uri: evo.imageUrl || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${evo.id}.png`,
-                                        }}
-                                        style={{ width: 76, height: 76, zIndex: 2 }}
-                                    />
-                                </View>
-
-                                {/* Info with Enhanced Styling */}
-                                <View className="items-center w-full">
-                                    <Text className={`text-white text-[16px] font-extrabold capitalize mb-2 tracking-[0.5px] ${evo.id === pokemon.id ? 'text-[17px]' : ''}`} numberOfLines={1}>{evo.name}</Text>
-                                </View>
-
-                                {/* Premium Current Badge */}
-                                {evo.id === pokemon.id && (
-                                    <TWLinearGradient
-                                        colors={['#fbbf24', '#f59e0b']}
-                                        className="absolute top-[14px] right-[14px] w-[30px] h-[30px] rounded-full items-center justify-center shadow-[0_3px_6px_rgba(251,191,36,0.5)]"
-                                    >
-                                        <Star size={12} color="white" fill="white" strokeWidth={2.5} />
-                                    </TWLinearGradient>
-                                )}
-                            </TWLinearGradient>
-                        </TouchableOpacity>
-
-                        {/* Enhanced Arrow with Animation */}
-                        {index < chain.length - 1 && (
-                            <View className="items-center justify-center mx-4 relative">
-                                <View className="w-12 h-[3px] bg-slate-800 rounded" />
-                                <TWLinearGradient
-                                    colors={['#334155', '#475569']}
-                                    className="absolute w-10 h-10 rounded-full items-center justify-center shadow-black/30 shadow-md"
-                                >
-                                    <View className="w-8 h-8 rounded-full bg-slate-900 items-center justify-center">
-                                        <ArrowRight size={16} color="#14b8a6" strokeWidth={3} />
-                                    </View>
-                                </TWLinearGradient>
-                            </View>
-                        )}
-                    </React.Fragment>
-                ))}
-            </View>
-        </ScrollView>
-    );
-};
-
-const TABS = ['Giới thiệu', 'Tiến hóa'];
+const TABS = ['Giới thiệu', 'Tiến hóa'] as const;
 
 export default function PokemonDetailScreen() {
     const { id } = useLocalSearchParams();
-    const [isImageLoading, setIsImageLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('Giới thiệu');
-    const { data: pokemon, isLoading, isError } = usePokemonById(String(id));
+    const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>('Giới thiệu');
+    const { data, isLoading, isError } = useGetPokemonByIdWithEvolechain(String(id));
 
+    const detail = data as IEvolutionPokemonSchema | undefined;
+    const pokemon = detail?.pokemon;
 
     const primaryColor = pokemon?.types?.[0]?.color_hex || '#6FAFB2';
-    const displayName = pokemon?.nameTranslations?.en || pokemon?.nameJp || '';
+
+    const displayName = useMemo(() => {
+        if (!pokemon) return '';
+        return pokemon.nameTranslations?.en;
+    }, [pokemon]);
+
     const imageUrl = pokemon?.imageUrl || (pokemon?.pokedex_number ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.pokedex_number}.png` : undefined);
 
+    const levelInfo = detail?.level;
+    const expRequired = levelInfo?.requiredExp ?? 0;
+    const currentExp = detail?.exp ?? 0;
+    const expProgress = expRequired > 0 ? Math.min(currentExp / expRequired, 1) : 0;
+
+    const nickname = detail?.nickname;
+
     const renderTabContent = () => {
-        switch (activeTab) {
-            case 'Tiến hóa':
-                return pokemon ? <EvolutionChain pokemon={pokemon as ApiPokemon} /> : null;
+        if (!pokemon) return null;
 
-            case 'Giới thiệu':
-            default:
-                const nextEvolution = pokemon?.nextPokemons && pokemon.nextPokemons.length > 0 ? pokemon.nextPokemons[0] : null;
-
-                return (
-                    <ScrollView
-                        showsVerticalScrollIndicator={false}
-                        contentContainerStyle={{ paddingBottom: 24 }}
-                    >
-
-                        {/* Ultra Premium Next Evolution Card */}
-                        {nextEvolution && (
-                            <View className="relative mb-6">
-                                <View className="absolute w-full h-full bg-emerald-500/30 rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.5)]" />
-                                <TWLinearGradient
-                                    colors={['#1e293b', '#334155', '#475569']}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
-                                    className="rounded-2xl p-6 overflow-hidden shadow-black/40 shadow-lg"
-                                >
-                                    {/* Decorative Elements */}
-                                    <View className="absolute w-40 h-40 rounded-[80px] bg-emerald-500/10 -top-15 -right-15" />
-                                    <View className="absolute w-25 h-25 rounded-[50px] bg-emerald-500/6 -bottom-7 -left-7" />
-                                    <View className="absolute w-15 h-15 rounded-[30px] bg-emerald-500/5 top-10 left-5" />
-
-                                    <View className="flex-row items-center mb-5">
-                                        <TWLinearGradient
-                                            colors={['#10b981', '#059669']}
-                                            className="w-[42px] h-[42px] rounded-[14px] items-center justify-center mr-3 shadow-[0_3px_6px_rgba(16,185,129,0.4)]"
-                                        >
-                                            <TrendingUp size={20} color="white" strokeWidth={2.8} />
-                                        </TWLinearGradient>
-                                        <Text className="flex-1 text-[19px] font-black text-white tracking-[0.3px]">Tiến hóa tiếp theo</Text>
-                                        <View className="w-8 h-8 rounded-2xl bg-emerald-500/20 items-center justify-center">
-                                            <Sparkles size={14} color="#10b981" strokeWidth={2.5} />
-                                        </View>
-                                    </View>
-
-                                    <View className="flex-row items-center gap-[18px]">
-                                        <TWLinearGradient
-                                            colors={['#0f172a', '#1e293b']}
-                                            className="w-[100px] h-[100px] rounded-[20px] items-center justify-center relative overflow-hidden shadow-[0_4px_8px_rgba(16,185,129,0.3)]"
-                                        >
-                                            <View className="absolute w-full h-full bg-emerald-500/10" />
-                                            <Image
-                                                source={{
-                                                    uri: nextEvolution.imageUrl || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${nextEvolution.pokedex_number}.png`,
-                                                }}
-                                                style={{ width: 80, height: 80, zIndex: 2 }}
-                                            />
-                                        </TWLinearGradient>
-
-                                        <View className="flex-1">
-                                            <Text className="text-[14px] font-semibold text-slate-300 leading-5 tracking-[0.2px] mb-2">
-                                                {displayName} sẽ tiến hóa thành
-                                            </Text>
-                                            <Text className="text-[22px] font-black text-white tracking-[0.5px] mb-2 capitalize">{nextEvolution.nameTranslations?.en || nextEvolution.nameJp}</Text>
-                                            <View className="items-start">
-                                                <TWLinearGradient
-                                                    colors={['#fbbf24', '#f59e0b']}
-                                                    className="flex-row items-center px-3 py-1.5 rounded-xl gap-1 shadow-[0_3px_6px_rgba(251,191,36,0.4)]"
-                                                >
-                                                    <Zap size={14} color="white" fill="white" strokeWidth={2.5} />
-                                                    <Text className="text-[14px] font-black text-white tracking-[0.5px]">Level {nextEvolution.conditionLevel}</Text>
-                                                </TWLinearGradient>
-                                            </View>
-                                        </View>
-                                    </View>
-                                </TWLinearGradient>
-                            </View>
-                        )}
-
-                        {/* Weaknesses */}
-                        {pokemon?.weaknesses && pokemon.weaknesses.length > 0 && (
-                            <View className="gap-5">
-                                <View className="flex-row items-center mb-3">
-                                    <TWLinearGradient
-                                        colors={['#6FAFB2', '#7EC5C8']}
-                                        className="w-[44px] h-[44px] rounded-[14px] items-center justify-center mr-3 shadow-[0_3px_6px_rgba(111,175,178,0.4)]"
-                                    >
-                                        <Shield size={22} color="white" strokeWidth={2.8} />
-                                    </TWLinearGradient>
-                                    <Text className="flex-1 text-[19px] font-black text-white tracking-[0.3px]">Thông tin khắc hệ</Text>
-                                    <View className="w-8 h-8 rounded-2xl bg-[#6FAFB233] items-center justify-center">
-                                        <Award size={16} color="#6FAFB2" strokeWidth={2.5} />
-                                    </View>
-                                </View>
-                                {/* Weak Against - from API */}
-                                <View className="relative">
-                                    <View className="absolute w-full h-full rounded-[22px] shadow-[0_0_16px_rgba(239,68,68,0.5)]" style={{ backgroundColor: '#ef444455' }} />
-                                    <TWLinearGradient
-                                        colors={['#7f1d1d', '#991b1b', '#b91c1c']}
-                                        start={{ x: 0, y: 0 }}
-                                        end={{ x: 1, y: 1 }}
-                                        className="rounded-[22px] p-5 overflow-hidden shadow-black/35 shadow-md"
-                                    >
-                                        {/* Decorative Elements */}
-                                        <View className="absolute w-30 h-30 rounded-[60px] -top-10 -right-10" style={{ backgroundColor: '#ef444420' }} />
-                                        <View className="absolute w-20 h-20 rounded-[40px] -bottom-5 -left-5" style={{ backgroundColor: '#ef444415' }} />
-
-                                        <View className="flex-row items-center mb-4">
-                                            <TWLinearGradient
-                                                colors={['#ef4444', '#dc2626']}
-                                                className="w-[38px] h-[38px] rounded-[12px] items-center justify-center mr-3 shadow-black/20 shadow"
-                                            >
-                                                <Shield size={18} color="white" strokeWidth={2.8} />
-                                            </TWLinearGradient>
-                                            <View className="flex-1">
-                                                <Text className="text-[17px] font-black text-white tracking-[0.3px] mb-0.5">Yếu thế trước</Text>
-                                                <Text className="text-[12px] font-semibold text-white/70 tracking-[0.2px]">Nhận thêm sát thương</Text>
-                                            </View>
-                                        </View>
-
-                                        <View className="flex-row flex-wrap gap-2.5">
-                                            {pokemon.weaknesses?.map((w: { id: number; type_name: string; display_name: { en: string; ja: string; vi: string }; color_hex: string }) => (
-                                                <TypeBadge key={w.id} label={w.display_name?.vi || w.display_name?.en || w.type_name} color={w.color_hex} />
-                                            ))}
-                                        </View>
-                                    </TWLinearGradient>
-                                </View>
-                            </View>
-                        )}
-                    </ScrollView>
-                );
+        if (activeTab === 'Tiến hóa') {
+            return (
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+                    <EvolutionPaths pokemon={pokemon} />
+                </ScrollView>
+            );
         }
+
+        const nextEvolution = pokemon.nextPokemons && pokemon.nextPokemons.length > 0 ? pokemon.nextPokemons[0] : undefined;
+
+        return (
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+                {nextEvolution && (
+                    <View className="relative mb-6">
+                        <View className="absolute w-full h-full bg-emerald-500/30 rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.5)]" />
+                        <TWLinearGradient
+                            colors={['#1e293b', '#334155', '#475569']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            className="rounded-2xl p-6 overflow-hidden shadow-black/40 shadow-lg"
+                        >
+                            <View className="absolute w-40 h-40 rounded-[80px] bg-emerald-500/10 -top-15 -right-15" />
+                            <View className="absolute w-25 h-25 rounded-[50px] bg-emerald-500/6 -bottom-7 -left-7" />
+                            <View className="absolute w-15 h-15 rounded-[30px] bg-emerald-500/5 top-10 left-5" />
+
+                            <View className="flex-row items-center mb-5">
+                                <TWLinearGradient
+                                    colors={['#10b981', '#059669']}
+                                    className="w-[42px] h-[42px] rounded-[14px] items-center justify-center mr-3 shadow-[0_3px_6px_rgba(16,185,129,0.4)]"
+                                >
+                                    <TrendingUp size={20} color="white" strokeWidth={2.8} />
+                                </TWLinearGradient>
+                                <Text className="flex-1 text-[19px] font-black text-white tracking-[0.3px]">Tiến hóa tiếp theo đề xuất</Text>
+                                <OwnershipBadge owned={nextEvolution?.userPokemon} />
+                            </View>
+
+                            <View className="flex-row items-center gap-[18px]">
+                                <TWLinearGradient
+                                    colors={['#0f172a', '#1e293b']}
+                                    className="w-[100px] h-[100px] rounded-[20px] items-center justify-center relative overflow-hidden shadow-[0_4px_8px_rgba(16,185,129,0.3)]"
+                                >
+                                    <View className="absolute w-full h-full bg-emerald-500/10" />
+                                    <Image
+                                        source={{
+                                            uri:
+                                                nextEvolution.imageUrl ||
+                                                (nextEvolution.pokedex_number
+                                                    ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${nextEvolution.pokedex_number}.png`
+                                                    : undefined),
+                                        }}
+                                        style={{ width: 80, height: 80, zIndex: 2 }}
+                                        resizeMode="contain"
+                                    />
+                                </TWLinearGradient>
+
+                                <View className="flex-1">
+                                    <Text className="text-[14px] font-semibold text-slate-300 leading-5 tracking-[0.2px] mb-2">
+                                        {displayName} có thể tiến hóa thành
+                                    </Text>
+                                    <Text className="text-[22px] font-black text-white tracking-[0.5px] mb-2 capitalize">
+                                        {nextEvolution.nameTranslations?.vi || nextEvolution.nameTranslations?.en || nextEvolution.nameJp}
+                                    </Text>
+                                    <View className="items-start">
+                                        <TWLinearGradient
+                                            colors={['#fbbf24', '#f59e0b']}
+                                            className="flex-row items-center px-3 py-1.5 rounded-xl gap-1 shadow-[0_3px_6px_rgba(251,191,36,0.4)]"
+                                        >
+                                            <Zap size={14} color="white" fill="white" strokeWidth={2.5} />
+                                            <Text className="text-[14px] font-black text-white tracking-[0.5px]">
+                                                Level {nextEvolution.conditionLevel ?? pokemon.conditionLevel ?? 1}
+                                            </Text>
+                                        </TWLinearGradient>
+                                    </View>
+                                </View>
+                            </View>
+                        </TWLinearGradient>
+                    </View>
+                )}
+
+                {pokemon.weaknesses && pokemon.weaknesses.length > 0 && (
+                    <View className="gap-5">
+                        <View className="flex-row items-center mb-3">
+                            <TWLinearGradient
+                                colors={['#6FAFB2', '#7EC5C8']}
+                                className="w-[44px] h-[44px] rounded-[14px] items-center justify-center mr-3 shadow-[0_3px_6px_rgba(111,175,178,0.4)]"
+                            >
+                                <Shield size={22} color="white" strokeWidth={2.8} />
+                            </TWLinearGradient>
+                            <Text className="flex-1 text-[19px] font-black text-white tracking-[0.3px]">Thông tin khắc hệ</Text>
+                            <View className="w-8 h-8 rounded-2xl bg-[#6FAFB233] items-center justify-center">
+                                <Award size={16} color="#6FAFB2" strokeWidth={2.5} />
+                            </View>
+                        </View>
+
+                        <View className="relative">
+                            <View className="absolute w-full h-full rounded-[22px] shadow-[0_0_16px_rgba(239,68,68,0.5)]" style={{ backgroundColor: '#ef444455' }} />
+                            <TWLinearGradient
+                                colors={['#7f1d1d', '#991b1b', '#b91c1c']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                className="rounded-[22px] p-5 overflow-hidden shadow-black/35 shadow-md"
+                            >
+                                <View className="absolute w-30 h-30 rounded-[60px] -top-10 -right-10" style={{ backgroundColor: '#ef444420' }} />
+                                <View className="absolute w-20 h-20 rounded-[40px] -bottom-5 -left-5" style={{ backgroundColor: '#ef444415' }} />
+
+                                <View className="flex-row items-center mb-4">
+                                    <TWLinearGradient
+                                        colors={['#ef4444', '#dc2626']}
+                                        className="w-[38px] h-[38px] rounded-[12px] items-center justify-center mr-3 shadow-black/20 shadow"
+                                    >
+                                        <Shield size={18} color="white" strokeWidth={2.8} />
+                                    </TWLinearGradient>
+                                    <View className="flex-1">
+                                        <Text className="text-[17px] font-black text-white tracking-[0.3px] mb-0.5">Yếu thế trước</Text>
+                                        <Text className="text-[12px] font-semibold text-white/70 tracking-[0.2px]">Nhận thêm sát thương</Text>
+                                    </View>
+                                </View>
+
+                                <View className="flex-row flex-wrap gap-2.5">
+                                    {pokemon.weaknesses?.map((w) => (
+                                        <TypeBadge key={w.id} label={w.display_name?.vi || w.display_name?.en || w.type_name} color={w.color_hex} />
+                                    ))}
+                                </View>
+                            </TWLinearGradient>
+                        </View>
+                    </View>
+                )}
+            </ScrollView>
+        );
     };
 
     return (
@@ -299,67 +179,60 @@ export default function PokemonDetailScreen() {
             <StatusBar barStyle="light-content" />
             <BackScreen onPress={() => router.back()} color="white" />
 
-            {/* Ultra Premium Hero Section */}
             <TWLinearGradient
                 colors={['#0f172a', '#1e293b', '#334155']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 className="flex-1 items-center justify-center relative overflow-hidden"
             >
-                {/* Multiple Background Layers */}
                 <View className="absolute w-[300px] h-[300px] rounded-full bg-[#6FAFB233] -top-25 -right-25" />
                 <View className="absolute w-[200px] h-[200px] rounded-full bg-[#7EC5C826] -bottom-12 -left-12" />
                 <View className="absolute w-[150px] h-[150px] rounded-full bg-[#6FAFB21A] top-[150px] -left-[75px]" />
 
-                {/* Background Pattern with Opacity */}
                 <Image
                     source={require('../../../../../assets/images/list_pokemon_bg.png')}
                     style={{ width: 360, height: 360, position: 'absolute', opacity: 0.03 }}
                 />
 
-                {/* Pokemon Info Header */}
                 <View className="absolute top-0 w-full px-6 z-10">
                     <View className="items-center mb-5">
-                        <Text className="text-[42px] font-black text-white tracking-[1.5px] capitalize drop-shadow-[0_3px_6px_rgba(0,0,0,0.4)] mb-3">{displayName}</Text>
-                        <TWLinearGradient
-                            colors={['#6FAFB2', '#7EC5C8']}
-                            className="px-5 py-2 rounded-2xl shadow-[#6FAFB2]/40 shadow-md"
-                        >
-                            <Text className="text-[18px] font-extrabold text-white tracking-[1.5px]">#{String(pokemon?.pokedex_number || pokemon?.id || '').toString().padStart(3, '0')}</Text>
-                        </TWLinearGradient>
+                        <Text className="text-[42px] font-black text-white tracking-[1.5px] capitalize drop-shadow-[0_3px_6px_rgba(0,0,0,0.4)] mb-3">
+                            {displayName}
+                        </Text>
+                        {pokemon && (
+                            <TWLinearGradient
+                                colors={['#6FAFB2', '#7EC5C8']}
+                                className="px-5 py-2 rounded-2xl shadow-[#6FAFB2]/40 shadow-md"
+                            >
+                                <Text className="text-[18px] font-extrabold text-white tracking-[1.5px]">
+                                    #{String(pokemon.pokedex_number || pokemon.id || '').padStart(3, '0')}
+                                </Text>
+                            </TWLinearGradient>
+                        )}
                     </View>
                 </View>
 
-                {/* Pokemon Image with Multiple Effects */}
                 <View className="w-[300px] h-[300px] items-center justify-center relative top-10">
-                    {(isLoading || isImageLoading) && (
-                        <ActivityIndicator
-                            size="large"
-                            color={primaryColor}
-                            style={{ position: 'absolute', zIndex: 20 }}
-                        />
+                    {(isLoading || !pokemon) && (
+                        <ActivityIndicator size="large" color={primaryColor} style={{ position: 'absolute', zIndex: 20 }} />
                     )}
 
-                    {/* Multiple Shadow Layers */}
                     <View className="w-[180px] h-9 bg-black/40 rounded-[90px] absolute bottom-5 shadow-black/60 shadow-2xl" />
                     <View className="w-[140px] h-7 bg-black/20 rounded-[70px] absolute bottom-[18px] shadow-black/40 shadow-lg" />
 
-                    {imageUrl ? (
+                    {imageUrl && (
                         <Image
                             source={{ uri: imageUrl }}
                             style={{ width: 250, height: 250, zIndex: 10 }}
                             resizeMode="contain"
-                            onLoadEnd={() => setIsImageLoading(false)}
                         />
-                    ) : null}
+                    )}
 
-                    {/* Enhanced Glowing Ring */}
                     <View className="absolute -bottom-[75px]">
                         <GlowingRingEffect color={primaryColor} ringSize={220} />
                     </View>
                 </View>
 
-                {/* Enhanced Level Progress */}
                 <View className="w-full mt-4 px-6">
                     <View className="flex-row justify-between items-center mb-2.5">
                         <TWLinearGradient
@@ -367,14 +240,18 @@ export default function PokemonDetailScreen() {
                             className="flex-row items-center px-[14px] py-1.5 rounded-[14px] gap-1.5 shadow-[0_3px_6px_rgba(251,191,36,0.4)]"
                         >
                             <Zap size={12} color="white" fill="white" strokeWidth={2.5} />
-                            <Text className="text-md font-black text-white tracking-[0.8px]">Lv. 1</Text>
+                            <Text className="text-md font-black text-white tracking-[0.8px]">
+                                Lv. {levelInfo?.levelNumber ?? 1}
+                            </Text>
                         </TWLinearGradient>
-                        <Text className="text-[14px] font-bold text-slate-400 tracking-[0.5px]">Next Level</Text>
+                        <Text className="text-[14px] font-bold text-slate-400 tracking-[0.5px]">
+                            {expRequired > 0 ? `${currentExp}/${expRequired} EXP` : 'EXP chưa xác định'}
+                        </Text>
                     </View>
                     <View className="relative">
                         <View className="absolute w-full h-3 bg-[#6FAFB2] opacity-30 rounded-[6px] shadow-[0_0_8px_rgba(111,175,178,0.6)]" />
                         <Progress.Bar
-                            progress={0.3}
+                            progress={expProgress}
                             width={null}
                             height={12}
                             color={primaryColor}
@@ -386,16 +263,14 @@ export default function PokemonDetailScreen() {
                 </View>
             </TWLinearGradient>
 
-            {/* Details Section */}
             <TWLinearGradient
                 colors={['#0f172a', '#1e293b']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 1 }}
                 className="h-[42%] rounded-t-[36px] pt-7 px-6 shadow-black/40 shadow-2xl"
             >
-                {/* Premium Tabs */}
                 <View className="flex-row justify-around mb-6 border-b-2 border-slate-800">
-                    {TABS.map((tab: string) => (
+                    {TABS.map((tab) => (
                         <TouchableOpacity
                             key={tab}
                             onPress={() => setActiveTab(tab)}
@@ -403,9 +278,7 @@ export default function PokemonDetailScreen() {
                             activeOpacity={0.7}
                         >
                             <View className={`flex-row items-center pl-2 pr-1 pb-1.5 ${activeTab === tab ? 'gap-2' : 'gap-1.5'}`}>
-                                <Text
-                                    className={`text-[17px] font-bold tracking-[0.5px] ${activeTab === tab ? 'text-white font-extrabold' : 'text-slate-500'}`}
-                                >
+                                <Text className={`text-[17px] font-bold tracking-[0.5px] ${activeTab === tab ? 'text-white font-extrabold' : 'text-slate-500'}`}>
                                     {tab}
                                 </Text>
                                 {activeTab === tab && (
@@ -426,7 +299,6 @@ export default function PokemonDetailScreen() {
                     ))}
                 </View>
 
-                {/* Loading / Error / Tab Content */}
                 <View className="flex-1">
                     {isError ? (
                         <View className="flex-1 items-center justify-center">

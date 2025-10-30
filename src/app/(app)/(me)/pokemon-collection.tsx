@@ -6,7 +6,7 @@ import { IUserPokemonResponse } from '@models/user-pokemon/user-pokemon.response
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Search, Trophy } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Dimensions, Pressable, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -41,15 +41,19 @@ export default function PokemonCollectionScreen() {
                     ? false
                     : undefined,
     });
-
-    const numResults = (data?.pages ?? [])
-        .flatMap((p: any) => p?.data?.data?.results ?? [])
-        .length;
+    const flattenedPokemons = useMemo(
+        () => (data?.pages ?? []).flatMap((p: any) => p?.data?.data?.results ?? []),
+        [data]
+    );
+    const resultsCount = flattenedPokemons.length;
     //------------------------End------------------------//
 
 
+    /**
+     * Handle use Hook useGetUserPokemonStats
+     */
     const { data: collectionStats, isLoading: isLoadingCollectionStats, isError: isErrorCollectionStats } = useGetUserPokemonStats();
-
+    //------------------------End------------------------//
 
     return (
         <SafeAreaView className="flex-1 bg-slate-100">
@@ -177,7 +181,7 @@ export default function PokemonCollectionScreen() {
                 {/* Results count */}
                 {debouncedQuery.length > 0 && (
                     <Text className="text-sm font-bold text-slate-500 mb-3 ml-1 tracking-wide">
-                        Tìm thấy {numResults} kết quả
+                        Tìm thấy {resultsCount} kết quả
                     </Text>
                 )}
 
@@ -203,7 +207,7 @@ export default function PokemonCollectionScreen() {
                     </View>
                 ) : (
                     <FlatList
-                        data={(data?.pages ?? []).flatMap((p: any) => p?.data?.data?.results ?? [])}
+                        data={flattenedPokemons}
                         numColumns={3}
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={({ item }: { item: IUserPokemonResponse }) => <PokemonGridItem item={item} />}

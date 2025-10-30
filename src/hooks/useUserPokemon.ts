@@ -25,7 +25,7 @@ export const useGetUserPokemonStats = () => {
  * Infinite list of user pokemons with pagination support
  */
 export const useInfiniteUserPokemons = (params: Omit<IQueryRequest, 'currentPage'>) => {
-    
+
     console.log('params', params);
     const query = useInfiniteQuery({
         queryKey: ['user-pokemons-infinite', params],
@@ -45,5 +45,21 @@ export const useInfiniteUserPokemons = (params: Omit<IQueryRequest, 'currentPage
     });
 
     return query;
+};
+//------------------------End------------------------//
+
+
+/**
+ * Get pokemon by id with evolution chain
+ * @param id 
+ * @returns 
+ */
+export const useGetPokemonByIdWithEvolechain = (id: string) => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['user-pokemon-evolution-chain', id],
+        queryFn: () => userPokemonService.getbyPokemonIdWithEvolechain(id),
+    });
+    console.log('data', data?.data);
+    return { data: data?.data.data, isLoading, isError };
 };
 //------------------------End------------------------//
