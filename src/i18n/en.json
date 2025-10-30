@@ -272,7 +272,14 @@
       "minutes": "minutes",
       "reward": "Reward",
       "status": "Status"
-    }
+    },
+    "hide_meaning": "Hide meaning",
+    "press_to_see_meaning": "Press to see meaning",
+    "no_meaning": "No meaning",
+    "stroke": "stroke",
+    "do_vocab_exercise": "Do vocabulary exercise",
+    "do_grammar_exercise": "Do grammar exercise",
+    "do_kanji_exercise": "Do kanji exercise"
   },
   "home": {
     "welcome_back": "Welcome back, {{username}}! 👋",

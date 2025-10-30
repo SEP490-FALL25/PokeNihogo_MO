@@ -17,36 +17,10 @@ export const lessonService = {
   getLessonsByLevel: async (
     level: "N5" | "N4" | "N3"
   ): Promise<GetLessonsResponse> => {
-    try {
-      if (USE_MOCK_DATA) {
-        // Mock data implementation
-        const filteredCategories = mockData.categories.filter(
-          (category: any) => category.level === level
-        ) as LessonCategory[];
+    // Real API implementation
+    const response = await axiosClient.get(`/api/v1/lessons/level/${level}`);
 
-        return {
-          success: true,
-          data: {
-            categories: filteredCategories,
-            totalLessons: filteredCategories.reduce(
-              (total: number, category: any) => total + category.lessons.length,
-              0
-            ),
-            completedLessons: 0,
-            userLevel: level,
-          },
-          message: "Lessons retrieved successfully",
-        };
-      }
-
-      // Real API implementation
-      const response = await axiosClient.get(`/api/v1/lessons/level/${level}`);
-
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching lessons:", error);
-      throw error;
-    }
+    return response.data;
   },
 
   // Get all lessons for user's current level
@@ -65,39 +39,14 @@ export const lessonService = {
   },
 
   // Get specific lesson by ID
-  getLessonById: async (lessonId: string): Promise<GetLessonByIdResponse> => {
-    try {
-      if (USE_MOCK_DATA) {
-        // Mock data implementation
-        let foundLesson: Lesson | null = null;
-
-        for (const category of mockData.categories) {
-          const lesson = category.lessons.find((l: any) => l.id === lessonId);
-          if (lesson) {
-            foundLesson = lesson as Lesson;
-            break;
-          }
-        }
-
-        if (!foundLesson) {
-          throw new Error("Lesson not found");
-        }
-
-        return {
-          success: true,
-          data: foundLesson,
-          message: "Lesson retrieved successfully",
-        };
-      }
-
-      // Real API implementation
-      const response = await axiosClient.get(`/api/v1/lessons/${lessonId}`);
-
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching lesson:", error);
-      throw error;
-    }
+  getLessonById: async (
+    lessonId: string,
+    lang: string
+  ): Promise<GetLessonByIdResponse> => {
+    const response = await axiosPrivate.get(
+      `/lesson-contents/${lessonId}?lang=${lang}`
+    );
+    return response.data;
   },
 
   // Update lesson progress
@@ -106,38 +55,16 @@ export const lessonService = {
     progress: number,
     isCompleted: boolean = false
   ): Promise<UpdateLessonProgressResponse> => {
-    try {
-      if (USE_MOCK_DATA) {
-        // Mock data implementation
-        return {
-          success: true,
-          data: {
-            lessonId,
-            userId: "current-user",
-            isCompleted,
-            progress,
-            completedAt: isCompleted ? new Date().toISOString() : undefined,
-            timeSpent: 0,
-            score: progress,
-          },
-          message: "Lesson progress updated successfully",
-        };
+    // Real API implementation
+    const response = await axiosPrivate.put(
+      `/api/v1/lessons/${lessonId}/progress`,
+      {
+        progress,
+        isCompleted,
       }
+    );
 
-      // Real API implementation
-      const response = await axiosPrivate.put(
-        `/api/v1/lessons/${lessonId}/progress`,
-        {
-          progress,
-          isCompleted,
-        }
-      );
-
-      return response.data;
-    } catch (error) {
-      console.error("Error updating lesson progress:", error);
-      throw error;
-    }
+    return response.data;
   },
 
   // Get user progress overview

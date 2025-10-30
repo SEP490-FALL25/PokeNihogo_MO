@@ -27,7 +27,7 @@ export const useLesson = (lessonId: string) => {
   
   return useQuery({
     queryKey: ["lesson", lessonId, language],
-    queryFn: () => lessonService.getLessonById(lessonId),
+    queryFn: () => lessonService.getLessonById(lessonId, language),
     enabled: !!lessonId,
   });
 };
