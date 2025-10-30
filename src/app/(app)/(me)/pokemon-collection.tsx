@@ -41,6 +41,10 @@ export default function PokemonCollectionScreen() {
                     ? false
                     : undefined,
     });
+
+    const numResults = (data?.pages ?? [])
+        .flatMap((p: any) => p?.data?.data?.results ?? [])
+        .length;
     //------------------------End------------------------//
 
 
@@ -173,7 +177,7 @@ export default function PokemonCollectionScreen() {
                 {/* Results count */}
                 {debouncedQuery.length > 0 && (
                     <Text className="text-sm font-bold text-slate-500 mb-3 ml-1 tracking-wide">
-                        Tìm thấy {data?.pages?.[0]?.data?.data?.pagination?.totalItem ?? 0} kết quả
+                        Tìm thấy {numResults} kết quả
                     </Text>
                 )}
 

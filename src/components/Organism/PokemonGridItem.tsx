@@ -59,7 +59,7 @@ const PokemonGridItem = memo<{ item: IUserPokemonResponse }>(({ item }) => {
                         style={styles.pokemonInfo}
                     >
                         <Text className="text-white text-xs font-extrabold text-center mb-0.5 tracking-wide capitalize" numberOfLines={1}>
-                            {item.nameTranslations.vi}
+                            {item.nameTranslations.en}
                         </Text>
                         <Text className="text-white/85 text-xs font-bold text-center tracking-wider">
                             #{String(item.pokedex_number).padStart(3, '0')}

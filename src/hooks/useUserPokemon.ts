@@ -25,6 +25,8 @@ export const useGetUserPokemonStats = () => {
  * Infinite list of user pokemons with pagination support
  */
 export const useInfiniteUserPokemons = (params: Omit<IQueryRequest, 'currentPage'>) => {
+    
+    console.log('params', params);
     const query = useInfiniteQuery({
         queryKey: ['user-pokemons-infinite', params],
         queryFn: ({ pageParam = 1 }) =>
