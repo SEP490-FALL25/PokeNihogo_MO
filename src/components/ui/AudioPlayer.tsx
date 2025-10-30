@@ -1,8 +1,8 @@
 // ============================================================================
 // IMPORTS
 // ============================================================================
-import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
+import { Loader2, Volume2 } from "lucide-react-native";
 import React from "react";
 import { Animated, TouchableOpacity, View } from "react-native";
 
@@ -172,11 +172,11 @@ export default function AudioPlayer({
         ]}
       >
         <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-          <Ionicons
-            name={isLoading ? "hourglass" : "volume-high"}
-            size={18}
-            color="#3b82f6"
-          />
+          {isLoading ? (
+            <Loader2 size={18} color="#3b82f6" />
+          ) : (
+            <Volume2 size={18} color="#3b82f6" />
+          )}
         </Animated.View>
       </TouchableOpacity>
     </View>

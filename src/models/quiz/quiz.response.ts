@@ -32,6 +32,13 @@ export const CompleteQuizResponse = BackendResponseModel(
   })
 );
 
+// Get Quiz Review (completed session with user's answers)
+export const GetQuizReviewResponse = BackendResponseModel(
+  z.object({
+    session: QuizSessionSchema,
+  })
+);
+
 // Get Quiz Stats Response
 export const GetQuizStatsResponse = BackendResponseModel(
   z.object({
@@ -55,3 +62,4 @@ export type ISubmitQuizAnswerResponse = z.infer<typeof SubmitQuizAnswerResponse>
 export type ICompleteQuizResponse = z.infer<typeof CompleteQuizResponse>;
 export type IGetQuizStatsResponse = z.infer<typeof GetQuizStatsResponse>;
 export type IGetQuizHistoryResponse = z.infer<typeof GetQuizHistoryResponse>;
+export type IGetQuizReviewResponse = z.infer<typeof GetQuizReviewResponse>;

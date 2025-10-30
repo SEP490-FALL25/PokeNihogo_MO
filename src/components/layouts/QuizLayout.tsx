@@ -1,11 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import {
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    View,
-} from "react-native";
+import { StatusBar, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface QuizLayoutProps {
   children: React.ReactNode;
@@ -24,7 +20,7 @@ export default function QuizLayout({
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
         {/* Progress Header (optional) */}
         {showProgress && progressComponent && (
           <View style={styles.progressContainer}>

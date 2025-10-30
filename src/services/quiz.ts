@@ -5,6 +5,7 @@ import {
   ICreateQuizSessionResponse,
   IGetQuizHistoryResponse,
   IGetQuizQuestionsResponse,
+  IGetQuizReviewResponse,
   IGetQuizStatsResponse,
   ISubmitQuizAnswerResponse,
 } from "@models/quiz/quiz.response";
@@ -396,6 +397,55 @@ export const quizService = {
       return response.data;
     } catch (error) {
       console.error("Error fetching quiz history:", error);
+      throw error;
+    }
+  },
+  
+  // Get a completed session with user's answers for review
+  getQuizReview: async (sessionId: string): Promise<IGetQuizReviewResponse> => {
+    try {
+      if (USE_MOCK_DATA) {
+        const questions = mockQuizData.questions.slice(0, 5) as QuizQuestion[];
+
+        const answers = questions.map((q) => {
+          const selectedAnswers = q.correctAnswers;
+          const isCorrect = JSON.stringify([...selectedAnswers].sort()) === JSON.stringify([...q.correctAnswers].sort());
+          return {
+            questionId: q.id,
+            selectedAnswers,
+            isCorrect,
+            timeSpent: q.estimatedTime ?? 0,
+            points: isCorrect ? q.points : 0,
+            answeredAt: new Date().toISOString(),
+          };
+        });
+
+        const session: QuizSession = {
+          id: sessionId,
+          userId: "current-user",
+          category: "vocabulary",
+          level: "N5",
+          questions,
+          currentQuestionIndex: questions.length,
+          answers,
+          startTime: new Date(Date.now() - 600000).toISOString(),
+          endTime: new Date().toISOString(),
+          isCompleted: true,
+          totalPoints: questions.reduce((s, q) => s + q.points, 0),
+          score: Math.round((answers.filter((a) => a.isCorrect).length / questions.length) * 100),
+        };
+
+        return {
+          statusCode: 200,
+          data: { session },
+          message: "Quiz review retrieved successfully",
+        };
+      }
+
+      const response = await axiosPrivate.get(`/api/v1/quiz/session/${sessionId}/review`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching quiz review:", error);
       throw error;
     }
   },

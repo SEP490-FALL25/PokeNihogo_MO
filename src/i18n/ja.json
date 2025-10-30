@@ -328,8 +328,8 @@
     "stroke": "画数",
     "do_vocab_exercise": "語彙練習",
     "do_grammar_exercise": "文法練習",
-    "do_kanji_exercise": "漢字練習"
-,
+    "do_kanji_exercise": "漢字練習",
+    "usage": "使用例",
     "collection": {
         "title": "あなたのコレクション",
         "progress": "{{owned}} / {{total}} ポケモン",

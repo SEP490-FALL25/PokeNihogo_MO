@@ -279,7 +279,8 @@
     "stroke": "nét",
     "do_vocab_exercise": "Luyện tập từ vựng",
     "do_grammar_exercise": "Luyện tập ngữ pháp",
-    "do_kanji_exercise": "Luyện tập kanji"
+    "do_kanji_exercise": "Luyện tập kanji",
+    "usage": "Ví dụ"
   },
   "home": {
     "welcome_back": "Chào mừng trở lại, {{username}}! 👋",
