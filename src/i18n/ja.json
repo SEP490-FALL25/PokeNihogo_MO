@@ -329,4 +329,17 @@
     "do_vocab_exercise": "語彙練習",
     "do_grammar_exercise": "文法練習",
     "do_kanji_exercise": "漢字練習"
+,
+    "collection": {
+        "title": "あなたのコレクション",
+        "progress": "{{owned}} / {{total}} ポケモン",
+        "filters": {
+            "all": "すべて",
+            "owned": "所持",
+            "unowned": "未所持"
+        },
+        "search_placeholder": "名前または図鑑番号で検索...",
+        "search_results": "{{count}} 件見つかりました",
+        "load_error": "ポケモンのデータを読み込めません"
+    }
 }

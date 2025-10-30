@@ -413,6 +413,18 @@
   "lesson_card": {
     "lesson_description": "Lesson N{{level}}"
   },
+  "collection": {
+    "title": "Your Collection",
+    "progress": "{{owned}} / {{total}} Pokémon",
+    "filters": {
+      "all": "All",
+      "owned": "Owned",
+      "unowned": "Unowned"
+    },
+    "search_placeholder": "Search by name or Pokédex number...",
+    "search_results": "Found {{count}} results",
+    "load_error": "Unable to load Pokémon data"
+  },
   "error_state": {
     "default_title": "An error occurred",
     "default_description": "An error occurred while loading data. Please try again.",
