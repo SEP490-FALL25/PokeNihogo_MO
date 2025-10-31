@@ -1,5 +1,4 @@
 import KanjiWriter from "@components/KanjiWriter";
-import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
 import { useLesson } from "@hooks/useLessons";
@@ -7,26 +6,28 @@ import { useUserExerciseAttempt } from "@hooks/useUserExerciseAttempt";
 import { ROUTES } from "@routes/routes";
 import { Audio } from "expo-av";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import {
-    ChevronLeft,
-    Headphones,
-    Pencil,
-    Sparkles,
-    X,
+  ChevronLeft,
+  Headphones,
+  Pencil,
+  Sparkles,
+  X,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Alert,
-    Animated,
-    Dimensions,
-    Easing,
-    Modal,
-    ScrollView,
-    TouchableOpacity,
-    View,
+  Alert,
+  Animated,
+  Dimensions,
+  Easing,
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 
@@ -317,7 +318,7 @@ const LessonDetailScreen = () => {
     try {
       const status = statusByCategory[category];
       const exerciseAttemptId = attemptIdByCategory[category];
-      
+
       if (!exerciseAttemptId) {
         Alert.alert(
           t("common.error") || "Error",
@@ -330,7 +331,7 @@ const LessonDetailScreen = () => {
         Haptics.selectionAsync();
         router.push({
           pathname: ROUTES.QUIZ.QUIZ,
-          params: { 
+          params: {
             exerciseAttemptId: exerciseAttemptId.toString(),
           },
         });
@@ -360,157 +361,161 @@ const LessonDetailScreen = () => {
 
   if (isLoading) {
     return (
-      <HomeLayout>
+      <SafeAreaView className="flex-1 bg-white">
         <View className="p-6">
           <View className="h-8 bg-gray-200 rounded-3xl mb-6 w-3/4" />
           <View className="h-32 bg-gray-100 rounded-3xl mb-4" />
           <View className="h-32 bg-gray-100 rounded-3xl mb-4" />
           <View className="h-32 bg-gray-100 rounded-3xl" />
         </View>
-      </HomeLayout>
+      </SafeAreaView>
     );
   }
 
   return (
-    <HomeLayout>
-      {/* Sticky Header */}
-      <View className="bg-white border-b border-gray-100 px-6 py-4 flex-row rounded-3xl items-center justify-between">
-        <TouchableOpacity onPress={() => router.back()}>
-          <ChevronLeft size={24} color="#6b7280" />
-        </TouchableOpacity>
-        <View style={{ flex: 1, alignItems: "center" }}>
-          <ThemedText className="text-xl font-bold text-gray-800">
-            {t("lessons.title")} {id}
-          </ThemedText>
+    <SafeAreaView className="flex-1 bg-white">
+      <LinearGradient
+        colors={["#79B4C4", "#85C3C3", "#9BC7B9"]}
+        style={{ flex: 1 }}
+      >
+        {/* Sticky Header */}
+        <View className="bg-white border-b border-gray-100 px-6 py-4 flex-row rounded-b-3xl items-center justify-between">
+          <TouchableOpacity onPress={() => router.back()}>
+            <ChevronLeft size={24} color="#6b7280" />
+          </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: "center" }}>
+            <ThemedText className="text-xl font-bold text-gray-800">
+              {t("lessons.title")} {id}
+            </ThemedText>
+          </View>
+          {/* Optionally, right side can be left blank or add a View for space if no control exists */}
+          <View style={{ width: 24 }} />
         </View>
-        {/* Optionally, right side can be left blank or add a View for space if no control exists */}
-        <View style={{ width: 24 }} />
-      </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="p-6 pb-32">
-          {/* === TỪ VỰNG - HORIZONTAL SCROLL === */}
-          <View className="mb-8">
-            <View className="flex-row justify-between items-center mb-4">
-              <ThemedText className="text-2xl font-bold text-indigo-600">
-                {t("lessons.lesson_types.vocabulary")}
-              </ThemedText>
-              <TouchableOpacity
-                onPress={() => startExercise("vocabulary")}
-                className={`${getButtonColor(statusByCategory.vocabulary)} px-4 py-2 rounded-full`}
-              >
-                <ThemedText
-                  className={`${getTextColor(statusByCategory.vocabulary)} text-sm font-medium`}
-                >
-                  {t("lessons.do_vocab_exercise")}
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="p-6 pb-32">
+            {/* === TỪ VỰNG - HORIZONTAL SCROLL === */}
+            <View className="mb-8">
+              <View className="flex-row justify-between items-center mb-4">
+                <ThemedText className="text-2xl font-bold text-indigo-600">
+                  {t("lessons.lesson_types.vocabulary")}
                 </ThemedText>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => startExercise("vocabulary")}
+                  className={`${getButtonColor(statusByCategory.vocabulary)} px-4 py-2 rounded-full`}
+                >
+                  <ThemedText
+                    className={`${getTextColor(statusByCategory.vocabulary)} text-sm font-medium`}
+                  >
+                    {t("lessons.do_vocab_exercise")}
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="flex-row rounded-3xl"
+              >
+                {voca.map((item: any, i: number) => (
+                  <View key={i} style={{ width: width - 80 }}>
+                    <VocabularyCard item={item} index={i} />
+                  </View>
+                ))}
+              </ScrollView>
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="flex-row rounded-3xl"
-            >
-              {voca.map((item: any, i: number) => (
-                <View key={i} style={{ width: width - 80 }}>
-                  <VocabularyCard item={item} index={i} />
+
+            {/* === NGỮ PHÁP === */}
+            <View className="mb-8">
+              <View className="flex-row justify-between items-center mb-4">
+                <ThemedText className="text-2xl font-bold text-cyan-700">
+                  {t("lessons.lesson_types.grammar")}
+                </ThemedText>
+                <TouchableOpacity
+                  onPress={() => startExercise("grammar")}
+                  className={`${getButtonColor(statusByCategory.grammar)} px-4 py-2 rounded-full`}
+                >
+                  <ThemedText
+                    className={`${getTextColor(statusByCategory.grammar)} text-sm font-medium`}
+                  >
+                    {t("lessons.do_grammar_exercise")}
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+              {grammar.slice(0, 3).map((item: any, i: number) => (
+                <View key={i} className="mb-4">
+                  <GrammarCard item={item} />
                 </View>
               ))}
-            </ScrollView>
-          </View>
+            </View>
 
-          {/* === NGỮ PHÁP === */}
-          <View className="mb-8">
-            <View className="flex-row justify-between items-center mb-4">
-              <ThemedText className="text-2xl font-bold text-cyan-700">
-                {t("lessons.lesson_types.grammar")}
-              </ThemedText>
-              <TouchableOpacity
-                onPress={() => startExercise("grammar")}
-                className={`${getButtonColor(statusByCategory.grammar)} px-4 py-2 rounded-full`}
-              >
-                <ThemedText
-                  className={`${getTextColor(statusByCategory.grammar)} text-sm font-medium`}
-                >
-                  {t("lessons.do_grammar_exercise")}
+            {/* === KANJI === */}
+            <View className="mb-10">
+              <View className="flex-row justify-between items-center mb-4">
+                <ThemedText className="text-2xl font-bold text-amber-700">
+                  {t("lessons.lesson_types.kanji")}
                 </ThemedText>
+                <TouchableOpacity
+                  onPress={() => startExercise("kanji")}
+                  className={`${getButtonColor(statusByCategory.kanji)} px-4 py-2 rounded-full`}
+                >
+                  <ThemedText
+                    className={`${getTextColor(statusByCategory.kanji)} text-sm font-medium`}
+                  >
+                    {t("lessons.do_kanji_exercise")}
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+              {kanji.map((item: any, i: number) => (
+                <View key={i} className="mb-4">
+                  <KanjiCard item={item} onWrite={openWriter} />
+                </View>
+              ))}
+            </View>
+
+            {/* === FINAL TEST BUTTON === */}
+            <BounceButton
+              variant="solid"
+              size="full"
+              onPress={() => setModalVisible(true)}
+            >
+              <ThemedText className="text-white text-lg font-bold flex-row items-center">
+                <Sparkles size={20} color="white" className="mr-2" />
+                {t("common.start")}
+              </ThemedText>
+            </BounceButton>
+          </View>
+        </ScrollView>
+
+        {/* === KANJI WRITER MODAL === */}
+
+        <Modal visible={modalVisible} animationType="slide">
+          <View className="flex-1 mt-36 bg-gradient-to-b from-amber-50 to-white p-6">
+            <View className="flex-row justify-end items-center mb-6">
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <X size={28} color="#6b7280" />
               </TouchableOpacity>
             </View>
-            {grammar.slice(0, 3).map((item: any, i: number) => (
-              <View key={i} className="mb-4">
-                <GrammarCard item={item} />
-              </View>
-            ))}
+            <KanjiWriter
+              character={selectedKanji!}
+              mode="practice"
+              onComplete={(mistakes) => {
+                Alert.alert(
+                  t("common.complete"),
+                  `${t("common.finish")}: ${mistakes}`,
+                  [
+                    {
+                      text: t("common.close"),
+                      onPress: () => setModalVisible(false),
+                    },
+                  ]
+                );
+              }}
+            />
           </View>
-
-          {/* === KANJI === */}
-          <View className="mb-10">
-            <View className="flex-row justify-between items-center mb-4">
-              <ThemedText className="text-2xl font-bold text-amber-700">
-                {t("lessons.lesson_types.kanji")}
-              </ThemedText>
-              <TouchableOpacity
-                onPress={() => startExercise("kanji")}
-                className={`${getButtonColor(statusByCategory.kanji)} px-4 py-2 rounded-full`}
-              >
-                <ThemedText
-                  className={`${getTextColor(statusByCategory.kanji)} text-sm font-medium`}
-                >
-                  {t("lessons.do_kanji_exercise")}
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-            {kanji.map((item: any, i: number) => (
-              <View key={i} className="mb-4">
-                <KanjiCard item={item} onWrite={openWriter} />
-              </View>
-            ))}
-          </View>
-
-          {/* === FINAL TEST BUTTON === */}
-          <BounceButton
-            variant="solid"
-            size="full"
-            onPress={() => setModalVisible(true)}
-          >
-            <ThemedText className="text-white text-lg font-bold flex-row items-center">
-              <Sparkles size={20} color="white" className="mr-2" />
-              {t("common.start")}
-            </ThemedText>
-          </BounceButton>
-        </View>
-      </ScrollView>
-
-      {/* === KANJI WRITER MODAL === */}
-
-      <Modal visible={modalVisible} animationType="slide">
-        <View className="flex-1 mt-36 bg-gradient-to-b from-amber-50 to-white p-6">
-          <View className="flex-row justify-end items-center mb-6">
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <X size={28} color="#6b7280" />
-            </TouchableOpacity>
-          </View>
-          <KanjiWriter
-            character={selectedKanji!}
-            mode="practice"
-            onComplete={(mistakes) => {
-              Alert.alert(
-                t("common.complete"),
-                `${t("common.finish")}: ${mistakes}`,
-                [
-                  {
-                    text: t("common.close"),
-                    onPress: () => setModalVisible(false),
-                  },
-                ]
-              );
-            }}
-          />
-        </View>
-      </Modal>
-    </HomeLayout>
+        </Modal>
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
 
 export default LessonDetailScreen;
-

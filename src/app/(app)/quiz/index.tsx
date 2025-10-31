@@ -86,7 +86,9 @@ export default function QuizScreen() {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showExitConfirmModal, setShowExitConfirmModal] = useState(false);
   const [showResumeModal, setShowResumeModal] = useState(false);
-  const [unansweredQuestionIds, setUnansweredQuestionIds] = useState<number[]>([]);
+  const [unansweredQuestionIds, setUnansweredQuestionIds] = useState<number[]>(
+    []
+  );
   const [exerciseId, setExerciseId] = useState<number | null>(null);
   const [isTimerPaused, setIsTimerPaused] = useState(false);
   const [hasCheckedResume, setHasCheckedResume] = useState(false);
@@ -146,7 +148,9 @@ export default function QuizScreen() {
             const questionId = questionBank.id.toString();
 
             // Find the selected answer (has "choose" field)
-            const selectedAnswer = answers.find((answer: any) => answer.choose === "choose");
+            const selectedAnswer = answers.find(
+              (answer: any) => answer.choose === "choose"
+            );
             if (selectedAnswer) {
               restoredSelections[questionId] = [selectedAnswer.id.toString()];
             }
@@ -186,7 +190,7 @@ export default function QuizScreen() {
 
         setSession(exerciseSession);
         setIsLoading(false);
-        
+
         // Only resume timer if there's no saved progress (new exercise)
         // If there's saved progress, timer stays paused until user makes a decision
         if (!hasSavedProgress) {
@@ -202,7 +206,13 @@ export default function QuizScreen() {
       Alert.alert("Lỗi", "Không thể tải câu hỏi. Vui lòng thử lại.");
       router.back();
     }
-  }, [exerciseData, isLoadingQuestions, exerciseAttemptId, exerciseAttemptIdNumber, hasCheckedResume]);
+  }, [
+    exerciseData,
+    isLoadingQuestions,
+    exerciseAttemptId,
+    exerciseAttemptIdNumber,
+    hasCheckedResume,
+  ]);
 
   // Timer (count-up, no limit) - pause when modal is shown
   useEffect(() => {
@@ -337,19 +347,46 @@ export default function QuizScreen() {
       return;
     }
 
-    abandonExercise({ exerciseAttemptId: currentExerciseAttemptId.toString(), time: elapsedSeconds }, {
-      onSuccess: () => {
-        setShowExitConfirmModal(false);
-        router.back();
+    abandonExercise(
+      {
+        exerciseAttemptId: currentExerciseAttemptId.toString(),
+        time: elapsedSeconds,
       },
-      onError: (error) => {
-        console.error("Error abandoning exercise:", error);
-        Alert.alert("Lỗi", "Không thể lưu bài tập. Vui lòng thử lại.");
-      },
-    });
+      {
+        onSuccess: () => {
+          setShowExitConfirmModal(false);
+          router.back();
+        },
+        onError: (error) => {
+          console.error("Error abandoning exercise:", error);
+          Alert.alert("Lỗi", "Không thể lưu bài tập. Vui lòng thử lại.");
+        },
+      }
+    );
   };
 
   const handleExitWithoutSaving = () => {
+    // if (!currentExerciseAttemptId) {
+    //   Alert.alert("Lỗi", "Không tìm thấy bài tập.");
+    //   return;
+    // }
+
+    // continueAndAbandonExercise(
+    //   {
+    //     exerciseAttemptId: currentExerciseAttemptId.toString(),
+    //     status: "SKIPPED",
+    //   },
+    //   {
+    //     onSuccess: () => {
+    //       setShowExitConfirmModal(false);
+    //       router.back();
+    //     },
+    //     onError: (error) => {
+    //       console.error("Error continuing exercise:", error);
+    //       Alert.alert("Lỗi", "Không thể tiếp tục bài tập. Vui lòng thử lại.");
+    //     },
+    //   }
+    // );
     setShowExitConfirmModal(false);
     router.back();
   };
@@ -414,7 +451,6 @@ export default function QuizScreen() {
       },
     });
   };
-
 
   // const canSubmit = session
   //   ? answeredCount === session.questions.length
@@ -492,8 +528,10 @@ export default function QuizScreen() {
             const selected = selections[q.id] || [];
             const questionIdNumber = parseInt(q.id, 10);
             // Chỉ hiện màu đỏ khi: trong unansweredQuestionIds từ API VÀ chưa trả lời locally
-            const isUnanswered = unansweredQuestionIds.includes(questionIdNumber) && selected.length === 0;
-            
+            const isUnanswered =
+              unansweredQuestionIds.includes(questionIdNumber) &&
+              selected.length === 0;
+
             if (!scaleAnims[q.id] && q.options) {
               scaleAnims[q.id] = q.options.map(() => new Animated.Value(1));
             }
@@ -506,7 +544,12 @@ export default function QuizScreen() {
                 }}
               >
                 <View style={styles.questionWrapper}>
-                  <View style={[styles.qaCard, isUnanswered && styles.qaCardUnanswered]}>
+                  <View
+                    style={[
+                      styles.qaCard,
+                      isUnanswered && styles.qaCardUnanswered,
+                    ]}
+                  >
                     {/* Header with number badge */}
                     <View style={styles.headerRow}>
                       <View style={styles.numberBadge}>
@@ -613,7 +656,7 @@ export default function QuizScreen() {
             <Text style={styles.exitModalMessage}>
               Bạn có muốn lưu lại phần câu trả lời đã làm không?
             </Text>
-            
+
             <View style={styles.exitModalButtons}>
               <TouchableOpacity
                 style={[styles.exitModalButton, styles.exitModalButtonCancel]}
@@ -622,7 +665,7 @@ export default function QuizScreen() {
               >
                 <Text style={styles.exitModalButtonCancelText}>Không lưu</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.exitModalButton, styles.exitModalButtonSave]}
                 onPress={handleSaveAndExit}
@@ -649,9 +692,10 @@ export default function QuizScreen() {
           <View style={styles.exitModalContent}>
             <Text style={styles.exitModalTitle}>Tiếp tục bài làm?</Text>
             <Text style={styles.exitModalMessage}>
-              Bạn có bài làm đã lưu trước đó. Bạn muốn tiếp tục bài làm cũ hay làm lại bài mới?
+              Bạn có bài làm đã lưu trước đó. Bạn muốn tiếp tục bài làm cũ hay
+              làm lại bài mới?
             </Text>
-            
+
             <View style={styles.exitModalButtons}>
               <TouchableOpacity
                 style={[styles.exitModalButton, styles.exitModalButtonCancel]}
@@ -663,7 +707,7 @@ export default function QuizScreen() {
                   {isCreatingNew ? "Đang tạo..." : "Làm lại bài mới"}
                 </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.exitModalButton, styles.exitModalButtonSave]}
                 onPress={handleContinuePreviousExercise}
@@ -884,4 +928,3 @@ const styles = StyleSheet.create({
     color: "#ffffff",
   },
 });
-
