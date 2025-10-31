@@ -28,10 +28,11 @@ enum STARTER {
 }
 
 enum QUIZ {
-  SESSION = "/(app)/quiz/[sessionId]",
-  RESULT = "/(app)/quiz/result/[resultId]",
+  QUIZ = "/(app)/quiz",
+  RESULT = "/(app)/quiz/result",
   HISTORY = "/(app)/quiz/history",
   STATS = "/(app)/quiz/stats",
+  REVIEW = "/(app)/quiz/review",
 }
 
 enum TABS {
@@ -49,8 +50,8 @@ enum TABS {
 }
 
 enum LESSON {
-  LIST_WITH_ID = "/(app)/lessons-list/[id]",
-  DETAIL = "/(app)/lesson-details/[id]",
+  LIST_WITH_ID = "/(app)/lessons-list",
+  DETAIL = "/(app)/lesson-details",
 }
 
 export const ROUTES = {

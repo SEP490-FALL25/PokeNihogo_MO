@@ -22,5 +22,9 @@ export function useLessonExerciseStatus(lessonId: string) {
       return data as ExerciseStatusResponse;
     },
     enabled: !!lessonId,
+    staleTime: 0, // Always consider data stale to ensure fresh data
+    refetchOnMount: "always", // Always refetch when component mounts
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }

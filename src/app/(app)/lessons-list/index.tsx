@@ -12,23 +12,23 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { Search } from "lucide-react-native";
 import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
 } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
-  Animated,
-  FlatList,
-  Pressable,
-  StatusBar,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Animated,
+    FlatList,
+    Pressable,
+    StatusBar,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -77,7 +77,7 @@ AnimatedLessonCard.displayName = "AnimatedLessonCard";
 
 const LessonsScreen = () => {
   const { t } = useTranslation();
-  const { id, title } = useLocalSearchParams();
+  const { id, title } = useLocalSearchParams<{ id?: string; title?: string }>();
 
   // Search functionality with debouncing
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -101,7 +101,7 @@ const LessonsScreen = () => {
     refetch,
   } = useInfiniteUserLessons({
     pageSize: 5,
-    lessonCategoryId: parseInt(id as string),
+    lessonCategoryId: id ? parseInt(id, 10) : undefined,
   });
   // Get all lessons from all pages
   const allLessons = useMemo(() => {
@@ -485,3 +485,4 @@ const styles = StyleSheet.create({
 });
 
 export default LessonsScreen;
+

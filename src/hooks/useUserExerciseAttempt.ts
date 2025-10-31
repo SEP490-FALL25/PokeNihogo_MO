@@ -1,6 +1,6 @@
 import {
-  ICheckCompletionResponse,
-  ISubmitCompletionResponse,
+    ICheckCompletionResponse,
+    ISubmitCompletionResponse,
 } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import userExerciseAttemptService from "@services/user-exercise-attempt";
 import { useGlobalStore } from "@stores/global/global.config";
@@ -15,7 +15,10 @@ export const useUserExerciseAttempt = (lessonId: string) => {
       return res.data;
     },
     enabled: !!lessonId,
-    staleTime: 60 * 1000,
+    staleTime: 0, // Always consider data stale to ensure fresh data
+    refetchOnMount: "always", // Always refetch when component mounts
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 };
 
@@ -32,8 +35,8 @@ export const useUserExerciseQuestions = (exerciseAttemptId: string) => {
       return res.data;
     },
     enabled: !!exerciseAttemptId,
-    staleTime: 60 * 1000,
-    refetchOnMount: false,
+    staleTime: 0, // Always consider data stale to ensure fresh data
+    refetchOnMount: "always", // Always refetch when component mounts
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
@@ -70,16 +73,44 @@ export const useSubmitCompletion = () => {
 };
 
 export const useReviewResult = (exerciseAttemptId: string) => {
-  const language = useGlobalStore((state) => state.language);
-
   return useQuery({
-    queryKey: ["review-result", exerciseAttemptId, language],
+    queryKey: ["review-result", exerciseAttemptId],
     queryFn: async () => {
       const res =
         await userExerciseAttemptService.getReviewResult(exerciseAttemptId);
       return res.data;
     },
     enabled: !!exerciseAttemptId,
-    staleTime: 60 * 1000,
+    staleTime: 0, // Always consider data stale to ensure fresh data
+    refetchOnMount: "always", // Always refetch when component mounts
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+};
+
+export const useAbandonExercise = () => {
+  return useMutation({
+    mutationFn: async ({ exerciseAttemptId, time }: { exerciseAttemptId: string, time: number }) => {
+      const res = await userExerciseAttemptService.abandonExercise(exerciseAttemptId, time);
+      return res.data;
+    },
+  });
+};
+
+export const useContinueAndAbandonExercise = () => {
+  return useMutation({
+    mutationFn: async ({ exerciseAttemptId, status }: { exerciseAttemptId: string, status: string }) => {
+      const res = await userExerciseAttemptService.continueAndAbandonExercise(exerciseAttemptId, status);
+      return res.data;
+    },
+  });
+};
+
+export const useCreateNewExerciseAttempt = () => {
+  return useMutation({
+    mutationFn: async (exerciseId: string) => {
+      const res = await userExerciseAttemptService.createNewExerciseAttempt(exerciseId);
+      return res.data;
+    },
   });
 };
