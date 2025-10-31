@@ -96,3 +96,21 @@ export const useAbandonExercise = () => {
     },
   });
 };
+
+export const useContinueAndAbandonExercise = () => {
+  return useMutation({
+    mutationFn: async ({ exerciseAttemptId, status }: { exerciseAttemptId: string, status: string }) => {
+      const res = await userExerciseAttemptService.continueAndAbandonExercise(exerciseAttemptId, status);
+      return res.data;
+    },
+  });
+};
+
+export const useCreateNewExerciseAttempt = () => {
+  return useMutation({
+    mutationFn: async (exerciseId: string) => {
+      const res = await userExerciseAttemptService.createNewExerciseAttempt(exerciseId);
+      return res.data;
+    },
+  });
+};

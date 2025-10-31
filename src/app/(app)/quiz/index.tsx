@@ -8,6 +8,8 @@ import { useUpsertUserAnswerLog } from "@hooks/useUserAnswerLog";
 import {
   useAbandonExercise,
   useCheckCompletion,
+  useContinueAndAbandonExercise,
+  useCreateNewExerciseAttempt,
   useSubmitCompletion,
   useUserExerciseQuestions,
 } from "@hooks/useUserExerciseAttempt";
@@ -77,9 +79,17 @@ export default function QuizScreen() {
     useSubmitCompletion();
   const { mutate: abandonExercise, isPending: isAbandoning } =
     useAbandonExercise();
+  const { mutate: continueAndAbandonExercise, isPending: isContinuing } =
+    useContinueAndAbandonExercise();
+  const { mutate: createNewExerciseAttempt, isPending: isCreatingNew } =
+    useCreateNewExerciseAttempt();
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showExitConfirmModal, setShowExitConfirmModal] = useState(false);
+  const [showResumeModal, setShowResumeModal] = useState(false);
   const [unansweredQuestionIds, setUnansweredQuestionIds] = useState<number[]>([]);
+  const [exerciseId, setExerciseId] = useState<number | null>(null);
+  const [isTimerPaused, setIsTimerPaused] = useState(false);
+  const [hasCheckedResume, setHasCheckedResume] = useState(false);
 
   // Current exercise attempt ID - ưu tiên từ BE response, fallback về params
   const currentExerciseAttemptId = useMemo(() => {
@@ -101,6 +111,24 @@ export default function QuizScreen() {
       try {
         const exercise = exerciseData.data;
         const testSet = exercise.testSet;
+
+        // Store exerciseId for creating new attempt if needed
+        if (exercise.id) {
+          setExerciseId(exercise.id);
+        }
+
+        // Check if there's a saved session (time > 0 or answeredQuestions > 0)
+        const savedTime = exercise.time || 0;
+        const answeredQuestions = exercise.answeredQuestions || 0;
+        const hasSavedProgress = savedTime > 0 || answeredQuestions > 0;
+
+        // If there's saved progress and we haven't checked yet, show resume modal
+        // But still load the session in the background
+        if (hasSavedProgress && !hasCheckedResume) {
+          setIsTimerPaused(true);
+          setShowResumeModal(true);
+          setHasCheckedResume(true);
+        }
 
         // Restore saved selections from previous session
         const restoredSelections: Record<string, string[]> = {};
@@ -151,7 +179,6 @@ export default function QuizScreen() {
         }
 
         // Restore saved time if available (from previous session)
-        const savedTime = exercise.time || 0;
         setElapsedSeconds(savedTime);
 
         // Restore saved selections
@@ -159,6 +186,12 @@ export default function QuizScreen() {
 
         setSession(exerciseSession);
         setIsLoading(false);
+        
+        // Only resume timer if there's no saved progress (new exercise)
+        // If there's saved progress, timer stays paused until user makes a decision
+        if (!hasSavedProgress) {
+          setIsTimerPaused(false);
+        }
       } catch (error) {
         console.error("Error loading exercise data:", error);
         Alert.alert("Lỗi", "Không thể tải quiz. Vui lòng thử lại.");
@@ -169,17 +202,17 @@ export default function QuizScreen() {
       Alert.alert("Lỗi", "Không thể tải câu hỏi. Vui lòng thử lại.");
       router.back();
     }
-  }, [exerciseData, isLoadingQuestions, exerciseAttemptId, exerciseAttemptIdNumber]);
+  }, [exerciseData, isLoadingQuestions, exerciseAttemptId, exerciseAttemptIdNumber, hasCheckedResume]);
 
-  // Timer (count-up, no limit)
+  // Timer (count-up, no limit) - pause when modal is shown
   useEffect(() => {
-    if (session) {
+    if (session && !isTimerPaused) {
       const timer = setInterval(() => {
         setElapsedSeconds((prev) => prev + 1);
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [session]);
+  }, [session, isTimerPaused]);
 
   const answeredCount = useMemo(() => {
     return Object.values(selections).filter((arr) => arr.length > 0).length;
@@ -293,16 +326,8 @@ export default function QuizScreen() {
   };
 
   const handleBackPress = () => {
-    // Check if user has answered any questions
-    const hasAnswered = answeredCount > 0;
-    
-    if (hasAnswered) {
-      // Show confirm modal if user has answered questions
-      setShowExitConfirmModal(true);
-    } else {
-      // No answers, just go back
-      router.back();
-    }
+    // Always show confirm modal when user presses back
+    setShowExitConfirmModal(true);
   };
 
   const handleSaveAndExit = () => {
@@ -327,6 +352,67 @@ export default function QuizScreen() {
   const handleExitWithoutSaving = () => {
     setShowExitConfirmModal(false);
     router.back();
+  };
+
+  const handleContinuePreviousExercise = () => {
+    if (!currentExerciseAttemptId) {
+      Alert.alert("Lỗi", "Không tìm thấy bài tập.");
+      return;
+    }
+
+    continueAndAbandonExercise(
+      {
+        exerciseAttemptId: currentExerciseAttemptId.toString(),
+        status: "IN_PROGRESS",
+      },
+      {
+        onSuccess: () => {
+          setShowResumeModal(false);
+          setIsTimerPaused(false);
+          // Session is already loaded, just resume timer
+        },
+        onError: (error) => {
+          console.error("Error continuing exercise:", error);
+          Alert.alert("Lỗi", "Không thể tiếp tục bài tập. Vui lòng thử lại.");
+        },
+      }
+    );
+  };
+
+  const handleStartNewExercise = () => {
+    if (!exerciseId) {
+      Alert.alert("Lỗi", "Không tìm thấy bài tập.");
+      return;
+    }
+
+    createNewExerciseAttempt(exerciseId.toString(), {
+      onSuccess: (response) => {
+        if (response.data?.id) {
+          const newExerciseAttemptId = response.data.id.toString();
+          // Update params to use new exerciseAttemptId
+          router.replace({
+            pathname: "/quiz",
+            params: {
+              exerciseAttemptId: newExerciseAttemptId,
+            },
+          });
+          // Reset states
+          setShowResumeModal(false);
+          setIsTimerPaused(false);
+          setHasCheckedResume(false);
+          setSelections({});
+          setElapsedSeconds(0);
+          // Clear current session to force reload
+          setSession(null);
+        } else {
+          Alert.alert("Lỗi", "Không thể tạo bài tập mới.");
+        }
+      },
+      onError: (error) => {
+        console.error("Error creating new exercise:", error);
+        Alert.alert("Lỗi", "Không thể tạo bài tập mới. Vui lòng thử lại.");
+      },
+    });
   };
 
 
@@ -545,6 +631,47 @@ export default function QuizScreen() {
               >
                 <Text style={styles.exitModalButtonSaveText}>
                   {isAbandoning ? "Đang lưu..." : "Lưu và thoát"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Resume Exercise Modal */}
+      <Modal
+        visible={showResumeModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {}}
+      >
+        <View style={styles.exitModalOverlay}>
+          <View style={styles.exitModalContent}>
+            <Text style={styles.exitModalTitle}>Tiếp tục bài làm?</Text>
+            <Text style={styles.exitModalMessage}>
+              Bạn có bài làm đã lưu trước đó. Bạn muốn tiếp tục bài làm cũ hay làm lại bài mới?
+            </Text>
+            
+            <View style={styles.exitModalButtons}>
+              <TouchableOpacity
+                style={[styles.exitModalButton, styles.exitModalButtonCancel]}
+                onPress={handleStartNewExercise}
+                activeOpacity={0.8}
+                disabled={isCreatingNew}
+              >
+                <Text style={styles.exitModalButtonCancelText}>
+                  {isCreatingNew ? "Đang tạo..." : "Làm lại bài mới"}
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.exitModalButton, styles.exitModalButtonSave]}
+                onPress={handleContinuePreviousExercise}
+                activeOpacity={0.8}
+                disabled={isContinuing}
+              >
+                <Text style={styles.exitModalButtonSaveText}>
+                  {isContinuing ? "Đang tải..." : "Tiếp tục bài cũ"}
                 </Text>
               </TouchableOpacity>
             </View>
