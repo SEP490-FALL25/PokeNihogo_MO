@@ -7,13 +7,7 @@ import { ISubmitCompletionData } from "@models/user-exercise-attempt/user-exerci
 import { ROUTES } from "@routes/routes";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo } from "react";
-import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
-} from "react-native";
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function QuizResultScreen() {
   const { resultId, resultData, message, timeSpent } = useLocalSearchParams<{
@@ -117,7 +111,13 @@ export default function QuizResultScreen() {
           <ResultValueCard
             title="Tổng câu hỏi"
             value={result.totalQuestions}
-            icon={<MaterialCommunityIcons name="help-circle" size={18} color="#6366f1" />}
+            icon={
+              <MaterialCommunityIcons
+                name="help-circle"
+                size={18}
+                color="#6366f1"
+              />
+            }
             headerGradientColors={["#6366f1", "#8b5cf6"]}
             style={styles.tile}
             size="compact"
@@ -126,7 +126,13 @@ export default function QuizResultScreen() {
           <ResultValueCard
             title="Đã trả lời"
             value={result.answeredQuestions}
-            icon={<MaterialCommunityIcons name="check-circle" size={18} color="#10b981" />}
+            icon={
+              <MaterialCommunityIcons
+                name="check-circle"
+                size={18}
+                color="#10b981"
+              />
+            }
             headerGradientColors={["#10b981", "#34d399"]}
             style={styles.tile}
             size="compact"
@@ -136,7 +142,13 @@ export default function QuizResultScreen() {
             <ResultValueCard
               title="Chưa trả lời"
               value={result.unansweredQuestions}
-              icon={<MaterialCommunityIcons name="alert-circle" size={18} color="#ef4444" />}
+              icon={
+                <MaterialCommunityIcons
+                  name="alert-circle"
+                  size={18}
+                  color="#ef4444"
+                />
+              }
               headerGradientColors={["#ef4444", "#f87171"]}
               style={styles.tile}
               size="compact"
@@ -148,7 +160,13 @@ export default function QuizResultScreen() {
           <ResultValueCard
             title="Thời gian"
             value={timeDisplay}
-            icon={<MaterialCommunityIcons name="timer-outline" size={18} color="#065f46" />}
+            icon={
+              <MaterialCommunityIcons
+                name="timer-outline"
+                size={18}
+                color="#065f46"
+              />
+            }
             headerGradientColors={["#10b981", "#34d399"]}
             style={styles.tile}
             size="compact"
@@ -156,20 +174,38 @@ export default function QuizResultScreen() {
 
           <ResultValueCard
             title="Kết quả"
-            value={result.allCorrect ? "Hoàn hảo" : result.status === "FAIL" ? "Có sai sót" : "Đã hoàn thành"}
+            value={
+              result.allCorrect
+                ? "Hoàn hảo"
+                : result.status === "FAIL"
+                  ? "Có sai sót"
+                  : "Đã hoàn thành"
+            }
             icon={
               <MaterialCommunityIcons
-                name={result.allCorrect ? "trophy" : result.status === "FAIL" ? "alert" : "check"}
+                name={
+                  result.allCorrect
+                    ? "trophy"
+                    : result.status === "FAIL"
+                      ? "alert"
+                      : "check"
+                }
                 size={18}
-                color={result.allCorrect ? "#f59e0b" : result.status === "FAIL" ? "#ef4444" : "#10b981"}
+                color={
+                  result.allCorrect
+                    ? "#f59e0b"
+                    : result.status === "FAIL"
+                      ? "#ef4444"
+                      : "#10b981"
+                }
               />
             }
             headerGradientColors={
               result.allCorrect
                 ? ["#f59e0b", "#fbbf24"]
                 : result.status === "FAIL"
-                ? ["#ef4444", "#f87171"]
-                : ["#10b981", "#34d399"]
+                  ? ["#ef4444", "#f87171"]
+                  : ["#10b981", "#34d399"]
             }
             style={styles.tile}
             size="compact"
@@ -263,6 +299,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 10,
+    marginVertical: 6,
   },
   tile: {
     flex: 1,
@@ -277,4 +314,3 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
 });
-
