@@ -23,6 +23,7 @@ export const quizService = {
     level?: 'N5' | 'N4' | 'N3';
     questionCount?: number;
     difficulty?: 'beginner' | 'intermediate' | 'advanced';
+    exerciseAttemptId?: number | string;
   }): Promise<ICreateQuizSessionResponse> => {
     try {
       if (USE_MOCK_DATA) {

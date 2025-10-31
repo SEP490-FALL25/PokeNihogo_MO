@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-export type ExerciseStatus = 'not_started' | 'in_progress' | 'completed';
+export type ExerciseStatus = 'IN_PROGRESS' | 'COMPLETED' | 'ABANDONED' | 'FAIL';
 
 export interface LessonExerciseStatus {
   id: string;

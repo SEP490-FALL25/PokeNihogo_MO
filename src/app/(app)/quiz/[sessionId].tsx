@@ -1,11 +1,15 @@
 import QuizLayout from "@components/layouts/QuizLayout";
+import { QuizCompletionModal } from "@components/quiz/QuizCompletionModal";
 import { QuizProgress } from "@components/quiz/QuizProgress";
 // import BounceButton from "@components/ui/BounceButton";
 // import { Button } from "@components/ui/Button";
-import AudioPlayer from "@components/ui/AudioPlayer";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { QuizSession } from "@models/quiz/quiz.common";
-import { quizService } from "@services/quiz";
+import { useUpsertUserAnswerLog } from "@hooks/useUserAnswerLog";
+import {
+  useCheckCompletion,
+  useSubmitCompletion,
+  useUserExerciseQuestions,
+} from "@hooks/useUserExerciseAttempt";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import React, {
@@ -25,50 +29,126 @@ import {
   View,
 } from "react-native";
 
-export default function QuizScreen() {
-  const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
+// Simple types matching BE response structure
+type ExerciseQuestion = {
+  id: string;
+  question: string;
+  options: {
+    id: string;
+    text: string;
+  }[];
+};
 
-  const [session, setSession] = useState<QuizSession | null>(null);
+type ExerciseSession = {
+  id: string;
+  questions: ExerciseQuestion[];
+  level?: string;
+};
+
+export default function QuizScreen() {
+  const { exerciseAttemptId: exerciseAttemptIdParam } = useLocalSearchParams<{
+    exerciseAttemptId?: string;
+  }>();
+
+  // Parse exerciseAttemptId từ params (chắc chắn có khi vào màn hình này)
+  const exerciseAttemptId = exerciseAttemptIdParam || "";
+  const exerciseAttemptIdNumber = useMemo(() => {
+    return exerciseAttemptId ? parseInt(exerciseAttemptId, 10) : null;
+  }, [exerciseAttemptId]);
+
+  // Fetch exercise data using exerciseAttemptId
+  const { data: exerciseData, isLoading: isLoadingQuestions } =
+    useUserExerciseQuestions(exerciseAttemptId);
+  const [session, setSession] = useState<ExerciseSession | null>(null);
   // Map lưu lựa chọn theo questionId
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   // const [isSubmitting, setIsSubmitting] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
-  type LocalAnswer = {
-    questionId: string;
-    selectedAnswers: string[];
-    timeSpent: number;
-  };
+  const [userExerciseAttemptId, setUserExerciseAttemptId] = useState<
+    number | null
+  >(null);
+  const { mutate: upsertAnswerLog } = useUpsertUserAnswerLog();
+  const { mutate: checkCompletion, data: checkCompletionData } =
+    useCheckCompletion();
+  const { mutate: submitCompletion, isPending: isSubmitting } =
+    useSubmitCompletion();
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [unansweredQuestionIds, setUnansweredQuestionIds] = useState<number[]>([]);
+
+  // Current exercise attempt ID - ưu tiên từ BE response, fallback về params
+  const currentExerciseAttemptId = useMemo(() => {
+    return userExerciseAttemptId || exerciseAttemptIdNumber;
+  }, [userExerciseAttemptId, exerciseAttemptIdNumber]);
   const scaleAnims = useRef<Record<string, Animated.Value[]>>({}).current;
   const scrollRef = useRef<ScrollView | null>(null);
   const questionOffsetsRef = useRef<Record<string, number>>({});
 
-  // Load session
+  // Use BE response directly without unnecessary transformation
   useEffect(() => {
-    loadQuizSession();
-  }, [sessionId]);
-
-  const loadQuizSession = async () => {
-    try {
-      setIsLoading(true);
-      const response = await quizService.createQuizSession({
-        questionCount: 5,
-        level: "N5",
-        category: "vocabulary",
-      });
-
-      if (response.statusCode === 201 && response.data?.session) {
-        setSession(response.data.session);
-        setElapsedSeconds(0);
-      }
-    } catch (error) {
-      console.error("Error loading quiz session:", error);
-      Alert.alert("Lỗi", "Không thể tải quiz. Vui lòng thử lại.");
+    if (!exerciseAttemptId) {
+      Alert.alert("Lỗi", "Không tìm thấy bài tập. Vui lòng thử lại.");
       router.back();
-    } finally {
-      setIsLoading(false);
+      return;
     }
-  };
+
+    if (exerciseData?.data && !isLoadingQuestions) {
+      try {
+        const exercise = exerciseData.data;
+        const testSet = exercise.testSet;
+
+        // Sort and map questions directly from BE response
+        const questions: ExerciseQuestion[] = (
+          testSet?.testSetQuestionBanks || []
+        )
+          .sort(
+            (a: any, b: any) => (a.questionOrder || 0) - (b.questionOrder || 0)
+          )
+          .map((item: any) => {
+            const questionBank = item.questionBank;
+            const answers = questionBank.answers || [];
+
+            return {
+              id: questionBank.id.toString(),
+              question: questionBank.question || "",
+              options: answers.map((answer: any) => ({
+                id: answer.id.toString(),
+                text: answer.answer,
+              })),
+            };
+          });
+
+        // Create simple session object matching what component needs
+        const exerciseSession: ExerciseSession = {
+          id:
+            exercise.userExerciseAttemptId?.toString() ||
+            exercise.id?.toString() ||
+            exerciseAttemptId ||
+            "",
+          questions: questions,
+        };
+
+        // Store userExerciseAttemptId for API calls (ưu tiên từ BE, fallback về params)
+        if (exercise.userExerciseAttemptId) {
+          setUserExerciseAttemptId(exercise.userExerciseAttemptId);
+        } else if (exerciseAttemptIdNumber) {
+          setUserExerciseAttemptId(exerciseAttemptIdNumber);
+        }
+
+        setSession(exerciseSession);
+        setElapsedSeconds(0);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error loading exercise data:", error);
+        Alert.alert("Lỗi", "Không thể tải quiz. Vui lòng thử lại.");
+        router.back();
+      }
+    } else if (!isLoadingQuestions && !exerciseData) {
+      // If data failed to load, show error
+      Alert.alert("Lỗi", "Không thể tải câu hỏi. Vui lòng thử lại.");
+      router.back();
+    }
+  }, [exerciseData, isLoadingQuestions, exerciseAttemptId, exerciseAttemptIdNumber]);
 
   // Timer (count-up, no limit)
   useEffect(() => {
@@ -87,7 +167,7 @@ export default function QuizScreen() {
   // No single current question in all-in-one layout
 
   const handleAnswerSelect = useCallback(
-    async (questionId: string, selected: string[], optionIndex?: number) => {
+    (questionId: string, selected: string[], optionIndex?: number) => {
       if (!session) return;
 
       setSelections((prev) => ({ ...prev, [questionId]: selected }));
@@ -114,60 +194,90 @@ export default function QuizScreen() {
         ]).start();
       }
 
-      try {
-        await quizService.submitAnswer({
-          sessionId: session.id,
-          questionId,
-          selectedAnswers: selected,
-          timeSpent: 0,
-        });
-      } catch (error) {
-        console.warn("Error logging answer", error);
+      // Sử dụng currentExerciseAttemptId (đã đảm bảo có giá trị)
+      if (currentExerciseAttemptId && selected.length > 0) {
+        const questionBankId = parseInt(questionId, 10);
+        const answerId = parseInt(selected[selected.length - 1], 10);
+
+        if (!isNaN(questionBankId) && !isNaN(answerId)) {
+          upsertAnswerLog({
+            userExerciseAttemptId: currentExerciseAttemptId,
+            questionBankId,
+            answerId,
+          });
+        }
       }
     },
-    [session, scaleAnims]
+    [session, scaleAnims, currentExerciseAttemptId, upsertAnswerLog]
   );
 
-  const buildFinalAnswers = useCallback((): LocalAnswer[] => {
-    if (!session) return [] as LocalAnswer[];
-    return session.questions.map((q) => ({
-      questionId: q.id,
-      selectedAnswers: selections[q.id] || [],
-      timeSpent: 0,
-    }));
-  }, [session, selections]);
-
-  
-
-  const completeQuiz = async (finalAnswers: LocalAnswer[]) => {
-    if (!session) return;
-
-    try {
-      const totalTimeSpent = elapsedSeconds; // seconds
-      const response = await quizService.completeQuiz({
-        sessionId: session.id,
-        answers: finalAnswers,
-        totalTimeSpent,
-      });
-
-      if (response.statusCode === 201 && response.data?.result) {
-        router.replace({
-          pathname: "/quiz/result/[resultId]",
-          params: { resultId: response.data.result.sessionId },
-        });
-      }
-    } catch (error) {
-      console.error("Error completing quiz:", error);
-      Alert.alert("Lỗi", "Không thể hoàn thành quiz.");
-    } finally {
+  const handleCheckCompletion = () => {
+    if (!currentExerciseAttemptId) {
+      Alert.alert("Lỗi", "Không tìm thấy bài tập.");
+      return;
     }
+
+    checkCompletion(currentExerciseAttemptId.toString(), {
+      onSuccess: (response) => {
+        if (response.data) {
+          // Track unanswered question IDs from response
+          setUnansweredQuestionIds(response.data.unansweredQuestionIds || []);
+          setShowCompletionModal(true);
+        }
+      },
+      onError: (error) => {
+        console.error("Error checking completion:", error);
+        Alert.alert("Lỗi", "Không thể kiểm tra trạng thái bài làm.");
+      },
+    });
   };
+
+  const handleSubmitCompletion = () => {
+    if (!currentExerciseAttemptId) {
+      Alert.alert("Lỗi", "Không tìm thấy bài tập.");
+      return;
+    }
+
+    const totalTimeSpent = elapsedSeconds; // seconds
+
+    submitCompletion(
+      {
+        exerciseAttemptId: currentExerciseAttemptId.toString(),
+        time: totalTimeSpent,
+      },
+      {
+        onSuccess: (response) => {
+          console.log("response",response);
+          // Navigate to result screen with response data
+          if (response.data) {
+            // Pass data as JSON string in params
+            router.replace({
+              pathname: "/quiz/result/[resultId]",
+              params: {
+                resultId: currentExerciseAttemptId.toString(),
+                resultData: JSON.stringify(response.data),
+                message: response.message || "",
+                timeSpent: totalTimeSpent.toString(),
+              },
+            });
+          } else {
+            Alert.alert("Lỗi", "Không nhận được dữ liệu kết quả.");
+          }
+        },
+        onError: (error) => {
+          console.error("Error submitting completion:", error);
+          Alert.alert("Lỗi", "Không thể nộp bài.");
+        },
+      }
+    );
+  };
+
 
   // const canSubmit = session
   //   ? answeredCount === session.questions.length
   //   : false;
 
-  if (isLoading || !session) {
+  if (isLoading || isLoadingQuestions || !session) {
     return (
       <QuizLayout>
         <View style={styles.center}>
@@ -194,14 +304,13 @@ export default function QuizScreen() {
               <ChevronLeft size={22} color="#111827" />
             </TouchableOpacity>
             <Text style={styles.headerTitle} numberOfLines={1}>
-              {session?.level
-                ? `Trình độ JLPT ${session.level}`
-                : "Làm bài kiểm tra"}
+              Làm bài kiểm tra
             </Text>
             <TouchableOpacity
-              onPress={() => completeQuiz(buildFinalAnswers())}
+              onPress={handleCheckCompletion}
               activeOpacity={0.8}
               style={styles.submitIconButton}
+              disabled={isSubmitting}
             >
               <MaterialCommunityIcons
                 name="notebook-check"
@@ -218,6 +327,7 @@ export default function QuizScreen() {
             answeredIds={session.questions
               .filter((q) => (selections[q.id] || []).length > 0)
               .map((q) => q.id)}
+            unansweredIds={unansweredQuestionIds.map((id) => id.toString())}
             onPressQuestion={(idx, id) => {
               const y = questionOffsetsRef.current[id] ?? 0;
               scrollRef.current?.scrollTo({
@@ -237,6 +347,10 @@ export default function QuizScreen() {
         >
           {session.questions.map((q, qIdx) => {
             const selected = selections[q.id] || [];
+            const questionIdNumber = parseInt(q.id, 10);
+            // Chỉ hiện màu đỏ khi: trong unansweredQuestionIds từ API VÀ chưa trả lời locally
+            const isUnanswered = unansweredQuestionIds.includes(questionIdNumber) && selected.length === 0;
+            
             if (!scaleAnims[q.id] && q.options) {
               scaleAnims[q.id] = q.options.map(() => new Animated.Value(1));
             }
@@ -249,18 +363,12 @@ export default function QuizScreen() {
                 }}
               >
                 <View style={styles.questionWrapper}>
-                  <View style={styles.qaCard}>
-                    {/* Header with number badge and optional audio */}
+                  <View style={[styles.qaCard, isUnanswered && styles.qaCardUnanswered]}>
+                    {/* Header with number badge */}
                     <View style={styles.headerRow}>
                       <View style={styles.numberBadge}>
                         <Text style={styles.numberText}>{qIdx + 1}</Text>
                       </View>
-                      {q.audioUrl && (
-                        <AudioPlayer
-                          audioUrl={q.audioUrl}
-                          style={{ marginLeft: "auto" }}
-                        />
-                      )}
                     </View>
 
                     {/* Question text */}
@@ -336,6 +444,18 @@ export default function QuizScreen() {
           </Button>
         </View> */}
       </View>
+
+      {/* Completion Modal */}
+      <QuizCompletionModal
+        visible={showCompletionModal}
+        onClose={() => setShowCompletionModal(false)}
+        onSubmit={() => {
+          setShowCompletionModal(false);
+          handleSubmitCompletion();
+        }}
+        data={checkCompletionData?.data || null}
+        questions={session?.questions || []}
+      />
     </QuizLayout>
   );
 }
@@ -399,6 +519,11 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 10,
     position: "relative",
+  },
+  qaCardUnanswered: {
+    borderWidth: 2,
+    borderColor: "#ef4444",
+    backgroundColor: "#fef2f2",
   },
   headerRow: {
     flexDirection: "row",

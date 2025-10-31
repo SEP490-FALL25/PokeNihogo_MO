@@ -1,7 +1,7 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View, ViewStyle } from "react-native";
 import { Progress } from "../ui/Progress";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface QuizProgressProps {
   currentQuestion: number;
@@ -10,6 +10,7 @@ interface QuizProgressProps {
   // Optional expand/collapse question grid
   questionIds?: string[];
   answeredIds?: string[];
+  unansweredIds?: string[]; // IDs of unanswered questions (from check completion)
   onPressQuestion?: (index: number, id: string) => void;
   score?: number;
   style?: ViewStyle;
@@ -21,6 +22,7 @@ export const QuizProgress: React.FC<QuizProgressProps> = ({
   elapsedSeconds,
   questionIds,
   answeredIds,
+  unansweredIds,
   onPressQuestion,
   score,
   style,
@@ -74,17 +76,24 @@ export const QuizProgress: React.FC<QuizProgressProps> = ({
           <View style={styles.grid}>
             {questionIds.map((id, idx) => {
               const answered = answeredIds?.includes(id);
+              // Chỉ hiện màu đỏ khi: trong unansweredIds từ API VÀ chưa trả lời (không có trong answeredIds)
+              const unanswered = unansweredIds?.includes(id) && !answered;
               return (
                 <TouchableOpacity
                   key={id}
                   onPress={() => onPressQuestion?.(idx, id)}
                   activeOpacity={0.85}
-                  style={[styles.numCell, answered && styles.numCellAnswered]}
+                  style={[
+                    styles.numCell,
+                    answered && styles.numCellAnswered,
+                    unanswered && styles.numCellUnanswered,
+                  ]}
                 >
                   <Text
                     style={[
                       styles.numCellText,
                       answered && styles.numCellTextAnswered,
+                      unanswered && styles.numCellTextUnanswered,
                     ]}
                   >
                     {idx + 1}
@@ -170,6 +179,10 @@ const styles = {
     backgroundColor: "#14b8a6",
     borderColor: "#14b8a6",
   },
+  numCellUnanswered: {
+    backgroundColor: "#fef2f2",
+    borderColor: "#ef4444",
+  },
   numCellText: {
     fontSize: 18,
     color: "#374151",
@@ -177,5 +190,9 @@ const styles = {
   },
   numCellTextAnswered: {
     color: "#ffffff",
+  },
+  numCellTextUnanswered: {
+    color: "#ef4444",
+    fontWeight: "700" as const,
   },
 };
