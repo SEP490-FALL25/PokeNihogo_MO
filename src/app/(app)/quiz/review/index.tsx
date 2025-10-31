@@ -6,30 +6,25 @@ import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import React, { useMemo, useRef, useState } from "react";
 import {
-  Alert,
-  Animated,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
+    Alert,
+    Animated,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    ViewStyle,
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
 export default function QuizReviewScreen() {
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
-
-  const {
-    data: reviewData,
-    isLoading,
-    error,
-  } = useReviewResult(sessionId || "");
-
+  const { data: reviewData, isLoading, error } = useReviewResult(sessionId);
   const scaleAnims = useRef<Record<string, Animated.Value[]>>({}).current;
   const scrollRef = useRef<ScrollView | null>(null);
   const questionOffsetsRef = useRef<Record<string, number>>({});
-
+console.log(sessionId)
+  console.log(reviewData)
   // Parse explanation text to extract VN and EN parts
   const parseExplanation = (explanation?: string) => {
     if (!explanation) return null;
@@ -76,7 +71,6 @@ export default function QuizReviewScreen() {
   const stats = useMemo(() => {
     if (!reviewData?.data) return null;
     const data = reviewData.data;
-    console.log(data);
     return {
       totalQuestions: data.totalQuestions,
       answeredCorrect: data.answeredCorrect,
@@ -754,3 +748,4 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 });
+

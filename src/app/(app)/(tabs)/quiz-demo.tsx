@@ -30,7 +30,7 @@ export default function QuizDemoScreen() {
       if (response.statusCode === 201 && response.data?.session) {
         router.push({
           pathname: ROUTES.QUIZ.SESSION,
-          params: { sessionId: response.data.session.id }
+          params: { exerciseAttemptId: response.data.session.id }
         });
       }
     } catch (error) {
@@ -154,19 +154,19 @@ export default function QuizDemoScreen() {
             
             <Button
               variant="outline"
-              onPress={() => router.push(ROUTES.QUIZ.HISTORY)}
+              onPress={() => router.push(ROUTES.QUIZ.HISTORY as any)}
               style={styles.quickActionButton}
             >
               Lịch sử Quiz
             </Button>
             
-            <Button
+            {/* <Button
               variant="outline"
               onPress={() => router.push(ROUTES.QUIZ.STATS)}
               style={styles.quickActionButton}
             >
               Thống kê
-            </Button>
+            </Button> */}
           </View>
         </View>
 

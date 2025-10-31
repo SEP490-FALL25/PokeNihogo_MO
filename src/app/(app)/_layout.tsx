@@ -20,10 +20,10 @@ export default function AppLayout() {
             <Stack.Screen name="(me)" />
             <Stack.Screen name="(starter)" />
             <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="lesson-details/[id]" />
-            <Stack.Screen name="lessons-list/[id]" />
-            <Stack.Screen name="quiz/[sessionId]" />
-            <Stack.Screen name="quiz/result/[resultId]" />
+            <Stack.Screen name="lesson-details" />
+            <Stack.Screen name="lessons-list" />
+            <Stack.Screen name="quiz" />
+            <Stack.Screen name="quiz/result" />
             <Stack.Screen name="gacha" />
         </Stack>
     );

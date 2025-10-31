@@ -4,27 +4,28 @@ import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
 import { useLesson } from "@hooks/useLessons";
 import { useUserExerciseAttempt } from "@hooks/useUserExerciseAttempt";
+import { ROUTES } from "@routes/routes";
 import { Audio } from "expo-av";
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import {
-  ChevronLeft,
-  Headphones,
-  Pencil,
-  Sparkles,
-  X,
+    ChevronLeft,
+    Headphones,
+    Pencil,
+    Sparkles,
+    X,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Alert,
-  Animated,
-  Dimensions,
-  Easing,
-  Modal,
-  ScrollView,
-  TouchableOpacity,
-  View,
+    Alert,
+    Animated,
+    Dimensions,
+    Easing,
+    Modal,
+    ScrollView,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -263,7 +264,7 @@ const KanjiCard = ({
 // --- Main Screen ---
 const LessonDetailScreen = () => {
   const { t } = useTranslation();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const { data: lessonData, isLoading } = useLesson(id || "");
   const lesson: any = lessonData?.data || {};
 
@@ -328,9 +329,8 @@ const LessonDetailScreen = () => {
       const proceed = () => {
         Haptics.selectionAsync();
         router.push({
-          pathname: "/(app)/quiz/[sessionId]",
+          pathname: ROUTES.QUIZ.QUIZ,
           params: { 
-            sessionId: exerciseAttemptId.toString(),
             exerciseAttemptId: exerciseAttemptId.toString(),
           },
         });
@@ -513,3 +513,4 @@ const LessonDetailScreen = () => {
 };
 
 export default LessonDetailScreen;
+

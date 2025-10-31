@@ -6,6 +6,7 @@ import { QuizProgress } from "@components/quiz/QuizProgress";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUpsertUserAnswerLog } from "@hooks/useUserAnswerLog";
 import {
+  useAbandonExercise,
   useCheckCompletion,
   useSubmitCompletion,
   useUserExerciseQuestions,
@@ -22,6 +23,7 @@ import React, {
 import {
   Alert,
   Animated,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -73,7 +75,10 @@ export default function QuizScreen() {
     useCheckCompletion();
   const { mutate: submitCompletion, isPending: isSubmitting } =
     useSubmitCompletion();
+  const { mutate: abandonExercise, isPending: isAbandoning } =
+    useAbandonExercise();
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [showExitConfirmModal, setShowExitConfirmModal] = useState(false);
   const [unansweredQuestionIds, setUnansweredQuestionIds] = useState<number[]>([]);
 
   // Current exercise attempt ID - ưu tiên từ BE response, fallback về params
@@ -97,6 +102,9 @@ export default function QuizScreen() {
         const exercise = exerciseData.data;
         const testSet = exercise.testSet;
 
+        // Restore saved selections from previous session
+        const restoredSelections: Record<string, string[]> = {};
+
         // Sort and map questions directly from BE response
         const questions: ExerciseQuestion[] = (
           testSet?.testSetQuestionBanks || []
@@ -107,9 +115,16 @@ export default function QuizScreen() {
           .map((item: any) => {
             const questionBank = item.questionBank;
             const answers = questionBank.answers || [];
+            const questionId = questionBank.id.toString();
+
+            // Find the selected answer (has "choose" field)
+            const selectedAnswer = answers.find((answer: any) => answer.choose === "choose");
+            if (selectedAnswer) {
+              restoredSelections[questionId] = [selectedAnswer.id.toString()];
+            }
 
             return {
-              id: questionBank.id.toString(),
+              id: questionId,
               question: questionBank.question || "",
               options: answers.map((answer: any) => ({
                 id: answer.id.toString(),
@@ -135,8 +150,14 @@ export default function QuizScreen() {
           setUserExerciseAttemptId(exerciseAttemptIdNumber);
         }
 
+        // Restore saved time if available (from previous session)
+        const savedTime = exercise.time || 0;
+        setElapsedSeconds(savedTime);
+
+        // Restore saved selections
+        setSelections(restoredSelections);
+
         setSession(exerciseSession);
-        setElapsedSeconds(0);
         setIsLoading(false);
       } catch (error) {
         console.error("Error loading exercise data:", error);
@@ -247,12 +268,11 @@ export default function QuizScreen() {
       },
       {
         onSuccess: (response) => {
-          console.log("response",response);
           // Navigate to result screen with response data
           if (response.data) {
             // Pass data as JSON string in params
             router.replace({
-              pathname: "/quiz/result/[resultId]",
+              pathname: "/quiz/result",
               params: {
                 resultId: currentExerciseAttemptId.toString(),
                 resultData: JSON.stringify(response.data),
@@ -270,6 +290,43 @@ export default function QuizScreen() {
         },
       }
     );
+  };
+
+  const handleBackPress = () => {
+    // Check if user has answered any questions
+    const hasAnswered = answeredCount > 0;
+    
+    if (hasAnswered) {
+      // Show confirm modal if user has answered questions
+      setShowExitConfirmModal(true);
+    } else {
+      // No answers, just go back
+      router.back();
+    }
+  };
+
+  const handleSaveAndExit = () => {
+    if (!currentExerciseAttemptId) {
+      Alert.alert("Lỗi", "Không tìm thấy bài tập.");
+      setShowExitConfirmModal(false);
+      return;
+    }
+
+    abandonExercise({ exerciseAttemptId: currentExerciseAttemptId.toString(), time: elapsedSeconds }, {
+      onSuccess: () => {
+        setShowExitConfirmModal(false);
+        router.back();
+      },
+      onError: (error) => {
+        console.error("Error abandoning exercise:", error);
+        Alert.alert("Lỗi", "Không thể lưu bài tập. Vui lòng thử lại.");
+      },
+    });
+  };
+
+  const handleExitWithoutSaving = () => {
+    setShowExitConfirmModal(false);
+    router.back();
   };
 
 
@@ -297,7 +354,7 @@ export default function QuizScreen() {
           {/* Header row: back, title, submit */}
           <View style={styles.topHeader}>
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={handleBackPress}
               activeOpacity={0.8}
               style={styles.backButton}
             >
@@ -456,6 +513,44 @@ export default function QuizScreen() {
         data={checkCompletionData?.data || null}
         questions={session?.questions || []}
       />
+
+      {/* Exit Confirm Modal */}
+      <Modal
+        visible={showExitConfirmModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowExitConfirmModal(false)}
+      >
+        <View style={styles.exitModalOverlay}>
+          <View style={styles.exitModalContent}>
+            <Text style={styles.exitModalTitle}>Thoát bài làm?</Text>
+            <Text style={styles.exitModalMessage}>
+              Bạn có muốn lưu lại phần câu trả lời đã làm không?
+            </Text>
+            
+            <View style={styles.exitModalButtons}>
+              <TouchableOpacity
+                style={[styles.exitModalButton, styles.exitModalButtonCancel]}
+                onPress={handleExitWithoutSaving}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.exitModalButtonCancelText}>Không lưu</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.exitModalButton, styles.exitModalButtonSave]}
+                onPress={handleSaveAndExit}
+                activeOpacity={0.8}
+                disabled={isAbandoning}
+              >
+                <Text style={styles.exitModalButtonSaveText}>
+                  {isAbandoning ? "Đang lưu..." : "Lưu và thoát"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </QuizLayout>
   );
 }
@@ -597,4 +692,69 @@ const styles = StyleSheet.create({
   },
   nextButton: { flex: 1 },
   previousButton: { minWidth: 120 },
+  exitModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  exitModalContent: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 24,
+    width: "85%",
+    maxWidth: 400,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  exitModalTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#111827",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  exitModalMessage: {
+    fontSize: 16,
+    color: "#6b7280",
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 24,
+  },
+  exitModalButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  exitModalButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  exitModalButtonCancel: {
+    backgroundColor: "#f3f4f6",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  exitModalButtonCancelText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  exitModalButtonSave: {
+    backgroundColor: "#0ea5e9",
+  },
+  exitModalButtonSaveText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#ffffff",
+  },
 });
+

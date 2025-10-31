@@ -4,6 +4,7 @@ import BounceButton from "@components/ui/BounceButton";
 import { Button } from "@components/ui/Button";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ISubmitCompletionData } from "@models/user-exercise-attempt/user-exercise-attempt.response";
+import { ROUTES } from "@routes/routes";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo } from "react";
 import {
@@ -16,7 +17,7 @@ import {
 
 export default function QuizResultScreen() {
   const { resultId, resultData, message, timeSpent } = useLocalSearchParams<{
-    resultId: string;
+    resultId?: string;
     resultData?: string;
     message?: string;
     timeSpent?: string;
@@ -46,7 +47,7 @@ export default function QuizResultScreen() {
     if (!resultId) return;
     // resultId is actually exerciseAttemptId
     router.push({
-      pathname: "/quiz/review/[sessionId]",
+      pathname: ROUTES.QUIZ.REVIEW,
       params: { sessionId: resultId },
     });
   };
@@ -276,3 +277,4 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
 });
+
