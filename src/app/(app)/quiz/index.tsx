@@ -366,29 +366,27 @@ export default function QuizScreen() {
   };
 
   const handleExitWithoutSaving = () => {
-    // if (!currentExerciseAttemptId) {
-    //   Alert.alert("Lỗi", "Không tìm thấy bài tập.");
-    //   return;
-    // }
+    if (!currentExerciseAttemptId) {
+      Alert.alert("Lỗi", "Không tìm thấy bài tập.");
+      return;
+    }
 
-    // continueAndAbandonExercise(
-    //   {
-    //     exerciseAttemptId: currentExerciseAttemptId.toString(),
-    //     status: "SKIPPED",
-    //   },
-    //   {
-    //     onSuccess: () => {
-    //       setShowExitConfirmModal(false);
-    //       router.back();
-    //     },
-    //     onError: (error) => {
-    //       console.error("Error continuing exercise:", error);
-    //       Alert.alert("Lỗi", "Không thể tiếp tục bài tập. Vui lòng thử lại.");
-    //     },
-    //   }
-    // );
-    setShowExitConfirmModal(false);
-    router.back();
+    continueAndAbandonExercise(
+      {
+        exerciseAttemptId: currentExerciseAttemptId.toString(),
+        status: "SKIPPED",
+      },
+      {
+        onSuccess: () => {
+          setShowExitConfirmModal(false);
+          router.back();
+        },
+        onError: (error) => {
+          console.error("Error continuing exercise:", error);
+          Alert.alert("Lỗi", "Không thể tiếp tục bài tập. Vui lòng thử lại.");
+        },
+      }
+    );
   };
 
   const handleContinuePreviousExercise = () => {
