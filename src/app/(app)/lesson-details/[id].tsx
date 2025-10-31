@@ -2,10 +2,8 @@ import KanjiWriter from "@components/KanjiWriter";
 import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
-import type { ExerciseStatusResponse } from "@hooks/useLessonExerciseStatus";
-import { useLessonExerciseStatus } from "@hooks/useLessonExerciseStatus";
 import { useLesson } from "@hooks/useLessons";
-import { quizService } from "@services/quiz";
+import { useUserExerciseAttempt } from "@hooks/useUserExerciseAttempt";
 import { Audio } from "expo-av";
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
@@ -71,15 +69,19 @@ const playAudio = async (url: string) => {
   }
 };
 
-function getButtonColor(status?: string, base = "indigo") {
-  if (status === "completed") return `bg-${base}-300`;
-  if (status === "in_progress") return `bg-${base}-200`;
-  return `bg-gray-100`;
+function getButtonColor(status?: string) {
+  if (status === "COMPLETED") return "bg-emerald-600";
+  if (status === "IN_PROGRESS") return "bg-amber-500";
+  if (status === "ABANDONED") return "bg-rose-500";
+  if (status === "FAIL") return "bg-red-600";
+  return "bg-slate-200";
 }
-function getTextColor(status?: string, base = "indigo") {
-  if (status === "completed") return `text-${base}-900`;
-  if (status === "in_progress") return `text-${base}-900`;
-  return `text-${base}-700`;
+function getTextColor(status?: string) {
+  if (status === "COMPLETED") return "text-white";
+  if (status === "IN_PROGRESS") return "text-white";
+  if (status === "ABANDONED") return "text-white";
+  if (status === "FAIL") return "text-white";
+  return "text-slate-700";
 }
 
 // --- Vocabulary Card (Swipeable + Audio + Meaning Toggle) ---
@@ -198,7 +200,9 @@ const GrammarCard = ({ item }: { item: any }) => {
           {item.usage && (
             <View className="bg-cyan-50 p-4 rounded-2xl">
               <ThemedText className="text-sm text-cyan-800">
-                <ThemedText style={{ fontWeight: "bold" }}>{t("lessons.usage")}:</ThemedText>{" "}
+                <ThemedText style={{ fontWeight: "bold" }}>
+                  {t("lessons.usage")}:
+                </ThemedText>{" "}
                 {item.usage}
               </ThemedText>
             </View>
@@ -263,17 +267,36 @@ const LessonDetailScreen = () => {
   const { data: lessonData, isLoading } = useLesson(id || "");
   const lesson: any = lessonData?.data || {};
 
-  const { data: exerciseStatus } = useLessonExerciseStatus(id || "");
+  // fetch latest user exercise attempt for this lesson
+  const { data: latestExerciseAttempt } = useUserExerciseAttempt(id || "");
+
   type ExerciseCategory = "vocabulary" | "grammar" | "kanji";
-  const getStatusItem = (
-    category: ExerciseCategory,
-    data?: ExerciseStatusResponse
-  ) => {
-    if (!data) return undefined;
-    if (category === "vocabulary") return data.vocabulary;
-    if (category === "grammar") return data.grammar;
-    return data.kanji;
-  };
+
+  // Map attempt IDs by category
+  const attemptIdByCategory = React.useMemo(() => {
+    const list: any[] = latestExerciseAttempt?.data || [];
+    const map: Record<string, number | string | undefined> = {};
+    for (const item of list) {
+      const type = (item.exerciseType || "").toString().toLowerCase();
+      if (type === "vocabulary") map.vocabulary = item.id;
+      if (type === "grammar") map.grammar = item.id;
+      if (type === "kanji") map.kanji = item.id;
+    }
+    return map;
+  }, [latestExerciseAttempt]);
+
+  // Map status by category from latestExerciseAttempt
+  const statusByCategory = React.useMemo(() => {
+    const list: any[] = latestExerciseAttempt?.data || [];
+    const map: Record<string, string | undefined> = {};
+    for (const item of list) {
+      const type = (item.exerciseType || "").toString().toLowerCase();
+      if (type === "vocabulary") map.vocabulary = item.status;
+      if (type === "grammar") map.grammar = item.status;
+      if (type === "kanji") map.kanji = item.status;
+    }
+    return map;
+  }, [latestExerciseAttempt]);
 
   const [selectedKanji, setSelectedKanji] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -291,23 +314,29 @@ const LessonDetailScreen = () => {
 
   const startExercise = async (category: ExerciseCategory) => {
     try {
-      const statusItem = getStatusItem(category, exerciseStatus);
-      const proceed = async () => {
+      const status = statusByCategory[category];
+      const exerciseAttemptId = attemptIdByCategory[category];
+      
+      if (!exerciseAttemptId) {
+        Alert.alert(
+          t("common.error") || "Error",
+          t("common.something_wrong") || "Có lỗi xảy ra, vui lòng thử lại."
+        );
+        return;
+      }
+
+      const proceed = () => {
         Haptics.selectionAsync();
-        const res = await quizService.createQuizSession({
-          lessonId: id,
-          category,
+        router.push({
+          pathname: "/(app)/quiz/[sessionId]",
+          params: { 
+            sessionId: exerciseAttemptId.toString(),
+            exerciseAttemptId: exerciseAttemptId.toString(),
+          },
         });
-        const sessionId = res?.data?.session?.id;
-        if (sessionId) {
-          router.push({
-            pathname: "/(app)/quiz/[sessionId]",
-            params: { sessionId },
-          });
-        }
       };
 
-      if (statusItem?.status === "completed") {
+      if (status === "COMPLETED") {
         Alert.alert(
           t("common.confirm") || "Confirm",
           t("lessons.retake_warning") ||
@@ -368,10 +397,10 @@ const LessonDetailScreen = () => {
               </ThemedText>
               <TouchableOpacity
                 onPress={() => startExercise("vocabulary")}
-                className={`${getButtonColor(exerciseStatus?.vocabulary?.status, "indigo")} px-4 py-2 rounded-full`}
+                className={`${getButtonColor(statusByCategory.vocabulary)} px-4 py-2 rounded-full`}
               >
                 <ThemedText
-                  className={`${getTextColor(exerciseStatus?.vocabulary?.status, "indigo")} text-sm font-medium`}
+                  className={`${getTextColor(statusByCategory.vocabulary)} text-sm font-medium`}
                 >
                   {t("lessons.do_vocab_exercise")}
                 </ThemedText>
@@ -398,10 +427,10 @@ const LessonDetailScreen = () => {
               </ThemedText>
               <TouchableOpacity
                 onPress={() => startExercise("grammar")}
-                className={`${getButtonColor(exerciseStatus?.grammar?.status, "cyan")} px-4 py-2 rounded-full`}
+                className={`${getButtonColor(statusByCategory.grammar)} px-4 py-2 rounded-full`}
               >
                 <ThemedText
-                  className={`${getTextColor(exerciseStatus?.grammar?.status, "cyan")} text-sm font-medium`}
+                  className={`${getTextColor(statusByCategory.grammar)} text-sm font-medium`}
                 >
                   {t("lessons.do_grammar_exercise")}
                 </ThemedText>
@@ -422,10 +451,10 @@ const LessonDetailScreen = () => {
               </ThemedText>
               <TouchableOpacity
                 onPress={() => startExercise("kanji")}
-                className={`${getButtonColor(exerciseStatus?.kanji?.status, "amber")} px-4 py-2 rounded-full`}
+                className={`${getButtonColor(statusByCategory.kanji)} px-4 py-2 rounded-full`}
               >
                 <ThemedText
-                  className={`${getTextColor(exerciseStatus?.kanji?.status, "amber")} text-sm font-medium`}
+                  className={`${getTextColor(statusByCategory.kanji)} text-sm font-medium`}
                 >
                   {t("lessons.do_kanji_exercise")}
                 </ThemedText>
