@@ -44,6 +44,7 @@ export default function QuizResultScreen() {
 
   const handleViewAnswers = () => {
     if (!resultId) return;
+    // resultId is actually exerciseAttemptId
     router.push({
       pathname: "/quiz/review/[sessionId]",
       params: { sessionId: resultId },
