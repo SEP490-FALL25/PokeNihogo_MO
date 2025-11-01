@@ -22,6 +22,7 @@ export default function AppLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="lesson-details" />
             <Stack.Screen name="lessons-list" />
+            <Stack.Screen name="reading-details" />
             <Stack.Screen name="quiz" />
             <Stack.Screen name="quiz/result" />
             <Stack.Screen name="gacha" />
