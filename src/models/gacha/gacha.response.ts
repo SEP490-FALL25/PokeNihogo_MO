@@ -2,6 +2,7 @@ import { BackendResponseModel, BackendResponsePaginationModel } from "@models/ba
 import { PokemonEntityLiteSchema } from "@models/pokemon/pokemon.entity";
 import { z } from "zod";
 import { GachaBannerSchema } from "./gacha.entity";
+import { at } from "@models/common/common.request";
 
 /**
  * Gacha Banner List Response Schema
@@ -52,4 +53,18 @@ export const GachaPurchaseHistoryResponseSchema = BackendResponsePaginationModel
     })
 }));
 export type IGachaPurchaseHistoryResponse = z.infer<typeof GachaPurchaseHistoryResponseSchema>;
+//------------------------End------------------------//
+
+
+/**
+ * Gacha Pity Response Schema
+ */
+export const GachaPityResponseSchema = BackendResponseModel(z.object({
+    id: z.number(),
+    userId: z.number(),
+    pityCount: z.number(),
+    status: z.enum(['PENDING', 'COMPLETED', 'FAILED']),
+    ...at
+}));
+export type IGachaPityResponse = z.infer<typeof GachaPityResponseSchema>;
 //------------------------End------------------------//

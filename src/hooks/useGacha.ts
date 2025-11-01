@@ -33,6 +33,7 @@ export const useGachaPurchase = () => {
             queryClient.invalidateQueries({ queryKey: ['wallet-user'] });
             queryClient.invalidateQueries({ queryKey: ['user-pokemons-infinite'] });
             queryClient.invalidateQueries({ queryKey: ['gacha-roll-history-user'] });
+            queryClient.invalidateQueries({ queryKey: ['gacha-pity-user'] });
         },
         onError: (error) => {
             console.error(error);
@@ -40,6 +41,18 @@ export const useGachaPurchase = () => {
     });
 }
 //--------------------------End------------------------//
+
+
+/**
+ * Get pity by user hook
+ * @returns Pity data
+ */
+export const useGetPityByUser = () => {
+    return useQuery({
+        queryKey: ['gacha-pity-user'],
+        queryFn: () => gachaService.getPityByUser(),
+    });
+}
 //---------------------------------------------End---------------------------------------------//
 
 

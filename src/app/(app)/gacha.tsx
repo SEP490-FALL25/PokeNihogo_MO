@@ -2,7 +2,7 @@ import { TWLinearGradient } from '@components/atoms/TWLinearGradient';
 import BackScreen from '@components/molecules/Back';
 import GachaAnimation from '@components/Organism/GachaAnimation';
 import { STAR_TYPE_MAP } from '@constants/gacha.enum';
-import { useGachaBannerToday, useGachaPurchase, useGetGachaPurchaseHistory } from '@hooks/useGacha';
+import { useGachaBannerToday, useGachaPurchase, useGetGachaPurchaseHistory, useGetPityByUser } from '@hooks/useGacha';
 import { useWalletUser } from '@hooks/useWallet';
 import { IGachaBannerSchema } from '@models/gacha/gacha.entity';
 import { useSparklesBalanceSelector } from '@stores/wallet/wallet.selectors';
@@ -10,7 +10,7 @@ import { formatHistoryTime } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ChevronLeft, ChevronRight, History, Shield, Sparkles, X } from 'lucide-react-native';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Image, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Progress from 'react-native-progress';
@@ -69,20 +69,23 @@ export default function GachaScreen() {
     } = useGetGachaPurchaseHistory();
     //---------------------End---------------------//
 
+    /**
+     * Pity Hook (Chung cho tất cả banners)
+     */
+    const { data: pityData } = useGetPityByUser();
+    const currentPity = pityData?.data?.data?.pityCount || 0;
+    //---------------------End---------------------//
+
     const [selectedBannerIndex, setSelectedBannerIndex] = useState(0);
     const [gachaResults, setGachaResults] = useState<any[]>([]);
     const [isAnimating, setIsAnimating] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
 
-    // Refetch when modal opens
-    React.useEffect(() => {
+    useEffect(() => {
         if (showHistory) {
             refetchHistory();
         }
     }, [showHistory, refetchHistory]);
-
-    // Pity counter cho mỗi banner (key = banner.id)
-    const [pityCounters, setPityCounters] = useState<{ [key: number]: number }>({});
 
     // Filter active banners only
     const activeBanners = useMemo(() => {
@@ -91,12 +94,6 @@ export default function GachaScreen() {
     }, [gachaBannerList]);
 
     const selectedBanner = activeBanners[selectedBannerIndex];
-
-    // Get current pity cho banner được chọn
-    const currentPity = useMemo(() => {
-        if (!selectedBanner) return 0;
-        return pityCounters[selectedBanner.id] || 0;
-    }, [selectedBanner, pityCounters]);
 
     /**
      * Gacha Purchase Hook
@@ -185,19 +182,10 @@ export default function GachaScreen() {
 
     // Transform and group history data by purchaseId
     const gachaHistory = useMemo(() => {
-        console.log('History Data:', JSON.stringify(historyData, null, 2));
-        if (!historyData?.pages) {
-            console.log('No pages in historyData');
-            return [];
-        }
+        if (!historyData?.pages) return [];
 
         // Flatten all pages
-        const allItems = historyData.pages.flatMap((page: any) => {
-            console.log('Page data:', page?.data?.data);
-            return page?.data?.data?.results || [];
-        });
-
-        console.log('All items:', allItems.length);
+        const allItems = historyData.pages.flatMap((page: any) => page?.data?.data?.results || []);
 
         if (allItems.length === 0) {
             return [];
@@ -213,10 +201,8 @@ export default function GachaScreen() {
             return acc;
         }, {});
 
-        console.log('Grouped:', Object.keys(grouped).length);
-
         // Transform to UI format
-        const transformed = Object.values(grouped).map((items: any[]) => {
+        return Object.values(grouped).map((items: any[]) => {
             const firstItem = items[0];
             const bannerName = getBannerNameById(firstItem.bannerId);
 
@@ -234,9 +220,6 @@ export default function GachaScreen() {
                 })),
             } as GachaHistoryEntry;
         }).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()); // Sort by newest first
-
-        console.log('Transformed history:', transformed.length);
-        return transformed;
     }, [historyData, getBannerNameById, i18n.language]);
 
     // Handle infinite scroll
@@ -336,9 +319,8 @@ export default function GachaScreen() {
                                 const bannerDisplayName = banner.nameTranslations && Array.isArray(banner.nameTranslations)
                                     ? banner.nameTranslations.find((trans: { key: string; value: string }) => trans.key === i18n.language)?.value || banner.nameTranslation
                                     : banner.nameTranslation || banner.nameKey;
-                                const bannerPity = pityCounters[banner.id] || 0;
                                 const bannerFeaturedPokemon = banner.pokemon || null;
-                                const pityProgress = bannerPity / (banner.hardPity5Star || 90);
+                                const pityProgress = currentPity / (banner.hardPity5Star || 90);
 
                                 return (
                                     <TouchableOpacity
@@ -413,7 +395,7 @@ export default function GachaScreen() {
                                                             <View className="flex-row items-center justify-between mb-1">
                                                                 <Text className="text-yellow-400 text-[10px] font-bold">Pity</Text>
                                                                 <Text className={`${isSelected ? 'text-white' : 'text-white/80'} text-[10px] font-extrabold`}>
-                                                                    {bannerPity}/{banner.hardPity5Star || 90}
+                                                                    {currentPity}/{banner.hardPity5Star || 90}
                                                                 </Text>
                                                             </View>
                                                             <View className="h-1 bg-slate-800 rounded-full overflow-hidden">
@@ -453,7 +435,7 @@ export default function GachaScreen() {
                                                     </Text>
                                                     <View className="mt-2 w-full bg-black/20 rounded-lg p-1.5">
                                                         <Text className="text-yellow-400 text-[10px] font-bold text-center">
-                                                            {bannerPity}/{banner.hardPity5Star || 90}
+                                                            {currentPity}/{banner.hardPity5Star || 90}
                                                         </Text>
                                                     </View>
                                                 </TWLinearGradient>

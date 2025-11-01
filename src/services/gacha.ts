@@ -27,6 +27,10 @@ const gachaService = {
         return axiosPrivate.get(`/gacha-roll-history/user${queryString ? `?${queryString}` : ''}`);
     },
 
+    getPityByUser: async () => {
+        return axiosPrivate.get(`/user-gacha-pity/user/present`);
+    },
+
     gachaPurchase: async (data: IGachaPurchaseRequest) => {
         return axiosPrivate.post(`/gacha-purchase`, data);
     },
