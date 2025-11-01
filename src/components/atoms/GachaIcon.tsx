@@ -1,5 +1,5 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from "expo-linear-gradient";
-import { Sparkles } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 
@@ -37,11 +37,7 @@ export default function GachaIcon({ onPress, size = "small", style }: GachaIconP
                 end={{ x: 1, y: 1 }}
                 style={[styles.gradient, { borderRadius: sizes.container / 2 }]}
             >
-                <Sparkles
-                    size={sizes.icon}
-                    color="#ffffff"
-                    strokeWidth={2.5}
-                />
+                <Ionicons name="sparkles" size={sizes.icon} color="white" />
             </LinearGradient>
         </TouchableOpacity>
     );
