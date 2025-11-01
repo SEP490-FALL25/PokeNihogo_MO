@@ -1,18 +1,18 @@
 import { TWLinearGradient } from '@components/atoms/TWLinearGradient';
 import BackScreen from '@components/molecules/Back';
 import GachaAnimation from '@components/Organism/GachaAnimation';
+import { RARITY_MAP } from '@constants/gacha.enum';
 import { useGachaBannerToday } from '@hooks/useGacha';
 import { IGachaBannerSchema } from '@models/gacha/gacha.entity';
+import { formatHistoryTime } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ChevronLeft, ChevronRight, History, Shield, X } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Dimensions, FlatList, Image, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Progress from 'react-native-progress';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const { width } = Dimensions.get('window');
 
 // Types
 interface GachaHistoryEntry {
@@ -29,43 +29,6 @@ interface GachaHistoryEntry {
     }>;
 }
 
-// Format time for history display
-const formatHistoryTime = (date: Date, lang: string): string => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (lang === 'vi') {
-        if (minutes < 1) return 'Vừa xong';
-        if (minutes < 60) return `${minutes} phút trước`;
-        if (hours < 24) return `${hours} giờ trước`;
-        if (days < 7) return `${days} ngày trước`;
-        return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    } else if (lang === 'ja') {
-        if (minutes < 1) return 'たった今';
-        if (minutes < 60) return `${minutes}分前`;
-        if (hours < 24) return `${hours}時間前`;
-        if (days < 7) return `${days}日前`;
-        return date.toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit', year: 'numeric' });
-    } else {
-        if (minutes < 1) return 'Just now';
-        if (minutes < 60) return `${minutes} min ago`;
-        if (hours < 24) return `${hours} hr ago`;
-        if (days < 7) return `${days} days ago`;
-        return date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
-    }
-};
-
-// --- Logic Gacha ---
-const RARITY_MAP: { [key: string]: number } = {
-    'COMMON': 3,
-    'UNCOMMON': 3,
-    'RARE': 4,
-    'EPIC': 4,
-    'LEGENDARY': 5,
-};
 
 const performWish = (
     banner: IGachaBannerSchema,
@@ -75,9 +38,7 @@ const performWish = (
 ) => {
     const results = [];
     // Get pokemons from items array if available, otherwise fallback to single pokemon
-    const bannerPokemons = banner.items && banner.items.length > 0
-        ? banner.items.map(item => item.pokemon)
-        : banner.pokemon ? [banner.pokemon] : [];
+    const bannerPokemons = banner.pokemon ? [banner.pokemon] : [];
     const hardPity = banner.hardPity5Star || 90;
     let newPity = currentPity;
 
@@ -119,7 +80,7 @@ const performWish = (
         const result = {
             id: selectedPokemon.pokedex_number || selectedPokemon.id,
             name: selectedPokemon.nameTranslations?.en || selectedPokemon.nameTranslations?.vi || selectedPokemon.nameJp || 'Unknown',
-            rarity: RARITY_MAP[selectedPokemon.rarity] || 3,
+            rarity: RARITY_MAP[selectedPokemon.rarity] || 1,
             imageUrl: selectedPokemon.imageUrl,
             pokemon: selectedPokemon, // Keep original pokemon data for reference
         };
@@ -306,9 +267,7 @@ export default function GachaScreen() {
                                     ? banner.nameTranslations.find((trans: { key: string; value: string }) => trans.key === i18n.language)?.value || banner.nameTranslation
                                     : banner.nameTranslation || banner.nameKey;
                                 const bannerPity = pityCounters[banner.id] || 0;
-                                const bannerFeaturedPokemon = banner.items && banner.items.length > 0
-                                    ? banner.items[0]?.pokemon
-                                    : banner.pokemon || null;
+                                const bannerFeaturedPokemon = banner.pokemon || null;
                                 const pityProgress = bannerPity / (banner.hardPity5Star || 90);
 
                                 return (
@@ -636,7 +595,7 @@ export default function GachaScreen() {
                                                 {item.bannerName}
                                             </Text>
                                             <Text className="text-slate-400 text-xs">
-                                                {formatHistoryTime(item.timestamp, i18n.language)}
+                                                {formatHistoryTime(item.timestamp, t)}
                                             </Text>
                                         </View>
                                         <View className="bg-cyan-500/20 px-3 py-1 rounded-lg border border-cyan-500/30">

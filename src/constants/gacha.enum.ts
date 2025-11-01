@@ -5,3 +5,10 @@ export const GACHA_BANNER_STATUS = {
     ACTIVE: 'ACTIVE',
 } as const;
 
+export const RARITY_MAP: { [key: string]: number } = {
+    'COMMON': 1,
+    'UNCOMMON': 2,
+    'RARE': 3,
+    'EPIC': 4,
+    'LEGENDARY': 5,
+};
