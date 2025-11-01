@@ -1,166 +1,127 @@
 import { TWLinearGradient } from '@components/atoms/TWLinearGradient';
 import BackScreen from '@components/molecules/Back';
 import GachaAnimation from '@components/Organism/GachaAnimation';
-import { RARITY_MAP } from '@constants/gacha.enum';
-import { useGachaBannerToday } from '@hooks/useGacha';
+import { STAR_TYPE_MAP } from '@constants/gacha.enum';
+import { useGachaBannerToday, useGachaPurchase, useGetGachaItemsByBannerIdInfinite, useGetGachaPurchaseHistory, useGetPityByUser } from '@hooks/useGacha';
+import { useWalletUser } from '@hooks/useWallet';
 import { IGachaBannerSchema } from '@models/gacha/gacha.entity';
+import { useSparklesBalanceSelector } from '@stores/wallet/wallet.selectors';
 import { formatHistoryTime } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ChevronLeft, ChevronRight, History, Shield, X } from 'lucide-react-native';
-import React, { useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight, History, Info, Shield, Sparkles, Star, X } from 'lucide-react-native';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Image, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Progress from 'react-native-progress';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Types
-interface GachaHistoryEntry {
-    id: string;
-    timestamp: Date;
-    bannerId: number;
-    bannerName: string;
-    count: number; // 1 or 10
-    results: Array<{
-        id: number;
-        name: string;
-        rarity: number;
-        imageUrl: string;
-    }>;
-}
-
-
-const performWish = (
-    banner: IGachaBannerSchema,
-    count: number,
-    currentPity: number,
-    setPity: (pity: number) => void
-) => {
-    const results = [];
-    // Get pokemons from items array if available, otherwise fallback to single pokemon
-    const bannerPokemons = banner.pokemon ? [banner.pokemon] : [];
-    const hardPity = banner.hardPity5Star || 90;
-    let newPity = currentPity;
-
-    for (let i = 0; i < count; i++) {
-        newPity += 1;
-        let selectedPokemon;
-
-        // Hard pity: Đảm bảo ra 5 sao khi đạt hardPity5Star
-        if (newPity >= hardPity) {
-            const legendaryPool = bannerPokemons.filter((p: any) => p.rarity === 'LEGENDARY');
-            selectedPokemon = legendaryPool.length > 0
-                ? legendaryPool[Math.floor(Math.random() * legendaryPool.length)]
-                : bannerPokemons[Math.floor(Math.random() * bannerPokemons.length)];
-            newPity = 0; // Reset pity sau khi ra 5 sao
-        } else {
-            const rand = Math.random() * 100;
-
-            // Logic dựa trên banner config (có thể tinh chỉnh theo rate)
-            if (rand < 5) { // 5% tỉ lệ ra 5 sao
-                const legendaryPool = bannerPokemons.filter((p: any) => p.rarity === 'LEGENDARY');
-                selectedPokemon = legendaryPool.length > 0
-                    ? legendaryPool[Math.floor(Math.random() * legendaryPool.length)]
-                    : bannerPokemons[Math.floor(Math.random() * bannerPokemons.length)];
-                newPity = 0; // Reset pity khi ra 5 sao
-            } else if (rand < 20) { // 15% tỉ lệ ra 4 sao
-                const rarePool = bannerPokemons.filter((p: any) => p.rarity === 'RARE' || p.rarity === 'EPIC');
-                selectedPokemon = rarePool.length > 0
-                    ? rarePool[Math.floor(Math.random() * rarePool.length)]
-                    : bannerPokemons[Math.floor(Math.random() * bannerPokemons.length)];
-            } else { // 80% tỉ lệ ra 3 sao trở xuống
-                const commonPool = bannerPokemons.filter((p: any) => p.rarity === 'COMMON' || p.rarity === 'UNCOMMON');
-                selectedPokemon = commonPool.length > 0
-                    ? commonPool[Math.floor(Math.random() * commonPool.length)]
-                    : bannerPokemons[Math.floor(Math.random() * bannerPokemons.length)];
-            }
-        }
-
-        // Convert pokemon format to match GachaAnimation expected format
-        const result = {
-            id: selectedPokemon.pokedex_number || selectedPokemon.id,
-            name: selectedPokemon.nameTranslations?.en || selectedPokemon.nameTranslations?.vi || selectedPokemon.nameJp || 'Unknown',
-            rarity: RARITY_MAP[selectedPokemon.rarity] || 1,
-            imageUrl: selectedPokemon.imageUrl,
-            pokemon: selectedPokemon, // Keep original pokemon data for reference
-        };
-
-        results.push(result);
-    }
-
-    // Update pity sau khi quay xong
-    setPity(newPity);
-    return results;
-};
 
 export default function GachaScreen() {
+    /**
+     * Variables defines
+     */
     const { t, i18n } = useTranslation();
+    const insets = useSafeAreaInsets();
+    //---------------------End---------------------//
+
+    /**
+     * Gacha Banner Today Hook
+     */
     const { gachaBannerList, isLoading: isLoadingBanners } = useGachaBannerToday();
-    const [selectedBannerIndex, setSelectedBannerIndex] = useState(0);
+    //---------------------End---------------------//
+
+    /**
+     * Wallet Hooks
+     */
+    const sparklesBalance = useSparklesBalanceSelector();
+    const { refetch: refetchWallet } = useWalletUser();
+    //---------------------End---------------------//
+
+
+    /**
+     * Gacha Purchase History Hook (Infinite Scroll)
+     */
+    const {
+        data: historyData,
+        isLoading: isLoadingHistory,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isError: isHistoryError,
+        error: historyError,
+        refetch: refetchHistory,
+    } = useGetGachaPurchaseHistory();
+    //---------------------End---------------------//
+
+    /**
+     * Pity Hook (Chung cho tất cả banners)
+     */
+    const { data: pityData } = useGetPityByUser();
+    const currentPity = pityData?.data?.data?.pityCount || 0;
+    //---------------------End---------------------//
+
     const [gachaResults, setGachaResults] = useState<any[]>([]);
-    const [isAnimating, setIsAnimating] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
-    const [gachaHistory, setGachaHistory] = useState<GachaHistoryEntry[]>([]);
+    const [showBannerInfo, setShowBannerInfo] = useState(false);
+    const [selectedBannerForInfo, setSelectedBannerForInfo] = useState<number | null>(null);
 
-    // Pity counter cho mỗi banner (key = banner.id)
-    const [pityCounters, setPityCounters] = useState<{ [key: number]: number }>({});
+    /**
+     * Gacha Purchase Hook
+     */
+    const { mutate: gachaPurchase, isPending: isPendingPurchase } = useGachaPurchase();
+    const handleWish = (count: number) => {
+        if (!selectedBanner) return;
 
-    // Filter active banners only
+        gachaPurchase({
+            bannerId: selectedBanner.id,
+            rollCount: count,
+        }, {
+            onSuccess: (response) => {
+                const results = response.data.data.map((item: any) => ({
+                    id: item.pokemon.pokedex_number || item.pokemon.id,
+                    name: item.pokemon.nameTranslations?.en || item.pokemon.nameTranslations?.vi || item.pokemon.nameJp || 'Unknown',
+                    rarity: STAR_TYPE_MAP[item.starType] || 1,
+                    imageUrl: item.pokemon.imageUrl,
+                    pokemon: item.pokemon,
+                    isDuplicate: item.isDuplicate,
+                    sparkles: item.parseItem.sparkles,
+                }));
+
+                setGachaResults(results);
+                setIsAnimating(true);
+            },
+            onError: (error) => {
+                console.error('Gacha purchase error:', error.message);
+                //TODO: Show Modal
+            },
+        });
+    };
+    //---------------------End---------------------//
+
+
+    /**
+     * Animation Hook
+     */
+    const [isAnimating, setIsAnimating] = useState<boolean>(false);
+    const handleAnimationFinish = () => {
+        setIsAnimating(false);
+        setGachaResults([]);
+    };
+    //---------------------End---------------------//
+
+
+    /**
+     * Handle select banner
+     */
+    const [selectedBannerIndex, setSelectedBannerIndex] = useState<number>(0);
+
     const activeBanners = useMemo(() => {
         if (!gachaBannerList) return [];
         return gachaBannerList.filter((banner: IGachaBannerSchema) => banner.status === 'ACTIVE');
     }, [gachaBannerList]);
 
     const selectedBanner = activeBanners[selectedBannerIndex];
-
-    // Get current pity cho banner được chọn
-    const currentPity = useMemo(() => {
-        if (!selectedBanner) return 0;
-        return pityCounters[selectedBanner.id] || 0;
-    }, [selectedBanner, pityCounters]);
-
-    // Update pity cho banner cụ thể
-    const updatePity = (bannerId: number, newPity: number) => {
-        setPityCounters(prev => ({
-            ...prev,
-            [bannerId]: newPity,
-        }));
-    };
-
-    const handleWish = (count: number) => {
-        if (!selectedBanner) return;
-        const results = performWish(
-            selectedBanner,
-            count,
-            currentPity,
-            (newPity) => updatePity(selectedBanner.id, newPity)
-        );
-        setGachaResults(results as any);
-        setIsAnimating(true);
-    };
-
-    const handleAnimationFinish = () => {
-        // Save to history
-        if (gachaResults.length > 0 && selectedBanner) {
-            const historyEntry: GachaHistoryEntry = {
-                id: `${Date.now()}-${Math.random()}`,
-                timestamp: new Date(),
-                bannerId: selectedBanner.id,
-                bannerName: bannerName,
-                count: gachaResults.length,
-                results: gachaResults.map(r => ({
-                    id: r.id,
-                    name: r.name,
-                    rarity: r.rarity,
-                    imageUrl: r.imageUrl,
-                })),
-            };
-            setGachaHistory(prev => [historyEntry, ...prev]);
-        }
-        setIsAnimating(false);
-        setGachaResults([]);
-    };
-
     const handleNextBanner = () => {
         setSelectedBannerIndex((prev) => (prev + 1) % activeBanners.length);
     };
@@ -168,6 +129,7 @@ export default function GachaScreen() {
     const handlePrevBanner = () => {
         setSelectedBannerIndex((prev) => (prev - 1 + activeBanners.length) % activeBanners.length);
     };
+    //---------------------End---------------------//
 
     // Get featured pokemon (from pokemon field)
     const featuredPokemon = useMemo(() => {
@@ -185,6 +147,66 @@ export default function GachaScreen() {
         }
         return selectedBanner.nameTranslation || selectedBanner.nameKey;
     }, [selectedBanner, i18n.language]);
+
+    // Get banner name by ID (for history)
+    const getBannerNameById = useCallback((bannerId: number) => {
+        const banner = gachaBannerList?.find((b: IGachaBannerSchema) => b.id === bannerId);
+        if (!banner) return '';
+        if (banner.nameTranslations && Array.isArray(banner.nameTranslations)) {
+            const translation = banner.nameTranslations.find((trans: { key: string; value: string }) => trans.key === i18n.language);
+            if (translation) return translation.value;
+        }
+        return banner.nameTranslation || banner.nameKey;
+    }, [gachaBannerList, i18n.language]);
+
+    // Transform and group history data by purchaseId
+    const gachaHistory = useMemo(() => {
+        if (!historyData?.pages) return [];
+
+        // Flatten all pages
+        const allItems = historyData.pages.flatMap((page: any) => page?.data?.data?.results || []);
+
+        if (allItems.length === 0) {
+            return [];
+        }
+
+        // Group by purchaseId
+        const grouped = allItems.reduce((acc: { [key: number]: any[] }, item: any) => {
+            const purchaseId = item.purchaseId;
+            if (!acc[purchaseId]) {
+                acc[purchaseId] = [];
+            }
+            acc[purchaseId].push(item);
+            return acc;
+        }, {});
+
+        // Transform to UI format
+        return Object.values(grouped).map((items: any[]) => {
+            const firstItem = items[0];
+            const bannerName = getBannerNameById(firstItem.bannerId);
+
+            return {
+                id: `purchase-${firstItem.purchaseId}`,
+                timestamp: new Date(firstItem.createdAt),
+                bannerId: firstItem.bannerId,
+                bannerName: bannerName,
+                count: firstItem.purchase.rollCount,
+                results: items.map((item: any) => ({
+                    id: item.pokemon.pokedex_number || item.pokemon.id,
+                    name: item.pokemon.nameTranslations?.[i18n.language] || item.pokemon.nameTranslations?.en || item.pokemon.nameJp || 'Unknown',
+                    rarity: STAR_TYPE_MAP[item.rarity] || 1,
+                    imageUrl: item.pokemon.imageUrl,
+                })),
+            };
+        }).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()); // Sort by newest first
+    }, [historyData, getBannerNameById, i18n.language]);
+
+    // Handle infinite scroll
+    const handleLoadMore = useCallback(() => {
+        if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     if (isLoadingBanners) {
         return (
@@ -230,6 +252,16 @@ export default function GachaScreen() {
                 </TouchableOpacity>
             </BackScreen>
 
+            {/* Sparkles Balance - Always visible */}
+            <View className="px-4 pt-2 pb-1">
+                <View className="bg-amber-500/20 px-3 py-1.5 rounded-xl flex-row items-center gap-2 border border-amber-500/30 self-end">
+                    <Sparkles size={14} color="#f59e0b" strokeWidth={2.5} />
+                    <Text className="text-amber-400 text-sm font-extrabold">
+                        {sparklesBalance.toLocaleString()}
+                    </Text>
+                </View>
+            </View>
+
             <View className="flex-1">
                 {/* Banner Switcher - Premium UI */}
                 {activeBanners.length > 1 && (
@@ -266,9 +298,8 @@ export default function GachaScreen() {
                                 const bannerDisplayName = banner.nameTranslations && Array.isArray(banner.nameTranslations)
                                     ? banner.nameTranslations.find((trans: { key: string; value: string }) => trans.key === i18n.language)?.value || banner.nameTranslation
                                     : banner.nameTranslation || banner.nameKey;
-                                const bannerPity = pityCounters[banner.id] || 0;
                                 const bannerFeaturedPokemon = banner.pokemon || null;
-                                const pityProgress = bannerPity / (banner.hardPity5Star || 90);
+                                const pityProgress = currentPity / (banner.hardPity5Star || 90);
 
                                 return (
                                     <TouchableOpacity
@@ -276,6 +307,7 @@ export default function GachaScreen() {
                                         onPress={() => setSelectedBannerIndex(index)}
                                         activeOpacity={0.85}
                                         style={{ marginRight: 16 }}
+                                        className='my-1'
                                     >
                                         {/* Glowing border effect for selected */}
                                         {isSelected && (
@@ -343,7 +375,7 @@ export default function GachaScreen() {
                                                             <View className="flex-row items-center justify-between mb-1">
                                                                 <Text className="text-yellow-400 text-[10px] font-bold">Pity</Text>
                                                                 <Text className={`${isSelected ? 'text-white' : 'text-white/80'} text-[10px] font-extrabold`}>
-                                                                    {bannerPity}/{banner.hardPity5Star || 90}
+                                                                    {currentPity}/{banner.hardPity5Star || 90}
                                                                 </Text>
                                                             </View>
                                                             <View className="h-1 bg-slate-800 rounded-full overflow-hidden">
@@ -356,19 +388,6 @@ export default function GachaScreen() {
                                                             </View>
                                                         </View>
                                                     </View>
-
-                                                    {/* Active badge */}
-                                                    {isSelected && (
-                                                        <View className="absolute top-3 left-3">
-                                                            <TWLinearGradient
-                                                                colors={['#06b6d4', '#0891b2']}
-                                                                className="rounded-full px-2.5 py-1"
-                                                                style={{ shadowColor: '#06b6d4', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.8, shadowRadius: 4, elevation: 4 }}
-                                                            >
-                                                                <Text className="text-white text-[9px] font-black tracking-wide">ACTIVE</Text>
-                                                            </TWLinearGradient>
-                                                        </View>
-                                                    )}
                                                 </ImageBackground>
                                             ) : (
                                                 <TWLinearGradient
@@ -383,7 +402,7 @@ export default function GachaScreen() {
                                                     </Text>
                                                     <View className="mt-2 w-full bg-black/20 rounded-lg p-1.5">
                                                         <Text className="text-yellow-400 text-[10px] font-bold text-center">
-                                                            {bannerPity}/{banner.hardPity5Star || 90}
+                                                            {currentPity}/{banner.hardPity5Star || 90}
                                                         </Text>
                                                     </View>
                                                 </TWLinearGradient>
@@ -458,25 +477,37 @@ export default function GachaScreen() {
                             />
 
                             <View className="relative z-10 p-6 justify-between" style={{ minHeight: 200 }}>
-                                <View>
-                                    <Text className="text-white text-3xl font-extrabold mb-2 tracking-tight" numberOfLines={2}>
-                                        {bannerName}
-                                    </Text>
-                                    <Text className="text-cyan-300 text-base font-semibold mb-2">
-                                        {t('gacha.rate_up_text', { pokemon: featuredPokemon.nameTranslations?.en || featuredPokemon.nameJp })}
-                                    </Text>
-                                    {selectedBanner.costRoll && (
-                                        <View className="flex-row items-center gap-2 mt-2">
-                                            <TWLinearGradient
-                                                colors={['#06b6d4', '#0891b2']}
-                                                className="px-3 py-1.5 rounded-lg"
-                                            >
-                                                <Text className="text-white text-sm font-bold">
-                                                    {t('gacha.cost_per_roll', { cost: selectedBanner.costRoll })}
-                                                </Text>
-                                            </TWLinearGradient>
-                                        </View>
-                                    )}
+                                <View className="flex-row items-start justify-between">
+                                    <View className="flex-1">
+                                        <Text className="text-white text-3xl font-extrabold mb-2 tracking-tight" numberOfLines={2}>
+                                            {bannerName}
+                                        </Text>
+                                        <Text className="text-cyan-300 text-base font-semibold mb-2">
+                                            {t('gacha.rate_up_text', { pokemon: featuredPokemon.nameTranslations?.en || featuredPokemon.nameJp })}
+                                        </Text>
+                                        {selectedBanner.costRoll && (
+                                            <View className="flex-row items-center gap-2 mt-2">
+                                                <TWLinearGradient
+                                                    colors={['#06b6d4', '#0891b2']}
+                                                    className="px-3 py-1.5 rounded-lg"
+                                                >
+                                                    <Text className="text-white text-sm font-bold">
+                                                        {t('gacha.cost_per_roll', { cost: selectedBanner.costRoll })}
+                                                    </Text>
+                                                </TWLinearGradient>
+                                            </View>
+                                        )}
+                                    </View>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            setSelectedBannerForInfo(selectedBanner.id);
+                                            setShowBannerInfo(true);
+                                        }}
+                                        className="w-10 h-10 rounded-full bg-cyan-500/20 items-center justify-center border border-cyan-500/30"
+                                        activeOpacity={0.7}
+                                    >
+                                        <Info size={20} color="#06b6d4" strokeWidth={2.5} />
+                                    </TouchableOpacity>
                                 </View>
                             </View>
                         </ImageBackground>
@@ -527,20 +558,20 @@ export default function GachaScreen() {
                 <View className="px-4 mt-auto mb-4 gap-3">
                     <TouchableOpacity
                         onPress={() => handleWish(1)}
-                        disabled={!selectedBanner}
-                        className={`p-4 rounded-xl items-center ${selectedBanner ? 'bg-cyan-500' : 'bg-slate-700'}`}
+                        disabled={!selectedBanner || isPendingPurchase || isAnimating}
+                        className={`p-4 rounded-xl items-center ${selectedBanner && !isPendingPurchase && !isAnimating ? 'bg-cyan-500' : 'bg-slate-700'}`}
                         activeOpacity={0.8}
                     >
                         <Text className="text-white font-bold text-lg">{t('gacha.wish_single')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => handleWish(10)}
-                        disabled={!selectedBanner}
-                        className={`p-4 rounded-xl items-center ${selectedBanner ? 'bg-purple-600' : 'bg-slate-700'}`}
+                        disabled={!selectedBanner || isPendingPurchase || isAnimating}
+                        className={`p-4 rounded-xl items-center ${selectedBanner && !isPendingPurchase && !isAnimating ? 'bg-purple-600' : 'bg-slate-700'}`}
                         activeOpacity={0.8}
                     >
                         <Text className="text-white font-bold text-lg">
-                            {t('gacha.wish_ten', { guarantee: '4★' })}
+                            {t('gacha.wish_ten', { guarantee: '3★' })}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -553,12 +584,13 @@ export default function GachaScreen() {
             <Modal
                 visible={showHistory}
                 animationType="slide"
-                transparent={true}
+                transparent={false}
                 onRequestClose={() => setShowHistory(false)}
             >
-                <SafeAreaView className="flex-1 bg-slate-900" edges={['top', 'bottom', 'left', 'right']}>
+                <View className="flex-1 bg-slate-900" style={{ paddingTop: insets.top }}>
+                    <StatusBar barStyle="light-content" />
                     {/* Header */}
-                    <View className="flex-row items-center justify-between px-4 py-3 border-b border-slate-800">
+                    <View className="flex-row items-center justify-between px-4 pt-4 pb-3 border-b border-slate-800">
                         <Text className="text-white text-xl font-extrabold">{t('gacha.history_title')}</Text>
                         <TouchableOpacity
                             onPress={() => setShowHistory(false)}
@@ -570,7 +602,20 @@ export default function GachaScreen() {
                     </View>
 
                     {/* History List */}
-                    {gachaHistory.length === 0 ? (
+                    {isHistoryError ? (
+                        <View className="flex-1 items-center justify-center px-4">
+                            <Text className="text-red-400 text-base font-semibold mb-2">
+                                {t('gacha.history_error') || 'Error loading history'}
+                            </Text>
+                            <Text className="text-slate-500 text-sm text-center">
+                                {historyError?.message || 'Unknown error'}
+                            </Text>
+                        </View>
+                    ) : isLoadingHistory && gachaHistory.length === 0 ? (
+                        <View className="flex-1 items-center justify-center px-4">
+                            <ActivityIndicator size="large" color="#06b6d4" />
+                        </View>
+                    ) : gachaHistory.length === 0 ? (
                         <View className="flex-1 items-center justify-center px-4">
                             <History size={64} color="#475569" strokeWidth={1.5} />
                             <Text className="text-slate-500 text-lg font-semibold mt-4 text-center">
@@ -584,8 +629,17 @@ export default function GachaScreen() {
                         <FlatList
                             data={gachaHistory}
                             keyExtractor={(item) => item.id}
-                            contentContainerStyle={{ padding: 16 }}
+                            contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
                             showsVerticalScrollIndicator={false}
+                            onEndReached={handleLoadMore}
+                            onEndReachedThreshold={0.5}
+                            ListFooterComponent={
+                                isFetchingNextPage ? (
+                                    <View className="py-4 items-center">
+                                        <ActivityIndicator size="small" color="#06b6d4" />
+                                    </View>
+                                ) : null
+                            }
                             renderItem={({ item }) => (
                                 <View className="bg-slate-800/60 rounded-2xl p-4 mb-3 border border-slate-700">
                                     {/* Header */}
@@ -612,8 +666,18 @@ export default function GachaScreen() {
                                                 5: ['#facc15', '#fbbf24'], // Legendary
                                                 4: ['#a855f7', '#9333ea'], // Epic/Rare
                                                 3: ['#64748b', '#475569'], // Common/Uncommon
+                                                2: ['#94a3b8', '#64748b'], // 2 Star
+                                                1: ['#78716c', '#57534e'], // 1 Star
                                             };
-                                            const colors = rarityColors[pokemon.rarity] || rarityColors[3];
+                                            const starColors: { [key: number]: string } = {
+                                                5: '#facc15', // Gold
+                                                4: '#c084fc', // Purple
+                                                3: '#94a3b8', // Slate
+                                                2: '#e2e8f0', // Light slate
+                                                1: '#d4d4d8', // Gray
+                                            };
+                                            const colors = rarityColors[pokemon.rarity] || rarityColors[1];
+                                            const starColor = starColors[pokemon.rarity] || starColors[1];
 
                                             return (
                                                 <View key={idx} className="relative">
@@ -632,7 +696,7 @@ export default function GachaScreen() {
                                                         {/* Rarity Stars */}
                                                         <View className="absolute bottom-1 left-1 right-1 flex-row justify-center gap-0.5">
                                                             {Array.from({ length: pokemon.rarity }).map((_, i) => (
-                                                                <Text key={i} className="text-yellow-400 text-[8px]">★</Text>
+                                                                <Text key={i} style={{ color: starColor }} className="text-[8px]">★</Text>
                                                             ))}
                                                         </View>
                                                     </View>
@@ -644,8 +708,170 @@ export default function GachaScreen() {
                             )}
                         />
                     )}
-                </SafeAreaView>
+                </View>
             </Modal>
+
+            {/* Banner Info Modal */}
+            <BannerInfoModal
+                visible={showBannerInfo}
+                bannerId={selectedBannerForInfo}
+                onClose={() => {
+                    setShowBannerInfo(false);
+                    setSelectedBannerForInfo(null);
+                }}
+            />
         </SafeAreaView>
     );
 }
+
+// Banner Info Modal Component
+const BannerInfoModal = ({ visible, bannerId, onClose }: { visible: boolean; bannerId: number | null; onClose: () => void }) => {
+    const { t, i18n } = useTranslation();
+    const insets = useSafeAreaInsets();
+
+    const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetGachaItemsByBannerIdInfinite(
+        bannerId || 0,
+    );
+
+    // Transform data for display
+    const gachaItems = useMemo(() => {
+        if (!data?.pages) return [];
+        return data.pages.flatMap((page: any) => page?.data?.data?.results || []);
+    }, [data]);
+
+    // Group by star type
+    const groupedItems = useMemo(() => {
+        const grouped: { [key: number]: any[] } = {};
+        gachaItems.forEach((item: any) => {
+            const starType = STAR_TYPE_MAP[item.gachaItemRate.starType] || 1;
+            if (!grouped[starType]) {
+                grouped[starType] = [];
+            }
+            grouped[starType].push(item);
+        });
+        return grouped;
+    }, [gachaItems]);
+
+    // Sort star types from highest to lowest
+    const starTypes = useMemo(() => {
+        return Object.keys(groupedItems)
+            .map(Number)
+            .sort((a, b) => b - a);
+    }, [groupedItems]);
+
+    const handleLoadMore = useCallback(() => {
+        if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    const rarityColors: { [key: number]: string[] } = {
+        5: ['#facc15', '#fbbf24'],
+        4: ['#a855f7', '#9333ea'],
+        3: ['#3b82f6', '#2563eb'],
+        2: ['#10b981', '#059669'],
+        1: ['#64748b', '#475569'],
+    };
+    const starColors: { [key: number]: string } = {
+        5: '#facc15',
+        4: '#c084fc',
+        3: '#60a5fa',
+        2: '#34d399',
+        1: '#94a3b8',
+    };
+
+    return (
+        <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
+            <View className="flex-1 bg-slate-900" style={{ paddingTop: insets.top }}>
+                <StatusBar barStyle="light-content" />
+                <View className="flex-row items-center justify-between px-4 pt-4 pb-3 border-b border-slate-800">
+                    <Text className="text-white text-xl font-extrabold">{t('gacha.banner_info')}</Text>
+                    <TouchableOpacity
+                        onPress={onClose}
+                        className="w-10 h-10 rounded-full bg-slate-800 items-center justify-center"
+                        activeOpacity={0.7}
+                    >
+                        <X size={20} color="#fff" strokeWidth={2.5} />
+                    </TouchableOpacity>
+                </View>
+
+                {isLoading && gachaItems.length === 0 ? (
+                    <View className="flex-1 items-center justify-center px-4">
+                        <ActivityIndicator size="large" color="#06b6d4" />
+                    </View>
+                ) : gachaItems.length === 0 ? (
+                    <View className="flex-1 items-center justify-center px-4">
+                        <Text className="text-slate-500 text-lg font-semibold text-center">{t('gacha.no_items')}</Text>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={starTypes}
+                        keyExtractor={(starType) => starType.toString()}
+                        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+                        showsVerticalScrollIndicator={false}
+                        onEndReached={handleLoadMore}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={
+                            isFetchingNextPage ? (
+                                <View className="py-4 items-center">
+                                    <ActivityIndicator size="small" color="#06b6d4" />
+                                </View>
+                            ) : null
+                        }
+                        renderItem={({ item: starType }) => {
+                            const items = groupedItems[starType];
+                            const colors = rarityColors[starType] || rarityColors[1];
+                            const starColor = starColors[starType] || starColors[1];
+
+                            return (
+                                <View className="mb-6">
+                                    <View className="flex-row items-center gap-2 mb-3">
+                                        <View className="px-3 py-1.5 rounded-lg border-2" style={{ borderColor: colors[0] }}>
+                                            <Text className="text-white font-extrabold text-base">{starType}★</Text>
+                                        </View>
+                                        <Text className="text-slate-400 text-sm font-semibold">
+                                            {items.length} {t('gacha.pokemon')}
+                                        </Text>
+                                    </View>
+                                    <View className="flex-row flex-wrap gap-3">
+                                        {items.map((item: any, idx: number) => {
+                                            const pokemon = item.pokemon;
+                                            const name = pokemon.nameTranslations?.[i18n.language] || pokemon.nameTranslations?.en || pokemon.nameJp || 'Unknown';
+
+                                            return (
+                                                <View key={idx} className="relative">
+                                                    <View className="relative w-24 h-24 rounded-2xl overflow-hidden border-2" style={{ borderColor: colors[0] }}>
+                                                        <Image source={{ uri: pokemon.imageUrl }} className="w-full h-full" resizeMode="cover" />
+                                                        <LinearGradient
+                                                            colors={[`${colors[0]}00`, `${colors[0]}80`]}
+                                                            start={{ x: 0, y: 0 }}
+                                                            end={{ x: 0, y: 1 }}
+                                                            style={StyleSheet.absoluteFill}
+                                                        />
+                                                        <View className="absolute top-1 right-1 bg-black/60 px-2 py-0.5 rounded-lg">
+                                                            <Text className="text-white text-xs font-bold">
+                                                                {item.gachaItemRate.rate}%
+                                                            </Text>
+                                                        </View>
+                                                        <View className="absolute bottom-1 left-1 right-1 flex-row justify-center gap-0.5">
+                                                            {Array.from({ length: starType }).map((_, i) => (
+                                                                <Star key={i} size={12} color={starColor} fill={starColor} />
+                                                            ))}
+                                                        </View>
+                                                    </View>
+                                                    <Text className="text-white text-xs font-bold text-center mt-2 max-w-[96px]" numberOfLines={1}>
+                                                        {name}
+                                                    </Text>
+                                                </View>
+                                            );
+                                        })}
+                                    </View>
+                                </View>
+                            );
+                        }}
+                    />
+                )}
+            </View>
+        </Modal>
+    );
+};

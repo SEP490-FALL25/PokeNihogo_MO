@@ -433,7 +433,7 @@
     "rate_up_text": "Tăng tỉ lệ nhận {{pokemon}}!",
     "cost_per_roll": "Chi phí: {{cost}} mỗi lần",
     "wish_single": "Cầu nguyện x1",
-    "wish_ten": "Cầu nguyện x10 (Đảm bảo 1 {{guarantee}} trở lên)",
+    "wish_ten": "Cầu nguyện x10 (Đảm bảo {{guarantee}} trở lên)",
     "pity_title": "Bảo hiểm",
     "pity_description": "Còn {{remaining}} lần quay nữa đảm bảo 5★",
     "pity_guaranteed": "Lần quay tiếp theo chắc chắn nhận 5★!",
@@ -457,7 +457,10 @@
     "details_no_pokemon": "Không có Pokémon nào trong banner này",
     "details_loading": "Đang tải chi tiết banner...",
     "details_error": "Không thể tải chi tiết banner",
-    "details_error_desc": "Vui lòng thử lại sau"
+    "details_error_desc": "Vui lòng thử lại sau",
+    "banner_info": "Thông tin Banner",
+    "no_items": "Không có vật phẩm nào",
+    "pokemon": "Pokémon"
   },
   "error_state": {
     "default_title": "Đã xảy ra lỗi",
