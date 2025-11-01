@@ -837,13 +837,24 @@ const RevealItem = ({ item, onNext }: { item: any; onNext: () => void }) => {
                 <FloatingSparkle key={i} color={colors} {...p} />
             ))}
             <Animated.View style={animatedStyle} className="items-center">
-                <View className="w-72 h-72">
-                    <Image source={{ uri: imageUrl }} className="w-full h-full" />
-                    <Animated.Image
-                        source={{ uri: imageUrl }}
-                        className="absolute w-full h-full"
-                        style={[{ tintColor: "#020617" }, { opacity: silhouetteOpacity }]}
-                    />
+                <View className="relative">
+                    <View className="w-72 h-72">
+                        <Image source={{ uri: imageUrl }} className="w-full h-full" />
+                        <Animated.Image
+                            source={{ uri: imageUrl }}
+                            className="absolute w-full h-full"
+                            style={[{ tintColor: "#020617" }, { opacity: silhouetteOpacity }]}
+                        />
+                        {item.isDuplicate && item.sparkles && (
+                            <Animated.View
+                                entering={FadeIn.delay(600)}
+                                className="absolute top-2 right-2 bg-amber-500/95 px-2 py-1 rounded flex-row items-center gap-1"
+                            >
+                                <Sparkles size={14} color="#ffffff" fill="#ffffff" />
+                                <Text className="text-white font-bold text-xs">{item.sparkles}</Text>
+                            </Animated.View>
+                        )}
+                    </View>
                 </View>
                 <View className="flex-row gap-1 my-4">
                     {Array.from({ length: item.rarity }).map((_, i) => (
@@ -891,7 +902,7 @@ export default function GachaAnimation({ results, onFinish }: { results: any; on
                                 return (
                                     <View
                                         key={index}
-                                        className="items-center p-2 bg-slate-800 rounded-lg border"
+                                        className="relative items-center p-2 bg-slate-800 rounded-lg border"
                                         style={{ borderColor: itemColor }}
                                     >
                                         <Image
@@ -900,6 +911,12 @@ export default function GachaAnimation({ results, onFinish }: { results: any; on
                                             }}
                                             className="w-16 h-16"
                                         />
+                                        {item.isDuplicate && item.sparkles && (
+                                            <View className="absolute top-1 right-1 bg-amber-500 px-1.5 py-0.5 rounded flex-row items-center gap-0.5">
+                                                <Sparkles size={10} color="#ffffff" fill="#ffffff" />
+                                                <Text className="text-white font-bold text-[10px]">{item.sparkles}</Text>
+                                            </View>
+                                        )}
                                         <Text className="text-white text-xs font-bold">{item.name}</Text>
                                         <View className="flex-row">
                                             {Array.from({ length: item.rarity }).map((_, i) => (
