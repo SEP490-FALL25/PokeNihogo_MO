@@ -1,17 +1,18 @@
-import { AudioRecorder } from "@components/AudioRecorder";
+
 import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
-import { ThemedView } from "@components/ThemedView";
+import { ThemedView } from "@components/ThemedView";  
+import VoiceRecorder from "@components/ui/EnhancedAudioRecorder";
 import { IconSymbol } from "@components/ui/IconSymbol";
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from "expo-file-system";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const sampleSpeakingExercises = [
@@ -199,10 +200,10 @@ export default function SpeakingScreen() {
       if (response.ok) {
         const result = await response.json();
         console.log("Upload successful:", result);
-        
+
         // Xóa file khỏi thiết bị sau khi upload thành công
         try {
-          if (uri && uri.startsWith('file://')) {
+          if (uri && uri.startsWith("file://")) {
             const fileExists = await FileSystem.getInfoAsync(uri);
             if (fileExists.exists) {
               await FileSystem.deleteAsync(uri);
@@ -212,9 +213,12 @@ export default function SpeakingScreen() {
         } catch (deleteError) {
           console.error("Failed to delete file after upload:", deleteError);
         }
-        
-        Alert.alert(t("speaking.upload_success"), t("speaking.upload_success_message"));
-        
+
+        Alert.alert(
+          t("speaking.upload_success"),
+          t("speaking.upload_success_message")
+        );
+
         // Reset recording state
         setRecordingUri(null);
         setRecordingDuration(0);
@@ -223,7 +227,10 @@ export default function SpeakingScreen() {
       }
     } catch (error) {
       console.error("Upload error:", error);
-      Alert.alert(t("speaking.upload_error"), t("speaking.upload_error_message"));
+      Alert.alert(
+        t("speaking.upload_error"),
+        t("speaking.upload_error_message")
+      );
     }
   };
 
@@ -232,9 +239,7 @@ export default function SpeakingScreen() {
       <ThemedText type="title" style={styles.title}>
         🎤 {t("speaking.title")}
       </ThemedText>
-      <ThemedText style={styles.subtitle}>
-        {t("speaking.subtitle")}
-      </ThemedText>
+      <ThemedText style={styles.subtitle}>{t("speaking.subtitle")}</ThemedText>
       <ThemedText type="subtitle" style={styles.sectionTitle}>
         🗣️ {t("speaking.exercises_title")}
       </ThemedText>
@@ -262,8 +267,23 @@ export default function SpeakingScreen() {
             <ThemedText style={styles.recorderDescription}>
               {t("speaking.recorder_description")}
             </ThemedText>
+            <VoiceRecorder
+              exerciseTitle={
+                selectedExercise
+                  ? sampleSpeakingExercises[selectedExercise - 1]?.title
+                  : t("speaking.default_exercise")
+              }
+              onRecordingComplete={handleRecordingComplete}
+              onRecordingStart={handleRecordingStart}
+              onRecordingStop={handleRecordingStop}
+              onPlaybackStart={handlePlaybackStart}
+              onPlaybackStop={handlePlaybackStop}
+              maxDuration={10}
+              showPlayback={true}
+              customSavePath={`${FileSystem.documentDirectory}recordings/${new Date().toISOString().split("T")[0]}`}
+            />
 
-            <AudioRecorder
+            {/* <AudioRecorder
               exerciseTitle={
                 selectedExercise
                   ? sampleSpeakingExercises[selectedExercise - 1]?.title
@@ -276,13 +296,14 @@ export default function SpeakingScreen() {
               onPlaybackStop={handlePlaybackStop}
               maxDuration={60}
               showPlayback={true}
-              customSavePath={`${FileSystem.documentDirectory}recordings/${new Date().toISOString().split('T')[0]}`}
-            />
+              customSavePath={`${FileSystem.documentDirectory}recordings/${new Date().toISOString().split("T")[0]}`}
+            /> */}
 
             {recordingUri && (
               <ThemedView style={styles.recordingResult}>
                 <ThemedText style={styles.resultTitle}>
-                  ✅ {t("speaking.recording_complete")} ({Math.floor(recordingDuration / 60)}:
+                  ✅ {t("speaking.recording_complete")} (
+                  {Math.floor(recordingDuration / 60)}:
                   {(recordingDuration % 60).toString().padStart(2, "0")})
                 </ThemedText>
                 <ThemedText style={styles.resultDescription}>
@@ -316,15 +337,21 @@ export default function SpeakingScreen() {
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
               <ThemedText style={styles.statNumber}>12</ThemedText>
-              <ThemedText style={styles.statLabel}>{t("speaking.exercises_done")}</ThemedText>
+              <ThemedText style={styles.statLabel}>
+                {t("speaking.exercises_done")}
+              </ThemedText>
             </View>
             <View style={styles.statItem}>
               <ThemedText style={styles.statNumber}>1.5h</ThemedText>
-              <ThemedText style={styles.statLabel}>{t("speaking.practice_time")}</ThemedText>
+              <ThemedText style={styles.statLabel}>
+                {t("speaking.practice_time")}
+              </ThemedText>
             </View>
             <View style={styles.statItem}>
               <ThemedText style={styles.statNumber}>85%</ThemedText>
-              <ThemedText style={styles.statLabel}>{t("speaking.pronunciation")}</ThemedText>
+              <ThemedText style={styles.statLabel}>
+                {t("speaking.pronunciation")}
+              </ThemedText>
             </View>
           </View>
         </ThemedView>
