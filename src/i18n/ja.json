@@ -349,7 +349,7 @@
         "rate_up_text": "{{pokemon}}の出現率アップ！",
         "cost_per_roll": "コスト: {{cost}} / 回",
         "wish_single": "ガチャ x1",
-        "wish_ten": "ガチャ x10 ({{guarantee}}以上1体保証)",
+        "wish_ten": "ガチャ x10 ({{guarantee}}以上体保証)",
         "pity_title": "保証",
         "pity_description": "5★保証まであと{{remaining}}回",
         "pity_guaranteed": "次のガチャで5★確定！",

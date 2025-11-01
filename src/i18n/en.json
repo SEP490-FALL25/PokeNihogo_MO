@@ -433,7 +433,7 @@
     "rate_up_text": "Increased rate for {{pokemon}}!",
     "cost_per_roll": "Cost: {{cost}} per roll",
     "wish_single": "Wish x1",
-    "wish_ten": "Wish x10 (Guaranteed 1 {{guarantee}} or higher)",
+    "wish_ten": "Wish x10 (Guaranteed {{guarantee}} or higher)",
     "pity_title": "Pity",
     "pity_description": "{{remaining}} wishes until guaranteed 5★",
     "pity_guaranteed": "Next wish is guaranteed 5★!",

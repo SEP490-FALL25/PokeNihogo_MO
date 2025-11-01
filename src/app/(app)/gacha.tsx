@@ -16,21 +16,6 @@ import { ActivityIndicator, FlatList, Image, ImageBackground, Modal, ScrollView,
 import * as Progress from 'react-native-progress';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Types
-interface GachaHistoryEntry {
-    id: string;
-    timestamp: Date;
-    bannerId: number;
-    bannerName: string;
-    count: number; // 1 or 10
-    results: Array<{
-        id: number;
-        name: string;
-        rarity: number;
-        imageUrl: string;
-    }>;
-}
-
 
 export default function GachaScreen() {
     /**
@@ -218,7 +203,7 @@ export default function GachaScreen() {
                     rarity: STAR_TYPE_MAP[item.rarity] || 1,
                     imageUrl: item.pokemon.imageUrl,
                 })),
-            } as GachaHistoryEntry;
+            };
         }).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()); // Sort by newest first
     }, [historyData, getBannerNameById, i18n.language]);
 
@@ -592,7 +577,7 @@ export default function GachaScreen() {
                         activeOpacity={0.8}
                     >
                         <Text className="text-white font-bold text-lg">
-                            {t('gacha.wish_ten', { guarantee: '4★' })}
+                            {t('gacha.wish_ten', { guarantee: '3★' })}
                         </Text>
                     </TouchableOpacity>
                 </View>

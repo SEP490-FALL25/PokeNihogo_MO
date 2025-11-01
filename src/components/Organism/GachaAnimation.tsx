@@ -1,5 +1,6 @@
 "use client"
 
+import { RARITY_MAP } from "@constants/gacha.enum"
 import { LinearGradient } from "expo-linear-gradient"
 import { Sparkles, Star } from "lucide-react-native"
 import { cssInterop } from "nativewind"
@@ -17,7 +18,6 @@ import Animated, {
     withSequence,
     withTiming,
 } from "react-native-reanimated"
-import { RARITY } from "../../../mock-data/gacha"
 
 cssInterop(LinearGradient, { className: "style" })
 const TWLinearGradient = LinearGradient as unknown as React.ComponentType<
@@ -25,9 +25,11 @@ const TWLinearGradient = LinearGradient as unknown as React.ComponentType<
 >
 
 const RARITY_GLOW_COLORS = {
-    [RARITY.COMMON]: "#4fd1c5",
-    [RARITY.RARE]: "#a78bfa",
-    [RARITY.LEGENDARY]: "#facc15",
+    [RARITY_MAP.COMMON]: "#64748b",
+    [RARITY_MAP.UNCOMMON]: "#10b981",
+    [RARITY_MAP.RARE]: "#3b82f6",
+    [RARITY_MAP.EPIC]: "#a855f7",
+    [RARITY_MAP.LEGENDARY]: "#facc15",
 }
 
 const ExplosionBurst = ({ color, onComplete }: { color: string; onComplete: () => void }) => {
@@ -790,7 +792,7 @@ const RevealItem = ({ item, onNext }: { item: any; onNext: () => void }) => {
         scale.value = withTiming(1, { duration: 400, easing: Easing.out(Easing.back(1.5)) })
         silhouetteOpacity.value = withDelay(500, withTiming(0, { duration: 400 }))
 
-        if (item.rarity === RARITY.LEGENDARY) {
+        if (item.rarity === RARITY_MAP.LEGENDARY) {
             pulse.value = withRepeat(
                 withSequence(
                     withTiming(1.1, { duration: 1500, easing: Easing.inOut(Easing.sin) }),
@@ -814,8 +816,8 @@ const RevealItem = ({ item, onNext }: { item: any; onNext: () => void }) => {
     }))
 
     const particles = useMemo(() => {
-        if (item.rarity < RARITY.RARE) return []
-        const count = item.rarity === RARITY.RARE ? 15 : 30
+        if (item.rarity < 4) return []
+        const count = item.rarity === 4 ? 15 : 30
         return Array.from({ length: count }).map(() => ({
             delay: Math.random() * 2000,
             duration: 2000 + Math.random() * 2000,
@@ -861,9 +863,9 @@ export default function GachaAnimation({ results, onFinish }: { results: any; on
 
     const highestRarity = useMemo(() => {
         const rarities = results.map((r: any) => r.rarity)
-        if (rarities.includes(RARITY.LEGENDARY)) return RARITY.LEGENDARY
-        if (rarities.includes(RARITY.RARE)) return RARITY.RARE
-        return RARITY.COMMON
+        if (rarities.includes(RARITY_MAP.LEGENDARY)) return RARITY_MAP.LEGENDARY
+        if (rarities.includes(RARITY_MAP.RARE)) return RARITY_MAP.RARE
+        return RARITY_MAP.COMMON
     }, [results])
 
     const handleNextItem = () => {
