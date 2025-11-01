@@ -23,6 +23,46 @@ export const useGachaBannerToday = () => {
 
 
 
+//--------------------------------Gacha Items--------------------------------//
+/**
+ * Get gacha items by banner id hook
+ * @returns Gacha items data
+ */
+export const useGetGachaItemsByBannerId = (gachaBannerId: number) => {
+    return useQuery({
+        queryKey: ['gacha-items-by-banner-id', gachaBannerId],
+        queryFn: () => gachaService.getGachaItemsByBannerId(gachaBannerId),
+    });
+}
+
+/**
+ * Get gacha items by banner id with infinite scroll hook
+ * @returns Infinite query for gacha items
+ */
+export const useGetGachaItemsByBannerIdInfinite = (gachaBannerId: number) => {
+    return useInfiniteQuery({
+        queryKey: ['gacha-items-by-banner-id-infinite', gachaBannerId],
+        queryFn: ({ pageParam = 1 }) =>
+            gachaService.getGachaItemsByBannerId(gachaBannerId, {
+                currentPage: pageParam as number,
+                pageSize: 20,
+            }),
+        initialPageParam: 1,
+        enabled: gachaBannerId > 0,
+        getNextPageParam: (lastPage, allPages) => {
+            const pagination = (lastPage as any)?.data?.data?.pagination;
+            if (!pagination) return undefined;
+
+            const { current, totalPage } = pagination;
+            return current < totalPage ? current + 1 : undefined;
+        },
+    });
+}
+//--------------------------End------------------------//
+//---------------------------------------------End---------------------------------------------//
+
+
+
 //--------------------------------Gacha Purchase--------------------------------//
 export const useGachaPurchase = () => {
     const queryClient = useQueryClient();

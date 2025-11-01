@@ -457,7 +457,10 @@
     "details_no_pokemon": "Không có Pokémon nào trong banner này",
     "details_loading": "Đang tải chi tiết banner...",
     "details_error": "Không thể tải chi tiết banner",
-    "details_error_desc": "Vui lòng thử lại sau"
+    "details_error_desc": "Vui lòng thử lại sau",
+    "banner_info": "Thông tin Banner",
+    "no_items": "Không có vật phẩm nào",
+    "pokemon": "Pokémon"
   },
   "error_state": {
     "default_title": "Đã xảy ra lỗi",

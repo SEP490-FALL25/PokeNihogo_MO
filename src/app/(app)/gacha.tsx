@@ -2,14 +2,14 @@ import { TWLinearGradient } from '@components/atoms/TWLinearGradient';
 import BackScreen from '@components/molecules/Back';
 import GachaAnimation from '@components/Organism/GachaAnimation';
 import { STAR_TYPE_MAP } from '@constants/gacha.enum';
-import { useGachaBannerToday, useGachaPurchase, useGetGachaPurchaseHistory, useGetPityByUser } from '@hooks/useGacha';
+import { useGachaBannerToday, useGachaPurchase, useGetGachaItemsByBannerIdInfinite, useGetGachaPurchaseHistory, useGetPityByUser } from '@hooks/useGacha';
 import { useWalletUser } from '@hooks/useWallet';
 import { IGachaBannerSchema } from '@models/gacha/gacha.entity';
 import { useSparklesBalanceSelector } from '@stores/wallet/wallet.selectors';
 import { formatHistoryTime } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ChevronLeft, ChevronRight, History, Shield, Sparkles, X } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, History, Info, Shield, Sparkles, Star, X } from 'lucide-react-native';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Image, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -63,6 +63,8 @@ export default function GachaScreen() {
 
     const [gachaResults, setGachaResults] = useState<any[]>([]);
     const [showHistory, setShowHistory] = useState(false);
+    const [showBannerInfo, setShowBannerInfo] = useState(false);
+    const [selectedBannerForInfo, setSelectedBannerForInfo] = useState<number | null>(null);
 
     /**
      * Gacha Purchase Hook
@@ -475,25 +477,37 @@ export default function GachaScreen() {
                             />
 
                             <View className="relative z-10 p-6 justify-between" style={{ minHeight: 200 }}>
-                                <View>
-                                    <Text className="text-white text-3xl font-extrabold mb-2 tracking-tight" numberOfLines={2}>
-                                        {bannerName}
-                                    </Text>
-                                    <Text className="text-cyan-300 text-base font-semibold mb-2">
-                                        {t('gacha.rate_up_text', { pokemon: featuredPokemon.nameTranslations?.en || featuredPokemon.nameJp })}
-                                    </Text>
-                                    {selectedBanner.costRoll && (
-                                        <View className="flex-row items-center gap-2 mt-2">
-                                            <TWLinearGradient
-                                                colors={['#06b6d4', '#0891b2']}
-                                                className="px-3 py-1.5 rounded-lg"
-                                            >
-                                                <Text className="text-white text-sm font-bold">
-                                                    {t('gacha.cost_per_roll', { cost: selectedBanner.costRoll })}
-                                                </Text>
-                                            </TWLinearGradient>
-                                        </View>
-                                    )}
+                                <View className="flex-row items-start justify-between">
+                                    <View className="flex-1">
+                                        <Text className="text-white text-3xl font-extrabold mb-2 tracking-tight" numberOfLines={2}>
+                                            {bannerName}
+                                        </Text>
+                                        <Text className="text-cyan-300 text-base font-semibold mb-2">
+                                            {t('gacha.rate_up_text', { pokemon: featuredPokemon.nameTranslations?.en || featuredPokemon.nameJp })}
+                                        </Text>
+                                        {selectedBanner.costRoll && (
+                                            <View className="flex-row items-center gap-2 mt-2">
+                                                <TWLinearGradient
+                                                    colors={['#06b6d4', '#0891b2']}
+                                                    className="px-3 py-1.5 rounded-lg"
+                                                >
+                                                    <Text className="text-white text-sm font-bold">
+                                                        {t('gacha.cost_per_roll', { cost: selectedBanner.costRoll })}
+                                                    </Text>
+                                                </TWLinearGradient>
+                                            </View>
+                                        )}
+                                    </View>
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            setSelectedBannerForInfo(selectedBanner.id);
+                                            setShowBannerInfo(true);
+                                        }}
+                                        className="w-10 h-10 rounded-full bg-cyan-500/20 items-center justify-center border border-cyan-500/30"
+                                        activeOpacity={0.7}
+                                    >
+                                        <Info size={20} color="#06b6d4" strokeWidth={2.5} />
+                                    </TouchableOpacity>
                                 </View>
                             </View>
                         </ImageBackground>
@@ -696,6 +710,168 @@ export default function GachaScreen() {
                     )}
                 </View>
             </Modal>
+
+            {/* Banner Info Modal */}
+            <BannerInfoModal
+                visible={showBannerInfo}
+                bannerId={selectedBannerForInfo}
+                onClose={() => {
+                    setShowBannerInfo(false);
+                    setSelectedBannerForInfo(null);
+                }}
+            />
         </SafeAreaView>
     );
 }
+
+// Banner Info Modal Component
+const BannerInfoModal = ({ visible, bannerId, onClose }: { visible: boolean; bannerId: number | null; onClose: () => void }) => {
+    const { t, i18n } = useTranslation();
+    const insets = useSafeAreaInsets();
+
+    const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useGetGachaItemsByBannerIdInfinite(
+        bannerId || 0,
+    );
+
+    // Transform data for display
+    const gachaItems = useMemo(() => {
+        if (!data?.pages) return [];
+        return data.pages.flatMap((page: any) => page?.data?.data?.results || []);
+    }, [data]);
+
+    // Group by star type
+    const groupedItems = useMemo(() => {
+        const grouped: { [key: number]: any[] } = {};
+        gachaItems.forEach((item: any) => {
+            const starType = STAR_TYPE_MAP[item.gachaItemRate.starType] || 1;
+            if (!grouped[starType]) {
+                grouped[starType] = [];
+            }
+            grouped[starType].push(item);
+        });
+        return grouped;
+    }, [gachaItems]);
+
+    // Sort star types from highest to lowest
+    const starTypes = useMemo(() => {
+        return Object.keys(groupedItems)
+            .map(Number)
+            .sort((a, b) => b - a);
+    }, [groupedItems]);
+
+    const handleLoadMore = useCallback(() => {
+        if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    const rarityColors: { [key: number]: string[] } = {
+        5: ['#facc15', '#fbbf24'],
+        4: ['#a855f7', '#9333ea'],
+        3: ['#3b82f6', '#2563eb'],
+        2: ['#10b981', '#059669'],
+        1: ['#64748b', '#475569'],
+    };
+    const starColors: { [key: number]: string } = {
+        5: '#facc15',
+        4: '#c084fc',
+        3: '#60a5fa',
+        2: '#34d399',
+        1: '#94a3b8',
+    };
+
+    return (
+        <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
+            <View className="flex-1 bg-slate-900" style={{ paddingTop: insets.top }}>
+                <StatusBar barStyle="light-content" />
+                <View className="flex-row items-center justify-between px-4 pt-4 pb-3 border-b border-slate-800">
+                    <Text className="text-white text-xl font-extrabold">{t('gacha.banner_info')}</Text>
+                    <TouchableOpacity
+                        onPress={onClose}
+                        className="w-10 h-10 rounded-full bg-slate-800 items-center justify-center"
+                        activeOpacity={0.7}
+                    >
+                        <X size={20} color="#fff" strokeWidth={2.5} />
+                    </TouchableOpacity>
+                </View>
+
+                {isLoading && gachaItems.length === 0 ? (
+                    <View className="flex-1 items-center justify-center px-4">
+                        <ActivityIndicator size="large" color="#06b6d4" />
+                    </View>
+                ) : gachaItems.length === 0 ? (
+                    <View className="flex-1 items-center justify-center px-4">
+                        <Text className="text-slate-500 text-lg font-semibold text-center">{t('gacha.no_items')}</Text>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={starTypes}
+                        keyExtractor={(starType) => starType.toString()}
+                        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+                        showsVerticalScrollIndicator={false}
+                        onEndReached={handleLoadMore}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={
+                            isFetchingNextPage ? (
+                                <View className="py-4 items-center">
+                                    <ActivityIndicator size="small" color="#06b6d4" />
+                                </View>
+                            ) : null
+                        }
+                        renderItem={({ item: starType }) => {
+                            const items = groupedItems[starType];
+                            const colors = rarityColors[starType] || rarityColors[1];
+                            const starColor = starColors[starType] || starColors[1];
+
+                            return (
+                                <View className="mb-6">
+                                    <View className="flex-row items-center gap-2 mb-3">
+                                        <View className="px-3 py-1.5 rounded-lg border-2" style={{ borderColor: colors[0] }}>
+                                            <Text className="text-white font-extrabold text-base">{starType}★</Text>
+                                        </View>
+                                        <Text className="text-slate-400 text-sm font-semibold">
+                                            {items.length} {t('gacha.pokemon')}
+                                        </Text>
+                                    </View>
+                                    <View className="flex-row flex-wrap gap-3">
+                                        {items.map((item: any, idx: number) => {
+                                            const pokemon = item.pokemon;
+                                            const name = pokemon.nameTranslations?.[i18n.language] || pokemon.nameTranslations?.en || pokemon.nameJp || 'Unknown';
+
+                                            return (
+                                                <View key={idx} className="relative">
+                                                    <View className="relative w-24 h-24 rounded-2xl overflow-hidden border-2" style={{ borderColor: colors[0] }}>
+                                                        <Image source={{ uri: pokemon.imageUrl }} className="w-full h-full" resizeMode="cover" />
+                                                        <LinearGradient
+                                                            colors={[`${colors[0]}00`, `${colors[0]}80`]}
+                                                            start={{ x: 0, y: 0 }}
+                                                            end={{ x: 0, y: 1 }}
+                                                            style={StyleSheet.absoluteFill}
+                                                        />
+                                                        <View className="absolute top-1 right-1 bg-black/60 px-2 py-0.5 rounded-lg">
+                                                            <Text className="text-white text-xs font-bold">
+                                                                {item.gachaItemRate.rate}%
+                                                            </Text>
+                                                        </View>
+                                                        <View className="absolute bottom-1 left-1 right-1 flex-row justify-center gap-0.5">
+                                                            {Array.from({ length: starType }).map((_, i) => (
+                                                                <Star key={i} size={12} color={starColor} fill={starColor} />
+                                                            ))}
+                                                        </View>
+                                                    </View>
+                                                    <Text className="text-white text-xs font-bold text-center mt-2 max-w-[96px]" numberOfLines={1}>
+                                                        {name}
+                                                    </Text>
+                                                </View>
+                                            );
+                                        })}
+                                    </View>
+                                </View>
+                            );
+                        }}
+                    />
+                )}
+            </View>
+        </Modal>
+    );
+};

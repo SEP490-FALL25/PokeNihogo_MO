@@ -457,7 +457,10 @@
     "details_no_pokemon": "No Pokémon available in this banner",
     "details_loading": "Loading banner details...",
     "details_error": "Failed to load banner details",
-    "details_error_desc": "Please try again later"
+    "details_error_desc": "Please try again later",
+    "banner_info": "Banner Information",
+    "no_items": "No items available",
+    "pokemon": "Pokémon"
   },
   "error_state": {
     "default_title": "An error occurred",

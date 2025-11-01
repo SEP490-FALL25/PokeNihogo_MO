@@ -31,6 +31,13 @@ const gachaService = {
         return axiosPrivate.get(`/user-gacha-pity/user/present`);
     },
 
+    getGachaItemsByBannerId: async (gachaBannerId: number, params?: IQueryRequest) => {
+        const queryParams = new URLSearchParams();
+        if (params?.currentPage) queryParams.append('currentPage', params.currentPage.toString());
+        if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString());
+        return axiosPrivate.get(`/gacha-item/gacha-banner/${gachaBannerId}?${queryParams.toString()}`);
+    },
+
     gachaPurchase: async (data: IGachaPurchaseRequest) => {
         return axiosPrivate.post(`/gacha-purchase`, data);
     },
