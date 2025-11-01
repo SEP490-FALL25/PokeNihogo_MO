@@ -161,7 +161,7 @@ const ExplosionFlash = ({ color }: { color: string }) => {
 }
 
 const ShootingStar = ({ highestRarity, onComplete }: { highestRarity: number; onComplete: () => void }) => {
-    const color = RARITY_GLOW_COLORS[highestRarity]
+    const color = RARITY_GLOW_COLORS[highestRarity] || RARITY_GLOW_COLORS[RARITY_MAP.COMMON]
     const { width: screenWidth, height: screenHeight } = Dimensions.get("window")
     const [showExplosion, setShowExplosion] = useState(false)
 
@@ -780,7 +780,7 @@ const RevealItem = ({ item, onNext }: { item: any; onNext: () => void }) => {
     const scale = useSharedValue(0.8)
     const silhouetteOpacity = useSharedValue(1)
     const pulse = useSharedValue(1)
-    const colors = RARITY_GLOW_COLORS[item.rarity]
+    const colors = RARITY_GLOW_COLORS[item.rarity] || RARITY_GLOW_COLORS[RARITY_MAP.COMMON]
     const imageUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${item.id}.png`
 
     useEffect(() => {
@@ -863,9 +863,8 @@ export default function GachaAnimation({ results, onFinish }: { results: any; on
 
     const highestRarity = useMemo(() => {
         const rarities = results.map((r: any) => r.rarity)
-        if (rarities.includes(RARITY_MAP.LEGENDARY)) return RARITY_MAP.LEGENDARY
-        if (rarities.includes(RARITY_MAP.RARE)) return RARITY_MAP.RARE
-        return RARITY_MAP.COMMON
+        if (rarities.length === 0) return RARITY_MAP.COMMON
+        return Math.max(...rarities)
     }, [results])
 
     const handleNextItem = () => {
@@ -887,26 +886,29 @@ export default function GachaAnimation({ results, onFinish }: { results: any; on
                     <Animated.View entering={FadeIn} className="absolute inset-0 bg-slate-900/95 justify-center p-4">
                         <Text className="text-3xl font-bold text-white text-center mb-6">Kết quả Cầu nguyện</Text>
                         <View className="flex-row flex-wrap justify-center gap-2">
-                            {results.map((item: any, index: number) => (
-                                <View
-                                    key={index}
-                                    className="items-center p-2 bg-slate-800 rounded-lg border"
-                                    style={{ borderColor: RARITY_GLOW_COLORS[item.rarity] }}
-                                >
-                                    <Image
-                                        source={{
-                                            uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${item.id}.png`,
-                                        }}
-                                        className="w-16 h-16"
-                                    />
-                                    <Text className="text-white text-xs font-bold">{item.name}</Text>
-                                    <View className="flex-row">
-                                        {Array.from({ length: item.rarity }).map((_, i) => (
-                                            <Star key={i} size={8} color={RARITY_GLOW_COLORS[item.rarity]} />
-                                        ))}
+                            {results.map((item: any, index: number) => {
+                                const itemColor = RARITY_GLOW_COLORS[item.rarity] || RARITY_GLOW_COLORS[RARITY_MAP.COMMON]
+                                return (
+                                    <View
+                                        key={index}
+                                        className="items-center p-2 bg-slate-800 rounded-lg border"
+                                        style={{ borderColor: itemColor }}
+                                    >
+                                        <Image
+                                            source={{
+                                                uri: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${item.id}.png`,
+                                            }}
+                                            className="w-16 h-16"
+                                        />
+                                        <Text className="text-white text-xs font-bold">{item.name}</Text>
+                                        <View className="flex-row">
+                                            {Array.from({ length: item.rarity }).map((_, i) => (
+                                                <Star key={i} size={8} color={itemColor} />
+                                            ))}
+                                        </View>
                                     </View>
-                                </View>
-                            ))}
+                                )
+                            })}
                         </View>
                         <TouchableOpacity onPress={onFinish} className="mt-8 bg-cyan-500 p-3 rounded-xl mx-4">
                             <Text className="text-white font-bold text-center text-lg">Đóng</Text>

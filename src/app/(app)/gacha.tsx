@@ -10,7 +10,7 @@ import { formatHistoryTime } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ChevronLeft, ChevronRight, History, Shield, Sparkles, X } from 'lucide-react-native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Image, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Progress from 'react-native-progress';
@@ -61,24 +61,8 @@ export default function GachaScreen() {
     const currentPity = pityData?.data?.data?.pityCount || 0;
     //---------------------End---------------------//
 
-    const [selectedBannerIndex, setSelectedBannerIndex] = useState(0);
     const [gachaResults, setGachaResults] = useState<any[]>([]);
-    const [isAnimating, setIsAnimating] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
-
-    useEffect(() => {
-        if (showHistory) {
-            refetchHistory();
-        }
-    }, [showHistory, refetchHistory]);
-
-    // Filter active banners only
-    const activeBanners = useMemo(() => {
-        if (!gachaBannerList) return [];
-        return gachaBannerList.filter((banner: IGachaBannerSchema) => banner.status === 'ACTIVE');
-    }, [gachaBannerList]);
-
-    const selectedBanner = activeBanners[selectedBannerIndex];
 
     /**
      * Gacha Purchase Hook
@@ -92,7 +76,6 @@ export default function GachaScreen() {
             rollCount: count,
         }, {
             onSuccess: (response) => {
-                // Convert API response to animation format
                 const results = response.data.data.map((item: any) => ({
                     id: item.pokemon.pokedex_number || item.pokemon.id,
                     name: item.pokemon.nameTranslations?.en || item.pokemon.nameTranslations?.vi || item.pokemon.nameJp || 'Unknown',
@@ -102,16 +85,6 @@ export default function GachaScreen() {
                     isDuplicate: item.isDuplicate,
                     sparkles: item.parseItem.sparkles,
                 }));
-
-                // Calculate total sparkles from duplicates
-                const totalSparkles = results
-                    .filter((item: any) => item.isDuplicate)
-                    .reduce((sum: number, item: any) => sum + (item.sparkles || 0), 0);
-
-                // Refetch wallet to update sparkles balance (invalidateQueries will also handle this, but refetch ensures immediate update)
-                if (totalSparkles > 0) {
-                    refetchWallet();
-                }
 
                 setGachaResults(results);
                 setIsAnimating(true);
@@ -124,11 +97,29 @@ export default function GachaScreen() {
     };
     //---------------------End---------------------//
 
+
+    /**
+     * Animation Hook
+     */
+    const [isAnimating, setIsAnimating] = useState<boolean>(false);
     const handleAnimationFinish = () => {
         setIsAnimating(false);
         setGachaResults([]);
     };
+    //---------------------End---------------------//
 
+
+    /**
+     * Handle select banner
+     */
+    const [selectedBannerIndex, setSelectedBannerIndex] = useState<number>(0);
+
+    const activeBanners = useMemo(() => {
+        if (!gachaBannerList) return [];
+        return gachaBannerList.filter((banner: IGachaBannerSchema) => banner.status === 'ACTIVE');
+    }, [gachaBannerList]);
+
+    const selectedBanner = activeBanners[selectedBannerIndex];
     const handleNextBanner = () => {
         setSelectedBannerIndex((prev) => (prev + 1) % activeBanners.length);
     };
@@ -136,6 +127,7 @@ export default function GachaScreen() {
     const handlePrevBanner = () => {
         setSelectedBannerIndex((prev) => (prev - 1 + activeBanners.length) % activeBanners.length);
     };
+    //---------------------End---------------------//
 
     // Get featured pokemon (from pokemon field)
     const featuredPokemon = useMemo(() => {
@@ -313,6 +305,7 @@ export default function GachaScreen() {
                                         onPress={() => setSelectedBannerIndex(index)}
                                         activeOpacity={0.85}
                                         style={{ marginRight: 16 }}
+                                        className='my-1'
                                     >
                                         {/* Glowing border effect for selected */}
                                         {isSelected && (
@@ -393,19 +386,6 @@ export default function GachaScreen() {
                                                             </View>
                                                         </View>
                                                     </View>
-
-                                                    {/* Active badge */}
-                                                    {isSelected && (
-                                                        <View className="absolute top-3 left-3">
-                                                            <TWLinearGradient
-                                                                colors={['#06b6d4', '#0891b2']}
-                                                                className="rounded-full px-2.5 py-1"
-                                                                style={{ shadowColor: '#06b6d4', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.8, shadowRadius: 4, elevation: 4 }}
-                                                            >
-                                                                <Text className="text-white text-[9px] font-black tracking-wide">ACTIVE</Text>
-                                                            </TWLinearGradient>
-                                                        </View>
-                                                    )}
                                                 </ImageBackground>
                                             ) : (
                                                 <TWLinearGradient
