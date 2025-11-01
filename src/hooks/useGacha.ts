@@ -1,9 +1,8 @@
-import { IQueryRequest } from "@models/common/common.request";
 import { IGachaBannerSchema } from "@models/gacha/gacha.entity";
 import { IGachaPurchaseRequest } from "@models/gacha/gacha.request";
 import gachaService from "@services/gacha";
 import { useGlobalStore } from "@stores/global/global.config";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 
 //--------------------------------Gacha Hook--------------------------------//
@@ -44,11 +43,36 @@ export const useGachaPurchase = () => {
 //---------------------------------------------End---------------------------------------------//
 
 
-export const useGetGachaPurchaseHistory = (params?: IQueryRequest) => {
+/**
+ * Get gacha purchase history hook with infinite scroll
+ * @returns Infinite query for gacha history (max 50 records, sorted by createdAt DESC)
+ */
+export const useGetGachaPurchaseHistory = () => {
     const language = useGlobalStore((state) => state.language);
-    return useQuery({
-        queryKey: ['gacha-roll-history-user', params, language],
-        queryFn: () => gachaService.getHistoryByUser(params),
+    return useInfiniteQuery({
+        queryKey: ['gacha-roll-history-user', language],
+        queryFn: ({ pageParam = 1 }) =>
+            gachaService.getHistoryByUser({
+                currentPage: pageParam as number,
+                pageSize: 10,
+                sort: '-createdAt',
+            }),
+        initialPageParam: 1,
+        getNextPageParam: (lastPage, allPages) => {
+            const pagination = (lastPage as any)?.data?.data?.pagination;
+            if (!pagination) return undefined;
+
+            // Limit to 50 records total (5 pages x 10 records)
+            const totalLoaded = allPages.reduce((sum, page) => {
+                const pageResults = (page as any)?.data?.data?.results || [];
+                return sum + pageResults.length;
+            }, 0);
+
+            if (totalLoaded >= 50) return undefined;
+
+            const { current, totalPage } = pagination;
+            return current < totalPage ? current + 1 : undefined;
+        },
     });
 }
 //--------------------------End------------------------//

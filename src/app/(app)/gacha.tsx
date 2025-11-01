@@ -2,7 +2,7 @@ import { TWLinearGradient } from '@components/atoms/TWLinearGradient';
 import BackScreen from '@components/molecules/Back';
 import GachaAnimation from '@components/Organism/GachaAnimation';
 import { STAR_TYPE_MAP } from '@constants/gacha.enum';
-import { useGachaBannerToday, useGachaPurchase } from '@hooks/useGacha';
+import { useGachaBannerToday, useGachaPurchase, useGetGachaPurchaseHistory } from '@hooks/useGacha';
 import { useWalletUser } from '@hooks/useWallet';
 import { IGachaBannerSchema } from '@models/gacha/gacha.entity';
 import { useSparklesBalanceSelector } from '@stores/wallet/wallet.selectors';
@@ -10,7 +10,7 @@ import { formatHistoryTime } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ChevronLeft, ChevronRight, History, Shield, Sparkles, X } from 'lucide-react-native';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Image, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Progress from 'react-native-progress';
@@ -53,13 +53,33 @@ export default function GachaScreen() {
     const { refetch: refetchWallet } = useWalletUser();
     //---------------------End---------------------//
 
-    const { mutate: gachaPurchase, isPending: isPendingPurchase } = useGachaPurchase();
+
+    /**
+     * Gacha Purchase History Hook (Infinite Scroll)
+     */
+    const {
+        data: historyData,
+        isLoading: isLoadingHistory,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isError: isHistoryError,
+        error: historyError,
+        refetch: refetchHistory,
+    } = useGetGachaPurchaseHistory();
+    //---------------------End---------------------//
 
     const [selectedBannerIndex, setSelectedBannerIndex] = useState(0);
     const [gachaResults, setGachaResults] = useState<any[]>([]);
     const [isAnimating, setIsAnimating] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
-    const [gachaHistory, setGachaHistory] = useState<GachaHistoryEntry[]>([]);
+
+    // Refetch when modal opens
+    React.useEffect(() => {
+        if (showHistory) {
+            refetchHistory();
+        }
+    }, [showHistory, refetchHistory]);
 
     // Pity counter cho mỗi banner (key = banner.id)
     const [pityCounters, setPityCounters] = useState<{ [key: number]: number }>({});
@@ -78,6 +98,10 @@ export default function GachaScreen() {
         return pityCounters[selectedBanner.id] || 0;
     }, [selectedBanner, pityCounters]);
 
+    /**
+     * Gacha Purchase Hook
+     */
+    const { mutate: gachaPurchase, isPending: isPendingPurchase } = useGachaPurchase();
     const handleWish = (count: number) => {
         if (!selectedBanner) return;
 
@@ -112,29 +136,13 @@ export default function GachaScreen() {
             },
             onError: (error) => {
                 console.error('Gacha purchase error:', error.message);
-                // TODO: Show error toast/modal
+                //TODO: Show Modal
             },
         });
     };
+    //---------------------End---------------------//
 
     const handleAnimationFinish = () => {
-        // Save to history
-        if (gachaResults.length > 0 && selectedBanner) {
-            const historyEntry: GachaHistoryEntry = {
-                id: `${Date.now()}-${Math.random()}`,
-                timestamp: new Date(),
-                bannerId: selectedBanner.id,
-                bannerName: bannerName,
-                count: gachaResults.length,
-                results: gachaResults.map(r => ({
-                    id: r.id,
-                    name: r.name,
-                    rarity: r.rarity,
-                    imageUrl: r.imageUrl,
-                })),
-            };
-            setGachaHistory(prev => [historyEntry, ...prev]);
-        }
         setIsAnimating(false);
         setGachaResults([]);
     };
@@ -163,6 +171,80 @@ export default function GachaScreen() {
         }
         return selectedBanner.nameTranslation || selectedBanner.nameKey;
     }, [selectedBanner, i18n.language]);
+
+    // Get banner name by ID (for history)
+    const getBannerNameById = useCallback((bannerId: number) => {
+        const banner = gachaBannerList?.find((b: IGachaBannerSchema) => b.id === bannerId);
+        if (!banner) return '';
+        if (banner.nameTranslations && Array.isArray(banner.nameTranslations)) {
+            const translation = banner.nameTranslations.find((trans: { key: string; value: string }) => trans.key === i18n.language);
+            if (translation) return translation.value;
+        }
+        return banner.nameTranslation || banner.nameKey;
+    }, [gachaBannerList, i18n.language]);
+
+    // Transform and group history data by purchaseId
+    const gachaHistory = useMemo(() => {
+        console.log('History Data:', JSON.stringify(historyData, null, 2));
+        if (!historyData?.pages) {
+            console.log('No pages in historyData');
+            return [];
+        }
+
+        // Flatten all pages
+        const allItems = historyData.pages.flatMap((page: any) => {
+            console.log('Page data:', page?.data?.data);
+            return page?.data?.data?.results || [];
+        });
+
+        console.log('All items:', allItems.length);
+
+        if (allItems.length === 0) {
+            return [];
+        }
+
+        // Group by purchaseId
+        const grouped = allItems.reduce((acc: { [key: number]: any[] }, item: any) => {
+            const purchaseId = item.purchaseId;
+            if (!acc[purchaseId]) {
+                acc[purchaseId] = [];
+            }
+            acc[purchaseId].push(item);
+            return acc;
+        }, {});
+
+        console.log('Grouped:', Object.keys(grouped).length);
+
+        // Transform to UI format
+        const transformed = Object.values(grouped).map((items: any[]) => {
+            const firstItem = items[0];
+            const bannerName = getBannerNameById(firstItem.bannerId);
+
+            return {
+                id: `purchase-${firstItem.purchaseId}`,
+                timestamp: new Date(firstItem.createdAt),
+                bannerId: firstItem.bannerId,
+                bannerName: bannerName,
+                count: firstItem.purchase.rollCount,
+                results: items.map((item: any) => ({
+                    id: item.pokemon.pokedex_number || item.pokemon.id,
+                    name: item.pokemon.nameTranslations?.[i18n.language] || item.pokemon.nameTranslations?.en || item.pokemon.nameJp || 'Unknown',
+                    rarity: STAR_TYPE_MAP[item.rarity] || 1,
+                    imageUrl: item.pokemon.imageUrl,
+                })),
+            } as GachaHistoryEntry;
+        }).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()); // Sort by newest first
+
+        console.log('Transformed history:', transformed.length);
+        return transformed;
+    }, [historyData, getBannerNameById, i18n.language]);
+
+    // Handle infinite scroll
+    const handleLoadMore = useCallback(() => {
+        if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
     if (isLoadingBanners) {
         return (
@@ -559,7 +641,20 @@ export default function GachaScreen() {
                     </View>
 
                     {/* History List */}
-                    {gachaHistory.length === 0 ? (
+                    {isHistoryError ? (
+                        <View className="flex-1 items-center justify-center px-4">
+                            <Text className="text-red-400 text-base font-semibold mb-2">
+                                {t('gacha.history_error') || 'Error loading history'}
+                            </Text>
+                            <Text className="text-slate-500 text-sm text-center">
+                                {historyError?.message || 'Unknown error'}
+                            </Text>
+                        </View>
+                    ) : isLoadingHistory && gachaHistory.length === 0 ? (
+                        <View className="flex-1 items-center justify-center px-4">
+                            <ActivityIndicator size="large" color="#06b6d4" />
+                        </View>
+                    ) : gachaHistory.length === 0 ? (
                         <View className="flex-1 items-center justify-center px-4">
                             <History size={64} color="#475569" strokeWidth={1.5} />
                             <Text className="text-slate-500 text-lg font-semibold mt-4 text-center">
@@ -573,8 +668,17 @@ export default function GachaScreen() {
                         <FlatList
                             data={gachaHistory}
                             keyExtractor={(item) => item.id}
-                            contentContainerStyle={{ padding: 16 }}
+                            contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
                             showsVerticalScrollIndicator={false}
+                            onEndReached={handleLoadMore}
+                            onEndReachedThreshold={0.5}
+                            ListFooterComponent={
+                                isFetchingNextPage ? (
+                                    <View className="py-4 items-center">
+                                        <ActivityIndicator size="small" color="#06b6d4" />
+                                    </View>
+                                ) : null
+                            }
                             renderItem={({ item }) => (
                                 <View className="bg-slate-800/60 rounded-2xl p-4 mb-3 border border-slate-700">
                                     {/* Header */}
