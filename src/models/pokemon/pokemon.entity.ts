@@ -21,6 +21,18 @@ export const PokemonEntitySchema = z.object({
 });
 
 export type PokemonEntityType = z.infer<typeof PokemonEntitySchema>;
+
+
+export const PokemonEntitySchemaWithoutUser = PokemonEntitySchema.omit({
+    createdById: true,
+    updatedById: true,
+    deletedById: true,
+    createdAt: true,
+    updatedAt: true,
+    deletedAt: true,
+});
+
+export type PokemonEntitySchemaWithoutUserType = z.infer<typeof PokemonEntitySchemaWithoutUser>;
 //------------------------End------------------------//
 
 
