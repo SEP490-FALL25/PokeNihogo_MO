@@ -426,6 +426,25 @@
     "search_results": "Tìm thấy {{count}} kết quả",
     "load_error": "Không thể tải dữ liệu Pokémon"
   },
+  "gacha": {
+    "title": "Cầu nguyện",
+    "no_banners": "Không có banner nào đang hoạt động",
+    "select_banner": "Chọn banner",
+    "rate_up_text": "Tăng tỉ lệ nhận {{pokemon}}!",
+    "cost_per_roll": "Chi phí: {{cost}} mỗi lần",
+    "wish_single": "Cầu nguyện x1",
+    "wish_ten": "Cầu nguyện x10 (Đảm bảo 1 {{guarantee}} trở lên)",
+    "pity_title": "Bảo hiểm",
+    "pity_description": "Còn {{remaining}} lần quay nữa đảm bảo 5★",
+    "pity_guaranteed": "Lần quay tiếp theo chắc chắn nhận 5★!",
+    "history": "Lịch sử",
+    "history_title": "Lịch sử cầu nguyện",
+    "history_empty": "Chưa có lịch sử",
+    "history_empty_desc": "Lịch sử quay gacha của bạn sẽ hiển thị ở đây",
+    "wish_count": "{{count}} lần quay",
+    "featured_pokemon": "Pokémon nổi bật",
+    "banner_pokemon": "Pokémon có sẵn"
+  },
   "error_state": {
     "default_title": "Đã xảy ra lỗi",
     "default_description": "Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.",

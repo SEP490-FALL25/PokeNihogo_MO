@@ -341,5 +341,24 @@
         "search_placeholder": "名前または図鑑番号で検索...",
         "search_results": "{{count}} 件見つかりました",
         "load_error": "ポケモンのデータを読み込めません"
+    },
+    "gacha": {
+        "title": "ガチャ",
+        "no_banners": "アクティブなバナーがありません",
+        "select_banner": "バナーを選択",
+        "rate_up_text": "{{pokemon}}の出現率アップ！",
+        "cost_per_roll": "コスト: {{cost}} / 回",
+        "wish_single": "ガチャ x1",
+        "wish_ten": "ガチャ x10 ({{guarantee}}以上1体保証)",
+        "pity_title": "保証",
+        "pity_description": "5★保証まであと{{remaining}}回",
+        "pity_guaranteed": "次のガチャで5★確定！",
+        "history": "履歴",
+        "history_title": "ガチャ履歴",
+        "history_empty": "まだ履歴がありません",
+        "history_empty_desc": "ガチャの結果がここに表示されます",
+        "wish_count": "{{count}}回",
+        "featured_pokemon": "注目のポケモン",
+        "banner_pokemon": "入手可能なポケモン"
     }
 }
