@@ -10,11 +10,11 @@ export const GachaItemSchema = z.object({
     id: z.number(),
     bannerId: z.number(),
     pokemonId: z.number(),
-    gachaItemRateId: z.number(),
+    gachaItemRateId: z.number().optional(),
     ...byUser,
     ...at,
     pokemon: PokemonEntitySchemaWithoutUser,
-});
+}).passthrough();
 export type IGachaItemSchema = z.infer<typeof GachaItemSchema>;
 //------------------------End------------------------//
 //---------------------------------------------End---------------------------------------------//
@@ -44,8 +44,10 @@ export const GachaBannerSchema = z.object({
     ...byUser,
     ...at,
     nameTranslation: z.string(),
-    nameTranslations: TranslationInputSchema,
-    items: z.array(GachaItemSchema),
+    nameTranslations: TranslationInputSchema.optional(),
+    pokemon: PokemonEntitySchemaWithoutUser.extend({
+        starType: z.string().optional(),
+    }),
 });
 export type IGachaBannerSchema = z.infer<typeof GachaBannerSchema>;
 //------------------------End------------------------//

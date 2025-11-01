@@ -1,7 +1,7 @@
 import { TWLinearGradient } from '@components/atoms/TWLinearGradient';
 import BackScreen from '@components/molecules/Back';
 import GachaAnimation from '@components/Organism/GachaAnimation';
-import { useGachaBannerList } from '@hooks/useGacha';
+import { useGachaBannerToday } from '@hooks/useGacha';
 import { IGachaBannerSchema } from '@models/gacha/gacha.entity';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -74,7 +74,10 @@ const performWish = (
     setPity: (pity: number) => void
 ) => {
     const results = [];
-    const bannerPokemons = banner.items.map(item => item.pokemon);
+    // Get pokemons from items array if available, otherwise fallback to single pokemon
+    const bannerPokemons = banner.items && banner.items.length > 0
+        ? banner.items.map(item => item.pokemon)
+        : banner.pokemon ? [banner.pokemon] : [];
     const hardPity = banner.hardPity5Star || 90;
     let newPity = currentPity;
 
@@ -131,7 +134,7 @@ const performWish = (
 
 export default function GachaScreen() {
     const { t, i18n } = useTranslation();
-    const { gachaBannerList, isLoading: isLoadingBanners } = useGachaBannerList();
+    const { gachaBannerList, isLoading: isLoadingBanners } = useGachaBannerToday();
     const [selectedBannerIndex, setSelectedBannerIndex] = useState(0);
     const [gachaResults, setGachaResults] = useState<any[]>([]);
     const [isAnimating, setIsAnimating] = useState(false);
@@ -143,6 +146,7 @@ export default function GachaScreen() {
 
     // Filter active banners only
     const activeBanners = useMemo(() => {
+        if (!gachaBannerList) return [];
         return gachaBannerList.filter((banner: IGachaBannerSchema) => banner.status === 'ACTIVE');
     }, [gachaBannerList]);
 
@@ -204,10 +208,10 @@ export default function GachaScreen() {
         setSelectedBannerIndex((prev) => (prev - 1 + activeBanners.length) % activeBanners.length);
     };
 
-    // Get featured pokemon (first pokemon in items)
+    // Get featured pokemon (from pokemon field)
     const featuredPokemon = useMemo(() => {
-        if (!selectedBanner || selectedBanner.items.length === 0) return null;
-        return selectedBanner.items[0]?.pokemon;
+        if (!selectedBanner) return null;
+        return selectedBanner.pokemon;
     }, [selectedBanner]);
 
     // Get banner name
@@ -302,7 +306,9 @@ export default function GachaScreen() {
                                     ? banner.nameTranslations.find((trans: { key: string; value: string }) => trans.key === i18n.language)?.value || banner.nameTranslation
                                     : banner.nameTranslation || banner.nameKey;
                                 const bannerPity = pityCounters[banner.id] || 0;
-                                const bannerFeaturedPokemon = banner.items && banner.items.length > 0 ? banner.items[0]?.pokemon : null;
+                                const bannerFeaturedPokemon = banner.items && banner.items.length > 0
+                                    ? banner.items[0]?.pokemon
+                                    : banner.pokemon || null;
                                 const pityProgress = bannerPity / (banner.hardPity5Star || 90);
 
                                 return (

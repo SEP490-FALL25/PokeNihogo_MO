@@ -359,6 +359,16 @@
         "history_empty_desc": "ガチャの結果がここに表示されます",
         "wish_count": "{{count}}回",
         "featured_pokemon": "注目のポケモン",
-        "banner_pokemon": "入手可能なポケモン"
+        "banner_pokemon": "入手可能なポケモン",
+        "details_title": "詳細情報",
+        "details_banner_info": "コスト: {{cost}} / 回 • 保証: {{pity}}回",
+        "details_rates_title": "出現率",
+        "details_rarity_star": "{{star}}★",
+        "details_pokemon_count": "ポケモン",
+        "details_pokemon_list_title": "入手可能なポケモン",
+        "details_no_pokemon": "このバナーにはポケモンがありません",
+        "details_loading": "バナー詳細を読み込み中...",
+        "details_error": "バナー詳細の読み込みに失敗しました",
+        "details_error_desc": "後でもう一度お試しください"
     }
 }

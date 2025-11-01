@@ -1,15 +1,7 @@
 import { IQueryRequest } from "@models/common/common.request";
-import { IUserPokemonResponsePagination, IUserPokemonStatsData } from "@models/user-pokemon/user-pokemon.response";
+import { IUserPokemonStatsData } from "@models/user-pokemon/user-pokemon.response";
 import userPokemonService from "@services/user-pokemon";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-
-export const useListUserPokemons = (params: IQueryRequest) => {
-    const { data, isLoading, isError } = useQuery({
-        queryKey: ['user-pokemons', params],
-        queryFn: () => userPokemonService.getAll(params),
-    });
-    return { data: data?.data as IUserPokemonResponsePagination, isLoading, isError };
-};
 
 export const useGetUserPokemonStats = () => {
     const { data, isLoading, isError } = useQuery({
@@ -25,8 +17,6 @@ export const useGetUserPokemonStats = () => {
  * Infinite list of user pokemons with pagination support
  */
 export const useInfiniteUserPokemons = (params: Omit<IQueryRequest, 'currentPage'>) => {
-
-    console.log('params', params);
     const query = useInfiniteQuery({
         queryKey: ['user-pokemons-infinite', params],
         queryFn: ({ pageParam = 1 }) =>

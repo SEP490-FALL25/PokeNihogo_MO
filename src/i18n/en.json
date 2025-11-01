@@ -443,7 +443,17 @@
     "history_empty_desc": "Your gacha pulls will appear here",
     "wish_count": "{{count}} wishes",
     "featured_pokemon": "Featured Pokémon",
-    "banner_pokemon": "Available Pokémon"
+    "banner_pokemon": "Available Pokémon",
+    "details_title": "Banner Details",
+    "details_banner_info": "Cost: {{cost}} per roll • Hard Pity: {{pity}} wishes",
+    "details_rates_title": "Drop Rates",
+    "details_rarity_star": "{{star}}★ Star",
+    "details_pokemon_count": "Pokémon",
+    "details_pokemon_list_title": "Available Pokémon",
+    "details_no_pokemon": "No Pokémon available in this banner",
+    "details_loading": "Loading banner details...",
+    "details_error": "Failed to load banner details",
+    "details_error_desc": "Please try again later"
   },
   "error_state": {
     "default_title": "An error occurred",

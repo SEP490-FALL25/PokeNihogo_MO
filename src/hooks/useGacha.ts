@@ -1,11 +1,15 @@
+import { IQueryRequest } from "@models/common/common.request";
+import { IGachaBannerSchema } from "@models/gacha/gacha.entity";
+import { IGachaPurchaseRequest } from "@models/gacha/gacha.request";
 import gachaService from "@services/gacha";
 import { useGlobalStore } from "@stores/global/global.config";
-import { useQuery } from "@tanstack/react-query";
-import { MOCK_GACHA_BANNERS } from "../../mock-data/gacha";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+
+//--------------------------------Gacha Hook--------------------------------//
 /**
  * Gacha banner today hook
- * @returns Gacha banner today data
+ * @returns Gacha banner list data
  */
 export const useGachaBannerToday = () => {
     const language = useGlobalStore((state) => state.language);
@@ -13,36 +17,39 @@ export const useGachaBannerToday = () => {
         queryKey: ['gacha-banner-today', language],
         queryFn: () => gachaService.getGachaBannerToday(),
     });
-    return { gachaBannerToday: gachaBannerToday?.data.data, isLoading, isError, error };
+    return { gachaBannerList: gachaBannerToday?.data.data as IGachaBannerSchema[] | undefined, isLoading, isError, error };
 };
 //--------------------------End------------------------//
+//---------------------------------------------End---------------------------------------------//
 
-/**
- * Gacha banner list hook
- * @returns List of all gacha banners
- * @note Currently using mock data - switch to API by changing queryFn
- */
-export const useGachaBannerList = () => {
+
+
+//--------------------------------Gacha Purchase--------------------------------//
+export const useGachaPurchase = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: IGachaPurchaseRequest) => gachaService.gachaPurchase(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['gacha-banner-today'] });
+            queryClient.invalidateQueries({ queryKey: ['wallet-user'] });
+            queryClient.invalidateQueries({ queryKey: ['user-pokemons-infinite'] });
+            queryClient.invalidateQueries({ queryKey: ['gacha-roll-history-user'] });
+        },
+        onError: (error) => {
+            console.error(error);
+        },
+    });
+}
+//--------------------------End------------------------//
+//---------------------------------------------End---------------------------------------------//
+
+
+export const useGetGachaPurchaseHistory = (params?: IQueryRequest) => {
     const language = useGlobalStore((state) => state.language);
-
-    // TODO: Uncomment to use real API
-    // const { data: gachaBannerList, isLoading, isError, error } = useQuery({
-    //     queryKey: ['gacha-banner-list', language],
-    //     queryFn: () => gachaService.getGachaBannerList(),
-    // });
-    // return { 
-    //     gachaBannerList: gachaBannerList?.data?.data || [], 
-    //     isLoading, 
-    //     isError, 
-    //     error 
-    // };
-
-    // Temporary: Using mock data
-    return {
-        gachaBannerList: MOCK_GACHA_BANNERS,
-        isLoading: false,
-        isError: false,
-        error: null
-    };
-};
+    return useQuery({
+        queryKey: ['gacha-roll-history-user', params, language],
+        queryFn: () => gachaService.getHistoryByUser(params),
+    });
+}
 //--------------------------End------------------------//
+//---------------------------------------------End---------------------------------------------//

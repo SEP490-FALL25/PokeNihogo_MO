@@ -443,7 +443,17 @@
     "history_empty_desc": "Lịch sử quay gacha của bạn sẽ hiển thị ở đây",
     "wish_count": "{{count}} lần quay",
     "featured_pokemon": "Pokémon nổi bật",
-    "banner_pokemon": "Pokémon có sẵn"
+    "banner_pokemon": "Pokémon có sẵn",
+    "details_title": "Thể lệ & Tỉ lệ",
+    "details_banner_info": "Chi phí: {{cost}} mỗi lần quay • Bảo hiểm: {{pity}} lần quay",
+    "details_rates_title": "Tỉ lệ nhận",
+    "details_rarity_star": "{{star}} sao",
+    "details_pokemon_count": "Pokémon",
+    "details_pokemon_list_title": "Danh sách Pokémon",
+    "details_no_pokemon": "Không có Pokémon nào trong banner này",
+    "details_loading": "Đang tải chi tiết banner...",
+    "details_error": "Không thể tải chi tiết banner",
+    "details_error_desc": "Vui lòng thử lại sau"
   },
   "error_state": {
     "default_title": "Đã xảy ra lỗi",
