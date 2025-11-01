@@ -3,16 +3,18 @@ import BackScreen from '@components/molecules/Back';
 import GachaAnimation from '@components/Organism/GachaAnimation';
 import { STAR_TYPE_MAP } from '@constants/gacha.enum';
 import { useGachaBannerToday, useGachaPurchase } from '@hooks/useGacha';
+import { useWalletUser } from '@hooks/useWallet';
 import { IGachaBannerSchema } from '@models/gacha/gacha.entity';
+import { useSparklesBalanceSelector } from '@stores/wallet/wallet.selectors';
 import { formatHistoryTime } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ChevronLeft, ChevronRight, History, Shield, X } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, History, Shield, Sparkles, X } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Image, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as Progress from 'react-native-progress';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Types
 interface GachaHistoryEntry {
@@ -35,6 +37,7 @@ export default function GachaScreen() {
      * Variables defines
      */
     const { t, i18n } = useTranslation();
+    const insets = useSafeAreaInsets();
     //---------------------End---------------------//
 
     /**
@@ -43,6 +46,12 @@ export default function GachaScreen() {
     const { gachaBannerList, isLoading: isLoadingBanners } = useGachaBannerToday();
     //---------------------End---------------------//
 
+    /**
+     * Wallet Hooks
+     */
+    const sparklesBalance = useSparklesBalanceSelector();
+    const { refetch: refetchWallet } = useWalletUser();
+    //---------------------End---------------------//
 
     const { mutate: gachaPurchase, isPending: isPendingPurchase } = useGachaPurchase();
 
@@ -88,11 +97,21 @@ export default function GachaScreen() {
                     sparkles: item.parseItem.sparkles,
                 }));
 
+                // Calculate total sparkles from duplicates
+                const totalSparkles = results
+                    .filter((item: any) => item.isDuplicate)
+                    .reduce((sum: number, item: any) => sum + (item.sparkles || 0), 0);
+
+                // Refetch wallet to update sparkles balance (invalidateQueries will also handle this, but refetch ensures immediate update)
+                if (totalSparkles > 0) {
+                    refetchWallet();
+                }
+
                 setGachaResults(results);
                 setIsAnimating(true);
             },
             onError: (error) => {
-                console.error('Gacha purchase error:', error);
+                console.error('Gacha purchase error:', error.message);
                 // TODO: Show error toast/modal
             },
         });
@@ -188,6 +207,16 @@ export default function GachaScreen() {
                     )}
                 </TouchableOpacity>
             </BackScreen>
+
+            {/* Sparkles Balance - Always visible */}
+            <View className="px-4 pt-2 pb-1">
+                <View className="bg-amber-500/20 px-3 py-1.5 rounded-xl flex-row items-center gap-2 border border-amber-500/30 self-end">
+                    <Sparkles size={14} color="#f59e0b" strokeWidth={2.5} />
+                    <Text className="text-amber-400 text-sm font-extrabold">
+                        {sparklesBalance.toLocaleString()}
+                    </Text>
+                </View>
+            </View>
 
             <View className="flex-1">
                 {/* Banner Switcher - Premium UI */}
@@ -512,12 +541,13 @@ export default function GachaScreen() {
             <Modal
                 visible={showHistory}
                 animationType="slide"
-                transparent={true}
+                transparent={false}
                 onRequestClose={() => setShowHistory(false)}
             >
-                <SafeAreaView className="flex-1 bg-slate-900" edges={['top', 'bottom', 'left', 'right']}>
+                <View className="flex-1 bg-slate-900" style={{ paddingTop: insets.top }}>
+                    <StatusBar barStyle="light-content" />
                     {/* Header */}
-                    <View className="flex-row items-center justify-between px-4 py-3 border-b border-slate-800">
+                    <View className="flex-row items-center justify-between px-4 pt-4 pb-3 border-b border-slate-800">
                         <Text className="text-white text-xl font-extrabold">{t('gacha.history_title')}</Text>
                         <TouchableOpacity
                             onPress={() => setShowHistory(false)}
@@ -571,8 +601,18 @@ export default function GachaScreen() {
                                                 5: ['#facc15', '#fbbf24'], // Legendary
                                                 4: ['#a855f7', '#9333ea'], // Epic/Rare
                                                 3: ['#64748b', '#475569'], // Common/Uncommon
+                                                2: ['#94a3b8', '#64748b'], // 2 Star
+                                                1: ['#78716c', '#57534e'], // 1 Star
                                             };
-                                            const colors = rarityColors[pokemon.rarity] || rarityColors[3];
+                                            const starColors: { [key: number]: string } = {
+                                                5: '#facc15', // Gold
+                                                4: '#c084fc', // Purple
+                                                3: '#94a3b8', // Slate
+                                                2: '#e2e8f0', // Light slate
+                                                1: '#d4d4d8', // Gray
+                                            };
+                                            const colors = rarityColors[pokemon.rarity] || rarityColors[1];
+                                            const starColor = starColors[pokemon.rarity] || starColors[1];
 
                                             return (
                                                 <View key={idx} className="relative">
@@ -591,7 +631,7 @@ export default function GachaScreen() {
                                                         {/* Rarity Stars */}
                                                         <View className="absolute bottom-1 left-1 right-1 flex-row justify-center gap-0.5">
                                                             {Array.from({ length: pokemon.rarity }).map((_, i) => (
-                                                                <Text key={i} className="text-yellow-400 text-[8px]">★</Text>
+                                                                <Text key={i} style={{ color: starColor }} className="text-[8px]">★</Text>
                                                             ))}
                                                         </View>
                                                     </View>
@@ -603,7 +643,7 @@ export default function GachaScreen() {
                             )}
                         />
                     )}
-                </SafeAreaView>
+                </View>
             </Modal>
         </SafeAreaView>
     );
