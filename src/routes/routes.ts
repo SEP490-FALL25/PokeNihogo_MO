@@ -54,6 +54,10 @@ enum LESSON {
   DETAIL = "/(app)/lesson-details",
 }
 
+enum READING {
+  DETAIL = "/(app)/reading-details/[id]",
+}
+
 export const ROUTES = {
   AUTH,
   TABS,
@@ -61,5 +65,6 @@ export const ROUTES = {
   QUIZ,
   ME,
   LESSON,
+  READING,
   APP,
 };
