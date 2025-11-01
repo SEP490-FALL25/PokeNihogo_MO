@@ -1,7 +1,7 @@
 import { TWLinearGradient } from '@components/atoms/TWLinearGradient';
 import BackScreen from '@components/molecules/Back';
 import GachaAnimation from '@components/Organism/GachaAnimation';
-import { RARITY_MAP } from '@constants/gacha.enum';
+import { STAR_TYPE_MAP } from '@constants/gacha.enum';
 import { useGachaBannerToday, useGachaPurchase } from '@hooks/useGacha';
 import { IGachaBannerSchema } from '@models/gacha/gacha.entity';
 import { formatHistoryTime } from '@utils/date';
@@ -29,68 +29,6 @@ interface GachaHistoryEntry {
     }>;
 }
 
-
-const performWish = (
-    banner: IGachaBannerSchema,
-    count: number,
-    currentPity: number,
-    setPity: (pity: number) => void
-) => {
-    const results = [];
-    // Get pokemons from items array if available, otherwise fallback to single pokemon
-    const bannerPokemons = banner.pokemon ? [banner.pokemon] : [];
-    const hardPity = banner.hardPity5Star || 90;
-    let newPity = currentPity;
-
-    for (let i = 0; i < count; i++) {
-        newPity += 1;
-        let selectedPokemon;
-
-        // Hard pity: Đảm bảo ra 5 sao khi đạt hardPity5Star
-        if (newPity >= hardPity) {
-            const legendaryPool = bannerPokemons.filter((p: any) => p.rarity === 'LEGENDARY');
-            selectedPokemon = legendaryPool.length > 0
-                ? legendaryPool[Math.floor(Math.random() * legendaryPool.length)]
-                : bannerPokemons[Math.floor(Math.random() * bannerPokemons.length)];
-            newPity = 0; // Reset pity sau khi ra 5 sao
-        } else {
-            const rand = Math.random() * 100;
-
-            // Logic dựa trên banner config (có thể tinh chỉnh theo rate)
-            if (rand < 5) { // 5% tỉ lệ ra 5 sao
-                const legendaryPool = bannerPokemons.filter((p: any) => p.rarity === 'LEGENDARY');
-                selectedPokemon = legendaryPool.length > 0
-                    ? legendaryPool[Math.floor(Math.random() * legendaryPool.length)]
-                    : bannerPokemons[Math.floor(Math.random() * bannerPokemons.length)];
-                newPity = 0; // Reset pity khi ra 5 sao
-            } else if (rand < 20) { // 15% tỉ lệ ra 4 sao
-                const rarePool = bannerPokemons.filter((p: any) => p.rarity === 'RARE' || p.rarity === 'EPIC');
-                selectedPokemon = rarePool.length > 0
-                    ? rarePool[Math.floor(Math.random() * rarePool.length)]
-                    : bannerPokemons[Math.floor(Math.random() * bannerPokemons.length)];
-            } else { // 80% tỉ lệ ra 3 sao trở xuống
-                const commonPool = bannerPokemons.filter((p: any) => p.rarity === 'COMMON' || p.rarity === 'UNCOMMON');
-                selectedPokemon = commonPool.length > 0
-                    ? commonPool[Math.floor(Math.random() * commonPool.length)]
-                    : bannerPokemons[Math.floor(Math.random() * bannerPokemons.length)];
-            }
-        }
-
-        // Convert pokemon format to match GachaAnimation expected format
-        const result = {
-            id: selectedPokemon.pokedex_number || selectedPokemon.id,
-            name: selectedPokemon.nameTranslations?.en || selectedPokemon.nameTranslations?.vi || selectedPokemon.nameJp || 'Unknown',
-            rarity: RARITY_MAP[selectedPokemon.rarity] || 1,
-            imageUrl: selectedPokemon.imageUrl,
-            pokemon: selectedPokemon, // Keep original pokemon data for reference
-        };
-
-        results.push(result);
-    }
-
-    setPity(newPity);
-    return results;
-};
 
 export default function GachaScreen() {
     /**
@@ -131,24 +69,33 @@ export default function GachaScreen() {
         return pityCounters[selectedBanner.id] || 0;
     }, [selectedBanner, pityCounters]);
 
-    // Update pity cho banner cụ thể
-    const updatePity = (bannerId: number, newPity: number) => {
-        setPityCounters(prev => ({
-            ...prev,
-            [bannerId]: newPity,
-        }));
-    };
-
     const handleWish = (count: number) => {
         if (!selectedBanner) return;
-        const results = performWish(
-            selectedBanner,
-            count,
-            currentPity,
-            (newPity) => updatePity(selectedBanner.id, newPity)
-        );
-        setGachaResults(results as any);
-        setIsAnimating(true);
+
+        gachaPurchase({
+            bannerId: selectedBanner.id,
+            rollCount: count,
+        }, {
+            onSuccess: (response) => {
+                // Convert API response to animation format
+                const results = response.data.data.map((item: any) => ({
+                    id: item.pokemon.pokedex_number || item.pokemon.id,
+                    name: item.pokemon.nameTranslations?.en || item.pokemon.nameTranslations?.vi || item.pokemon.nameJp || 'Unknown',
+                    rarity: STAR_TYPE_MAP[item.starType] || 1,
+                    imageUrl: item.pokemon.imageUrl,
+                    pokemon: item.pokemon,
+                    isDuplicate: item.isDuplicate,
+                    sparkles: item.parseItem.sparkles,
+                }));
+
+                setGachaResults(results);
+                setIsAnimating(true);
+            },
+            onError: (error) => {
+                console.error('Gacha purchase error:', error);
+                // TODO: Show error toast/modal
+            },
+        });
     };
 
     const handleAnimationFinish = () => {
@@ -539,16 +486,16 @@ export default function GachaScreen() {
                 <View className="px-4 mt-auto mb-4 gap-3">
                     <TouchableOpacity
                         onPress={() => handleWish(1)}
-                        disabled={!selectedBanner}
-                        className={`p-4 rounded-xl items-center ${selectedBanner ? 'bg-cyan-500' : 'bg-slate-700'}`}
+                        disabled={!selectedBanner || isPendingPurchase || isAnimating}
+                        className={`p-4 rounded-xl items-center ${selectedBanner && !isPendingPurchase && !isAnimating ? 'bg-cyan-500' : 'bg-slate-700'}`}
                         activeOpacity={0.8}
                     >
                         <Text className="text-white font-bold text-lg">{t('gacha.wish_single')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => handleWish(10)}
-                        disabled={!selectedBanner}
-                        className={`p-4 rounded-xl items-center ${selectedBanner ? 'bg-purple-600' : 'bg-slate-700'}`}
+                        disabled={!selectedBanner || isPendingPurchase || isAnimating}
+                        className={`p-4 rounded-xl items-center ${selectedBanner && !isPendingPurchase && !isAnimating ? 'bg-purple-600' : 'bg-slate-700'}`}
                         activeOpacity={0.8}
                     >
                         <Text className="text-white font-bold text-lg">
