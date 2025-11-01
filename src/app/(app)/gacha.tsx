@@ -2,7 +2,7 @@ import { TWLinearGradient } from '@components/atoms/TWLinearGradient';
 import BackScreen from '@components/molecules/Back';
 import GachaAnimation from '@components/Organism/GachaAnimation';
 import { RARITY_MAP } from '@constants/gacha.enum';
-import { useGachaBannerToday } from '@hooks/useGacha';
+import { useGachaBannerToday, useGachaPurchase } from '@hooks/useGacha';
 import { IGachaBannerSchema } from '@models/gacha/gacha.entity';
 import { formatHistoryTime } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -88,14 +88,26 @@ const performWish = (
         results.push(result);
     }
 
-    // Update pity sau khi quay xong
     setPity(newPity);
     return results;
 };
 
 export default function GachaScreen() {
+    /**
+     * Variables defines
+     */
     const { t, i18n } = useTranslation();
+    //---------------------End---------------------//
+
+    /**
+     * Gacha Banner Today Hook
+     */
     const { gachaBannerList, isLoading: isLoadingBanners } = useGachaBannerToday();
+    //---------------------End---------------------//
+
+
+    const { mutate: gachaPurchase, isPending: isPendingPurchase } = useGachaPurchase();
+
     const [selectedBannerIndex, setSelectedBannerIndex] = useState(0);
     const [gachaResults, setGachaResults] = useState<any[]>([]);
     const [isAnimating, setIsAnimating] = useState(false);
