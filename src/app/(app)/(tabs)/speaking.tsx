@@ -1,10 +1,9 @@
-import { AudioRecorder } from "@components/AudioRecorder";
+
 import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
-import { ThemedView } from "@components/ThemedView";
+import { ThemedView } from "@components/ThemedView";  
+import VoiceRecorder from "@components/ui/EnhancedAudioRecorder";
 import { IconSymbol } from "@components/ui/IconSymbol";
-import VoiceRecorderPlayer from "@components/ui/test";
-import VoiceRecorder, { AudioRecorderPlayer } from "@components/ui/test";
 import * as FileSystem from "expo-file-system";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -268,15 +267,23 @@ export default function SpeakingScreen() {
             <ThemedText style={styles.recorderDescription}>
               {t("speaking.recorder_description")}
             </ThemedText>
-            <VoiceRecorder 
-      onRecordingComplete={(uri) => {
-        console.log('Recording saved:', uri);
-       
-      }}
-    />
+            <VoiceRecorder
+              exerciseTitle={
+                selectedExercise
+                  ? sampleSpeakingExercises[selectedExercise - 1]?.title
+                  : t("speaking.default_exercise")
+              }
+              onRecordingComplete={handleRecordingComplete}
+              onRecordingStart={handleRecordingStart}
+              onRecordingStop={handleRecordingStop}
+              onPlaybackStart={handlePlaybackStart}
+              onPlaybackStop={handlePlaybackStop}
+              maxDuration={10}
+              showPlayback={true}
+              customSavePath={`${FileSystem.documentDirectory}recordings/${new Date().toISOString().split("T")[0]}`}
+            />
 
-
-            <AudioRecorder
+            {/* <AudioRecorder
               exerciseTitle={
                 selectedExercise
                   ? sampleSpeakingExercises[selectedExercise - 1]?.title
@@ -290,7 +297,7 @@ export default function SpeakingScreen() {
               maxDuration={60}
               showPlayback={true}
               customSavePath={`${FileSystem.documentDirectory}recordings/${new Date().toISOString().split("T")[0]}`}
-            />
+            /> */}
 
             {recordingUri && (
               <ThemedView style={styles.recordingResult}>
