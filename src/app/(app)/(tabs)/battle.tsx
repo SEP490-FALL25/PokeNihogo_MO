@@ -8,7 +8,7 @@ import { ThemedView } from "@components/ThemedView";
 import TypingText from "@components/ui/TypingText";
 import { Award, Crown, History, Info, Target, Trophy } from "lucide-react-native";
 import React from "react";
-import { Alert, Animated, Easing, ImageBackground, Modal, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Animated, Easing, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Mock battle history data
@@ -98,6 +98,7 @@ export default function BattleLobbyScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <StatusBar barStyle="light-content" />
       <ImageBackground
         source={require("../../../../assets/images/list_pokemon_bg.png")}
         style={styles.bg}

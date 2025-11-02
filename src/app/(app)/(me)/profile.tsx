@@ -28,7 +28,7 @@ import {
   View
 } from 'react-native';
 import * as Progress from 'react-native-progress';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 // Properly typed interfaces
@@ -171,6 +171,7 @@ export default function ProfileScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const userProfile = user?.data;
+  const insets = useSafeAreaInsets();
 
   const { data: pokemonsData } = useListPokemons({
     pageSize: 3,
@@ -183,8 +184,8 @@ export default function ProfileScreen() {
   //------------------------End------------------------//
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-100">
-      <StatusBar barStyle="light-content" />
+    <View className="flex-1 bg-slate-100">
+      <StatusBar barStyle="light-content" translucent />
       <ScrollView
         showsVerticalScrollIndicator={false}
         bounces={true}
@@ -194,7 +195,7 @@ export default function ProfileScreen() {
           colors={['#4A9FA2', '#5FA8AB', '#6FAFB2', '#7EC5C8']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.heroSection}
+          style={[styles.heroSection, { paddingTop: insets.top }]}
           className="pb-25 relative overflow-hidden"
         >
           {/* Decorative Background Circles */}
@@ -401,7 +402,7 @@ export default function ProfileScreen() {
         {/* Bottom Spacing */}
         <View className="h-8" />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
