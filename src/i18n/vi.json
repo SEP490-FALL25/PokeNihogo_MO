@@ -73,6 +73,8 @@
     },
     "placement_test": {
       "no_questions": "Không có câu hỏi nào.",
+      "loading": "Đang tải câu hỏi...",
+      "fetch_error": "Đã xảy ra lỗi khi tải câu hỏi. Vui lòng thử lại.",
       "recommended_title": "Trình độ đề xuất của bạn",
       "recommended_desc": "Dựa trên câu trả lời, đề xuất: {{level}}",
       "choose_starter": "Chọn Pokémon khởi đầu",

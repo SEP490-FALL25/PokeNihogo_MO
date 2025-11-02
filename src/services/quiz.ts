@@ -1,13 +1,14 @@
 import { axiosClient, axiosPrivate } from "@configs/axios";
+import { IGetPlacementQuestionsResponse } from "@models/quiz/placement-question.response";
 import { QuizQuestion, QuizResult, QuizSession, QuizStats } from "@models/quiz/quiz.common";
 import {
-  ICompleteQuizResponse,
-  ICreateQuizSessionResponse,
-  IGetQuizHistoryResponse,
-  IGetQuizQuestionsResponse,
-  IGetQuizReviewResponse,
-  IGetQuizStatsResponse,
-  ISubmitQuizAnswerResponse,
+    ICompleteQuizResponse,
+    ICreateQuizSessionResponse,
+    IGetQuizHistoryResponse,
+    IGetQuizQuestionsResponse,
+    IGetQuizReviewResponse,
+    IGetQuizStatsResponse,
+    ISubmitQuizAnswerResponse,
 } from "@models/quiz/quiz.response";
 import mockQuizData from "../../mock-data/quiz-questions.json";
 
@@ -447,6 +448,17 @@ export const quizService = {
       return response.data;
     } catch (error) {
       console.error("Error fetching quiz review:", error);
+      throw error;
+    }
+  },
+
+  // Get placement test questions
+  getPlacementQuestions: async (testId: number | string = 1): Promise<IGetPlacementQuestionsResponse> => {
+    try {
+      const response = await axiosPrivate.get(`/test/${testId}/placement-questions`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching placement questions:", error);
       throw error;
     }
   },
