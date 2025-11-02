@@ -6,6 +6,9 @@ import GlowingRingEffect from "@components/molecules/GlowingRingEffect";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import TypingText from "@components/ui/TypingText";
+import { IBattleMatch } from "@models/battle/battle.types";
+import battleService from "@services/battle";
+import { useRouter } from "expo-router";
 import { Award, Crown, History, Info, Target, Trophy } from "lucide-react-native";
 import React from "react";
 import { Alert, Animated, Easing, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, View } from "react-native";
@@ -23,10 +26,13 @@ const mockBattleHistory = [
 ];
 
 export default function BattleLobbyScreen() {
+  const router = useRouter();
   const [inQueue, setInQueue] = React.useState(false);
   const [showHistory, setShowHistory] = React.useState(false);
   const [historyFilter, setHistoryFilter] = React.useState<"all" | "win" | "loss">("all");
   const [selectedBattle, setSelectedBattle] = React.useState<typeof mockBattleHistory[0] | null>(null);
+  const [matchedPlayer, setMatchedPlayer] = React.useState<IBattleMatch | null>(null);
+  const [showAcceptModal, setShowAcceptModal] = React.useState(false);
   const insets = useSafeAreaInsets();
   const shimmer = React.useRef(new Animated.Value(0)).current;
   const pulse = React.useRef(new Animated.Value(1)).current;
@@ -65,9 +71,21 @@ export default function BattleLobbyScreen() {
     return () => loop.stop();
   }, [pulse]);
 
-  const handleStartRanked = () => {
+  const handleStartRanked = async () => {
     setInQueue(true);
-    Alert.alert("Xếp hạng", "Đang tìm trận phù hợp theo trình độ của bạn...");
+    try {
+      await battleService.startQueue();
+
+      // Simulate matching after 3 seconds
+      setTimeout(async () => {
+        const match = await battleService.getCurrentMatch();
+        setMatchedPlayer(match);
+        setShowAcceptModal(true);
+      }, 3000);
+    } catch (error) {
+      Alert.alert("Lỗi", "Không thể tìm trận đấu");
+      setInQueue(false);
+    }
   };
 
   const handleOpenLeaderboard = () => {
@@ -95,6 +113,26 @@ export default function BattleLobbyScreen() {
     if (historyFilter === "all") return mockBattleHistory;
     return mockBattleHistory.filter(battle => battle.result === historyFilter);
   }, [historyFilter]);
+
+  const handleAcceptMatch = () => {
+    setShowAcceptModal(false);
+    setInQueue(false);
+    if (matchedPlayer) {
+      router.push({
+        pathname: "/(app)/(battle)/draft",
+        params: {
+          matchId: matchedPlayer.id,
+          opponentName: matchedPlayer.opponentName,
+        },
+      });
+    }
+  };
+
+  const handleRejectMatch = () => {
+    setShowAcceptModal(false);
+    setMatchedPlayer(null);
+    setInQueue(false);
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -490,6 +528,82 @@ export default function BattleLobbyScreen() {
                   Đóng
                 </ThemedText>
               </HapticPressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Accept Match Modal */}
+      <Modal
+        visible={showAcceptModal}
+        animationType="fade"
+        transparent
+        onRequestClose={handleRejectMatch}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.9)", justifyContent: "center", alignItems: "center" }}>
+          <View className="w-11/12 max-w-md bg-slate-900 rounded-3xl overflow-hidden border border-white/10">
+            <TWLinearGradient
+              colors={["#22c55e", "#16a34a"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ padding: 20 }}
+            >
+              <View className="items-center">
+                <ThemedText style={{ color: "#ffffff", fontSize: 24, fontWeight: "900" }}>
+                  🎮 TRẬN ĐẤU SẴN SÀNG
+                </ThemedText>
+              </View>
+            </TWLinearGradient>
+
+            <View className="p-6">
+              <View className="flex-row items-center justify-center gap-8 mb-6">
+                <View className="items-center">
+                  <UserAvatar name={matchedPlayer?.playerName || "You"} size="large" />
+                  <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
+                    Bạn
+                  </ThemedText>
+                </View>
+                <TWLinearGradient
+                  colors={["#ec4899", "#8b5cf6"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{ padding: 2, borderRadius: 999 }}
+                >
+                  <View className="px-4 py-2 rounded-full bg-black/70">
+                    <ThemedText style={{ color: "#ffffff", fontWeight: "700", fontSize: 16 }}>VS</ThemedText>
+                  </View>
+                </TWLinearGradient>
+                <View className="items-center">
+                  <UserAvatar name={matchedPlayer?.opponentName || "Opponent"} size="large" />
+                  <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
+                    {matchedPlayer?.opponentName || "Đối thủ"}
+                  </ThemedText>
+                </View>
+              </View>
+
+              <ThemedText style={{ color: "#94a3b8", fontSize: 14, textAlign: "center", marginBottom: 24 }}>
+                Đã tìm thấy đối thủ phù hợp!
+              </ThemedText>
+
+              <View className="flex-row gap-3">
+                <HapticPressable className="flex-1 py-4 rounded-2xl bg-white/10 border border-white/20" onPress={handleRejectMatch}>
+                  <ThemedText style={{ color: "#fca5a5", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
+                    Từ chối
+                  </ThemedText>
+                </HapticPressable>
+                <HapticPressable className="flex-1 rounded-2xl overflow-hidden" onPress={handleAcceptMatch}>
+                  <TWLinearGradient
+                    colors={["#22c55e", "#16a34a"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{ paddingVertical: 16 }}
+                  >
+                    <ThemedText style={{ color: "#ffffff", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
+                      ĐỒNG Ý
+                    </ThemedText>
+                  </TWLinearGradient>
+                </HapticPressable>
+              </View>
             </View>
           </View>
         </View>
