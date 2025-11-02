@@ -1,6 +1,7 @@
 import QuizLayout from "@components/layouts/QuizLayout";
 import { QuizCompletionModal } from "@components/quiz/QuizCompletionModal";
 import { QuizProgress } from "@components/quiz/QuizProgress";
+import { ConfirmModal } from "@components/ui/ConfirmModal";
 // import BounceButton from "@components/ui/BounceButton";
 // import { Button } from "@components/ui/Button";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -25,7 +26,6 @@ import React, {
 import {
   Alert,
   Animated,
-  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -642,84 +642,50 @@ export default function QuizScreen() {
       />
 
       {/* Exit Confirm Modal */}
-      <Modal
+      <ConfirmModal
         visible={showExitConfirmModal}
-        transparent
-        animationType="fade"
+        title="Thoát bài làm?"
+        message="Bạn có muốn lưu lại phần câu trả lời đã làm không?"
         onRequestClose={() => setShowExitConfirmModal(false)}
-      >
-        <View style={styles.exitModalOverlay}>
-          <View style={styles.exitModalContent}>
-            <Text style={styles.exitModalTitle}>Thoát bài làm?</Text>
-            <Text style={styles.exitModalMessage}>
-              Bạn có muốn lưu lại phần câu trả lời đã làm không?
-            </Text>
-
-            <View style={styles.exitModalButtons}>
-              <TouchableOpacity
-                style={[styles.exitModalButton, styles.exitModalButtonCancel]}
-                onPress={handleExitWithoutSaving}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.exitModalButtonCancelText}>Không lưu</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.exitModalButton, styles.exitModalButtonSave]}
-                onPress={handleSaveAndExit}
-                activeOpacity={0.8}
-                disabled={isAbandoning}
-              >
-                <Text style={styles.exitModalButtonSaveText}>
-                  {isAbandoning ? "Đang lưu..." : "Lưu và thoát"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        buttons={[
+          {
+            label: "Không lưu",
+            onPress: handleExitWithoutSaving,
+            variant: "secondary",
+          },
+          {
+            label: "Lưu và thoát",
+            onPress: handleSaveAndExit,
+            variant: "primary",
+            disabled: isAbandoning,
+            loadingText: "Đang lưu...",
+          },
+        ]}
+      />
 
       {/* Resume Exercise Modal */}
-      <Modal
+      <ConfirmModal
         visible={showResumeModal}
-        transparent
-        animationType="fade"
+        title="Tiếp tục bài làm?"
+        message="Bạn có bài làm đã lưu trước đó. Bạn muốn tiếp tục bài làm cũ hay làm lại bài mới?"
         onRequestClose={() => {}}
-      >
-        <View style={styles.exitModalOverlay}>
-          <View style={styles.exitModalContent}>
-            <Text style={styles.exitModalTitle}>Tiếp tục bài làm?</Text>
-            <Text style={styles.exitModalMessage}>
-              Bạn có bài làm đã lưu trước đó. Bạn muốn tiếp tục bài làm cũ hay
-              làm lại bài mới?
-            </Text>
-
-            <View style={styles.exitModalButtons}>
-              <TouchableOpacity
-                style={[styles.exitModalButton, styles.exitModalButtonCancel]}
-                onPress={handleStartNewExercise}
-                activeOpacity={0.8}
-                disabled={isCreatingNew}
-              >
-                <Text style={styles.exitModalButtonCancelText}>
-                  {isCreatingNew ? "Đang tạo..." : "Làm lại bài mới"}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.exitModalButton, styles.exitModalButtonSave]}
-                onPress={handleContinuePreviousExercise}
-                activeOpacity={0.8}
-                disabled={isContinuing}
-              >
-                <Text style={styles.exitModalButtonSaveText}>
-                  {isContinuing ? "Đang tải..." : "Tiếp tục bài cũ"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        buttons={[
+          {
+            label: "Làm lại bài mới",
+            onPress: handleStartNewExercise,
+            variant: "secondary",
+            disabled: isCreatingNew,
+            loadingText: "Đang tạo...",
+          },
+          {
+            label: "Tiếp tục bài cũ",
+            onPress: handleContinuePreviousExercise,
+            variant: "primary",
+            disabled: isContinuing,
+            loadingText: "Đang tải...",
+          },
+        ]}
+      />
     </QuizLayout>
   );
 }
@@ -861,68 +827,4 @@ const styles = StyleSheet.create({
   },
   nextButton: { flex: 1 },
   previousButton: { minWidth: 120 },
-  exitModalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  exitModalContent: {
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 24,
-    width: "85%",
-    maxWidth: 400,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  exitModalTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111827",
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  exitModalMessage: {
-    fontSize: 16,
-    color: "#6b7280",
-    textAlign: "center",
-    marginBottom: 24,
-    lineHeight: 24,
-  },
-  exitModalButtons: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  exitModalButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  exitModalButtonCancel: {
-    backgroundColor: "#f3f4f6",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-  },
-  exitModalButtonCancelText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#374151",
-  },
-  exitModalButtonSave: {
-    backgroundColor: "#0ea5e9",
-  },
-  exitModalButtonSaveText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#ffffff",
-  },
 });

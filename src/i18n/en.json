@@ -73,6 +73,8 @@
     },
     "placement_test": {
       "no_questions": "No questions available.",
+      "loading": "Loading questions...",
+      "fetch_error": "An error occurred while loading questions. Please try again.",
       "recommended_title": "Your recommended level",
       "recommended_desc": "Based on your answers, we recommend: {{level}}",
       "choose_starter": "Choose Starter Pokémon",

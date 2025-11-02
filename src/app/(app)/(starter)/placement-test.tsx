@@ -7,15 +7,16 @@ import AudioPlayer from "@components/ui/AudioPlayer";
 import BounceButton from "@components/ui/BounceButton";
 import MascotBubble from "@components/ui/MascotBubble";
 import { Ionicons } from "@expo/vector-icons";
+import { PlacementQuestion } from "@models/quiz/placement-question.common";
 import { ROUTES } from "@routes/routes";
+import { quizService } from "@services/quiz";
 import { useUserStore } from "@stores/user/user.config";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import * as Speech from "expo-speech";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Animated, TouchableOpacity, View } from "react-native";
-import questionsData from "../../../../mock-data/placement-questions.json";
+import { ActivityIndicator, Animated, TouchableOpacity, View } from "react-native";
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -58,17 +59,10 @@ export default function PlacementTestScreen() {
   // ============================================================================
   const { t } = useTranslation();
 
-  // Questions state - initialized once with shuffled questions
-  const [questions] = React.useState<Question[]>(() => {
-    const all = questionsData as Question[];
-
-    const normalizedQuestions = all.map((q) => ({
-      ...q,
-      type: q.type || ("text" as QuestionType),
-    }));
-    const shuffled = shuffle(normalizedQuestions);
-    return shuffled.slice(0, Math.min(10, shuffled.length));
-  });
+  // Questions state
+  const [questions, setQuestions] = React.useState<Question[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
   // Test progress state
   const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -133,6 +127,64 @@ export default function PlacementTestScreen() {
   // EFFECTS
   // ============================================================================
   /**
+   * Fetch placement questions from API
+   */
+  React.useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await quizService.getPlacementQuestions(1);
+        
+        if (response.data?.questions) {
+          // Transform API questions to component format
+          const transformedQuestions: Question[] = response.data.questions
+            .filter((q: PlacementQuestion) => q.answers && q.answers.length > 0) // Filter out questions without answers
+            .map((q: PlacementQuestion) => {
+              // Find the correct answer index
+              const correctAnswerIndex = q.answers.findIndex((a) => a.isCorrect);
+              const answerIndex = correctAnswerIndex !== -1 ? correctAnswerIndex : 0;
+
+              // Determine question type based on audioUrl and questionType
+              const hasAudio = q.audioUrl !== null && q.audioUrl !== undefined && q.audioUrl !== "";
+              const type: QuestionType = hasAudio ? "audio" : "text";
+
+              // Map levelN (3, 4, 5) to difficulty ("N3", "N4", "N5")
+              const difficulty: Difficulty = `N${q.levelN}` as Difficulty;
+
+              return {
+                id: q.id.toString(),
+                type,
+                question: q.question,
+                options: q.answers.map((a) => a.answer),
+                answerIndex,
+                difficulty,
+                audioUrl: q.audioUrl || undefined,
+              };
+            });
+
+          // Shuffle questions
+          const shuffled = shuffle(transformedQuestions);
+          setQuestions(shuffled);
+        } else {
+          setError(t("auth.placement_test.no_questions"));
+        }
+      } catch (err) {
+        console.error("Error fetching placement questions:", err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : t("auth.placement_test.fetch_error")
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, [t]);
+
+  /**
    * Animation effect for speaking state - creates pulsing animation
    */
   React.useEffect(() => {
@@ -175,6 +227,13 @@ export default function PlacementTestScreen() {
   // NAVIGATION HANDLERS
   // ============================================================================
   /**
+   * Handles back navigation
+   */
+  const handleBack = React.useCallback(() => {
+    router.back();
+  }, []);
+
+  /**
    * Handles moving to next question or completing the test
    */
   const onNext = () => {
@@ -194,19 +253,12 @@ export default function PlacementTestScreen() {
     }
   };
 
-  /**
-   * Handles back navigation
-   */
-  const handleBack = () => {
-    router.back();
-  };
-
   // ============================================================================
   // EARLY RETURNS & VALIDATION
   // ============================================================================
-  if (questions.length === 0) {
+  if (isLoading) {
     return (
-      <StarterScreenLayout currentStep={1} totalSteps={2}>
+      <StarterScreenLayout currentStep={1} totalSteps={2} onBack={handleBack}>
         <View
           style={{
             flex: 1,
@@ -215,7 +267,29 @@ export default function PlacementTestScreen() {
             padding: 20,
           }}
         >
-          <ThemedText>{t("auth.placement_test.no_questions")}</ThemedText>
+          <ActivityIndicator size="large" color="#3b82f6" />
+          <ThemedText style={{ marginTop: 16 }}>
+            {t("auth.placement_test.loading")}
+          </ThemedText>
+        </View>
+      </StarterScreenLayout>
+    );
+  }
+
+  if (error || questions.length === 0) {
+    return (
+      <StarterScreenLayout currentStep={1} totalSteps={2} onBack={handleBack}>
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <ThemedText style={{ textAlign: "center" }}>
+            {error || t("auth.placement_test.no_questions")}
+          </ThemedText>
         </View>
       </StarterScreenLayout>
     );

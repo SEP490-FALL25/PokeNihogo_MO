@@ -95,6 +95,21 @@
             "squirtle": "ゼニガメ",
             "bulbasaur": "フシギダネ",
             "continue": "続行"
+        },
+        "placement_test": {
+            "no_questions": "質問がありません。",
+            "loading": "質問を読み込み中...",
+            "fetch_error": "質問の読み込み中にエラーが発生しました。もう一度お試しください。",
+            "recommended_title": "推奨レベル",
+            "recommended_desc": "あなたの回答に基づいて、以下を推奨します: {{level}}",
+            "choose_starter": "スターティングポケモンを選択",
+            "progress_title": "レベル判定テスト",
+            "progress": "質問 {{current}} / {{total}}",
+            "speak_question": "質問を読み上げる",
+            "stop_speaking": "読み上げを停止",
+            "play_audio": "音声を再生",
+            "pause_audio": "音声を一時停止",
+            "audio_question_instruction": "音声を聞いて正しい答えを選択してください"
         }
     },
     "navigation": {
