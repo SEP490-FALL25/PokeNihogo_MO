@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { PlacementQuestion } from "@models/quiz/placement-question.common";
 import { ROUTES } from "@routes/routes";
 import { quizService } from "@services/quiz";
+import userAnswerLogService from "@services/user-answer-log";
 import { useUserStore } from "@stores/user/user.config";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -25,9 +26,11 @@ type Difficulty = "N5" | "N4" | "N3";
 type QuestionType = "text" | "audio";
 type Question = {
   id: string;
+  questionBankId: number; // The original question ID from API
   type: QuestionType;
   question: string;
   options: string[];
+  optionIds: number[]; // Answer IDs corresponding to options
   answerIndex: number;
   difficulty: Difficulty;
   audioUrl?: string;
@@ -68,6 +71,7 @@ export default function PlacementTestScreen() {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
   const [answers, setAnswers] = React.useState<number[]>([]);
+  const [userTestAttemptId, setUserTestAttemptId] = React.useState<number | null>(null);
 
   // Speech state
   const [isSpeaking, setIsSpeaking] = React.useState(false);
@@ -93,9 +97,26 @@ export default function PlacementTestScreen() {
    * Handles option selection with haptic feedback
    * @param idx - The index of the selected option
    */
-  const onChoose = (idx: number) => {
+  const onChoose = async (idx: number) => {
     Haptics.selectionAsync();
     setSelectedIndex(idx);
+
+    // Call API to log the answer
+    if (userTestAttemptId && current) {
+      const answerId = current.optionIds[idx];
+      if (answerId) {
+        try {
+          await userAnswerLogService.upsertAnswerLog({
+            userExerciseAttemptId: userTestAttemptId,
+            questionBankId: current.questionBankId,
+            answerId: answerId,
+          });
+        } catch (error) {
+          console.error("Error logging answer:", error);
+          // Don't block UI if logging fails
+        }
+      }
+    }
   };
 
   /**
@@ -137,6 +158,18 @@ export default function PlacementTestScreen() {
         const response = await quizService.getPlacementQuestions(1);
         
         if (response.data?.questions) {
+          console.log('response.data.questions: ', response.data);
+          
+          // Extract userTestAttemptId from response if available
+          // Check for both possible field names (userTestAttemptId or userExerciseAttemptId)
+          const attemptId = (response.data as any).userTestAttemptId || (response.data as any).userExerciseAttemptId;
+          if (attemptId) {
+            setUserTestAttemptId(attemptId);
+          }
+          // Note: If userTestAttemptId is not in the response, you may need to:
+          // 1. Create it via a separate API endpoint, or
+          // 2. Ensure the backend includes it in the placement questions response
+
           // Transform API questions to component format
           const transformedQuestions: Question[] = response.data.questions
             .filter((q: PlacementQuestion) => q.answers && q.answers.length > 0) // Filter out questions without answers
@@ -154,9 +187,11 @@ export default function PlacementTestScreen() {
 
               return {
                 id: q.id.toString(),
+                questionBankId: q.id, // Store the original question ID
                 type,
                 question: q.question,
                 options: q.answers.map((a) => a.answer),
+                optionIds: q.answers.map((a) => a.id), // Store answer IDs
                 answerIndex,
                 difficulty,
                 audioUrl: q.audioUrl || undefined,
@@ -352,7 +387,7 @@ export default function PlacementTestScreen() {
         {/* Question Section */}
         <View style={{ marginBottom: 24, paddingHorizontal: 20 }}>
           <MascotBubble
-            bubbleStyle={{ paddingHorizontal: 24, paddingVertical: 100 }}
+            bubbleStyle={{ paddingHorizontal: 24, paddingVertical: 70 }}
             titleTextStyle={{ fontSize: 16 }}
             contentTextStyle={{ fontSize: 20, lineHeight: 30 }}
             mascotImageStyle={{ width: 84, height: 84 }}
