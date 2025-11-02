@@ -49,7 +49,6 @@ export const useGetPokemonByIdWithEvolechain = (id: string) => {
         queryKey: ['user-pokemon-evolution-chain', id],
         queryFn: () => userPokemonService.getbyPokemonIdWithEvolechain(id),
     });
-    console.log('data', data?.data);
     return { data: data?.data.data, isLoading, isError };
 };
 //------------------------End------------------------//

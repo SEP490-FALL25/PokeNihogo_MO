@@ -36,7 +36,6 @@ const pokemonService = {
         }
 
         const queryString = queryParams.toString();
-        console.log('queryString', queryString);
         return await axiosPrivate.get(`/pokemon?${queryString}`);
     },
     getById: async (id: string) => {

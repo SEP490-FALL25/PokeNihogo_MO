@@ -67,16 +67,6 @@ export const EvolutionCard = ({
                     >
                         {displayName}
                     </Text>
-                    {entity.conditionLevel !== undefined && (
-                        <View className="mt-2">
-                            <TWLinearGradient
-                                colors={['#fbbf24', '#f59e0b']}
-                                className="px-3 py-1 rounded-xl items-center"
-                            >
-                                <Text className="text-[12px] font-bold text-white tracking-[0.4px]">{t('pokemon_detail.require_level', { level: entity.conditionLevel })}</Text>
-                            </TWLinearGradient>
-                        </View>
-                    )}
                     {!isCurrent && <View className="mt-2"><OwnershipBadge owned={entity.userPokemon} /></View>}
                 </View>
 

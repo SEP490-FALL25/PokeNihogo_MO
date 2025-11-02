@@ -70,7 +70,7 @@ export default function ShopPokemonModal({ isVisible, onClose }: ShopPokemonModa
                     >
                         {/* Header */}
                         <ImageBackground
-                            // source={require('../../../assets/images/seigaiha-pattern.png')} // Họa tiết sóng
+                            // source={{ uri: 'https://i.pinimg.com/736x/a2/d3/83/a2d383df59c779edfd41856309513f23.jpg' }} // Họa tiết sóng
                             resizeMode="cover"
                             imageStyle={{ opacity: 0.05, tintColor: '#6FAFB2' }}
                         >

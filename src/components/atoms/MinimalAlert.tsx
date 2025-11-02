@@ -35,6 +35,7 @@ const AlertWrapper = ({ children, visible, onHide }: AlertWrapperProps) => {
             <View
                 className="flex-1 justify-start items-center"
                 style={{ paddingTop: SCREEN_HEIGHT * 0.12 }}
+                pointerEvents="box-none"
             >
                 {children}
             </View>
@@ -96,6 +97,7 @@ const MinimalGameAlert = ({ message, visible, onHide, type = 'error' }: MinimalG
                     minWidth: 280,
                     maxWidth: '85%',
                 }}
+                pointerEvents="auto"
             >
                 {/* Background với gradient mờ */}
                 <View className="bg-black/50 px-5 py-3">
