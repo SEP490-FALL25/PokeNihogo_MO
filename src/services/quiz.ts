@@ -1,14 +1,14 @@
 import { axiosClient, axiosPrivate } from "@configs/axios";
-import { IGetPlacementQuestionsResponse } from "@models/quiz/placement-question.response";
+import { IGetPlacementQuestionsResponse } from "@models/placement-test/placement-question.response";
 import { QuizQuestion, QuizResult, QuizSession, QuizStats } from "@models/quiz/quiz.common";
 import {
-    ICompleteQuizResponse,
-    ICreateQuizSessionResponse,
-    IGetQuizHistoryResponse,
-    IGetQuizQuestionsResponse,
-    IGetQuizReviewResponse,
-    IGetQuizStatsResponse,
-    ISubmitQuizAnswerResponse,
+  ICompleteQuizResponse,
+  ICreateQuizSessionResponse,
+  IGetQuizHistoryResponse,
+  IGetQuizQuestionsResponse,
+  IGetQuizReviewResponse,
+  IGetQuizStatsResponse,
+  ISubmitQuizAnswerResponse,
 } from "@models/quiz/quiz.response";
 import mockQuizData from "../../mock-data/quiz-questions.json";
 

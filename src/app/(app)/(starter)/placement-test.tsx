@@ -7,10 +7,8 @@ import AudioPlayer from "@components/ui/AudioPlayer";
 import BounceButton from "@components/ui/BounceButton";
 import MascotBubble from "@components/ui/MascotBubble";
 import { Ionicons } from "@expo/vector-icons";
-import { PlacementQuestion } from "@models/quiz/placement-question.common";
+import { usePlacementTest } from "@hooks/usePlacementTest";
 import { ROUTES } from "@routes/routes";
-import { quizService } from "@services/quiz";
-import userAnswerLogService from "@services/user-answer-log";
 import { useUserStore } from "@stores/user/user.config";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -23,35 +21,12 @@ import { ActivityIndicator, Animated, TouchableOpacity, View } from "react-nativ
 // TYPES & INTERFACES
 // ============================================================================
 type Difficulty = "N5" | "N4" | "N3";
-type QuestionType = "text" | "audio";
-type Question = {
-  id: string;
-  questionBankId: number; // The original question ID from API
-  type: QuestionType;
-  question: string;
-  options: string[];
-  optionIds: number[]; // Answer IDs corresponding to options
-  answerIndex: number;
-  difficulty: Difficulty;
-  audioUrl?: string;
-};
+//
 
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
-/**
- * Shuffles an array using Fisher-Yates algorithm
- * @param array - The array to shuffle
- * @returns A new shuffled array
- */
-function shuffle<T>(array: T[]): T[] {
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
+// (moved data ops to hook)
 
 // ============================================================================
 // MAIN COMPONENT
@@ -62,16 +37,17 @@ export default function PlacementTestScreen() {
   // ============================================================================
   const { t } = useTranslation();
 
-  // Questions state
-  const [questions, setQuestions] = React.useState<Question[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-
-  // Test progress state
-  const [currentIndex, setCurrentIndex] = React.useState(0);
-  const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
-  const [answers, setAnswers] = React.useState<number[]>([]);
-  const [userTestAttemptId, setUserTestAttemptId] = React.useState<number | null>(null);
+  const {
+    questions,
+    current,
+    isLast,
+    progress,
+    isLoading,
+    error,
+    selectedIndex,
+    selectOption,
+    next,
+  } = usePlacementTest(1);
 
   // Speech state
   const [isSpeaking, setIsSpeaking] = React.useState(false);
@@ -86,9 +62,10 @@ export default function PlacementTestScreen() {
   // ============================================================================
   // COMPUTED VALUES
   // ============================================================================
-  const current = questions[currentIndex];
-  const isLast = currentIndex === questions.length - 1;
-  const progress = (currentIndex + 1) / questions.length;
+  const currentIndex = React.useMemo(
+    () => (questions && current ? questions.findIndex((q: any) => q.id === (current as any).id) : 0),
+    [questions, current]
+  );
 
   // ============================================================================
   // EVENT HANDLERS
@@ -99,24 +76,7 @@ export default function PlacementTestScreen() {
    */
   const onChoose = async (idx: number) => {
     Haptics.selectionAsync();
-    setSelectedIndex(idx);
-
-    // Call API to log the answer
-    if (userTestAttemptId && current) {
-      const answerId = current.optionIds[idx];
-      if (answerId) {
-        try {
-          await userAnswerLogService.upsertAnswerLog({
-            userExerciseAttemptId: userTestAttemptId,
-            questionBankId: current.questionBankId,
-            answerId: answerId,
-          });
-        } catch (error) {
-          console.error("Error logging answer:", error);
-          // Don't block UI if logging fails
-        }
-      }
-    }
+    await selectOption(idx);
   };
 
   /**
@@ -147,77 +107,7 @@ export default function PlacementTestScreen() {
   // ============================================================================
   // EFFECTS
   // ============================================================================
-  /**
-   * Fetch placement questions from API
-   */
-  React.useEffect(() => {
-    const fetchQuestions = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await quizService.getPlacementQuestions(1);
-        
-        if (response.data?.questions) {
-          console.log('response.data.questions: ', response.data);
-          
-          // Extract userTestAttemptId from response if available
-          // Check for both possible field names (userTestAttemptId or userExerciseAttemptId)
-          const attemptId = (response.data as any).userTestAttemptId || (response.data as any).userExerciseAttemptId;
-          if (attemptId) {
-            setUserTestAttemptId(attemptId);
-          }
-          // Note: If userTestAttemptId is not in the response, you may need to:
-          // 1. Create it via a separate API endpoint, or
-          // 2. Ensure the backend includes it in the placement questions response
-
-          // Transform API questions to component format
-          const transformedQuestions: Question[] = response.data.questions
-            .filter((q: PlacementQuestion) => q.answers && q.answers.length > 0) // Filter out questions without answers
-            .map((q: PlacementQuestion) => {
-              // Find the correct answer index
-              const correctAnswerIndex = q.answers.findIndex((a) => a.isCorrect);
-              const answerIndex = correctAnswerIndex !== -1 ? correctAnswerIndex : 0;
-
-              // Determine question type based on audioUrl and questionType
-              const hasAudio = q.audioUrl !== null && q.audioUrl !== undefined && q.audioUrl !== "";
-              const type: QuestionType = hasAudio ? "audio" : "text";
-
-              // Map levelN (3, 4, 5) to difficulty ("N3", "N4", "N5")
-              const difficulty: Difficulty = `N${q.levelN}` as Difficulty;
-
-              return {
-                id: q.id.toString(),
-                questionBankId: q.id, // Store the original question ID
-                type,
-                question: q.question,
-                options: q.answers.map((a) => a.answer),
-                optionIds: q.answers.map((a) => a.id), // Store answer IDs
-                answerIndex,
-                difficulty,
-                audioUrl: q.audioUrl || undefined,
-              };
-            });
-
-          // Shuffle questions
-          const shuffled = shuffle(transformedQuestions);
-          setQuestions(shuffled);
-        } else {
-          setError(t("auth.placement_test.no_questions"));
-        }
-      } catch (err) {
-        console.error("Error fetching placement questions:", err);
-        setError(
-          err instanceof Error
-            ? err.message
-            : t("auth.placement_test.fetch_error")
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchQuestions();
-  }, [t]);
+  // data fetching is handled inside the usePlacementTest hook
 
   /**
    * Animation effect for speaking state - creates pulsing animation
@@ -271,21 +161,16 @@ export default function PlacementTestScreen() {
   /**
    * Handles moving to next question or completing the test
    */
-  const onNext = () => {
+  const onNext = async () => {
     if (selectedIndex == null) return;
-    const nextAnswers = [...answers];
-    nextAnswers[currentIndex] = selectedIndex;
-    setAnswers(nextAnswers);
-    setSelectedIndex(null);
-    if (isLast) {
-      const rec = computeRecommendation(questions, nextAnswers);
-      setLevel(rec);
-      setHasCompletedPlacementTest(true);
-      router.replace(ROUTES.STARTER.SELECT_LEVEL as any);
-    } else {
+    const result = await next();
+    if (!result?.finished) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      setCurrentIndex((i) => i + 1);
+      return;
     }
+    if (result.recommended) setLevel(result.recommended as Difficulty);
+    setHasCompletedPlacementTest(true);
+    router.replace(ROUTES.STARTER.SELECT_LEVEL as any);
   };
 
   // ============================================================================
@@ -488,40 +373,4 @@ export default function PlacementTestScreen() {
       </View>
     </StarterScreenLayout>
   );
-}
-
-// ============================================================================
-// UTILITY FUNCTIONS (EXPORTED)
-// ============================================================================
-/**
- * Computes JLPT level recommendation based on test answers
- * Uses a simple heuristic algorithm to determine the appropriate level
- * @param questions - Array of test questions
- * @param answers - Array of user's answers (indices)
- * @returns Recommended JLPT difficulty level
- */
-function computeRecommendation(
-  questions: Question[],
-  answers: number[]
-): Difficulty {
-  let correct = 0;
-  let correctN3 = 0;
-  let correctN4 = 0;
-
-  // Count correct answers by difficulty level
-  for (let i = 0; i < questions.length; i++) {
-    const q = questions[i];
-    const a = answers[i];
-    const isCorrect = a === q.answerIndex;
-    if (isCorrect) {
-      correct++;
-      if (q.difficulty === "N3") correctN3++;
-      if (q.difficulty === "N4") correctN4++;
-    }
-  }
-
-  // Simple heuristic algorithm
-  if (correct >= 8 || correctN3 >= 3) return "N3";
-  if (correct >= 5 || correctN4 >= 3) return "N4";
-  return "N5";
 }
