@@ -1,29 +1,57 @@
 import QuizLayout from "@components/layouts/QuizLayout";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useReviewResult } from "@hooks/useUserExerciseAttempt";
+import { useReviewResultUnified } from "@hooks/useReviewResultUnified";
 import { IReviewResultQuestionBank } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import React, { useMemo, useRef, useState } from "react";
 import {
-    Alert,
-    Animated,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-    ViewStyle,
+  Alert,
+  Animated,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
 export default function QuizReviewScreen() {
-  const { sessionId } = useLocalSearchParams<{ sessionId: string }>();
-  const { data: reviewData, isLoading, error } = useReviewResult(sessionId);
+  const { sessionId, reviewData: reviewDataParam, origin } = useLocalSearchParams<{ 
+    sessionId: string;
+    reviewData?: string;
+    origin?: string; // "quiz" or "test"
+  }>();
+  
+  // If reviewData is passed as param, use it; otherwise fetch from API
+  const reviewDataFromParams = useMemo(() => {
+    if (!reviewDataParam) return null;
+    try {
+      return JSON.parse(reviewDataParam);
+    } catch (error) {
+      console.error("Error parsing reviewData from params:", error);
+      return null;
+    }
+  }, [reviewDataParam]);
+
+  const type = (origin === "test" ? "test" : "quiz") as "test" | "quiz";
+  const { data: reviewDataFromApi, isLoading, error } = useReviewResultUnified(
+    sessionId,
+    type,
+    reviewDataFromParams || undefined
+  );
+  
+  // Use reviewData from params if available, otherwise use API data
+  const reviewData = reviewDataFromApi || reviewDataFromParams;
+  
+  // Determine if we should show loading/error
+  const shouldShowLoading = !reviewDataFromParams && isLoading;
+  const shouldShowError = !reviewDataFromParams && error;
+  
   const scaleAnims = useRef<Record<string, Animated.Value[]>>({}).current;
   const scrollRef = useRef<ScrollView | null>(null);
   const questionOffsetsRef = useRef<Record<string, number>>({});
-console.log(sessionId)
   console.log(reviewData)
   // Parse explanation text to extract VN and EN parts
   const parseExplanation = (explanation?: string) => {
@@ -101,13 +129,13 @@ console.log(sessionId)
 
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (error) {
+  if (shouldShowError) {
     Alert.alert("Lỗi", "Không thể tải phần xem đáp án.");
     router.back();
     return null;
   }
 
-  if (isLoading || !reviewData?.data) {
+  if (shouldShowLoading || !reviewData?.data) {
     return (
       <QuizLayout>
         <View style={styles.center}>

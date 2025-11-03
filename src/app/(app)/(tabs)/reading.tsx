@@ -2,127 +2,70 @@ import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { IconSymbol } from "@components/ui/IconSymbol";
+import { TestStatus } from "@constants/test.enum";
+import userTestService from "@services/user-test";
+import { router } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 
-const sampleReadingMaterials = [
-  {
-    id: 1,
-    title: "Basic Hiragana Stories",
-    description: "Simple stories using only hiragana characters",
-    level: "Beginner",
-    estimatedTime: "5 min",
-    icon: "textformat.abc",
-    color: "#10b981",
-    progress: 80,
-  },
-  {
-    id: 2,
-    title: "Daily Life Conversations",
-    description: "Reading about everyday Japanese conversations",
-    level: "Beginner",
-    estimatedTime: "8 min",
-    icon: "bubble.left.and.bubble.right.fill",
-    color: "#f59e0b",
-    progress: 45,
-  },
-  {
-    id: 3,
-    title: "Japanese News Headlines",
-    description: "Practice reading current news in Japanese",
-    level: "Intermediate",
-    estimatedTime: "12 min",
-    icon: "newspaper.fill",
-    color: "#3b82f6",
-    progress: 0,
-  },
-  {
-    id: 4,
-    title: "Traditional Folktales",
-    description: "Classic Japanese stories and legends",
-    level: "Intermediate",
-    estimatedTime: "15 min",
-    icon: "book.closed.fill",
-    color: "#8b5cf6",
-    progress: 0,
-  },
-  {
-    id: 5,
-    title: "Manga Excerpts",
-    description: "Reading practice with popular manga",
-    level: "Advanced",
-    estimatedTime: "20 min",
-    icon: "rectangle.stack.fill",
-    color: "#ef4444",
-    progress: 0,
-  },
-  {
-    id: 6,
-    title: "Business Japanese",
-    description: "Professional and formal Japanese texts",
-    level: "Advanced",
-    estimatedTime: "25 min",
-    icon: "briefcase.fill",
-    color: "#06b6d4",
-    progress: 0,
-  },
-];
+type UserTestItem = {
+  id: number;
+  limit: number;
+  status: string;
+  test: {
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+    levelN: number;
+    testType: string;
+    status: string;
+    limit: number;
+  };
+};
 
 const ReadingCard: React.FC<{
-  material: (typeof sampleReadingMaterials)[0];
+  item: UserTestItem;
   onPress: () => void;
-}> = ({ material, onPress }) => {
+}> = ({ item, onPress }) => {
   return (
     <TouchableOpacity
-      style={[styles.readingCard, { borderLeftColor: material.color }]}
+      style={[styles.readingCard, { borderLeftColor: "#3b82f6" }]}
       onPress={onPress}
       activeOpacity={0.8}
     >
       <View style={styles.cardHeader}>
-        <View
-          style={[styles.iconContainer, { backgroundColor: material.color }]}
-        >
-          <IconSymbol name={material.icon as any} size={24} color="#ffffff" />
+        <View style={[styles.iconContainer, { backgroundColor: "#3b82f6" }]}>
+          <IconSymbol
+            name={"book.closed.fill" as any}
+            size={24}
+            color="#ffffff"
+          />
         </View>
         <View style={styles.materialInfo}>
-          <ThemedText type="subtitle" style={styles.materialTitle}>
-            {material.title}
-          </ThemedText>
+          <View style={styles.materialHeaderRow}>
+            <ThemedText type="subtitle" style={styles.materialTitle}>
+              {item.test?.name}
+            </ThemedText>
+            <View style={styles.levelBadge}>
+              <ThemedText style={styles.levelText}>
+                N{item.test?.levelN}
+              </ThemedText>
+            </View>
+          </View>
           <ThemedText style={styles.materialDescription}>
-            {material.description}
+            {item.test?.description}
           </ThemedText>
         </View>
       </View>
 
       <View style={styles.cardFooter}>
         <View style={styles.metaInfo}>
-          <View style={styles.levelBadge}>
-            <ThemedText style={styles.levelText}>{material.level}</ThemedText>
-          </View>
           <ThemedText style={styles.timeText}>
-            ⏱️ {material.estimatedTime}
+            {item.limit} / {item.test?.limit}
           </ThemedText>
         </View>
-
-        {material.progress > 0 && (
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${material.progress}%`,
-                    backgroundColor: material.color,
-                  },
-                ]}
-              />
-            </View>
-            <ThemedText style={styles.progressText}>
-              {material.progress}%
-            </ThemedText>
-          </View>
-        )}
       </View>
     </TouchableOpacity>
   );
@@ -130,10 +73,60 @@ const ReadingCard: React.FC<{
 
 export default function ReadingScreen() {
   const { t } = useTranslation();
-  
+  const [items, setItems] = React.useState<UserTestItem[]>([]);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = React.useState(false);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const slideAnim = React.useRef(new Animated.Value(30)).current;
+
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setIsLoading(true);
+        const res = await userTestService.getMy({
+          type: TestStatus.READING_TEST,
+          currentPage: 1,
+          pageSize: 10,
+        });
+        const data = (res as any)?.data?.data?.results ?? [];
+        if (mounted) setItems(data);
+      } catch (e: any) {
+        if (mounted) setError(e?.message || "Error");
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    const ready = !isLoading;
+    if (ready && !isLoaded) {
+      setIsLoaded(true);
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isLoading, isLoaded, fadeAnim, slideAnim]);
+
   const handleReadingPress = (materialId: number) => {
-    console.log(`Reading material ${materialId} pressed`);
-    // Navigate to reading detail screen
+    router.push({
+      pathname: "/reading-test",
+      params: { testId: String(materialId) },
+    });
   };
 
   return (
@@ -141,60 +134,79 @@ export default function ReadingScreen() {
       <ThemedText type="title" style={styles.title}>
         📖 {t("reading.title")}
       </ThemedText>
-      <ThemedText style={styles.subtitle}>
-        {t("reading.subtitle")}
-      </ThemedText>
-      <ThemedText type="subtitle" style={styles.sectionTitle}>
-        📚 {t("reading.materials_title")}
-      </ThemedText>
+      <ThemedText style={styles.subtitle}>{t("reading.subtitle")}</ThemedText>
 
-      <View style={styles.materialsContainer}>
-        {sampleReadingMaterials.map((material) => (
-          <ReadingCard
-            key={material.id}
-            material={material}
-            onPress={() => handleReadingPress(material.id)}
-          />
-        ))}
-      </View>
-
-      <ThemedView style={styles.statsCard}>
+      <Animated.View
+        style={[
+          styles.statsCard,
+          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        ]}
+      >
         <ThemedText type="subtitle" style={styles.statsTitle}>
           📊 {t("reading.progress_title")}
         </ThemedText>
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>8</ThemedText>
-            <ThemedText style={styles.statLabel}>{t("reading.articles_read")}</ThemedText>
+            <ThemedText style={styles.statLabel}>
+              {t("reading.articles_read")}
+            </ThemedText>
           </View>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>245</ThemedText>
-            <ThemedText style={styles.statLabel}>{t("reading.words_learned")}</ThemedText>
+            <ThemedText style={styles.statLabel}>
+              {t("reading.words_learned")}
+            </ThemedText>
           </View>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>92%</ThemedText>
-            <ThemedText style={styles.statLabel}>{t("reading.comprehension")}</ThemedText>
+            <ThemedText style={styles.statLabel}>
+              {t("reading.comprehension")}
+            </ThemedText>
           </View>
         </View>
-      </ThemedView>
+      </Animated.View>
+
+      <ThemedText type="subtitle" style={styles.sectionTitle}>
+        📚 {t("reading.materials_title")}
+      </ThemedText>
+
+      <View style={styles.materialsContainer}>
+        {isLoading && (
+          <ThemedText style={{ textAlign: "center" }}>Loading...</ThemedText>
+        )}
+        {!!error && (
+          <ThemedText style={{ textAlign: "center", color: "#ef4444" }}>
+            {error}
+          </ThemedText>
+        )}
+        {!isLoading &&
+          !error &&
+          items.map((item) => (
+            <Animated.View
+              key={item.id}
+              style={{
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }}
+            >
+              <ReadingCard
+                item={item}
+                onPress={() => handleReadingPress(item.test?.id)}
+              />
+            </Animated.View>
+          ))}
+      </View>
 
       <ThemedView style={styles.tipsCard}>
         <ThemedText type="subtitle" style={styles.tipsTitle}>
           💡 {t("reading.tips_title")}
         </ThemedText>
         <View style={styles.tipsList}>
-          <ThemedText style={styles.tipItem}>
-            • {t("reading.tip_1")}
-          </ThemedText>
-          <ThemedText style={styles.tipItem}>
-            • {t("reading.tip_2")}
-          </ThemedText>
-          <ThemedText style={styles.tipItem}>
-            • {t("reading.tip_3")}
-          </ThemedText>
-          <ThemedText style={styles.tipItem}>
-            • {t("reading.tip_4")}
-          </ThemedText>
+          <ThemedText style={styles.tipItem}>• {t("reading.tip_1")}</ThemedText>
+          <ThemedText style={styles.tipItem}>• {t("reading.tip_2")}</ThemedText>
+          <ThemedText style={styles.tipItem}>• {t("reading.tip_3")}</ThemedText>
+          <ThemedText style={styles.tipItem}>• {t("reading.tip_4")}</ThemedText>
         </View>
       </ThemedView>
     </HomeLayout>
@@ -223,6 +235,7 @@ const styles = StyleSheet.create({
   },
   materialsContainer: {
     gap: 16,
+    marginBottom: 16,
   },
   readingCard: {
     backgroundColor: "rgba(255, 255, 255, 0.9)",
@@ -254,6 +267,12 @@ const styles = StyleSheet.create({
   materialInfo: {
     flex: 1,
   },
+  materialHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
   materialTitle: {
     fontSize: 16,
     fontWeight: "600",
@@ -270,7 +289,8 @@ const styles = StyleSheet.create({
   metaInfo: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
+    width: "100%",
   },
   levelBadge: {
     backgroundColor: "#f3f4f6",
@@ -313,6 +333,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 16,
     padding: 20,
+    marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -351,6 +372,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 16,
     padding: 20,
+    marginTop: 16,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
