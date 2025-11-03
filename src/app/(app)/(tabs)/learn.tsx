@@ -254,7 +254,7 @@ const CategoriesScreen = () => {
           description={t("lessons.error_loading_lessons_description")}
           error={lessonCategoriesError?.message || t("common.error")}
           onRetry={() => {
-            // TODO: Implement retry
+           setRefreshing(true);
           }}
           retryText={t("common.retry")}
         />

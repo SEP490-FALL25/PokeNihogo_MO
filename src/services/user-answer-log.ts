@@ -1,13 +1,12 @@
 import { axiosPrivate } from "@configs/axios";
-import { IUpsertUserTestAnswerLogRequest } from "@models/user-test-answer-log/user-test-answer-log.request";
+import { IUpsertUserAnswerLogRequest } from "@models/user-answer-log/user-answer-log.request";
 
 const userAnswerLogService = {
-  upsertAnswerLog: async (answerLog: IUpsertUserTestAnswerLogRequest) => {
-    return axiosPrivate.post(`/user-test-answer-log/upsert`, answerLog);
+  upsertAnswerLog: async (answerLog: IUpsertUserAnswerLogRequest) => {
+    return axiosPrivate.post(`/user-answer-log/upsert`, answerLog);
   },
-
-  checkPlacementTest: async (testAttemptId: number | string) => {
-    return axiosPrivate.put(`/user-test-attempt/${testAttemptId}/placement-test/submit-completion`,{});
+  checkCompletion: async (exerciseAttemptId: string) => {
+    return axiosPrivate.put(`/user-exercise-attempt/${exerciseAttemptId}/completion`);
   },
 };
 

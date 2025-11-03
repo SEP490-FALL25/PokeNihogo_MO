@@ -2,20 +2,30 @@ import QuizLayout from "@components/layouts/QuizLayout";
 import ResultValueCard from "@components/quiz/ResultValueCard";
 import BounceButton from "@components/ui/BounceButton";
 import { Button } from "@components/ui/Button";
+import { ConfirmModal } from "@components/ui/ConfirmModal";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useCheckReviewAccess } from "@hooks/useUserExerciseAttempt";
+import { useCheckReviewAccessTest } from "@hooks/useUserTestAttempt";
 import { ISubmitCompletionData } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import { ROUTES } from "@routes/routes";
+import { AxiosError } from "axios";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function QuizResultScreen() {
-  const { resultId, resultData, message, timeSpent } = useLocalSearchParams<{
+  const { resultId, resultData, message, timeSpent, origin } = useLocalSearchParams<{
     resultId?: string;
     resultData?: string;
     message?: string;
     timeSpent?: string;
+    origin?: string; // expected 'quiz' if coming from quiz flow
   }>();
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const { mutate: checkReviewAccess, isPending } = useCheckReviewAccess();
+  const [isFetchingReview, setIsFetchingReview] = useState(false);
+  const { mutate: checkReviewAccessTest } = useCheckReviewAccessTest();
 
   // Parse result data from params
   const result: ISubmitCompletionData | null = useMemo(() => {
@@ -37,12 +47,77 @@ export default function QuizResultScreen() {
     router.replace("/(app)/(tabs)/home");
   };
 
-  const handleViewAnswers = () => {
+  const handleViewAnswers = async () => {
     if (!resultId) return;
-    // resultId is actually exerciseAttemptId
-    router.push({
-      pathname: ROUTES.QUIZ.REVIEW,
-      params: { sessionId: resultId },
+
+    const comingFromQuiz = origin === "quiz";
+    if (comingFromQuiz) {
+      // Check review access first (quiz flow)
+      checkReviewAccess(resultId, {
+        onSuccess: (data) => {
+          if ((data as any)?.statusCode === 403) {
+            const errorMsg = (data as any)?.message || "Bạn không đủ điều kiện để xem đáp án";
+            setErrorMessage(errorMsg);
+            setShowErrorModal(true);
+            return;
+          }
+
+          router.push({
+            pathname: ROUTES.QUIZ.REVIEW,
+            params: {
+              sessionId: resultId,
+              origin: "quiz",
+              reviewData: JSON.stringify(data),
+            },
+          });
+        },
+        onError: (error: Error) => {
+          const axiosError = error as AxiosError<any>;
+          const status = axiosError.response?.status;
+          const errorMsg =
+            status === 403
+              ? (axiosError.response?.data?.message || "Bạn không đủ điều kiện để xem đáp án")
+              : (axiosError.response?.data?.message || "Không thể xem đáp án");
+          setErrorMessage(errorMsg);
+          setShowErrorModal(true);
+        },
+      });
+      return;
+    }
+
+    // Directly check review access via test hook when entering from other routes
+    setIsFetchingReview(true);
+    checkReviewAccessTest(resultId, {
+      onSuccess: (data: any) => {
+        if (data?.statusCode === 403) {
+          const errorMsg = data?.message || "Bạn không đủ điều kiện để xem đáp án";
+          setErrorMessage(errorMsg);
+          setShowErrorModal(true);
+          setIsFetchingReview(false);
+          return;
+        }
+
+        router.push({
+          pathname: ROUTES.QUIZ.REVIEW,
+          params: {
+            sessionId: resultId,
+            origin: "test",
+            reviewData: JSON.stringify(data),
+          },
+        });
+        setIsFetchingReview(false);
+      },
+      onError: (error: Error) => {
+        const axiosError = error as AxiosError<any>;
+        const status = axiosError.response?.status;
+        const errorMsg =
+          status === 403
+            ? (axiosError.response?.data?.message || "Bạn không đủ điều kiện để xem đáp án")
+            : (axiosError.response?.data?.message || "Không thể xem đáp án");
+        setErrorMessage(errorMsg);
+        setShowErrorModal(true);
+        setIsFetchingReview(false);
+      },
     });
   };
 
@@ -217,11 +292,25 @@ export default function QuizResultScreen() {
             TIẾP TỤC
           </BounceButton>
           <View style={{ height: 12 }} />
-          <BounceButton variant="secondary" onPress={handleViewAnswers}>
+          <BounceButton 
+            variant="secondary" 
+            onPress={handleViewAnswers}
+            loading={isPending || isFetchingReview}
+          >
             Xem đáp án
           </BounceButton>
         </View>
       </ScrollView>
+
+      <ConfirmModal
+        visible={showErrorModal}
+        title="Không thể xem đáp án"
+        message={errorMessage}
+        onRequestClose={() => setShowErrorModal(false)}
+        buttons={[
+          { label: "Đóng", onPress: () => setShowErrorModal(false), variant: "primary" },
+        ]}
+      />
     </QuizLayout>
   );
 }

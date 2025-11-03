@@ -1,6 +1,6 @@
 import {
-    ICheckCompletionResponse,
-    ISubmitCompletionResponse,
+  ICheckCompletionResponse,
+  ISubmitCompletionResponse,
 } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import userExerciseAttemptService from "@services/user-exercise-attempt";
 import { useGlobalStore } from "@stores/global/global.config";
@@ -85,6 +85,15 @@ export const useReviewResult = (exerciseAttemptId: string) => {
     refetchOnMount: "always", // Always refetch when component mounts
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+  });
+};
+
+export const useCheckReviewAccess = () => {
+  return useMutation({
+    mutationFn: async (exerciseAttemptId: string) => {
+      const res = await userExerciseAttemptService.getReviewResult(exerciseAttemptId);
+      return res.data;
+    },
   });
 };
 
