@@ -2,134 +2,66 @@ import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { IconSymbol } from "@components/ui/IconSymbol";
+import { TestStatus } from "@constants/test.enum";
+import userTestService from "@services/user-test";
+import { router } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 
-const sampleListeningExercises = [
-  {
-    id: 1,
-    title: "Basic Greetings",
-    description: "Listen to common Japanese greetings and responses",
-    level: "Beginner",
-    duration: "3:45",
-    icon: "hand.wave.fill",
-    color: "#10b981",
-    progress: 100,
-  },
-  {
-    id: 2,
-    title: "Numbers & Counting",
-    description: "Practice listening to Japanese numbers",
-    level: "Beginner",
-    duration: "5:20",
-    icon: "number.circle.fill",
-    color: "#f59e0b",
-    progress: 75,
-  },
-  {
-    id: 3,
-    title: "Daily Conversations",
-    description: "Real-life Japanese conversations",
-    level: "Intermediate",
-    duration: "8:15",
-    icon: "bubble.left.and.bubble.right.fill",
-    color: "#3b82f6",
-    progress: 30,
-  },
-  {
-    id: 4,
-    title: "News & Weather",
-    description: "Japanese news broadcasts and weather reports",
-    level: "Intermediate",
-    duration: "12:30",
-    icon: "cloud.sun.fill",
-    color: "#8b5cf6",
-    progress: 0,
-  },
-  {
-    id: 5,
-    title: "Anime Dialogues",
-    description: "Popular anime conversations for practice",
-    level: "Advanced",
-    duration: "15:45",
-    icon: "tv.fill",
-    color: "#ef4444",
-    progress: 0,
-  },
-  {
-    id: 6,
-    title: "Business Japanese",
-    description: "Formal business conversations and meetings",
-    level: "Advanced",
-    duration: "20:00",
-    icon: "briefcase.fill",
-    color: "#06b6d4",
-    progress: 0,
-  },
-];
+type UserTestItem = {
+  id: number;
+  limit: number;
+  status: string;
+  test: {
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+    levelN: number;
+    testType: string;
+    status: string;
+    limit: number;
+  };
+};
 
 const ListeningCard: React.FC<{
-  exercise: (typeof sampleListeningExercises)[0];
+  item: UserTestItem;
   onPress: () => void;
-}> = ({ exercise, onPress }) => {
+}> = ({ item, onPress }) => {
   return (
     <TouchableOpacity
-      style={[styles.listeningCard, { borderLeftColor: exercise.color }]}
+      style={[styles.listeningCard, { borderLeftColor: "#10b981" }]}
       onPress={onPress}
       activeOpacity={0.8}
     >
       <View style={styles.cardHeader}>
-        <View
-          style={[styles.iconContainer, { backgroundColor: exercise.color }]}
-        >
-          <IconSymbol name={exercise.icon as any} size={24} color="#ffffff" />
+        <View style={[styles.iconContainer, { backgroundColor: "#10b981" }]}>
+          <IconSymbol name={"headphones" as any} size={24} color="#ffffff" />
         </View>
         <View style={styles.exerciseInfo}>
-          <ThemedText type="subtitle" style={styles.exerciseTitle}>
-            {exercise.title}
-          </ThemedText>
+          <View style={styles.materialHeaderRow}>
+            <ThemedText type="subtitle" style={styles.exerciseTitle}>
+              {item.test?.name}
+            </ThemedText>
+            <View style={styles.levelBadge}>
+              <ThemedText style={styles.levelText}>
+                N{item.test?.levelN}
+              </ThemedText>
+            </View>
+          </View>
           <ThemedText style={styles.exerciseDescription}>
-            {exercise.description}
+            {item.test?.description}
           </ThemedText>
-        </View>
-        <View style={styles.playButton}>
-          <IconSymbol
-            name={"play.circle.fill" as any}
-            size={32}
-            color={exercise.color}
-          />
         </View>
       </View>
 
       <View style={styles.cardFooter}>
         <View style={styles.metaInfo}>
-          <View style={styles.levelBadge}>
-            <ThemedText style={styles.levelText}>{exercise.level}</ThemedText>
-          </View>
           <ThemedText style={styles.durationText}>
-            ⏱️ {exercise.duration}
+            {item.limit} / {item.test?.limit}
           </ThemedText>
         </View>
-
-        {exercise.progress > 0 && (
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${exercise.progress}%`,
-                    backgroundColor: exercise.color,
-                  },
-                ]}
-              />
-            </View>
-            <ThemedText style={styles.progressText}>
-              {exercise.progress}%
-            </ThemedText>
-          </View>
-        )}
       </View>
     </TouchableOpacity>
   );
@@ -137,10 +69,60 @@ const ListeningCard: React.FC<{
 
 export default function ListeningScreen() {
   const { t } = useTranslation();
-  
-  const handleListeningPress = (exerciseId: number) => {
-    console.log(`Listening exercise ${exerciseId} pressed`);
-    // Navigate to listening detail screen
+  const [items, setItems] = React.useState<UserTestItem[]>([]);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = React.useState(false);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const slideAnim = React.useRef(new Animated.Value(30)).current;
+
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setIsLoading(true);
+        const res = await userTestService.getMy({
+          type: TestStatus.LISTENING_TEST,
+          currentPage: 1,
+          pageSize: 10,
+        });
+        const data = (res as any)?.data?.data?.results ?? [];
+        if (mounted) setItems(data);
+      } catch (e: any) {
+        if (mounted) setError(e?.message || "Error");
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    const ready = !isLoading;
+    if (ready && !isLoaded) {
+      setIsLoaded(true);
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isLoading, isLoaded, fadeAnim, slideAnim]);
+
+  const handleListeningPress = (testId: number) => {
+    router.push({
+      pathname: "/test",
+      params: { testId: String(testId), testType: "LISTENING_TEST" },
+    });
   };
 
   return (
@@ -156,16 +138,38 @@ export default function ListeningScreen() {
       </ThemedText>
 
       <View style={styles.exercisesContainer}>
-        {sampleListeningExercises.map((exercise) => (
-          <ListeningCard
-            key={exercise.id}
-            exercise={exercise}
-            onPress={() => handleListeningPress(exercise.id)}
-          />
-        ))}
+        {isLoading && (
+          <ThemedText style={{ textAlign: "center" }}>Loading...</ThemedText>
+        )}
+        {!!error && (
+          <ThemedText style={{ textAlign: "center", color: "#ef4444" }}>
+            {error}
+          </ThemedText>
+        )}
+        {!isLoading &&
+          !error &&
+          items.map((item) => (
+            <Animated.View
+              key={item.id}
+              style={{
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }}
+            >
+              <ListeningCard
+                item={item}
+                onPress={() => handleListeningPress(item.test?.id)}
+              />
+            </Animated.View>
+          ))}
       </View>
 
-      <ThemedView style={styles.statsCard}>
+      <Animated.View
+        style={[
+          styles.statsCard,
+          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        ]}
+      >
         <ThemedText type="subtitle" style={styles.statsTitle}>
           📊 {t("listening.progress_title")}
         </ThemedText>
@@ -183,7 +187,7 @@ export default function ListeningScreen() {
             <ThemedText style={styles.statLabel}>{t("listening.accuracy")}</ThemedText>
           </View>
         </View>
-      </ThemedView>
+      </Animated.View>
 
       <ThemedView style={styles.tipsCard}>
         <ThemedText type="subtitle" style={styles.tipsTitle}>
@@ -309,10 +313,17 @@ const styles = StyleSheet.create({
   cardFooter: {
     gap: 8,
   },
-  metaInfo: {
+  materialHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 8,
+  },
+  metaInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    width: "100%",
   },
   levelBadge: {
     backgroundColor: "#f3f4f6",
@@ -355,6 +366,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 16,
     padding: 20,
+    marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -393,6 +405,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 16,
     padding: 20,
+    marginTop: 16,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

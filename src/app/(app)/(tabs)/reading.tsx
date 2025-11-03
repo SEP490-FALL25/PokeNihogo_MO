@@ -124,8 +124,8 @@ export default function ReadingScreen() {
 
   const handleReadingPress = (materialId: number) => {
     router.push({
-      pathname: "/reading-test",
-      params: { testId: String(materialId) },
+      pathname: "/test",
+      params: { testId: String(materialId), testType: "READING_TEST" },
     });
   };
 

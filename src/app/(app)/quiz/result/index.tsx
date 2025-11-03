@@ -111,7 +111,7 @@ console.log('comingFromQuiz: ', comingFromQuiz);
         }
 
         router.push({
-          pathname: "/(app)/quiz/review-test",
+          pathname: "/(app)/test/review-test",
           params: {
             sessionId: resultId,
             reviewData: JSON.stringify(data),
