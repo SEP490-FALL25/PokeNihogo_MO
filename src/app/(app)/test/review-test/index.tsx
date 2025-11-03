@@ -6,23 +6,23 @@ import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import React, { useMemo, useRef, useState } from "react";
 import {
-  Alert,
-  Animated,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
+    Alert,
+    Animated,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    ViewStyle,
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
-export default function QuizReviewScreen() {
-  const { sessionId, reviewData: reviewDataParam } = useLocalSearchParams<{ 
+export default function TestReviewScreen() {
+  const { sessionId, reviewData: reviewDataParam } = useLocalSearchParams<{
     sessionId: string;
     reviewData?: string;
   }>();
-  
+
   // If reviewData is passed as param, use it; otherwise fetch from API
   const reviewDataFromParams = useMemo(() => {
     if (!reviewDataParam) return null;
@@ -36,21 +36,21 @@ export default function QuizReviewScreen() {
 
   const { data: reviewDataFromApi, isLoading, error } = useReviewResultUnified(
     sessionId,
-    "quiz",
+    "test",
     reviewDataFromParams || undefined
   );
-  
+
   // Use reviewData from params if available, otherwise use API data
   const reviewData = reviewDataFromApi || reviewDataFromParams;
-  
+
   // Determine if we should show loading/error
   const shouldShowLoading = !reviewDataFromParams && isLoading;
   const shouldShowError = !reviewDataFromParams && error;
-  
+
   const scaleAnims = useRef<Record<string, Animated.Value[]>>({}).current;
   const scrollRef = useRef<ScrollView | null>(null);
   const questionOffsetsRef = useRef<Record<string, number>>({});
-  console.log(reviewData)
+
   // Parse explanation text to extract VN and EN parts
   const parseExplanation = (explanation?: string) => {
     if (!explanation) return null;
@@ -60,14 +60,22 @@ export default function QuizReviewScreen() {
 
     return {
       vn: vnMatch ? vnMatch[1].trim() : null,
-      en: enMatch ? enMatch[1].trim() : explanation, // Fallback to full text if no EN: prefix
+      en: enMatch ? enMatch[1].trim() : explanation,
     };
   };
 
   // Get sorted questions by questionOrder
   const questions = useMemo((): IReviewResultQuestionBank[] => {
-    if (!reviewData?.data?.testSet?.testSetQuestionBanks) return [];
-    return reviewData.data.testSet.testSetQuestionBanks
+    // For test type, data has testSets array instead of single testSet
+    const testSets = reviewData?.data?.testSets;
+    if (!testSets || testSets.length === 0) return [];
+    
+    // Flatten all questions from all testSets and sort by questionOrder
+    const allQuestions = testSets.flatMap((testSet: any) => 
+      testSet.testSetQuestionBanks || []
+    );
+    
+    return allQuestions
       .sort(
         (a: { questionOrder: number }, b: { questionOrder: number }) =>
           a.questionOrder - b.questionOrder
@@ -113,7 +121,9 @@ export default function QuizReviewScreen() {
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${hrs.toString().padStart(2, "0")}:${mins
+      .toString()
+      .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   // Calculate circular progress percentages
@@ -774,4 +784,5 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 });
+
 

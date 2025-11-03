@@ -321,6 +321,7 @@ export default function QuizScreen() {
                 resultData: JSON.stringify(response.data),
                 message: response.message || "",
                 timeSpent: totalTimeSpent.toString(),
+                origin: "quiz",
               },
             });
           } else {

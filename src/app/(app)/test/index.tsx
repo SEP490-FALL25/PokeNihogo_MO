@@ -2,6 +2,7 @@ import QuizLayout from "@components/layouts/QuizLayout";
 import { QuizCompletionModal } from "@components/quiz/QuizCompletionModal";
 import { QuizProgress } from "@components/quiz/QuizProgress";
 import { ConfirmModal } from "@components/ui/ConfirmModal";
+import InlineAudioPlayer from "@components/ui/InlineAudioPlayer";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUpsertUserTestAnswerLog } from "@hooks/useUserTestAnswerLog";
 import { useCheckReadingCompletion, useSubmitReadingCompletion } from "@hooks/useUserTestAttempt";
@@ -19,15 +20,16 @@ type ReadingQuestion = {
   question: string;
   options: AnswerOption[];
   globalIndex: number; // 1-based index across all sets
+  audioUrl?: string; // optional for listening questions
 };
 type ReadingSet = { id: string; content: string; questions: ReadingQuestion[] };
 
 export default function ReadingTestScreen() {
-  const { testId: testIdParam } = useLocalSearchParams<{ testId?: string }>();
+  const { testId: testIdParam, testType } = useLocalSearchParams<{ testId?: string; testType?: string }>();
   const testId = testIdParam || "";
 
   const { data, isLoading } = useQuery({
-    queryKey: ["reading-test", testId],
+    queryKey: ["test", testId, testType],
     queryFn: async () => {
       const res = await userTestService.getAttemptByTestId(testId);
       return res.data;
@@ -38,6 +40,36 @@ export default function ReadingTestScreen() {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
+
+  // Get test config based on testType
+  const testConfig = useMemo(() => {
+    switch (testType) {
+      case "READING_TEST":
+        return { 
+          title: "Bài đọc", 
+          icon: "book-open-page-variant", 
+          color: "#0ea5e9",
+          exitTitle: "Thoát bài đọc?",
+          exitMessage: "Bạn có muốn quay lại danh sách bài đọc?"
+        };
+      case "LISTENING_TEST":
+        return { 
+          title: "Bài nghe", 
+          icon: "headphones", 
+          color: "#10b981",
+          exitTitle: "Thoát bài nghe?",
+          exitMessage: "Bạn có muốn quay lại danh sách bài nghe?"
+        };
+      default:
+        return { 
+          title: "Bài test", 
+          icon: "file-document-edit", 
+          color: "#0ea5e9",
+          exitTitle: "Thoát bài test?",
+          exitMessage: "Bạn có muốn quay lại?"
+        };
+    }
+  }, [testType]);
 
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   const [userTestAttemptId, setUserTestAttemptId] = useState<number | null>(null);
@@ -65,6 +97,7 @@ export default function ReadingTestScreen() {
             question: q.question || "",
             options: (q.answers || []).map((ans: any) => ({ id: String(ans.id), text: ans.answer })),
             globalIndex: counter,
+            audioUrl: q.audioUrl || q.audioURL || q.audio || undefined,
           };
         });
       return { id: String(s.id), content: s.content || "", questions };
@@ -139,12 +172,12 @@ export default function ReadingTestScreen() {
             <TouchableOpacity onPress={() => setShowExitConfirmModal(true)} activeOpacity={0.8} style={styles.backButton}>
               <ChevronLeft size={22} color="#111827" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle} numberOfLines={1}>{data?.data?.name || "Bài đọc"}</Text>
+            <Text style={styles.headerTitle} numberOfLines={1}>{data?.data?.name || testConfig.title}</Text>
             <View style={styles.submitIconButton}>
               <MaterialCommunityIcons
-                name="book-open-page-variant"
+                name={testConfig.icon as any}
                 size={26}
-                color="#0ea5e9"
+                color={testConfig.color}
                 onPress={() => {
                   if (!userTestAttemptId) return;
                   setIsTimerPaused(true);
@@ -175,75 +208,128 @@ export default function ReadingTestScreen() {
         </View>
       }
     >
-      <ScrollView
-        ref={scrollRef}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: 24 }]}
-      >        
-        {sets.map((set, sIdx) => (
-          <View
-            key={set.id}
-            style={styles.readingBlock}
-            onLayout={(e) => {
-              blockOffsetsRef.current[set.id] = e.nativeEvent.layout.y;
-            }}
-          >
-            <View style={styles.contentCard}>
-              <Text style={styles.sectionBadge}>Đoạn {sIdx + 1}</Text>
-              <Text style={styles.contentText}>{set.content}</Text>
-            </View>
-
-            {set.questions.map((q) => {
-              const selected = selections[q.uid] || [];
-              if (!scaleAnims[q.uid] && q.options) {
-                scaleAnims[q.uid] = q.options.map(() => new Animated.Value(1));
-              }
-              return (
-                <View
-                  key={q.uid}
-                  style={styles.block}
-                  onLayout={(e) => {
-                    const blockTop = blockOffsetsRef.current[set.id] || 0;
-                    questionOffsetsRef.current[q.uid] = blockTop + e.nativeEvent.layout.y;
-                  }}
-                >
+      {testType === "LISTENING_TEST" ? (
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: 24 }]}
+        >
+          {allQuestions.map((q) => {
+            const selected = selections[q.uid] || [];
+            if (!scaleAnims[q.uid] && q.options) {
+              scaleAnims[q.uid] = q.options.map(() => new Animated.Value(1));
+            }
+            return (
+              <View
+                key={q.uid}
+                style={[styles.block, { paddingHorizontal: 10 }]}
+                onLayout={(e) => {
+                  questionOffsetsRef.current[q.uid] = e.nativeEvent.layout.y;
+                }}
+              >
                   <View style={styles.qaCard}>
-                    <View style={styles.headerRow}>
-                      <View style={styles.numberBadge}><Text style={styles.numberText}>{q.globalIndex}</Text></View>
-                    </View>
-                    <Text style={styles.questionText}>{q.question}</Text>
-                    <View style={styles.optionsInCard}>
-                      {q.options?.map((opt, index) => {
-                        const isSelected = selected.includes(opt.id);
-                        return (
-                          <Animated.View key={opt.id} style={[styles.optionWrapper, { transform: [{ scale: scaleAnims[q.uid]?.[index] || 1 }] }]}> 
-                            <TouchableOpacity
-                              onPress={() => handleAnswerSelect(q.bankId, [opt.id], index, q.uid)}
-                              activeOpacity={0.85}
-                              style={[styles.optionButton, isSelected && styles.optionSelected]}
-                            >
-                              <View style={styles.optionContent}>
-                                <View style={[styles.optionCircle, isSelected && styles.circleSelected]}>
-                                  <Text style={styles.optionLabel}>{String.fromCharCode(65 + index)}</Text>
-                                </View>
-                                <Text style={styles.optionText}>{opt.text}</Text>
+                  <View style={styles.headerRow}>
+                    <View style={styles.numberBadge}><Text style={styles.numberText}>{q.globalIndex}</Text></View>
+                  </View>
+                  {q.audioUrl && (
+                    <InlineAudioPlayer audioUrl={q.audioUrl} style={styles.audioBelow} />
+                  )}
+                  <View style={styles.optionsInCard}>
+                    {q.options?.map((opt, index) => {
+                      const isSelected = selected.includes(opt.id);
+                      return (
+                        <Animated.View key={opt.id} style={[styles.optionWrapper, { transform: [{ scale: scaleAnims[q.uid]?.[index] || 1 }] }]}> 
+                          <TouchableOpacity
+                            onPress={() => handleAnswerSelect(q.bankId, [opt.id], index, q.uid)}
+                            activeOpacity={0.85}
+                            style={[styles.optionButton, isSelected && styles.optionSelected]}
+                          >
+                            <View style={styles.optionContent}>
+                              <View style={[styles.optionCircle, isSelected && styles.circleSelected]}>
+                                <Text style={styles.optionLabel}>{String.fromCharCode(65 + index)}</Text>
                               </View>
-                            </TouchableOpacity>
-                          </Animated.View>
-                        );
-                      })}
-                    </View>
+                              <Text style={styles.optionText}>{opt.text}</Text>
+                            </View>
+                          </TouchableOpacity>
+                        </Animated.View>
+                      );
+                    })}
                   </View>
                 </View>
-              );
-            })}
-          </View>
-        ))}
-      </ScrollView>
+              </View>
+            );
+          })}
+        </ScrollView>
+      ) : (
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: 24 }]}
+        >        
+          {sets.map((set, sIdx) => (
+            <View
+              key={set.id}
+              style={styles.readingBlock}
+              onLayout={(e) => {
+                blockOffsetsRef.current[set.id] = e.nativeEvent.layout.y;
+              }}
+            >
+              <View style={styles.contentCard}>
+                <Text style={styles.sectionBadge}>Đoạn {sIdx + 1}</Text>
+                <Text style={styles.contentText}>{set.content}</Text>
+              </View>
+
+              {set.questions.map((q) => {
+                const selected = selections[q.uid] || [];
+                if (!scaleAnims[q.uid] && q.options) {
+                  scaleAnims[q.uid] = q.options.map(() => new Animated.Value(1));
+                }
+                return (
+                  <View
+                    key={q.uid}
+                    style={styles.block}
+                    onLayout={(e) => {
+                      const blockTop = blockOffsetsRef.current[set.id] || 0;
+                      questionOffsetsRef.current[q.uid] = blockTop + e.nativeEvent.layout.y;
+                    }}
+                  >
+                    <View style={styles.qaCard}>
+                      <View style={styles.headerRow}>
+                        <View style={styles.numberBadge}><Text style={styles.numberText}>{q.globalIndex}</Text></View>
+                      </View>
+                      <Text style={styles.questionText}>{q.question}</Text>
+                      <View style={styles.optionsInCard}>
+                        {q.options?.map((opt, index) => {
+                          const isSelected = selected.includes(opt.id);
+                          return (
+                            <Animated.View key={opt.id} style={[styles.optionWrapper, { transform: [{ scale: scaleAnims[q.uid]?.[index] || 1 }] }]}> 
+                              <TouchableOpacity
+                                onPress={() => handleAnswerSelect(q.bankId, [opt.id], index, q.uid)}
+                                activeOpacity={0.85}
+                                style={[styles.optionButton, isSelected && styles.optionSelected]}
+                              >
+                                <View style={styles.optionContent}>
+                                  <View style={[styles.optionCircle, isSelected && styles.circleSelected]}>
+                                    <Text style={styles.optionLabel}>{String.fromCharCode(65 + index)}</Text>
+                                  </View>
+                                  <Text style={styles.optionText}>{opt.text}</Text>
+                                </View>
+                              </TouchableOpacity>
+                            </Animated.View>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          ))}
+        </ScrollView>
+      )}
 
       <ConfirmModal
         visible={showExitConfirmModal}
-        title="Thoát bài đọc?"
-        message="Bạn có muốn quay lại danh sách bài đọc?"
+        title={testConfig.exitTitle}
+        message={testConfig.exitMessage}
         onRequestClose={() => setShowExitConfirmModal(false)}
         buttons={[
           { label: "Hủy", onPress: () => setShowExitConfirmModal(false), variant: "secondary" },
@@ -297,7 +383,9 @@ const styles = StyleSheet.create({
   contentText: { fontSize: 16, color: "#111827", lineHeight: 24 },
   block: { marginBottom: 10 },
   qaCard: { backgroundColor: "white", borderRadius: 16, padding: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.08, shadowRadius: 20, elevation: 10 },
-  headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
+  headerRow: { flexDirection: "row", alignItems: "center", justifyContent: "flex-start", marginBottom: 8 },
+  audioInHeader: { flex: 1, marginLeft: 10 },
+  audioBelow: { marginTop: 8 },
   numberBadge: { backgroundColor: "#e0e7ff", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   numberText: { color: "#4338ca", fontWeight: "700" },
   questionText: { fontSize: 20, fontWeight: "700", color: "#1f2937", lineHeight: 28 },
@@ -310,6 +398,7 @@ const styles = StyleSheet.create({
   circleSelected: { backgroundColor: "#4f46e5" },
   optionLabel: { color: "white", fontWeight: "bold", fontSize: 14 },
   optionText: { fontSize: 16, color: "#1f2937", flex: 1 },
+  audioBtnSmall: { width: 36, height: 36 },
 });
 
 
