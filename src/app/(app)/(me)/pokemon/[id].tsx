@@ -7,12 +7,11 @@ import { TypeBadge } from '@components/pokemon-detail/typebage';
 import { useGetPokemonByIdWithEvolechain } from '@hooks/useUserPokemon';
 import { IEvolutionPokemonSchema } from '@models/pokemon/pokemon.response';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Award, Shield, Sparkles, TrendingUp, Zap } from 'lucide-react-native';
+import { Award, Shield, Sparkles, TrendingUp } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, ScrollView, StatusBar, Text, View } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import * as Progress from 'react-native-progress';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const TABS = ['intro', 'evolution'] as const;
@@ -107,17 +106,6 @@ export default function PokemonDetailScreen() {
                                     <Text className="text-[22px] font-black text-white tracking-[0.5px] mb-2 capitalize">
                                         {nextEvolution.nameTranslations.en}
                                     </Text>
-                                    <View className="items-start">
-                                        <TWLinearGradient
-                                            colors={['#fbbf24', '#f59e0b']}
-                                            className="flex-row items-center px-3 py-1.5 rounded-xl gap-1 shadow-[0_3px_6px_rgba(251,191,36,0.4)]"
-                                        >
-                                            <Zap size={14} color="white" fill="white" strokeWidth={2.5} />
-                                            <Text className="text-[14px] font-black text-white tracking-[0.5px]">
-                                                {t('pokemon_detail.level_label')} {nextEvolution.conditionLevel ?? pokemon.conditionLevel ?? 1}
-                                            </Text>
-                                        </TWLinearGradient>
-                                    </View>
                                 </View>
                             </View>
                         </TWLinearGradient>
@@ -232,35 +220,6 @@ export default function PokemonDetailScreen() {
 
                     <View className="absolute -bottom-[75px]">
                         <GlowingRingEffect color={primaryColor} ringSize={220} />
-                    </View>
-                </View>
-
-                <View className="w-full mt-4 px-6">
-                    <View className="flex-row justify-between items-center mb-2.5">
-                        <TWLinearGradient
-                            colors={['#fbbf24', '#f59e0b']}
-                            className="flex-row items-center px-[14px] py-1.5 rounded-[14px] gap-1.5 shadow-[0_3px_6px_rgba(251,191,36,0.4)]"
-                        >
-                            <Zap size={12} color="white" fill="white" strokeWidth={2.5} />
-                            <Text className="text-md font-black text-white tracking-[0.8px]">
-                                {t('profile.level_small')}. {levelInfo?.levelNumber ?? 1}
-                            </Text>
-                        </TWLinearGradient>
-                        <Text className="text-[14px] font-bold text-slate-400 tracking-[0.5px]">
-                            {expRequired > 0 ? `${currentExp}/${expRequired} EXP` : t('pokemon_detail.exp_unknown')}
-                        </Text>
-                    </View>
-                    <View className="relative">
-                        <View className="absolute w-full h-3 bg-[#6FAFB2] opacity-30 rounded-[6px] shadow-[0_0_8px_rgba(111,175,178,0.6)]" />
-                        <Progress.Bar
-                            progress={expProgress}
-                            width={null}
-                            height={12}
-                            color={primaryColor}
-                            unfilledColor={'#1e293b'}
-                            borderWidth={0}
-                            borderRadius={6}
-                        />
                     </View>
                 </View>
             </TWLinearGradient>
