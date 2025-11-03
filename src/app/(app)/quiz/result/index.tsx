@@ -70,8 +70,9 @@ export default function QuizResultScreen() {
 
   const handleViewAnswers = useCallback(async () => {
     if (!resultId) return;
-
-    const comingFromQuiz = origin === "quiz";
+console.log('origin: ', origin);
+const comingFromQuiz = origin === "quiz";
+console.log('comingFromQuiz: ', comingFromQuiz);
     if (comingFromQuiz) {
       // Check review access first (quiz flow)
       checkReviewAccess(resultId, {
@@ -86,7 +87,6 @@ export default function QuizResultScreen() {
             pathname: ROUTES.QUIZ.REVIEW,
             params: {
               sessionId: resultId,
-              origin: "quiz",
               reviewData: JSON.stringify(data),
             },
           });
@@ -111,10 +111,9 @@ export default function QuizResultScreen() {
         }
 
         router.push({
-          pathname: ROUTES.QUIZ.REVIEW,
+          pathname: "/(app)/quiz/review-test",
           params: {
             sessionId: resultId,
-            origin: "test",
             reviewData: JSON.stringify(data),
           },
         });
