@@ -10,7 +10,7 @@ import { ISubmitCompletionData } from "@models/user-exercise-attempt/user-exerci
 import { ROUTES } from "@routes/routes";
 import { AxiosError } from "axios";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function QuizResultScreen() {
@@ -26,6 +26,7 @@ export default function QuizResultScreen() {
   const { mutate: checkReviewAccess, isPending } = useCheckReviewAccess();
   const [isFetchingReview, setIsFetchingReview] = useState(false);
   const { mutate: checkReviewAccessTest } = useCheckReviewAccessTest();
+  const combinedLoading = isPending || isFetchingReview;
 
   // Parse result data from params
   const result: ISubmitCompletionData | null = useMemo(() => {
@@ -42,12 +43,32 @@ export default function QuizResultScreen() {
     return timeSpent ? parseInt(timeSpent, 10) : 0;
   }, [timeSpent]);
 
-  const handleGoHome = () => {
+  const timeDisplay = useMemo(() => {
+    const minutes = Math.floor(timeSpentNumber / 60);
+    const seconds = timeSpentNumber % 60;
+    return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+  }, [timeSpentNumber]);
+
+  const openErrorModal = useCallback((msg: string) => {
+    setErrorMessage(msg);
+    setShowErrorModal(true);
+  }, []);
+
+  const parseAxiosErrorMessage = useCallback((error: Error, fallback: string) => {
+    const axiosError = error as AxiosError<any>;
+    const status = axiosError.response?.status;
+    if (status === 403) {
+      return axiosError.response?.data?.message || "Bạn không đủ điều kiện để xem đáp án";
+    }
+    return axiosError.response?.data?.message || fallback;
+  }, []);
+
+  const handleGoHome = useCallback(() => {
     // Navigate back to home
     router.replace("/(app)/(tabs)/home");
-  };
+  }, []);
 
-  const handleViewAnswers = async () => {
+  const handleViewAnswers = useCallback(async () => {
     if (!resultId) return;
 
     const comingFromQuiz = origin === "quiz";
@@ -57,8 +78,7 @@ export default function QuizResultScreen() {
         onSuccess: (data) => {
           if ((data as any)?.statusCode === 403) {
             const errorMsg = (data as any)?.message || "Bạn không đủ điều kiện để xem đáp án";
-            setErrorMessage(errorMsg);
-            setShowErrorModal(true);
+            openErrorModal(errorMsg);
             return;
           }
 
@@ -72,14 +92,8 @@ export default function QuizResultScreen() {
           });
         },
         onError: (error: Error) => {
-          const axiosError = error as AxiosError<any>;
-          const status = axiosError.response?.status;
-          const errorMsg =
-            status === 403
-              ? (axiosError.response?.data?.message || "Bạn không đủ điều kiện để xem đáp án")
-              : (axiosError.response?.data?.message || "Không thể xem đáp án");
-          setErrorMessage(errorMsg);
-          setShowErrorModal(true);
+          const errorMsg = parseAxiosErrorMessage(error, "Không thể xem đáp án");
+          openErrorModal(errorMsg);
         },
       });
       return;
@@ -91,8 +105,7 @@ export default function QuizResultScreen() {
       onSuccess: (data: any) => {
         if (data?.statusCode === 403) {
           const errorMsg = data?.message || "Bạn không đủ điều kiện để xem đáp án";
-          setErrorMessage(errorMsg);
-          setShowErrorModal(true);
+          openErrorModal(errorMsg);
           setIsFetchingReview(false);
           return;
         }
@@ -108,18 +121,39 @@ export default function QuizResultScreen() {
         setIsFetchingReview(false);
       },
       onError: (error: Error) => {
-        const axiosError = error as AxiosError<any>;
-        const status = axiosError.response?.status;
-        const errorMsg =
-          status === 403
-            ? (axiosError.response?.data?.message || "Bạn không đủ điều kiện để xem đáp án")
-            : (axiosError.response?.data?.message || "Không thể xem đáp án");
-        setErrorMessage(errorMsg);
-        setShowErrorModal(true);
+        const errorMsg = parseAxiosErrorMessage(error, "Không thể xem đáp án");
+        openErrorModal(errorMsg);
         setIsFetchingReview(false);
       },
     });
-  };
+  }, [checkReviewAccess, checkReviewAccessTest, openErrorModal, origin, parseAxiosErrorMessage, resultId]);
+
+  // Determine title based on status
+  const titleText = useMemo(() => {
+    if (!result) {
+      return "Bài làm hoàn thành!";
+    }
+    if (result.status === "FAIL") {
+      return "Bài làm hoàn thành!";
+    }
+    if (result.allCorrect) {
+      return "Hoàn thành xuất sắc!";
+    }
+    return "Bài làm hoàn thành!";
+  }, [result]);
+
+  // Determine status message
+  const statusMessage = useMemo(() => {
+    if (!result) return "Không tìm thấy kết quả quiz";
+    if (message) return message;
+    if (result.status === "FAIL") {
+      return "Bạn đã hoàn thành bài tập nhưng có một số câu trả lời sai";
+    }
+    if (result.allCorrect) {
+      return "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi!";
+    }
+    return "Bạn đã hoàn thành bài tập";
+  }, [message, result]);
 
   if (!result) {
     return (
@@ -132,37 +166,6 @@ export default function QuizResultScreen() {
     );
   }
 
-  // Format time spent (convert seconds to minutes)
-  const timeSpentMinutes = Math.floor(timeSpentNumber / 60);
-  const timeSpentSeconds = timeSpentNumber % 60;
-  const timeDisplay =
-    timeSpentMinutes > 0
-      ? `${timeSpentMinutes}m ${timeSpentSeconds}s`
-      : `${timeSpentSeconds}s`;
-
-  // Determine title based on status
-  const getTitle = () => {
-    if (result.status === "FAIL") {
-      return "Bài làm hoàn thành!";
-    }
-    if (result.allCorrect) {
-      return "Hoàn thành xuất sắc!";
-    }
-    return "Bài làm hoàn thành!";
-  };
-
-  // Determine status message
-  const getStatusMessage = () => {
-    if (message) return message;
-    if (result.status === "FAIL") {
-      return "Bạn đã hoàn thành bài tập nhưng có một số câu trả lời sai";
-    }
-    if (result.allCorrect) {
-      return "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi!";
-    }
-    return "Bạn đã hoàn thành bài tập";
-  };
-
   return (
     <QuizLayout>
       <ScrollView
@@ -170,9 +173,9 @@ export default function QuizResultScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>{getTitle()}</Text>
+        <Text style={styles.title}>{titleText}</Text>
 
-        <Text style={styles.messageText}>{getStatusMessage()}</Text>
+        <Text style={styles.messageText}>{statusMessage}</Text>
 
         <View style={styles.mascotWrap}>
           <Image
@@ -292,10 +295,11 @@ export default function QuizResultScreen() {
             TIẾP TỤC
           </BounceButton>
           <View style={{ height: 12 }} />
-          <BounceButton 
-            variant="secondary" 
+          <BounceButton
+            variant="secondary"
             onPress={handleViewAnswers}
-            loading={isPending || isFetchingReview}
+            loading={combinedLoading}
+            disabled={combinedLoading || !resultId}
           >
             Xem đáp án
           </BounceButton>
