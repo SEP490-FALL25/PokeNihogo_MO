@@ -1,8 +1,9 @@
 import { ThemedText } from "@components/ThemedText";
-import { IconSymbol } from "@components/ui/IconSymbol";
+// Replaced IconSymbol with lucide-react-native
 import { LessonProgress } from "@models/lesson/lesson.common";
 import { ROUTES } from "@routes/routes";
 import { router } from "expo-router";
+import { Type } from "lucide-react-native";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -30,7 +31,6 @@ const LessonCard: React.FC<LessonCardProps> = React.memo(
 
     // Simplified type configuration
     const typeConfig = {
-      icon: "textformat.abc",
       color: "#10b981",
     };
 
@@ -48,11 +48,7 @@ const LessonCard: React.FC<LessonCardProps> = React.memo(
               { backgroundColor: typeConfig.color },
             ]}
           >
-            <IconSymbol
-              name={typeConfig.icon as any}
-              size={24}
-              color="#ffffff"
-            />
+            <Type size={24} color="#ffffff" />
           </View>
           <View style={styles.lessonInfo}>
             <ThemedText type="subtitle" style={styles.lessonTitle}>

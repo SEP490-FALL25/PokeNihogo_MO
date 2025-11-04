@@ -7,11 +7,13 @@ import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Animated,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+// import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface Tab {
   name: string;
@@ -28,20 +30,6 @@ interface TabButtonProps {
 }
 
 const getTabConfig = (t: (key: string) => string): Tab[] => [
-  // {
-  //   name: "learn",
-  //   icon: "book",
-  //   label: t("tabs.learn"),
-  //   route: ROUTES.TABS.LEARN,
-  //   color: "#10b981",
-  // },
-  {
-    name: "demo quiz",
-    icon: "game-controller",
-    label: t("tabs.demo_quiz"),
-    route: "/quiz-demo",
-    color: "#ef4444",
-  },
   {
     name: "learn",
     icon: "library",
@@ -83,6 +71,7 @@ const CustomTab = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
+  // const insets = useSafeAreaInsets();
 
   const isActive = useCallback(
     (route: string) => {
@@ -104,7 +93,25 @@ const CustomTab = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.tabBar}>
+      <View
+        style={[
+          styles.tabBar,
+          Platform.select({
+            ios: {
+              shadowColor: COLORS.SHADOW,
+              shadowOffset: { width: 0, height: -4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+            },
+            android: {
+              elevation: 12,
+              borderTopWidth: StyleSheet.hairlineWidth,
+              borderTopColor: "#eeeeee",
+            },
+          }),
+          // { paddingBottom: Math.max(12, insets.bottom) },
+        ]}
+      >
         {tabConfig.map((tab) => (
           <TabButton
             key={tab.name}
@@ -178,12 +185,25 @@ const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
             {
               transform: [{ translateY }, { scale: scaleAnim }, { rotate }],
             },
+            Platform.OS === "android" && { zIndex: active ? 2 : 1 },
           ]}
         >
           <View
             style={[
               styles.iconBackground,
-              active && { backgroundColor: tab.color, shadowColor: tab.color },
+              Platform.select({
+                ios: [
+                  active && {
+                    backgroundColor: tab.color,
+                    shadowColor: tab.color,
+                  },
+                ],
+                android: {
+                  // Only show solid background when active; keep inactive transparent
+                  backgroundColor: active ? tab.color : "transparent",
+                  elevation: active ? 10 : 0,
+                },
+              }),
             ]}
           >
             <Ionicons
@@ -197,7 +217,9 @@ const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
         <Text
           style={[
             styles.label,
-            active && { color: tab.color, fontWeight: "600" },
+            active && { color: tab.color },
+            Platform.OS === "ios" && active ? { fontWeight: "600" } : null,
+            Platform.OS === "android" ? { marginTop: 40 } : null,
           ]}
         >
           {tab.label}
@@ -217,7 +239,7 @@ const COLORS = {
 const DIMENSIONS = {
   ICON_SIZE: 48,
   ICON_RADIUS: 16,
-  BOUNCE_HEIGHT: 35,
+  BOUNCE_HEIGHT: 30,
   SCALE_ACTIVE: 1.2,
   SCALE_INACTIVE: 1,
 } as const;
@@ -285,6 +307,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 10,
+    borderWidth: 0,
   },
   label: {
     fontSize: 13,

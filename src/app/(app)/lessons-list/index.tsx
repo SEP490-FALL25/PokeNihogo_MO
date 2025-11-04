@@ -3,32 +3,32 @@ import { ThemedText } from "@components/ThemedText";
 import { Badge } from "@components/ui/Badge";
 import EmptyState from "@components/ui/EmptyState";
 import ErrorState from "@components/ui/ErrorState";
-import { IconSymbol } from "@components/ui/IconSymbol";
+// Removed IconSymbol in favor of lucide-react-native icons
 import { Skeleton } from "@components/ui/Skeleton";
 import { useInfiniteUserLessons } from "@hooks/useLessons";
 import { LessonProgress } from "@models/lesson/lesson.common";
 import { ROUTES } from "@routes/routes";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import { Search } from "lucide-react-native";
+import { ChevronLeft, Search } from "lucide-react-native";
 import React, {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    ActivityIndicator,
-    Animated,
-    FlatList,
-    Pressable,
-    StatusBar,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Animated,
+  FlatList,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -154,7 +154,7 @@ const LessonsScreen = () => {
           onPress={() => router.back()}
           style={styles.backButton}
         >
-          <IconSymbol name="chevron.left" size={24} color="#6b7280" />
+          <ChevronLeft size={24} color="#6b7280" />
         </TouchableOpacity>
         <ThemedText type="title" style={styles.title}>
           {title || t("lessons.title")}
@@ -309,7 +309,7 @@ const LessonsScreen = () => {
               onPress={() => router.back()}
               style={styles.backButton}
             >
-              <IconSymbol name="chevron.left" size={24} color="#6b7280" />
+              <ChevronLeft size={24} color="#6b7280" />
             </TouchableOpacity>
             <ThemedText type="title" style={styles.title}>
               {title || t("lessons.title")}

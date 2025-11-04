@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
   },
-  scrollContent: { paddingBottom: 24 },
+  scrollContent: { paddingBottom: 24, paddingTop: 12 },
   readingBlock: { marginBottom: 20, paddingHorizontal: 10 },
   block: { marginBottom: 10 },
 });

@@ -1,10 +1,10 @@
 import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
-import { IconSymbol } from "@components/ui/IconSymbol";
 import { TestStatus } from "@constants/test.enum";
 import userTestService from "@services/user-test";
 import { router } from "expo-router";
+import { BookOpen } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -36,12 +36,8 @@ const ReadingCard: React.FC<{
       activeOpacity={0.8}
     >
       <View style={styles.cardHeader}>
-        <View style={[styles.iconContainer, { backgroundColor: "#3b82f6" }]}>
-          <IconSymbol
-            name={"book.closed.fill" as any}
-            size={24}
-            color="#ffffff"
-          />
+        <View style={[styles.iconContainer, { backgroundColor: "#3b82f6" }]}>        
+          <BookOpen size={24} color="#ffffff" />
         </View>
         <View style={styles.materialInfo}>
           <View style={styles.materialHeaderRow}>

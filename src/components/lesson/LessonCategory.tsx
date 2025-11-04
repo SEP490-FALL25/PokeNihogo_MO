@@ -1,78 +1,14 @@
 import { ThemedText } from "@components/ThemedText";
-import { IconSymbol } from "@components/ui/IconSymbol";
 import {
-    LessonCategory as LessonCategoryType,
-    LessonProgress,
+  LessonCategory as LessonCategoryType,
+  LessonProgress,
 } from "@models/lesson/lesson.common";
-import { getCategoryIcon } from "@utils/lesson.utils";
-import React, {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
+import { ArrowRight, BookOpen } from "lucide-react-native";
+import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import {
-    Animated,
-    LayoutAnimation,
-    Platform,
-    StyleSheet,
-    TouchableOpacity,
-    UIManager,
-    View,
-} from "react-native";
-import LessonCard from "./LessonCard";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
-// Simplified animated wrapper for LessonCard
-const AnimatedLessonCard = React.memo(({
-  lesson,
-  onPress,
-  index,
-}: {
-  lesson: LessonProgress;
-  onPress: (lesson: LessonProgress) => void;
-  index: number;
-}) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
-
-  useEffect(() => {
-    const animationDelay = Math.min(index * 50, 200);
-    
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 200,
-        delay: animationDelay,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 200,
-        delay: animationDelay,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [index, fadeAnim, slideAnim]);
-
-  const handlePress = useCallback(() => {
-    onPress(lesson);
-  }, [onPress, lesson]);
-
-  return (
-    <Animated.View
-      style={{
-        opacity: fadeAnim,
-        transform: [{ translateY: slideAnim }],
-      }}
-    >
-      <LessonCard lesson={lesson} onPress={handlePress} />
-    </Animated.View>
-  );
-});
-
-AnimatedLessonCard.displayName = "AnimatedLessonCard";
+// Removed expand/collapse animated wrapper
 
 interface LessonCategoryProps {
   category: LessonCategoryType;
@@ -82,18 +18,8 @@ interface LessonCategoryProps {
 
 const LessonCategory: React.FC<LessonCategoryProps> = React.memo(
   ({ category, onLessonPress, onCategoryPress }) => {
-    const { t } = useTranslation();
-    const [isExpanded, setIsExpanded] = useState(false);
-    const animatedRotation = useRef(new Animated.Value(0)).current;
-
-    // Enable LayoutAnimation on Android
-    useEffect(() => {
-      if (Platform.OS === "android") {
-        if (UIManager.setLayoutAnimationEnabledExperimental) {
-          UIManager.setLayoutAnimationEnabledExperimental(true);
-        }
-      }
-    }, []);
+    useTranslation();
+    // Removed expand/collapse state and setup
     // Memoized calculations for better performance
     const { completedLessons, totalLessons, progressPercentage } =
       useMemo(() => {
@@ -112,38 +38,11 @@ const LessonCategory: React.FC<LessonCategoryProps> = React.memo(
 
     const handleToggle = useCallback(() => {
       if (onCategoryPress) {
-        // Navigate to dedicated screen for better performance
         onCategoryPress(category);
-      } else {
-        // Fallback to expand/collapse for backward compatibility
-        LayoutAnimation.configureNext({
-          duration: 300,
-          create: {
-            type: LayoutAnimation.Types.easeInEaseOut,
-            property: LayoutAnimation.Properties.opacity,
-          },
-          update: {
-            type: LayoutAnimation.Types.easeInEaseOut,
-          },
-          delete: {
-            type: LayoutAnimation.Types.easeInEaseOut,
-            property: LayoutAnimation.Properties.opacity,
-          },
-        });
-
-        // Animate chevron rotation
-        Animated.timing(animatedRotation, {
-          toValue: isExpanded ? 0 : 1,
-          duration: 200,
-          useNativeDriver: true,
-        }).start();
-
-        setIsExpanded(!isExpanded);
       }
-    }, [onCategoryPress, category, isExpanded, animatedRotation]);
+    }, [onCategoryPress, category]);
 
-    // Get icon for this category
-    const categoryIcon = getCategoryIcon(category.name);
+    // Using a single lucide icon for category
 
     return (
       <View style={styles.container}>
@@ -159,11 +58,7 @@ const LessonCategory: React.FC<LessonCategoryProps> = React.memo(
                 { backgroundColor: category.color },
               ]}
             >
-              <IconSymbol
-                name={categoryIcon as any}
-                size={24}
-                color="#ffffff"
-              />
+              <BookOpen size={24} color="#ffffff" />
             </View>
             <View style={styles.categoryInfo}>
               <View style={styles.categoryDetails}>
@@ -192,29 +87,14 @@ const LessonCategory: React.FC<LessonCategoryProps> = React.memo(
                   </ThemedText>
                 </View>
                 <View style={styles.navigationIcon}>
-                  <IconSymbol
-                    name={onCategoryPress ? "arrow.right" : "chevron.down"}
-                    size={20}
-                    color="#6b7280"
-                  />
+                  <ArrowRight size={20} color="#6b7280" />
                 </View>
               </View>
             </View>
           </View>
         </TouchableOpacity>
 
-        {isExpanded && (
-          <View style={styles.lessonsContainer}>
-            {category.lessons.map((lesson, index) => (
-              <AnimatedLessonCard
-                key={`${lesson.lessonId}-${lesson.id}-${index}`}
-                lesson={lesson}
-                onPress={onLessonPress || (() => {})}
-                index={index}
-              />
-            ))}
-          </View>
-        )}
+        {/* Removed expandable lessons list */}
       </View>
     );
   }
