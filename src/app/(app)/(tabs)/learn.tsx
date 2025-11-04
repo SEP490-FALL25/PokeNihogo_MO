@@ -451,6 +451,11 @@ const CategoriesScreen = () => {
                 {t("lessons.view_all_categories")}
               </ThemedText>
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push(ROUTES.APP.CONVERSATION)}>
+              <ThemedText type="subtitle" style={styles.categoriesTitle}>
+                speak
+              </ThemedText>
+            </TouchableOpacity>
           </View>
         </View>
 
