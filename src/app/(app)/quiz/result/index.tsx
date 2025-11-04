@@ -9,6 +9,7 @@ import { useCheckReviewAccessTest } from "@hooks/useUserTestAttempt";
 import { ISubmitCompletionData } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import { ROUTES } from "@routes/routes";
 import { AxiosError } from "axios";
+import { ResizeMode, Video } from "expo-av";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -111,7 +112,7 @@ console.log('comingFromQuiz: ', comingFromQuiz);
         }
 
         router.push({
-          pathname: "/(app)/test/review-test",
+          pathname: ROUTES.QUIZ.REVIEW,
           params: {
             sessionId: resultId,
             reviewData: JSON.stringify(data),
@@ -177,10 +178,22 @@ console.log('comingFromQuiz: ', comingFromQuiz);
         <Text style={styles.messageText}>{statusMessage}</Text>
 
         <View style={styles.mascotWrap}>
-          <Image
+          {/* <Image
             source={require("../../../../../assets/images/PokeNihongoLogo.png")}
             resizeMode="contain"
             style={styles.mascot}
+          /> */}
+
+          <Video
+            ref={(ref) => {
+              // Video ref can be used for playback control if needed
+            }}
+            source={require("../../../../../assets/images/pokemon-pikachu.mp4")}
+            style={styles.video}
+            resizeMode={ResizeMode.CONTAIN}
+            isLooping
+            shouldPlay
+            isMuted={false}
           />
         </View>
 
@@ -372,6 +385,11 @@ const styles = StyleSheet.create({
   mascot: {
     width: 180,
     height: 140,
+  },
+  video: {
+    width: 280,
+    height: 200,
+    marginTop: 12,
   },
   diamondCard: {
     width: "100%",

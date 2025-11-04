@@ -15,6 +15,7 @@ import {
   useSubmitCompletion,
   useUserExerciseQuestions,
 } from "@hooks/useUserExerciseAttempt";
+import { ROUTES } from "@routes/routes";
 import { router, useLocalSearchParams } from "expo-router";
 import React, {
   useCallback,
@@ -314,7 +315,7 @@ export default function QuizScreen() {
           if (response.data) {
             // Pass data as JSON string in params
             router.replace({
-              pathname: "/quiz/result",
+              pathname: ROUTES.QUIZ.RESULT,
               params: {
                 resultId: currentExerciseAttemptId.toString(),
                 resultData: JSON.stringify(response.data),
@@ -426,7 +427,7 @@ export default function QuizScreen() {
           const newExerciseAttemptId = response.data.id.toString();
           // Update params to use new exerciseAttemptId
           router.replace({
-            pathname: "/quiz",
+            pathname: ROUTES.QUIZ.QUIZ,
             params: {
               exerciseAttemptId: newExerciseAttemptId,
             },
