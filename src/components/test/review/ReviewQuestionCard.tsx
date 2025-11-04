@@ -1,0 +1,102 @@
+import { IReviewResultQuestionBank } from "@models/user-exercise-attempt/user-exercise-attempt.response";
+import React, { useRef } from "react";
+import { Animated, StyleSheet, Text, View } from "react-native";
+import { ReviewAnswerOption, ParsedExplanation } from "./ReviewAnswerOption";
+
+interface ReviewQuestionCardProps {
+  question: IReviewResultQuestionBank;
+  questionIndex: number;
+  userSelectedIds: number[];
+  correctAnswerIds: number[];
+  parseExplanation: (explanation?: string) => ParsedExplanation | null;
+}
+
+export const ReviewQuestionCard: React.FC<ReviewQuestionCardProps> = ({
+  question,
+  questionIndex,
+  userSelectedIds,
+  correctAnswerIds,
+  parseExplanation,
+}) => {
+  const scaleAnims = useRef<Record<number, Animated.Value[]>>({}).current;
+
+  // Initialize animations for answers
+  if (!scaleAnims[question.id] && question.answers) {
+    scaleAnims[question.id] = question.answers.map(
+      () => new Animated.Value(1)
+    );
+  }
+
+  return (
+    <View style={styles.questionWrapper}>
+      <View style={styles.qaCard}>
+        <View style={styles.headerRow}>
+          <View style={styles.numberBadge}>
+            <Text style={styles.numberText}>{questionIndex + 1}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.questionText}>{question.question}</Text>
+
+        <View style={styles.optionsInCard}>
+          {question.answers.map((answer, index) => {
+            const isUserSelected = userSelectedIds.includes(answer.id);
+            const isCorrectAnswer = correctAnswerIds.includes(answer.id);
+            const explanation = parseExplanation(answer.explantion);
+
+            return (
+              <ReviewAnswerOption
+                key={answer.id}
+                id={answer.id}
+                answer={answer.answer}
+                index={index}
+                isUserSelected={isUserSelected}
+                isCorrectAnswer={isCorrectAnswer}
+                explanation={explanation}
+                scaleAnim={
+                  scaleAnims[question.id]?.[index] || new Animated.Value(1)
+                }
+              />
+            );
+          })}
+        </View>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  questionWrapper: { paddingHorizontal: 10 },
+  qaCard: {
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 10,
+    position: "relative",
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  numberBadge: {
+    backgroundColor: "#e0e7ff",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  numberText: { color: "#4338ca", fontWeight: "700" },
+  questionText: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#1f2937",
+    textAlign: "center",
+    lineHeight: 36,
+  },
+  optionsInCard: { marginTop: 12 },
+});

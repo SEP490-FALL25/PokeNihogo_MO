@@ -1,12 +1,12 @@
 import { ICheckCompletionData } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import React, { useEffect, useMemo, useRef } from "react";
 import {
-    Animated,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 interface QuizCompletionModalProps {
@@ -14,7 +14,7 @@ interface QuizCompletionModalProps {
   onClose: () => void;
   onSubmit: () => void;
   data: ICheckCompletionData | null;
-  questions: { id: string }[]; // Questions array to map IDs to question numbers
+  questions: { id: string; bankId?: string }[]; // Questions array to map IDs to question numbers
 }
 
 export function QuizCompletionModal({
@@ -27,14 +27,15 @@ export function QuizCompletionModal({
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Map unanswered question IDs to question numbers (index + 1)
+  // Map unanswered question IDs (bankId numbers) to question numbers (index + 1)
   const unansweredQuestionNumbers = useMemo(() => {
     if (!data?.unansweredQuestionIds || !questions.length) return [];
     
     return data.unansweredQuestionIds
-      .map((id) => {
+      .map((bankId) => {
+        // Find question by bankId - bankId is a number from API, compare with string bankId from question
         const questionIndex = questions.findIndex(
-          (q) => q.id === id.toString()
+          (q) => q.bankId === String(bankId)
         );
         return questionIndex >= 0 ? questionIndex + 1 : null;
       })
