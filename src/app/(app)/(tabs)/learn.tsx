@@ -3,7 +3,6 @@ import LessonCategory from "@components/lesson/LessonCategory";
 import { ThemedText } from "@components/ThemedText";
 import { Badge } from "@components/ui/Badge";
 import ErrorState from "@components/ui/ErrorState";
-import { IconSymbol } from "@components/ui/IconSymbol";
 import { Skeleton } from "@components/ui/Skeleton";
 import { useLessonCategories, useUserProgress } from "@hooks/useLessons";
 import { LessonProgress } from "@models/lesson/lesson.common";
@@ -15,6 +14,17 @@ import {
   getSkillCategoryIcon,
 } from "@utils/lesson.utils";
 import { router } from "expo-router";
+import {
+  BookOpen,
+  ChevronRight,
+  FileText,
+  Headphones,
+  Languages,
+  MessageSquare,
+  Mic,
+  Pencil,
+  Type,
+} from "lucide-react-native";
 import React, {
   useCallback,
   useEffect,
@@ -176,6 +186,29 @@ const CategoriesScreen = () => {
     const route = routeMap[category.route];
     if (route) {
       router.push(route as any);
+    }
+  }, []);
+
+  const renderSkillIcon = useCallback((slug: string) => {
+    switch (slug) {
+      case "listening":
+        return <Headphones size={24} color="#ffffff" />;
+      case "vocabulary":
+        return <Type size={24} color="#ffffff" />;
+      case "grammar":
+        return <FileText size={24} color="#ffffff" />;
+      case "reading":
+        return <BookOpen size={24} color="#ffffff" />;
+      case "speaking":
+        return <Mic size={24} color="#ffffff" />;
+      case "writing":
+        return <Pencil size={24} color="#ffffff" />;
+      case "conversation":
+        return <MessageSquare size={24} color="#ffffff" />;
+      case "kanji":
+        return <Languages size={24} color="#ffffff" />;
+      default:
+        return <BookOpen size={24} color="#ffffff" />;
     }
   }, []);
   // Memoized level categories - filter by "jlpt-" prefix and sort N5 to N1
@@ -393,11 +426,7 @@ const CategoriesScreen = () => {
                         { backgroundColor: category.color },
                       ]}
                     >
-                      <IconSymbol
-                        name={category.icon as any}
-                        size={24}
-                        color="#ffffff"
-                      />
+                      {renderSkillIcon(category.route)}
                     </View>
                     <View style={styles.skillCategoryInfo}>
                       <ThemedText
@@ -411,11 +440,7 @@ const CategoriesScreen = () => {
                       </ThemedText>
                     </View>
                     <View style={styles.skillCategoryArrow}>
-                      <IconSymbol
-                        name="chevron.right"
-                        size={20}
-                        color="#6b7280"
-                      />
+                      <ChevronRight size={20} color="#6b7280" />
                     </View>
                   </View>
                 </TouchableOpacity>

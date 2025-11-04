@@ -1,6 +1,6 @@
 import { Audio, AVPlaybackStatusSuccess } from "expo-av";
 import React from "react";
-import { Animated, Pressable, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import { ActivityIndicator, Animated, Pressable, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
 
 type InlineAudioPlayerProps = {
   audioUrl: string;
@@ -11,7 +11,7 @@ type InlineAudioPlayerProps = {
 export default function InlineAudioPlayer({ audioUrl, style, accentColor = "#2dd4bf" }: InlineAudioPlayerProps) {
   const [sound, setSound] = React.useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = React.useState(false);
-  const [isLoaded, setIsLoaded] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false); // preparing/buffering
   const [position, setPosition] = React.useState(0); // ms
   const [duration, setDuration] = React.useState(0); // ms
   const knobX = React.useRef(new Animated.Value(0)).current;
@@ -26,11 +26,14 @@ export default function InlineAudioPlayer({ audioUrl, style, accentColor = "#2dd
 
   const updateFromStatus = (status: AVPlaybackStatusSuccess) => {
     if (!status.isLoaded) return;
-    setIsLoaded(true);
+    // Reflect buffering state (including while starting playback)
+    const buffering = (status as any)?.isBuffering;
+    setIsLoading(Boolean(buffering));
     setPosition(status.positionMillis || 0);
     setDuration(status.durationMillis || 0);
     if (status.didJustFinish) {
       setIsPlaying(false);
+      setIsLoading(false);
     }
   };
 
@@ -48,15 +51,22 @@ export default function InlineAudioPlayer({ audioUrl, style, accentColor = "#2dd
 
   const ensureLoaded = async () => {
     if (sound) return sound;
-    const { sound: newSound } = await Audio.Sound.createAsync(
-      { uri: audioUrl },
-      { shouldPlay: false },
-      (status) => {
-        if (status.isLoaded) updateFromStatus(status);
-      }
-    );
-    setSound(newSound);
-    return newSound;
+    try {
+      setIsLoading(true);
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: audioUrl },
+        { shouldPlay: false },
+        (status) => {
+          if (status.isLoaded) updateFromStatus(status as AVPlaybackStatusSuccess);
+        }
+      );
+      setSound(newSound);
+      // we'll turn off loading when the first status callback arrives (loaded/buffer state)
+      return newSound;
+    } catch (e) {
+      setIsLoading(false);
+      throw e;
+    }
   };
 
   const togglePlay = async () => {
@@ -84,7 +94,9 @@ export default function InlineAudioPlayer({ audioUrl, style, accentColor = "#2dd
     <View style={[styles.container, style]}> 
       <TouchableOpacity onPress={togglePlay} activeOpacity={0.8} style={[styles.playWrapper, { borderColor: accentColor }]}> 
         <View style={[styles.playInner, { backgroundColor: `${accentColor}1A` /* ~10% opacity */ }]}> 
-          {isPlaying ? (
+          {isLoading ? (
+            <ActivityIndicator size="small" color={accentColor} />
+          ) : isPlaying ? (
             <View style={styles.pauseIcon}>
               <View style={[styles.pauseBar, { backgroundColor: accentColor }]} />
               <View style={[styles.pauseBar, { backgroundColor: accentColor, marginLeft: 4 }]} />
