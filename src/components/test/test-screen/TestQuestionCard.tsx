@@ -19,7 +19,12 @@ interface TestQuestionCardProps {
   selected: string[];
   isUnanswered: boolean;
   scaleAnims: Animated.Value[];
-  onAnswerSelect: (bankId: string, selected: string[], optionIndex: number, uid: string) => void;
+  onAnswerSelect: (
+    bankId: string,
+    selected: string[],
+    optionIndex: number,
+    uid: string
+  ) => void;
 }
 
 export const TestQuestionCard: React.FC<TestQuestionCardProps> = ({
@@ -29,6 +34,9 @@ export const TestQuestionCard: React.FC<TestQuestionCardProps> = ({
   scaleAnims,
   onAnswerSelect,
 }) => {
+  // For listening questions (has audioUrl), hide question text and only show audio
+  const isListeningQuestion = !!question.audioUrl;
+
   return (
     <View style={[styles.qaCard, isUnanswered && styles.qaCardUnanswered]}>
       <View style={styles.headerRow}>
@@ -36,11 +44,15 @@ export const TestQuestionCard: React.FC<TestQuestionCardProps> = ({
           <Text style={styles.numberText}>{question.globalIndex}</Text>
         </View>
       </View>
-      {question.question && (
+      {/* For listening questions, hide question text and only show audio */}
+      {!isListeningQuestion && question.question && (
         <Text style={styles.questionText}>{question.question}</Text>
       )}
       {question.audioUrl && (
-        <InlineAudioPlayer audioUrl={question.audioUrl} style={styles.audioBelow} />
+        <InlineAudioPlayer
+          audioUrl={question.audioUrl}
+          style={isListeningQuestion ? styles.audioOnly : styles.audioBelow}
+        />
       )}
       <View style={styles.optionsInCard}>
         {question.options?.map((opt, index) => {
@@ -88,6 +100,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   audioBelow: { marginTop: 8 },
+  audioOnly: { marginTop: 16 },
   numberBadge: {
     backgroundColor: "#e0e7ff",
     borderRadius: 8,

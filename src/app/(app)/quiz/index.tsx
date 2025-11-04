@@ -1,36 +1,35 @@
 import QuizLayout from "@components/layouts/QuizLayout";
 import { QuizCompletionModal } from "@components/quiz/QuizCompletionModal";
+import { QuizHeader } from "@components/quiz/QuizHeader";
 import { QuizProgress } from "@components/quiz/QuizProgress";
+import { QuizQuestionCard } from "@components/quiz/QuizQuestionCard";
 import { ConfirmModal } from "@components/ui/ConfirmModal";
 // import BounceButton from "@components/ui/BounceButton";
 // import { Button } from "@components/ui/Button";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUpsertUserAnswerLog } from "@hooks/useUserAnswerLog";
 import {
-  useAbandonExercise,
-  useCheckCompletion,
-  useContinueAndAbandonExercise,
-  useCreateNewExerciseAttempt,
-  useSubmitCompletion,
-  useUserExerciseQuestions,
+    useAbandonExercise,
+    useCheckCompletion,
+    useContinueAndAbandonExercise,
+    useCreateNewExerciseAttempt,
+    useSubmitCompletion,
+    useUserExerciseQuestions,
 } from "@hooks/useUserExerciseAttempt";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
 import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
 } from "react";
 import {
-  Alert,
-  Animated,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Animated,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 // Simple types matching BE response structure
@@ -472,31 +471,12 @@ export default function QuizScreen() {
       showProgress={true}
       progressComponent={
         <View>
-          {/* Header row: back, title, submit */}
-          <View style={styles.topHeader}>
-            <TouchableOpacity
-              onPress={handleBackPress}
-              activeOpacity={0.8}
-              style={styles.backButton}
-            >
-              <ChevronLeft size={22} color="#111827" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle} numberOfLines={1}>
-              Làm bài kiểm tra
-            </Text>
-            <TouchableOpacity
-              onPress={handleCheckCompletion}
-              activeOpacity={0.8}
-              style={styles.submitIconButton}
-              disabled={isSubmitting}
-            >
-              <MaterialCommunityIcons
-                name="notebook-check"
-                size={26}
-                color="#0ea5e9"
-              />
-            </TouchableOpacity>
-          </View>
+          <QuizHeader
+            title="Làm bài kiểm tra"
+            onBackPress={handleBackPress}
+            onSubmitPress={handleCheckCompletion}
+            submitDisabled={isSubmitting}
+          />
           <QuizProgress
             currentQuestion={answeredCount}
             totalQuestions={session.questions.length}
@@ -535,79 +515,20 @@ export default function QuizScreen() {
               scaleAnims[q.id] = q.options.map(() => new Animated.Value(1));
             }
             return (
-              <View
+              <QuizQuestionCard
                 key={q.id}
-                style={styles.block}
-                onLayout={(e) => {
-                  questionOffsetsRef.current[q.id] = e.nativeEvent.layout.y;
+                question={q}
+                questionIndex={qIdx}
+                selectedIds={selected}
+                isUnanswered={isUnanswered}
+                scaleAnims={scaleAnims[q.id] || []}
+                onSelect={(optionId, optionIndex) =>
+                  handleAnswerSelect(q.id, [optionId], optionIndex)
+                }
+                onLayout={(y) => {
+                  questionOffsetsRef.current[q.id] = y;
                 }}
-              >
-                <View style={styles.questionWrapper}>
-                  <View
-                    style={[
-                      styles.qaCard,
-                      isUnanswered && styles.qaCardUnanswered,
-                    ]}
-                  >
-                    {/* Header with number badge */}
-                    <View style={styles.headerRow}>
-                      <View style={styles.numberBadge}>
-                        <Text style={styles.numberText}>{qIdx + 1}</Text>
-                      </View>
-                    </View>
-
-                    {/* Question text */}
-                    <Text style={styles.questionText}>{q.question}</Text>
-
-                    {/* Options inside same card */}
-                    <View style={styles.optionsInCard}>
-                      {q.options?.map((opt, index) => {
-                        const isSelected = selected.includes(opt.id);
-                        return (
-                          <Animated.View
-                            key={opt.id}
-                            style={[
-                              styles.optionWrapper,
-                              {
-                                transform: [
-                                  { scale: scaleAnims[q.id]?.[index] || 1 },
-                                ],
-                              },
-                            ]}
-                          >
-                            <TouchableOpacity
-                              onPress={() =>
-                                handleAnswerSelect(q.id, [opt.id], index)
-                              }
-                              activeOpacity={0.85}
-                              style={[
-                                styles.optionButton,
-                                isSelected && styles.optionSelected,
-                              ]}
-                            >
-                              <View style={styles.optionContent}>
-                                <View
-                                  style={[
-                                    styles.optionCircle,
-                                    isSelected && styles.circleSelected,
-                                  ]}
-                                >
-                                  <Text style={styles.optionLabel}>
-                                    {String.fromCharCode(65 + index)}
-                                  </Text>
-                                </View>
-                                <Text style={styles.optionText}>
-                                  {opt.text}
-                                </Text>
-                              </View>
-                            </TouchableOpacity>
-                          </Animated.View>
-                        );
-                      })}
-                    </View>
-                  </View>
-                </View>
-              </View>
+              />
             );
           })}
         </ScrollView>
@@ -700,132 +621,5 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
   },
-  topHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 6,
-  },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#eef2ff",
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#111827",
-    paddingHorizontal: 8,
-  },
-  headerActionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  submitIconButton: {
-    backgroundColor: "#e0f2fe",
-    padding: 8,
-    borderRadius: 16,
-  },
   scrollContent: { paddingBottom: 24 },
-  block: { marginBottom: 10 },
-
-  questionWrapper: { paddingHorizontal: 10 },
-  qaCard: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 10,
-    position: "relative",
-  },
-  qaCardUnanswered: {
-    borderWidth: 2,
-    borderColor: "#ef4444",
-    backgroundColor: "#fef2f2",
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  numberBadge: {
-    backgroundColor: "#e0e7ff",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  numberText: { color: "#4338ca", fontWeight: "700" },
-  audioButton: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-    backgroundColor: "#eef2ff",
-    padding: 12,
-    borderRadius: 20,
-  },
-  questionText: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1f2937",
-    textAlign: "center",
-    lineHeight: 36,
-  },
-  optionsContainer: { paddingHorizontal: 24 },
-  optionsInCard: { marginTop: 12 },
-  optionWrapper: { marginBottom: 16 },
-  optionButton: {
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 2,
-    borderColor: "#e5e7eb",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  optionCorrect: { backgroundColor: "#ecfdf5", borderColor: "#10b981" },
-  optionWrong: { backgroundColor: "#fef2f2", borderColor: "#ef4444" },
-  optionSelected: { backgroundColor: "#eef2ff", borderColor: "#4f46e5" },
-
-  optionContent: { flexDirection: "row", alignItems: "center", flex: 1 },
-  optionCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#e5e7eb",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  circleCorrect: { backgroundColor: "#10b981" },
-  circleWrong: { backgroundColor: "#ef4444" },
-  circleSelected: { backgroundColor: "#4f46e5" },
-
-  optionLabel: { color: "white", fontWeight: "bold", fontSize: 16 },
-  optionText: { fontSize: 18, color: "#1f2937", flex: 1 },
-
-  navigationContainer: {
-    flexDirection: "row",
-    padding: 16,
-    gap: 12,
-    backgroundColor: "#ffffff",
-    borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
-  },
-  nextButton: { flex: 1 },
-  previousButton: { minWidth: 120 },
 });

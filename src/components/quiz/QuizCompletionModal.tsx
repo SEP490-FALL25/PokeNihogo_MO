@@ -14,7 +14,9 @@ interface QuizCompletionModalProps {
   onClose: () => void;
   onSubmit: () => void;
   data: ICheckCompletionData | null;
-  questions: { id: string; bankId?: string }[]; // Questions array to map IDs to question numbers
+  questions: { id: string; bankId?: string | number }[]; // Questions array to map IDs to question numbers
+  // For test: questions have both id and bankId
+  // For quiz: questions only have id (which is bankId converted to string)
 }
 
 export function QuizCompletionModal({
@@ -33,10 +35,17 @@ export function QuizCompletionModal({
     
     return data.unansweredQuestionIds
       .map((bankId) => {
-        // Find question by bankId - bankId is a number from API, compare with string bankId from question
-        const questionIndex = questions.findIndex(
-          (q) => q.bankId === String(bankId)
-        );
+        // Find question by bankId or id
+        // - For test: questions have both id and bankId, use bankId
+        // - For quiz: questions only have id (which is bankId converted to string), use id
+        const questionIndex = questions.findIndex((q) => {
+          // If question has bankId (test case), compare with bankId
+          if (q.bankId !== undefined) {
+            return q.bankId === String(bankId);
+          }
+          // Otherwise (quiz case), compare id with bankId as string
+          return q.id === String(bankId);
+        });
         return questionIndex >= 0 ? questionIndex + 1 : null;
       })
       .filter((num): num is number => num !== null)
