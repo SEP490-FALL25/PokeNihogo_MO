@@ -43,6 +43,9 @@ const userTestService = {
   getReviewResult: async (userTestAttemptId: string | number) => {
     return axiosPrivate.get(`/user-test-attempt/test/${userTestAttemptId}/review`);
   },
+  abandonTest: async (userTestAttemptId: string | number) => {
+    return axiosPrivate.put(`/user-test-attempt/${userTestAttemptId}/abandon`);
+  },
 };
 
 export default userTestService;

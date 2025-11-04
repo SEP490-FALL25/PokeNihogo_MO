@@ -1,5 +1,5 @@
 import QuizLayout from "@components/layouts/QuizLayout";
-import ResultValueCard from "@components/quiz/ResultValueCard";
+import ResultValueCard from "@components/quiz/result/ResultValueCard";
 import BounceButton from "@components/ui/BounceButton";
 import { Button } from "@components/ui/Button";
 import { ConfirmModal } from "@components/ui/ConfirmModal";

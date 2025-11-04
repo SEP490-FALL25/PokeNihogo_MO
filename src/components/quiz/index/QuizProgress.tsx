@@ -1,7 +1,7 @@
+import { Progress } from "@components/ui/Progress";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View, ViewStyle } from "react-native";
-import { Progress } from "../ui/Progress";
 
 interface QuizProgressProps {
   currentQuestion: number;
