@@ -1,6 +1,6 @@
 import QuizLayout from "@components/layouts/QuizLayout";
-import { QuizCompletionModal } from "@components/quiz/QuizCompletionModal";
-import { QuizProgress } from "@components/quiz/QuizProgress";
+import { QuizCompletionModal } from "@components/quiz/index/QuizCompletionModal";
+import { QuizProgress } from "@components/quiz/index/QuizProgress";
 import { TestHeader } from "@components/test/test-screen/TestHeader";
 import { TestQuestionCard } from "@components/test/test-screen/TestQuestionCard";
 import { TestSetContent } from "@components/test/test-screen/TestSetContent";

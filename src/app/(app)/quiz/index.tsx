@@ -1,35 +1,35 @@
 import QuizLayout from "@components/layouts/QuizLayout";
-import { QuizCompletionModal } from "@components/quiz/QuizCompletionModal";
-import { QuizHeader } from "@components/quiz/QuizHeader";
-import { QuizProgress } from "@components/quiz/QuizProgress";
-import { QuizQuestionCard } from "@components/quiz/QuizQuestionCard";
+import { QuizCompletionModal } from "@components/quiz/index/QuizCompletionModal";
+import { QuizProgress } from "@components/quiz/index/QuizProgress";
+import { QuizQuestionCard } from "@components/quiz/index/QuizQuestionCard";
+import { QuizHeader } from "@components/quiz/shared/QuizHeader";
 import { ConfirmModal } from "@components/ui/ConfirmModal";
 // import BounceButton from "@components/ui/BounceButton";
 // import { Button } from "@components/ui/Button";
 import { useUpsertUserAnswerLog } from "@hooks/useUserAnswerLog";
 import {
-    useAbandonExercise,
-    useCheckCompletion,
-    useContinueAndAbandonExercise,
-    useCreateNewExerciseAttempt,
-    useSubmitCompletion,
-    useUserExerciseQuestions,
+  useAbandonExercise,
+  useCheckCompletion,
+  useContinueAndAbandonExercise,
+  useCreateNewExerciseAttempt,
+  useSubmitCompletion,
+  useUserExerciseQuestions,
 } from "@hooks/useUserExerciseAttempt";
 import { router, useLocalSearchParams } from "expo-router";
 import React, {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from "react";
 import {
-    Alert,
-    Animated,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Alert,
+  Animated,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 // Simple types matching BE response structure

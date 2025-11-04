@@ -1,7 +1,7 @@
 import QuizLayout from "@components/layouts/QuizLayout";
-import { QuizHeader } from "@components/quiz/QuizHeader";
-import { ReviewQuestionCard } from "@components/quiz/ReviewQuestionCard";
-import { ReviewStatsSection } from "@components/quiz/ReviewStatsSection";
+import { ReviewQuestionCard } from "@components/quiz/review/ReviewQuestionCard";
+import { ReviewStatsSection } from "@components/quiz/review/ReviewStatsSection";
+import { QuizHeader } from "@components/quiz/shared/QuizHeader";
 import { useReviewResultUnified } from "@hooks/useReviewResultUnified";
 import { IReviewResultQuestionBank } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import { router, useLocalSearchParams } from "expo-router";
