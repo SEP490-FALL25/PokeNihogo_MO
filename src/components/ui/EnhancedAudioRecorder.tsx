@@ -3,21 +3,21 @@ import { useMicrophonePermission } from "@hooks/useMicrophonePermission";
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import React, {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from "react";
 import {
-    Alert,
-    Animated,
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Animated,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -66,6 +66,9 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const barWidth = 3;
   const barSpacing = 2;
+  
+  // Tính toán chiều rộng container (trừ padding card và container)
+  const waveContainerWidth = width - 40 - 32 - 8; // width - container padding - card padding - scrollContent padding
 
   // Animation values for wave bars - dynamically created based on metering values
   const waveAnimationsRef = useRef<Map<number, Animated.Value>>(new Map());
@@ -510,7 +513,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             disabled={disabled}
             activeOpacity={0.8}
           >
-            <Ionicons name="mic-off" size={32} color="#fff" />
+            <Ionicons name="mic-off" size={26} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.recordLabel}>
             Cấp quyền microphone
@@ -528,14 +531,21 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           <Text style={styles.exerciseTitle}>{exerciseTitle}</Text>
         )}
         
-        {/* Wave Visualization */}
-        <View style={styles.waveContainer}>
+        {/* Wave Visualization - chỉ hiển thị khi đang recording hoặc có recording */}
+        {(isRecording || recordingUri) && (
+          <View style={styles.waveContainer}>
           <ScrollView
             ref={scrollViewRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[
+              styles.scrollContent,
+              meteringValues.length > 0 && {
+                minWidth: waveContainerWidth,
+                justifyContent: 'flex-start',
+              }
+            ]}
             removeClippedSubviews={true}
             scrollEnabled={false}
             bounces={false}
@@ -544,6 +554,22 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
               const baseHeight = 8;
               const maxHeight = 80;
               const anim = getAnimationValue(index);
+              
+              // Tính toán để giữ bar width đồng bộ và phân bổ khoảng cách để fit ngang
+              const totalBars = meteringValues.length;
+              const targetBarWidth = 3; // giữ cố định để không bị phình to lúc đầu
+              const minSpacing = barSpacing;
+              const maxSpacing = 10;
+              const dynamicSpacing = totalBars > 1
+                ? Math.min(
+                    maxSpacing,
+                    Math.max(
+                      minSpacing,
+                      (waveContainerWidth - totalBars * targetBarWidth) / (totalBars - 1)
+                    )
+                  )
+                : 0;
+              const calculatedBarWidth = targetBarWidth;
 
               // Determine if this bar is in the played section during playback
               const isPlayed =
@@ -557,6 +583,8 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
                   style={[
                     styles.waveBar,
                     {
+                      width: calculatedBarWidth,
+                      borderRadius: calculatedBarWidth / 2,
                       height: anim.interpolate({
                         inputRange: [0, 1],
                         outputRange: [baseHeight, maxHeight],
@@ -578,7 +606,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
                           scaleY: isCurrentBar ? 1.1 : 1,
                         },
                       ],
-                      marginRight: barSpacing,
+                      marginRight: index < totalBars - 1 ? dynamicSpacing : 0,
                     },
                   ]}
                 />
@@ -586,6 +614,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             })}
           </ScrollView>
         </View>
+        )}
 
         {/* Timer Display */}
         <View style={styles.timerContainer}>
@@ -611,7 +640,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
                   <View style={styles.stopIcon} />
                 ) : (
                   <View style={styles.micIconContainer}>
-                    <Ionicons name="mic" size={32} color="#fff" />
+                    <Ionicons name="mic" size={26} color="#fff" />
                   </View>
                 )}
               </TouchableOpacity>
@@ -639,7 +668,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
               >
                 <Ionicons
                   name={isPlaying ? "pause" : "play"}
-                  size={32}
+                  size={26}
                   color="#fff"
                 />
               </TouchableOpacity>
@@ -673,8 +702,9 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#fff",
-    borderRadius: 24,
-    padding: 24,
+    borderRadius: 20,
+    padding: 16,
+    paddingVertical: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -682,8 +712,8 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   waveContainer: {
-    height: 100,
-    marginBottom: 24,
+    height: 60,
+    marginBottom: 12,
   },
   scrollView: {
     flex: 1,
@@ -691,6 +721,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     alignItems: "center",
     paddingHorizontal: 4,
+    flexDirection: "row",
   },
   waveBar: {
     width: 3,
@@ -699,10 +730,10 @@ const styles = StyleSheet.create({
   },
   timerContainer: {
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 12,
   },
   timerText: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: "600",
     color: "#000",
     fontVariant: ["tabular-nums"],
@@ -714,9 +745,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   recordButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: "#007AFF",
     alignItems: "center",
     justifyContent: "center",
@@ -739,22 +770,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   stopIcon: {
-    width: 28,
-    height: 28,
+    width: 24,
+    height: 24,
     backgroundColor: "#fff",
-    borderRadius: 6,
+    borderRadius: 5,
   },
   recordLabel: {
-    marginTop: 16,
-    fontSize: 16,
+    marginTop: 8,
+    fontSize: 14,
     color: "#666",
     fontWeight: "500",
   },
   exerciseTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
     color: "#1f2937",
-    marginBottom: 16,
+    marginBottom: 8,
     textAlign: "center",
   },
   playbackControls: {
@@ -764,9 +795,9 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   playButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: "#007AFF",
     alignItems: "center",
     justifyContent: "center",
@@ -777,9 +808,9 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   iconButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: "#F2F2F7",
     alignItems: "center",
     justifyContent: "center",
