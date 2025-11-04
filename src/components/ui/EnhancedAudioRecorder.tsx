@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useMicrophonePermission } from "@hooks/useMicrophonePermission";
-import { Audio } from "expo-av";
+import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import React, {
   useCallback,
@@ -293,12 +293,17 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         await deleteFileFromDevice(recordingUri);
       }
 
-      // Configure audio mode for recording
+      // Configure audio mode for recording - tối đa hóa độ ưu tiên và giảm âm hệ thống
+      // Lưu ý: Trong Expo managed workflow, không thể tắt hoàn toàn system sounds,
+      // nhưng cấu hình này sẽ giúp yêu cầu audio focus và giảm âm khác xuống
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
+        shouldDuckAndroid: true, // giảm âm khác trên Android xuống mức tối thiểu
+        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix, // yêu cầu focus độc quyền - ngăn âm khác phát
+        interruptionModeIOS: InterruptionModeIOS.DoNotMix, // ngăn mixing trên iOS - tạm dừng âm khác
         playThroughEarpieceAndroid: false,
+        staysActiveInBackground: false,
       });
 
       // Create recording options with custom path if provided
@@ -398,6 +403,17 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       if (uri && onRecordingComplete) {
         onRecordingComplete(uri, duration);
       }
+
+      // Restore a safer default audio mode after recording
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        interruptionModeAndroid: InterruptionModeAndroid.DuckOthers,
+        interruptionModeIOS: InterruptionModeIOS.DuckOthers,
+        playThroughEarpieceAndroid: false,
+        staysActiveInBackground: false,
+      });
     } catch (err) {
       console.error("Failed to stop recording", err);
       Alert.alert('Lỗi', 'Không thể dừng ghi âm. Vui lòng thử lại.');
