@@ -5,6 +5,7 @@ import { IconSymbol } from "@components/ui/IconSymbol";
 import { TestStatus } from "@constants/test.enum";
 import userTestService from "@services/user-test";
 import { router } from "expo-router";
+import { HeadphonesIcon } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -37,7 +38,8 @@ const ListeningCard: React.FC<{
     >
       <View style={styles.cardHeader}>
         <View style={[styles.iconContainer, { backgroundColor: "#10b981" }]}>
-          <IconSymbol name={"headphones" as any} size={24} color="#ffffff" />
+          {/* <IconSymbol name={"headphones" as any} size={24} color="#ffffff" /> */}
+          <HeadphonesIcon size={24} color="#ffffff" />
         </View>
         <View style={styles.exerciseInfo}>
           <View style={styles.materialHeaderRow}>
