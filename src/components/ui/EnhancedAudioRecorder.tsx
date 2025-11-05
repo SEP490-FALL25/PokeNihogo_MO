@@ -311,20 +311,29 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
         android: {
           ...Audio.RecordingOptionsPresets.HIGH_QUALITY.android,
-          extension: ".m4a",
-          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-          audioEncoder: Audio.AndroidAudioEncoder.AAC,
+          // Use AMR_WB in 3GP for Google STT
+          extension: ".3gp",
+          outputFormat: Audio.AndroidOutputFormat.THREE_GPP,
+          audioEncoder: Audio.AndroidAudioEncoder.AMR_WB,
+          sampleRate: 16000,
+          numberOfChannels: 1,
+          bitRate: 16000,
         },
         ios: {
           ...Audio.RecordingOptionsPresets.HIGH_QUALITY.ios,
-          extension: ".m4a",
+          // Try LINEARPCM in .caf at 16kHz mono (LINEAR16)
+          extension: ".caf",
+          outputFormat: (Audio as any).IOSOutputFormat?.LINEARPCM,
           audioQuality: Audio.IOSAudioQuality.HIGH,
+          sampleRate: 16000,
+          numberOfChannels: 1,
         },
         web: {
+          // Web uses WebM (Opus). Google STT supports WEBM_OPUS.
           mimeType: "audio/webm",
           bitsPerSecond: 128000,
         },
-      };
+      } as any;
 
       const recordingOptions = customSavePath 
         ? {

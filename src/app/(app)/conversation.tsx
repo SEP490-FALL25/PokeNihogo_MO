@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import * as FileSystem from "expo-file-system";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Platform,
   ScrollView,
   TouchableOpacity,
   View,
@@ -10,12 +12,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemedText } from "@components/ThemedText";
 import AudioPlayer from "@components/ui/AudioPlayer";
 import VoiceRecorder from "@components/ui/EnhancedAudioRecorder";
-import {
-  ConversationStartResponse,
-  startConversation,
-  SubmitSpeechResponse,
-  submitUserSpeech,
-} from "@services/conversation";
 import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeftIcon } from "lucide-react-native";
 
@@ -34,33 +30,22 @@ export default function ConversationScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [nextUserPrompt, setNextUserPrompt] = useState<string | undefined>();
-  const conversationRef = useRef<{
-    conversationId: string;
-    turnId: string;
-  } | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
         setIsLoading(true);
-        const start: ConversationStartResponse = await startConversation(
-          String(topicId ?? "default")
-        );
         if (!mounted) return;
-        conversationRef.current = {
-          conversationId: start.conversationId,
-          turnId: start.turnId,
-        };
+        // Local onboarding message since we are not using BE conversation flow
         setMessages([
           {
             id: `ai-${Date.now()}`,
             role: "ai",
-            text: start.aiMessage.text,
-            audioUrl: start.aiMessage.audioUrl,
+            text: "Hãy nói 'こんにちは'.",
           },
         ]);
-        setNextUserPrompt(start.nextUserPrompt);
+        setNextUserPrompt("「こんにちは」。");
       } catch (e) {
         console.error(e);
       } finally {
@@ -72,17 +57,172 @@ export default function ConversationScreen() {
     };
   }, [topicId]);
 
+  // Call Google Cloud Speech-to-Text directly from client
+  const transcribeWithGoogle = async (
+    uri: string
+  ): Promise<{
+    recognizedText: string;
+    words?: { word: string; correct: boolean; score?: number }[];
+  }> => {
+    const apiKey = process.env.EXPO_PUBLIC_GOOGLE_STT || process.env.GOOGLE_STT;
+    if (!apiKey) {
+      throw new Error(
+        "Missing Google STT API key (EXPO_PUBLIC_GOOGLE_STT/GOOGLE_STT)"
+      );
+    }
+
+    const fileBase64 = await FileSystem.readAsStringAsync(uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    // Platform-specific encoding for Google STT
+    let encoding: string | undefined;
+    let sampleRateHertz: number | undefined;
+    if (Platform.OS === "android") {
+      encoding = "AMR_WB";
+      sampleRateHertz = 16000;
+    } else if (Platform.OS === "ios") {
+      encoding = "LINEAR16";
+      sampleRateHertz = 16000;
+    } else {
+      // Web uses WebM with Opus
+      encoding = "WEBM_OPUS";
+    }
+
+    const body = {
+      config: {
+        languageCode: "ja-JP",
+        enableWordConfidence: true,
+        enableAutomaticPunctuation: true,
+        model: "default",
+        encoding,
+        sampleRateHertz,
+      },
+      audio: {
+        content: fileBase64,
+      },
+    };
+
+    const res = await fetch(
+      `https://speech.googleapis.com/v1p1beta1/speech:recognize?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }
+    );
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Google STT error: ${res.status} ${text}`);
+    }
+
+    const json: any = await res.json();
+    console.log("[STT] Raw JSON:", JSON.stringify(json));
+    const alt = json?.results?.[0]?.alternatives?.[0];
+    const transcript: string = alt?.transcript ?? "";
+    console.log("[STT] Transcript:", transcript);
+
+    // Build feedback from word-level confidence when available
+    let words: { word: string; correct: boolean; score?: number }[] | undefined;
+    if (alt?.words?.length) {
+      console.log("[STT] Word-level confidences:", alt.words);
+      words = alt.words.map((w: any) => {
+        const rawWord = (w.word ?? "").trim();
+        const conf =
+          typeof w.confidence === "number" ? w.confidence : undefined;
+        const score = conf !== undefined ? Math.round(conf * 100) : undefined;
+        const correct = conf !== undefined ? conf >= 0.85 : true;
+        return { word: rawWord, correct, score };
+      });
+    }
+
+    return { recognizedText: transcript, words };
+  };
+
+  // Normalize Japanese text: strip quotes/spaces/punctuation for alignment
+  const normalizeJa = (s: string) => {
+    return (s || "")
+      .replace(/[\s\u3000]/g, "") // spaces incl. full-width
+      .replace(/[「」『』（）()、。．・…~〜!！?？:：;；，,\.\-—]/g, "");
+  };
+
+  // Levenshtein alignment for per-character correctness
+  const buildFeedbackFromDiff = (
+    targetRaw: string,
+    spokenRaw: string
+  ): { word: string; correct: boolean; score?: number }[] => {
+    const target = normalizeJa(targetRaw).split("");
+    const spoken = normalizeJa(spokenRaw).split("");
+    console.log("[DIFF] normalized target:", target.join(""));
+    console.log("[DIFF] normalized spoken:", spoken.join(""));
+    const m = target.length;
+    const n = spoken.length;
+    const dp: number[][] = Array.from({ length: m + 1 }, () =>
+      new Array(n + 1).fill(0)
+    );
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        const cost = target[i - 1] === spoken[j - 1] ? 0 : 1;
+        dp[i][j] = Math.min(
+          dp[i - 1][j] + 1, // deletion
+          dp[i][j - 1] + 1, // insertion
+          dp[i - 1][j - 1] + cost // substitution/match
+        );
+      }
+    }
+    // backtrace to align
+    let i = m,
+      j = n;
+    const aligned: { t?: string; s?: string }[] = [];
+    while (i > 0 || j > 0) {
+      if (
+        i > 0 &&
+        j > 0 &&
+        dp[i][j] ===
+          dp[i - 1][j - 1] + (target[i - 1] === spoken[j - 1] ? 0 : 1)
+      ) {
+        aligned.push({ t: target[i - 1], s: spoken[j - 1] });
+        i--;
+        j--;
+      } else if (i > 0 && dp[i][j] === dp[i - 1][j] + 1) {
+        aligned.push({ t: target[i - 1], s: undefined });
+        i--;
+      } else {
+        aligned.push({ t: undefined, s: spoken[j - 1] });
+        j--;
+      }
+    }
+    aligned.reverse();
+    // Build tokens for the SPOKEN sequence to display user's string with correctness
+    const tokens: { word: string; correct: boolean; score?: number }[] = [];
+    for (const a of aligned) {
+      if (a.s !== undefined) {
+        const correct = a.t !== undefined && a.t === a.s;
+        tokens.push({ word: a.s, correct, score: correct ? 100 : 0 });
+      }
+    }
+    console.log("[DIFF] aligned pairs:", aligned);
+    console.log("[DIFF] tokens:", tokens);
+    // Fallback: if no spoken after normalization, return original spokenRaw as incorrect
+    if (!tokens.length && spokenRaw) {
+      return spokenRaw
+        .split("")
+        .map((ch) => ({ word: ch, correct: false, score: 0 }));
+    }
+    return tokens;
+  };
+
   const handleRecordingComplete = async (uri: string) => {
-    if (!conversationRef.current) return;
     setIsSubmitting(true);
     try {
-      const submit: SubmitSpeechResponse = await submitUserSpeech({
-        conversationId: conversationRef.current.conversationId,
-        turnId: conversationRef.current.turnId,
-        topicId: topicId ? String(topicId) : undefined,
-        fileUri: uri,
-      });
-
+      const submit = await transcribeWithGoogle(uri);
+      const diffWords = buildFeedbackFromDiff(
+        nextUserPrompt || "",
+        submit.recognizedText || ""
+      );
+      console.log("[FEEDBACK] words:", diffWords);
       // Append user's result as a message with feedback coloring
       setMessages((prev) => [
         ...prev,
@@ -90,28 +230,10 @@ export default function ConversationScreen() {
           id: `user-${Date.now()}`,
           role: "user",
           text: submit.recognizedText,
-          feedback: submit.words ? { words: submit.words } : undefined,
+          feedback: { words: diffWords },
         },
       ]);
-
-      // Append AI response if any
-      if (submit.aiMessage) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `ai-${Date.now()}`,
-            role: "ai",
-            text: submit.aiMessage?.text ?? "",
-            audioUrl: submit.aiMessage?.audioUrl,
-          },
-        ]);
-      }
-
-      conversationRef.current = {
-        conversationId: submit.conversationId,
-        turnId: submit.turnId,
-      };
-      setNextUserPrompt(submit.nextUserPrompt);
+      // Keep the same nextUserPrompt (local) for now
     } catch (e) {
       console.error(e);
     } finally {
