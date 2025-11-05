@@ -13,6 +13,10 @@ const battleService = {
         return axiosPrivate.delete(`/match-queue/user`);
     },
 
+    updateMatchParticipant: async (matchId: string, hasAccepted: boolean) => {
+        return axiosPrivate.put(`/match-participant/${matchId}`, { hasAccepted });
+    },
+
     // Get current match status (simulated)
     getCurrentMatch: async (): Promise<IBattleMatch> => {
         // Simulated matchmaking with random delay

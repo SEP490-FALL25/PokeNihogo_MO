@@ -3,6 +3,7 @@ import UserAvatar from '@components/atoms/UserAvatar'
 import { HapticPressable } from '@components/HapticPressable'
 import { ThemedText } from '@components/ThemedText'
 import { IBattleMatchFound } from '@models/battle/battle.types'
+import battleService from '@services/battle'
 import { useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { Modal, View } from 'react-native'
@@ -62,24 +63,41 @@ const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal,
     /**
      * Handle accept match
      */
-    const handleAcceptMatch = () => {
-        setShowAcceptModal(false);
-        setInQueue(false);
-        if (matchedPlayer) {
-            router.push({
-                pathname: "/(app)/(battle)/draft",
-                params: {
-                    matchId: matchedPlayer.matchId,
-                    opponentName: matchedPlayer.opponent.name,
-                },
-            });
+    const handleAcceptMatch = async () => {
+        try {
+            const response = await battleService.updateMatchParticipant(matchedPlayer.matchId.toString(), true);
+            if (response.status === 200) {
+                setShowAcceptModal(false);
+                setInQueue(false);
+                if (matchedPlayer) {
+                    router.push({
+                        pathname: "/(app)/(battle)/draft",
+                        params: {
+                            matchId: matchedPlayer.matchId,
+                            opponentName: matchedPlayer.opponent.name,
+                        },
+                    });
+                }
+            }
+        }
+        catch (error) {
+            console.log(error);
         }
     };
 
-    const handleRejectMatch = () => {
-        setShowAcceptModal(false);
-        setMatchedPlayer(null);
-        setInQueue(false);
+    const handleRejectMatch = async () => {
+        try {
+            const response = await battleService.updateMatchParticipant(matchedPlayer.matchId.toString(), false);
+            console.log(response);
+            if (response.status === 200) {
+                setShowAcceptModal(false);
+                setMatchedPlayer(null);
+                setInQueue(false);
+            }
+        }
+        catch (error: any) {
+            console.log(error.response.data.message);
+        }
     };
     //------------------------End------------------------//
 
