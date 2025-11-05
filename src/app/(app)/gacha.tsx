@@ -94,9 +94,11 @@ export default function GachaScreen() {
                 setGachaResults(results);
                 setIsAnimating(true);
             },
-            onError: (error) => {
-                // console.error('Gacha purchase error:', error.message);
-                setConfirmMessage(error?.message || t('gacha.history_error') || 'Đã xảy ra lỗi khi mua gacha.');
+            onError: (error: any) => {
+                const serverMessage = error?.response?.data?.message;
+                setConfirmMessage(
+                    serverMessage || t('gacha.history_error') || 'Đã xảy ra lỗi khi mua gacha.'
+                );
                 setShowConfirmModal(true);
             },
         });
