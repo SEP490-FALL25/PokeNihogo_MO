@@ -41,6 +41,9 @@ interface VoiceRecorderProps {
   autoStopOnSilence?: boolean; // enable/disable auto stop on silence
   silenceDurationSeconds?: number; // how long of continuous silence to stop (default 4s)
   silenceDbThreshold?: number; // dB threshold to consider as silence (default -50dB)
+  // Feedback display
+  feedbackText?: string; // Text to display with feedback
+  feedbackWords?: { word: string; correct: boolean; score?: number }[]; // Feedback words for coloring
 }
 
 const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
@@ -59,6 +62,8 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   autoStopOnSilence = false,
   silenceDurationSeconds = 4,
   silenceDbThreshold = -50,
+  feedbackText,
+  feedbackWords,
 }) => {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
@@ -605,9 +610,48 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     );
   }
 
+  // Render feedback text with coloring
+  const renderFeedbackText = () => {
+    if (!feedbackText) return null;
+    
+    if (feedbackWords && feedbackWords.length > 0) {
+      return (
+        <View style={styles.feedbackContainer}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center" }}>
+            {feedbackWords.map((w, idx) => (
+              <Text
+                key={`${w.word}-${idx}`}
+                style={[
+                  styles.feedbackWord,
+                  {
+                    color: w.correct ? "#065f46" : "#991b1b",
+                    backgroundColor: w.correct
+                      ? "rgba(16,185,129,0.12)"
+                      : "rgba(239,68,68,0.12)",
+                  },
+                ]}
+              >
+                {w.word}
+              </Text>
+            ))}
+          </View>
+        </View>
+      );
+    }
+    
+    return (
+      <View style={styles.feedbackContainer}>
+        <Text style={styles.feedbackText}>{feedbackText}</Text>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
+        {/* Feedback Text - displayed above exercise title */}
+        {renderFeedbackText()}
+        
         {/* Exercise Title */}
         {exerciseTitle && (
           <Text style={styles.exerciseTitle}>{exerciseTitle}</Text>
@@ -879,6 +923,22 @@ const styles = StyleSheet.create({
     color: "#1f2937",
     marginBottom: 8,
     textAlign: "center",
+  },
+  feedbackContainer: {
+    marginBottom: 12,
+    alignItems: "center",
+  },
+  feedbackText: {
+    fontSize: 16,
+    color: "#1f2937",
+    textAlign: "center",
+  },
+  feedbackWord: {
+    fontSize: 16,
+    paddingHorizontal: 4,
+    borderRadius: 4,
+    marginRight: 4,
+    marginBottom: 4,
   },
   playbackControls: {
     flexDirection: "row",
