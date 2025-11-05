@@ -6,7 +6,7 @@ import { z } from "zod";
  * Battle Match Found Schema
  */
 export const BattleMatchFound = z.object({
-    type: z.enum([BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_FOUND, BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_STATUS_UPDATE, BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCHMAKING_FAILED]),
+    type: z.enum([BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_FOUND, BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCHMAKING_FAILED]),
     match: z.object({
         createdAt: z.string(),
         endTime: z.string(),
@@ -37,7 +37,7 @@ export type IBattleMatchFound = z.infer<typeof BattleMatchFound>;
 export const BattleMatchStatusUpdate = z.object({
     matchId: z.number(),
     message: z.string(),
-    type: z.enum([BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_STATUS_UPDATE]),
+    type: z.enum([BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_STATUS_UPDATE, BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCHMAKING_FAILED]),
     status: z.string(),
 });
 

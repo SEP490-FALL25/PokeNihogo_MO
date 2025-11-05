@@ -8,7 +8,7 @@ import { ThemedView } from "@components/ThemedView";
 import TypingText from "@components/ui/TypingText";
 import { getSocket } from "@configs/socket";
 import { BATTLE_STATUS } from "@constants/battle.enum";
-import { IBattleMatch } from "@models/battle/battle.types";
+import { IBattleMatchFound, IBattleMatchStatusUpdate } from "@models/battle/battle.types";
 import battleService from "@services/battle";
 import { useAuthStore } from "@stores/auth/auth.config";
 import { useRouter } from "expo-router";
@@ -16,7 +16,7 @@ import { Award, Crown, History, Info, Target, Trophy } from "lucide-react-native
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Animated, Easing, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
 
 // Mock battle history data
 const mockBattleHistory = [
@@ -38,10 +38,11 @@ export default function BattleLobbyScreen() {
   const [selectedBattle, setSelectedBattle] = useState<typeof mockBattleHistory[0] | null>(null);
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const insets = useSafeAreaInsets();
-  const shimmer = useRef(new Animated.Value(0)).current;
-  const pulse = useRef(new Animated.Value(1)).current;
-  const socketRef = useRef<Socket | null>(null);
 
+  /**
+   * Shimmer effect
+   */
+  const shimmer = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const loop = Animated.loop(
       Animated.timing(shimmer, {
@@ -54,7 +55,13 @@ export default function BattleLobbyScreen() {
     loop.start();
     return () => loop.stop();
   }, [shimmer]);
+  //------------------------End------------------------//
 
+
+  /**
+   * Pulse effect
+   */
+  const pulse = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
@@ -75,7 +82,13 @@ export default function BattleLobbyScreen() {
     loop.start();
     return () => loop.stop();
   }, [pulse]);
+  //------------------------End------------------------//
 
+
+  /**
+   * Socket reference
+   */
+  const socketRef = useRef<Socket | null>(null);
   const handleStartRanked = async () => {
     console.log("[QUEUE] Start button pressed");
     setInQueue(true);
@@ -103,7 +116,12 @@ export default function BattleLobbyScreen() {
       setInQueue(false);
     }
   };
+  //------------------------End------------------------//
 
+
+  /**
+   * Handle open leaderboard
+   */
   const handleOpenLeaderboard = () => {
     Alert.alert(
       "Bảng xếp hạng",
@@ -124,13 +142,21 @@ export default function BattleLobbyScreen() {
       "Thông tin về bậc rank, lên hạng và bảo lưu điểm (WIP).",
     );
   };
+  //------------------------End------------------------//
 
   const filteredHistory = useMemo(() => {
     if (historyFilter === "all") return mockBattleHistory;
     return mockBattleHistory.filter(battle => battle.result === historyFilter);
   }, [historyFilter]);
 
-  const [matchedPlayer, setMatchedPlayer] = useState<IBattleMatch | null>(null);
+
+  /**
+   * Matched player
+   * - Handle accept match
+   * - Handle reject match
+   * - Handle cancel queue
+   */
+  const [matchedPlayer, setMatchedPlayer] = useState<IBattleMatchFound | null>(null);
   const handleAcceptMatch = () => {
     setShowAcceptModal(false);
     setInQueue(false);
@@ -138,8 +164,8 @@ export default function BattleLobbyScreen() {
       router.push({
         pathname: "/(app)/(battle)/draft",
         params: {
-          matchId: matchedPlayer.id,
-          opponentName: matchedPlayer.opponentName,
+          matchId: matchedPlayer.matchId,
+          opponentName: matchedPlayer.opponent.name,
         },
       });
     }
@@ -151,19 +177,30 @@ export default function BattleLobbyScreen() {
     setInQueue(false);
   };
 
+
+  const handleCancelQueue = async () => {
+    setInQueue(false);
+    await battleService.cancelQueue();
+  };
+  //------------------------End------------------------//
+
+
+  /**
+   * Handle matching event
+   * 
+   */
   useEffect(() => {
     if (!accessToken) return;
 
     const socket = getSocket("matching", accessToken);
     socketRef.current = socket;
 
-    const onMatchingEvent = async (payload: any) => {
-      console.log("[SOCKET] Matching event received:", payload);
-
+    const onMatchingEvent = async (payload: IBattleMatchFound | IBattleMatchStatusUpdate) => {
       if (payload?.type === BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_FOUND) {
         const match = payload?.match;
+
         if (match) {
-          setMatchedPlayer(match);
+          setMatchedPlayer(payload);
           setShowAcceptModal(true);
         }
       }
@@ -186,11 +223,9 @@ export default function BattleLobbyScreen() {
       // disconnectSocket();
     };
   }, [accessToken]);
+  //------------------------End------------------------//
 
-  const handleCancelQueue = async () => {
-    setInQueue(false);
-    await battleService.cancelQueue();
-  };
+
 
   return (
     <ThemedView style={styles.container}>
@@ -616,7 +651,7 @@ export default function BattleLobbyScreen() {
             <View className="p-6">
               <View className="flex-row items-center justify-center gap-8 mb-6">
                 <View className="items-center">
-                  <UserAvatar name={matchedPlayer?.playerName || "You"} size="large" />
+                  <UserAvatar name={matchedPlayer?.participant.userId.toString() || "You"} size="large" />
                   <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
                     Bạn
                   </ThemedText>
@@ -632,9 +667,9 @@ export default function BattleLobbyScreen() {
                   </View>
                 </TWLinearGradient>
                 <View className="items-center">
-                  <UserAvatar name={matchedPlayer?.opponentName || "Opponent"} size="large" />
+                  <UserAvatar name={matchedPlayer?.opponent.name || "Opponent"} size="large" />
                   <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
-                    {matchedPlayer?.opponentName || "Đối thủ"}
+                    {matchedPlayer?.opponent.name || "Đối thủ"}
                   </ThemedText>
                 </View>
               </View>
