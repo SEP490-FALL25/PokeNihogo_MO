@@ -380,7 +380,7 @@ export default function GachaScreen() {
                                                             {/* Pity info */}
                                                             <View className="bg-black/40 rounded-xl p-2 border border-white/10">
                                                                 <View className="flex-row items-center justify-between mb-1">
-                                                                    <Text className="text-yellow-400 text-[10px] font-bold">Pity</Text>
+                                                                    <Text className="text-yellow-400 text-[10px] font-bold">{t('gacha.pity_title')}</Text>
                                                                     <Text className={`${isSelected ? 'text-white' : 'text-white/80'} text-[10px] font-extrabold`}>
                                                                         {currentPity}/{banner.hardPity5Star || 90}
                                                                     </Text>
@@ -577,9 +577,7 @@ export default function GachaScreen() {
                             className={`p-4 rounded-xl items-center ${selectedBanner && !isPendingPurchase && !isAnimating ? 'bg-purple-600' : 'bg-slate-700'}`}
                             activeOpacity={0.8}
                         >
-                            <Text className="text-white font-bold text-lg">
-                                {t('gacha.wish_ten', { guarantee: '3★' })}
-                            </Text>
+                            <Text className="text-white font-bold text-lg">{t('gacha.wish_ten', { guarantee: '3★' })}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -660,9 +658,7 @@ export default function GachaScreen() {
                                                 </Text>
                                             </View>
                                             <View className="bg-cyan-500/20 px-3 py-1 rounded-lg border border-cyan-500/30">
-                                                <Text className="text-cyan-400 font-bold text-xs">
-                                                    {t('gacha.wish_count', { count: item.count })}
-                                                </Text>
+                                                <Text className="text-cyan-400 font-bold text-xs">{t('gacha.wish_count', { count: item.count })}</Text>
                                             </View>
                                         </View>
 
