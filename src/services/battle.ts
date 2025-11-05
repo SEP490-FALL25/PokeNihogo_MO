@@ -6,13 +6,11 @@ let draftStateStore: Record<string, IBattleDraftState> = {};
 
 const battleService = {
     matchQueue: async () => {
-        return axiosPrivate.post(`/match-queue`);
+        return await axiosPrivate.post(`/match-queue`);
     },
 
-    // Cancel queue (mock - no API call)
-    cancelQueue: async (): Promise<void> => {
-        // Simulate canceling queue - no real API call
-        await new Promise((resolve) => setTimeout(resolve, 100));
+    cancelQueue: async () => {
+        return axiosPrivate.delete(`/match-queue/user`);
     },
 
     // Get current match status (simulated)

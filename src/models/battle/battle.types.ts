@@ -1,6 +1,50 @@
+
+import { BATTLE_STATUS } from "@constants/battle.enum";
 import { z } from "zod";
 
-// Battle matchmaking request/response
+/**
+ * Battle Match Found Schema
+ */
+export const BattleMatchFound = z.object({
+    type: z.enum([BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_FOUND, BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_STATUS_UPDATE, BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCHMAKING_FAILED]),
+    match: z.object({
+        createdAt: z.string(),
+        endTime: z.string(),
+        id: z.number(),
+        status: z.string(),
+    }),
+    matchId: z.number(),
+    opponent: z.object({
+        id: z.number(),
+        name: z.string(),
+        avatar: z.string().optional(),
+    }),
+    participant: z.object({
+        id: z.number(),
+        matchId: z.number(),
+        hasAccepted: z.boolean(),
+        userId: z.number(),
+    }),
+});
+
+export type IBattleMatchFound = z.infer<typeof BattleMatchFound>;
+//------------------------End------------------------//
+
+
+/**
+ * Battle Match Status Update Schema
+ */
+export const BattleMatchStatusUpdate = z.object({
+    matchId: z.number(),
+    message: z.string(),
+    type: z.enum([BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_STATUS_UPDATE]),
+    status: z.string(),
+});
+
+export type IBattleMatchStatusUpdate = z.infer<typeof BattleMatchStatusUpdate>;
+//------------------------End------------------------//
+
+
 export const BattleMatchSchema = z.object({
     id: z.string(),
     playerId: z.number(),
