@@ -1,13 +1,12 @@
+import { axiosPrivate } from "@configs/axios";
 import { IBattleDraftState, IBattleMatch, IBattleState } from "@models/battle/battle.types";
 
 // Store draft state in memory for demo
 let draftStateStore: Record<string, IBattleDraftState> = {};
 
 const battleService = {
-    // Start queue for ranked matchmaking (mock - no API call)
-    startQueue: async (): Promise<void> => {
-        // Simulate starting queue - no real API call
-        await new Promise((resolve) => setTimeout(resolve, 100));
+    matchQueue: async () => {
+        return axiosPrivate.post(`/match-queue`);
     },
 
     // Cancel queue (mock - no API call)
