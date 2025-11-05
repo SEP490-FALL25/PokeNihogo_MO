@@ -1,6 +1,7 @@
 import { CountdownTimer } from "@components/atoms/CountdownTimer";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import UserAvatar from "@components/atoms/UserAvatar";
+import ModalBattleAccept from "@components/battle/modal-accept.battle";
 import { HapticPressable } from "@components/HapticPressable";
 import GlowingRingEffect from "@components/molecules/GlowingRingEffect";
 import { ThemedText } from "@components/ThemedText";
@@ -157,25 +158,7 @@ export default function BattleLobbyScreen() {
    * - Handle cancel queue
    */
   const [matchedPlayer, setMatchedPlayer] = useState<IBattleMatchFound | null>(null);
-  const handleAcceptMatch = () => {
-    setShowAcceptModal(false);
-    setInQueue(false);
-    if (matchedPlayer) {
-      router.push({
-        pathname: "/(app)/(battle)/draft",
-        params: {
-          matchId: matchedPlayer.matchId,
-          opponentName: matchedPlayer.opponent.name,
-        },
-      });
-    }
-  };
 
-  const handleRejectMatch = () => {
-    setShowAcceptModal(false);
-    setMatchedPlayer(null);
-    setInQueue(false);
-  };
 
 
   const handleCancelQueue = async () => {
@@ -208,6 +191,12 @@ export default function BattleLobbyScreen() {
       if (payload?.type === BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_STATUS_UPDATE) {
         if (payload.status === "IN_PROGRESS" && payload.matchId) {
           socket.emit("join-matching-room", { matchId: payload.matchId });
+        }
+        if (payload.status === "CANCELLED") {
+          setShowAcceptModal(false);
+          setMatchedPlayer(null);
+          setInQueue(false);
+          Alert.alert("Thông báo", payload.message || "Trận đấu đã bị hủy.");
         }
       }
 
@@ -346,6 +335,7 @@ export default function BattleLobbyScreen() {
                 <HapticPressable
                   className="rounded-full overflow-hidden"
                   onPress={handleStartRanked}
+                  disabled={inQueue ? true : false}
                 >
                   <TWLinearGradient
                     colors={inQueue ? ["#10b981", "#059669"] : ["#22c55e", "#16a34a"]}
@@ -627,80 +617,14 @@ export default function BattleLobbyScreen() {
       </Modal>
 
       {/* Accept Match Modal */}
-      <Modal
-        visible={showAcceptModal}
-        animationType="fade"
-        transparent
-        onRequestClose={handleRejectMatch}
-      >
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.9)", justifyContent: "center", alignItems: "center" }}>
-          <View className="w-11/12 max-w-md bg-slate-900 rounded-3xl overflow-hidden border border-white/10">
-            <TWLinearGradient
-              colors={["#22c55e", "#16a34a"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ padding: 20 }}
-            >
-              <View className="items-center">
-                <ThemedText style={{ color: "#ffffff", fontSize: 24, fontWeight: "900" }}>
-                  🎮 TRẬN ĐẤU SẴN SÀNG
-                </ThemedText>
-              </View>
-            </TWLinearGradient>
+      <ModalBattleAccept
+        showAcceptModal={showAcceptModal}
+        matchedPlayer={matchedPlayer as IBattleMatchFound}
+        setShowAcceptModal={setShowAcceptModal}
+        setMatchedPlayer={setMatchedPlayer}
+        setInQueue={setInQueue}
+      />
 
-            <View className="p-6">
-              <View className="flex-row items-center justify-center gap-8 mb-6">
-                <View className="items-center">
-                  <UserAvatar name={matchedPlayer?.participant.userId.toString() || "You"} size="large" />
-                  <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
-                    Bạn
-                  </ThemedText>
-                </View>
-                <TWLinearGradient
-                  colors={["#ec4899", "#8b5cf6"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{ padding: 2, borderRadius: 999 }}
-                >
-                  <View className="px-4 py-2 rounded-full bg-black/70">
-                    <ThemedText style={{ color: "#ffffff", fontWeight: "700", fontSize: 16 }}>VS</ThemedText>
-                  </View>
-                </TWLinearGradient>
-                <View className="items-center">
-                  <UserAvatar name={matchedPlayer?.opponent.name || "Opponent"} size="large" />
-                  <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
-                    {matchedPlayer?.opponent.name || "Đối thủ"}
-                  </ThemedText>
-                </View>
-              </View>
-
-              <ThemedText style={{ color: "#94a3b8", fontSize: 14, textAlign: "center", marginBottom: 24 }}>
-                Đã tìm thấy đối thủ phù hợp!
-              </ThemedText>
-
-              <View className="flex-row gap-3">
-                <HapticPressable className="flex-1 py-4 rounded-2xl bg-white/10 border border-white/20" onPress={handleRejectMatch}>
-                  <ThemedText style={{ color: "#fca5a5", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
-                    Từ chối
-                  </ThemedText>
-                </HapticPressable>
-                <HapticPressable className="flex-1 rounded-2xl overflow-hidden" onPress={handleAcceptMatch}>
-                  <TWLinearGradient
-                    colors={["#22c55e", "#16a34a"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{ paddingVertical: 16 }}
-                  >
-                    <ThemedText style={{ color: "#ffffff", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
-                      ĐỒNG Ý
-                    </ThemedText>
-                  </TWLinearGradient>
-                </HapticPressable>
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </ThemedView>
   );
 }
