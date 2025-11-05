@@ -1,6 +1,7 @@
 "use client"
 
-import { RARITY_MAP } from "@constants/gacha.enum"
+import { RARITY_MAP } from "@constants/gacha.enum"; // Đảm bảo đường dẫn này đúng
+// import { Sound } from "expo-av" // Bỏ comment nếu bạn muốn thêm âm thanh
 import { LinearGradient } from "expo-linear-gradient"
 import { Sparkles, Star } from "lucide-react-native"
 import { cssInterop } from "nativewind"
@@ -11,13 +12,17 @@ import Animated, {
     Easing,
     FadeIn,
     runOnJS,
+    useAnimatedProps,
     useAnimatedStyle,
     useSharedValue,
     withDelay,
     withRepeat,
     withSequence,
     withTiming,
+    type SharedValue,
 } from "react-native-reanimated"
+// 1. IMPORT TỪ REACT-NATIVE-SVG
+import Svg, { Circle, Defs, Path, RadialGradient, Rect, Stop } from "react-native-svg"
 
 cssInterop(LinearGradient, { className: "style" })
 const TWLinearGradient = LinearGradient as unknown as React.ComponentType<
@@ -32,6 +37,7 @@ const RARITY_GLOW_COLORS = {
     [RARITY_MAP.LEGENDARY]: "#facc15",
 }
 
+// --- Hiệu ứng nổ (Giữ nguyên) ---
 const ExplosionBurst = ({ color, onComplete }: { color: string; onComplete: () => void }) => {
     const particles = useMemo(
         () =>
@@ -160,89 +166,267 @@ const ExplosionFlash = ({ color }: { color: string }) => {
     )
 }
 
-const ShootingStar = ({ highestRarity, onComplete }: { highestRarity: number; onComplete: () => void }) => {
+// --- Component Pokéball bằng SVG (Có thể tách ra file riêng) ---
+// Tạo các Animated components từ react-native-svg
+const AnimatedCircle = Animated.createAnimatedComponent(Circle)
+const AnimatedPath = Animated.createAnimatedComponent(Path)
+const AnimatedRect = Animated.createAnimatedComponent(Rect)
+
+interface AnimatedPokeballIconProps {
+    size?: number
+    isOpen: SharedValue<number> // SharedValue để điều khiển trạng thái mở (0 = đóng, 1 = mở)
+    color?: string // Màu sắc cho hiệu ứng hào quang/ánh sáng
+}
+
+const AnimatedPokeballIcon = ({ size = 100, isOpen, color = "#facc15" }: AnimatedPokeballIconProps) => {
+    const half = size / 2
+    const strokeWidth = size * 0.07 // Độ dày của đường viền
+    const separationDistance = size * 0.2 // Khoảng cách nửa trên/dưới tách ra
+
+    // Hiệu ứng cho nửa trên (di chuyển lên)
+    const animatedPropsTopPath = useAnimatedProps(() => {
+        const translateY = -separationDistance * isOpen.value // Dịch chuyển lên khi isOpen tăng
+        return {
+            transform: `translate(0, ${translateY})`,
+        }
+    })
+
+    // Hiệu ứng cho nửa dưới (di chuyển xuống)
+    const animatedPropsBottomPath = useAnimatedProps(() => {
+        const translateY = separationDistance * isOpen.value // Dịch chuyển xuống khi isOpen tăng
+        return {
+            transform: `translate(0, ${translateY})`,
+        }
+    })
+
+    // Hiệu ứng cho đường kẻ giữa (mờ dần)
+    const animatedPropsMidRect = useAnimatedProps(() => {
+        const opacity = 1 - isOpen.value // Mờ dần khi mở
+        return { opacity: opacity }
+    })
+
+    // Hiệu ứng cho vòng tròn ngoài cùng của nút giữa (mờ dần)
+    const animatedPropsCenterOuterCircle = useAnimatedProps(() => {
+        const opacity = 1 - isOpen.value // Mờ dần khi mở
+        return { opacity: opacity }
+    })
+
+    // Hiệu ứng cho vòng tròn trong cùng của nút giữa (mờ dần)
+    const animatedPropsCenterInnerCircle = useAnimatedProps(() => {
+        const opacity = 1 - isOpen.value // Mờ dần khi mở
+        return { opacity: opacity }
+    })
+
+    // Hiệu ứng hào quang/ánh sáng khi mở
+    const animatedPropsGlow = useAnimatedProps(() => {
+        const scale = 1 + isOpen.value * 2 // Tăng kích thước hào quang
+        const opacity = isOpen.value * 0.8 // Xuất hiện khi mở
+        return {
+            transform: [{ scale: scale }],
+            opacity: opacity,
+            fill: color, // Sử dụng màu được truyền vào
+        }
+    })
+
+    return (
+        <View style={{ width: size, height: size }}>
+            <Svg height={size} width={size} viewBox="0 0 100 100">
+                <Defs>
+                    <RadialGradient
+                        id="grad"
+                        cx="50%"
+                        cy="50%"
+                        rx="50%"
+                        ry="50%"
+                        fx="50%"
+                        fy="50%"
+                        gradientUnits="userSpaceOnUse"
+                    >
+                        <Stop offset="0%" stopColor="#fff" stopOpacity="1" />
+                        <Stop offset="60%" stopColor="#eee" stopOpacity="1" />
+                        <Stop offset="100%" stopColor="#aaa" stopOpacity="1" />
+                    </RadialGradient>
+                </Defs>
+
+                {/* Hào quang khi mở */}
+                <AnimatedCircle
+                    cx={half}
+                    cy={half}
+                    r={half * 0.7} // Kích thước ban đầu của hào quang
+                    animatedProps={animatedPropsGlow}
+                />
+
+                {/* Nửa màu đỏ trên */}
+                <AnimatedPath animatedProps={animatedPropsTopPath} d={`M 5 50 A 45 45 0 0 1 95 50`} fill="#e74c3c" />
+
+                {/* Nửa màu trắng dưới */}
+                <AnimatedPath animatedProps={animatedPropsBottomPath} d={`M 5 50 A 45 45 0 0 0 95 50`} fill="#fff" />
+
+                {/* Viền đen bên ngoài (không cần animation) */}
+                <Circle
+                    cx={half}
+                    cy={half}
+                    r={half - strokeWidth / 2}
+                    fill="none"
+                    stroke="#2c3e50"
+                    strokeWidth={strokeWidth}
+                />
+
+                {/* Đường kẻ đen ở giữa */}
+                <AnimatedRect
+                    animatedProps={animatedPropsMidRect}
+                    x="0"
+                    y={half - strokeWidth / 2}
+                    width={size}
+                    height={strokeWidth}
+                    fill="#2c3e50"
+                />
+
+                {/* Nút tròn ở giữa (viền ngoài) */}
+                <AnimatedCircle
+                    animatedProps={animatedPropsCenterOuterCircle}
+                    cx={half}
+                    cy={half}
+                    r={size * 0.18}
+                    fill="#2c3e50"
+                />
+
+                {/* Nút tròn ở giữa (lòng trong) */}
+                <AnimatedCircle
+                    animatedProps={animatedPropsCenterInnerCircle}
+                    cx={half}
+                    cy={half}
+                    r={size * 0.12}
+                    fill="url(#grad)"
+                    stroke="#2c3e50"
+                    strokeWidth={size * 0.02}
+                />
+            </Svg>
+        </View>
+    )
+}
+
+// --- Component Ném Bóng (Phần chính bạn hỏi) ---
+enum ThrowStage {
+    INITIAL,
+    THROWING,
+    WIGGLE1,
+    WIGGLE2,
+    WIGGLE3,
+    CATCH_SUCCESS,
+    OPENING_POKEBALL, // Giai đoạn mở bóng
+    EXPLODE,
+}
+
+const PokeballThrowAnimation = ({ highestRarity, onComplete }: { highestRarity: number; onComplete: () => void }) => {
     const color = RARITY_GLOW_COLORS[highestRarity] || RARITY_GLOW_COLORS[RARITY_MAP.COMMON]
     const { width: screenWidth, height: screenHeight } = Dimensions.get("window")
+
+    const pokeballScale = useSharedValue(0.1)
+    const pokeballTranslateX = useSharedValue(screenWidth * 1.5)
+    const pokeballTranslateY = useSharedValue(screenHeight * 0.1)
+    const pokeballRotate = useSharedValue(0)
+    const pokeballOpacity = useSharedValue(0)
+    const pokeballWiggle = useSharedValue(0)
+
+    // SharedValue mới để điều khiển việc mở Pokéball
+    const pokeballIsOpen = useSharedValue(0) // 0 = đóng, 1 = mở
+
+    const [stage, setStage] = useState(ThrowStage.INITIAL)
     const [showExplosion, setShowExplosion] = useState(false)
 
-    const stars = useMemo(
-        () => [
-            {
-                startX: -300,
-                startY: screenHeight * 0.05,
-                endX: screenWidth * 0.5,
-                endY: screenHeight * 0.5,
-                delay: 0,
-                duration: 2800,
-                size: 1.4,
-                rotation: "20deg",
-            },
-            {
-                startX: screenWidth + 300,
-                startY: screenHeight * 0.1,
-                endX: screenWidth * 0.5,
-                endY: screenHeight * 0.5,
-                delay: 600,
-                duration: 2600,
-                size: 1.2,
-                rotation: "-20deg",
-            },
-            {
-                startX: screenWidth * 0.5,
-                startY: -300,
-                endX: screenWidth * 0.5,
-                endY: screenHeight * 0.5,
-                delay: 1200,
-                duration: 3000,
-                size: 1.8,
-                rotation: "0deg",
-            },
-            {
-                startX: -250,
-                startY: screenHeight * 0.25,
-                endX: screenWidth * 0.5,
-                endY: screenHeight * 0.5,
-                delay: 400,
-                duration: 2700,
-                size: 1.0,
-                rotation: "25deg",
-            },
-            {
-                startX: screenWidth + 250,
-                startY: screenHeight * 0.2,
-                endX: screenWidth * 0.5,
-                endY: screenHeight * 0.5,
-                delay: 800,
-                duration: 2500,
-                size: 1.1,
-                rotation: "-25deg",
-            },
-            {
-                startX: -200,
-                startY: screenHeight * 0.4,
-                endX: screenWidth * 0.5,
-                endY: screenHeight * 0.5,
-                delay: 1000,
-                duration: 2400,
-                size: 0.9,
-                rotation: "35deg",
-            },
-            {
-                startX: screenWidth + 200,
-                startY: screenHeight * 0.35,
-                endX: screenWidth * 0.5,
-                endY: screenHeight * 0.5,
-                delay: 1400,
-                duration: 2300,
-                size: 0.95,
-                rotation: "-35deg",
-            },
-        ],
-        [screenWidth, screenHeight],
-    )
+    // ... (Optional: Load sound) ...
 
-    const handleStarsConverged = () => {
-        setShowExplosion(true)
+    useEffect(() => {
+        if (stage === ThrowStage.INITIAL) {
+            pokeballOpacity.value = withTiming(1, { duration: 300 })
+            pokeballScale.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.quad) })
+            pokeballTranslateX.value = withTiming(
+                screenWidth / 2 - 50, // Vị trí trung tâm (trừ 1 nửa width)
+                { duration: 1000, easing: Easing.out(Easing.quad) },
+            )
+            pokeballTranslateY.value = withTiming(
+                screenHeight / 2 - 50, // Vị trí trung tâm (trừ 1 nửa height)
+                { duration: 1000, easing: Easing.out(Easing.quad) },
+                (finished) => {
+                    if (finished) {
+                        runOnJS(setStage)(ThrowStage.WIGGLE1)
+                    }
+                },
+            )
+            pokeballRotate.value = withTiming(720, { duration: 1000, easing: Easing.out(Easing.quad) })
+        } else if (stage === ThrowStage.WIGGLE1) {
+            pokeballWiggle.value = withSequence(
+                withTiming(-10, { duration: 200, easing: Easing.inOut(Easing.quad) }),
+                withTiming(10, { duration: 200, easing: Easing.inOut(Easing.quad) }),
+                withTiming(-5, { duration: 150, easing: Easing.inOut(Easing.quad) }),
+                withTiming(5, { duration: 150, easing: Easing.inOut(Easing.quad) }),
+                withTiming(0, { duration: 100, easing: Easing.inOut(Easing.quad) }, (finished) => {
+                    if (finished) runOnJS(setStage)(ThrowStage.WIGGLE2)
+                }),
+            )
+        } else if (stage === ThrowStage.WIGGLE2) {
+            pokeballWiggle.value = withSequence(
+                withDelay(
+                    200, // Độ trễ giữa các lần lắc
+                    withTiming(-8, { duration: 180, easing: Easing.inOut(Easing.quad) }),
+                ),
+                withTiming(8, { duration: 180, easing: Easing.inOut(Easing.quad) }),
+                withTiming(-4, { duration: 120, easing: Easing.inOut(Easing.quad) }),
+                withTiming(4, { duration: 120, easing: Easing.inOut(Easing.quad) }),
+                withTiming(0, { duration: 80, easing: Easing.inOut(Easing.quad) }, (finished) => {
+                    if (finished) runOnJS(setStage)(ThrowStage.WIGGLE3)
+                }),
+            )
+        } else if (stage === ThrowStage.WIGGLE3) {
+            pokeballWiggle.value = withSequence(
+                withDelay(
+                    200, // Độ trễ giữa các lần lắc
+                    withTiming(-6, { duration: 150, easing: Easing.inOut(Easing.quad) }),
+                ),
+                withTiming(6, { duration: 150, easing: Easing.inOut(Easing.quad) }),
+                withTiming(-3, { duration: 100, easing: Easing.inOut(Easing.quad) }),
+                withTiming(3, { duration: 100, easing: Easing.inOut(Easing.quad) }),
+                withTiming(0, { duration: 70, easing: Easing.inOut(Easing.quad) }, (finished) => {
+                    if (finished) runOnJS(setStage)(ThrowStage.CATCH_SUCCESS)
+                }),
+            )
+        } else if (stage === ThrowStage.CATCH_SUCCESS) {
+            // Đã bắt thành công, dừng lắc và chuyển sang giai đoạn MỞ
+            pokeballWiggle.value = withTiming(0, { duration: 100 }, (finished) => {
+                if (finished) {
+                    runOnJS(setStage)(ThrowStage.OPENING_POKEBALL)
+                }
+            })
+        } else if (stage === ThrowStage.OPENING_POKEBALL) {
+            // Kích hoạt hiệu ứng mở bóng
+            pokeballIsOpen.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.quad) }, (finished) => {
+                if (finished) {
+                    // Sau khi mở xong, làm mờ bóng đi
+                    pokeballOpacity.value = withTiming(0, { duration: 300 }, (finishedExplosion) => {
+                        if (finishedExplosion) {
+                            // Sau khi bóng mờ, kích hoạt hiệu ứng nổ
+                            runOnJS(setShowExplosion)(true)
+                        }
+                    })
+                }
+            })
+        }
+    }, [stage])
+
+    const pokeballAnimatedStyle = useAnimatedStyle(() => ({
+        opacity: pokeballOpacity.value,
+        transform: [
+            { translateX: pokeballTranslateX.value },
+            { translateY: pokeballTranslateY.value },
+            { scale: pokeballScale.value },
+            { rotate: `${pokeballRotate.value + pokeballWiggle.value}deg` },
+        ],
+        position: "absolute",
+    }))
+
+    const handleExplosionComplete = () => {
+        onComplete()
     }
 
     return (
@@ -253,480 +437,18 @@ const ShootingStar = ({ highestRarity, onComplete }: { highestRarity: number; on
                 style={{ opacity: 0.3 }}
             />
 
-            {stars.map((star, index) => (
-                <SingleShootingStar
-                    key={index}
-                    {...star}
-                    color={color}
-                    isLast={index === stars.length - 1}
-                    onComplete={index === stars.length - 1 ? handleStarsConverged : undefined}
-                />
-            ))}
-            <CenterGlow color={color} />
-            <LightBeams color={color} />
+            <Animated.View style={pokeballAnimatedStyle}>
+                {/* Sử dụng AnimatedPokeballIcon và truyền các props */}
+                <AnimatedPokeballIcon size={100} isOpen={pokeballIsOpen} color={color} />
+            </Animated.View>
 
-            {showExplosion && <ExplosionBurst color={color} onComplete={onComplete} />}
+            {showExplosion && <ExplosionBurst color={color} onComplete={handleExplosionComplete} />}
         </View>
     )
 }
+// --- Kết thúc: Component Ném Bóng ---
 
-const LightBeams = ({ color }: { color: string }) => {
-    const opacity = useSharedValue(0)
-    const rotation = useSharedValue(0)
-
-    useEffect(() => {
-        opacity.value = withDelay(
-            2000,
-            withSequence(
-                withTiming(0.4, { duration: 1000, easing: Easing.out(Easing.cubic) }),
-                withTiming(0, { duration: 800 }),
-            ),
-        )
-        rotation.value = withDelay(2000, withTiming(360, { duration: 4000, easing: Easing.linear }))
-    }, [])
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
-        transform: [{ rotate: `${rotation.value}deg` }],
-    }))
-
-    return (
-        <Animated.View
-            style={[
-                animatedStyle,
-                {
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    width: 600,
-                    height: 600,
-                    marginLeft: -300,
-                    marginTop: -300,
-                },
-            ]}
-        >
-            {Array.from({ length: 12 }).map((_, i) => {
-                const angle = i * 30 * (Math.PI / 180)
-                return (
-                    <View
-                        key={i}
-                        style={{
-                            position: "absolute",
-                            top: "50%",
-                            left: "50%",
-                            width: 300,
-                            height: 2,
-                            backgroundColor: color,
-                            opacity: 0.3,
-                            transform: [{ translateX: -150 }, { translateY: -1 }, { rotate: `${i * 30}deg` }],
-                            shadowColor: color,
-                            shadowRadius: 20,
-                            shadowOpacity: 0.8,
-                        }}
-                    />
-                )
-            })}
-        </Animated.View>
-    )
-}
-
-const SingleShootingStar = ({
-    startX,
-    startY,
-    endX,
-    endY,
-    delay,
-    duration,
-    size,
-    rotation,
-    color,
-    isLast,
-    onComplete,
-}: any) => {
-    const translateX = useSharedValue(startX)
-    const translateY = useSharedValue(startY)
-    const opacity = useSharedValue(0)
-    const scale = useSharedValue(0)
-    const glow = useSharedValue(0)
-    const blinkOpacity = useSharedValue(0.12)
-
-    useEffect(() => {
-        opacity.value = withDelay(delay, withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }))
-        scale.value = withDelay(delay, withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }))
-
-        glow.value = withDelay(
-            delay,
-            withRepeat(
-                withSequence(
-                    withTiming(1.3, { duration: 800, easing: Easing.inOut(Easing.sin) }),
-                    withTiming(1, { duration: 800, easing: Easing.inOut(Easing.sin) }),
-                ),
-                -1,
-                true,
-            ),
-        )
-
-        // Soft blinking opacity for the outer glow circle
-        blinkOpacity.value = withDelay(
-            delay,
-            withRepeat(
-                withSequence(
-                    withTiming(0.2, { duration: 700, easing: Easing.inOut(Easing.sin) }),
-                    withTiming(0.08, { duration: 700, easing: Easing.inOut(Easing.sin) }),
-                ),
-                -1,
-                true,
-            ),
-        )
-
-        translateX.value = withDelay(
-            delay,
-            withTiming(endX, {
-                duration,
-                easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-            }),
-        )
-
-        translateY.value = withDelay(
-            delay,
-            withTiming(
-                endY,
-                {
-                    duration,
-                    easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-                },
-                (finished) => {
-                    if (finished && isLast && onComplete) {
-                        opacity.value = withDelay(
-                            800,
-                            withTiming(0, { duration: 1000, easing: Easing.out(Easing.cubic) }, (done) => {
-                                if (done) {
-                                    runOnJS(onComplete)()
-                                }
-                            }),
-                        )
-                    }
-                },
-            ),
-        )
-    }, [])
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
-        transform: [
-            { translateX: translateX.value },
-            { translateY: translateY.value },
-            { scale: scale.value * size },
-            { rotate: rotation },
-        ],
-    }))
-
-    const glowStyle = useAnimatedStyle(() => ({
-        transform: [{ scale: glow.value }],
-    }))
-
-    const blinkStyle = useAnimatedStyle(() => ({
-        opacity: blinkOpacity.value,
-    }))
-
-    const trailParticles = useMemo(
-        () =>
-            Array.from({ length: 30 }).map((_, i) => ({
-                delay: i * 20,
-                offset: i * 12,
-                size: 4 - i * 0.08,
-                opacity: 1 - i * 0.028,
-            })),
-        [],
-    )
-
-    return (
-        <Animated.View style={[animatedStyle, { position: "absolute" }]}>
-            {/* Main star head with enhanced glow */}
-            <View className="items-center justify-center">
-                <Animated.View style={glowStyle}>
-                    <Animated.View
-                        className="absolute w-40 h-40 rounded-full"
-                        style={[
-                            blinkStyle,
-                            {
-                                backgroundColor: color,
-                                shadowColor: color,
-                                shadowRadius: 60,
-                                shadowOpacity: 1,
-                            },
-                        ]}
-                    />
-                </Animated.View>
-                <View
-                    className="absolute w-28 h-28 rounded-full"
-                    style={{
-                        backgroundColor: color,
-                        opacity: 0.25,
-                        shadowColor: color,
-                        shadowRadius: 40,
-                        shadowOpacity: 1,
-                    }}
-                />
-                <View
-                    className="absolute w-16 h-16 rounded-full"
-                    style={{
-                        backgroundColor: color,
-                        opacity: 0.4,
-                        shadowColor: color,
-                        shadowRadius: 25,
-                        shadowOpacity: 1,
-                    }}
-                />
-
-                <Animated.View style={glowStyle}>
-                    <Star size={48} color={color} fill={color} style={{ opacity: 0.9 }} />
-                </Animated.View>
-                <View className="absolute">
-                    <Star size={48} color="#ffffff" fill="#ffffff" style={{ opacity: 0.7 }} />
-                </View>
-
-                <View
-                    className="absolute w-4 h-4 rounded-full bg-white"
-                    style={{
-                        shadowColor: "#ffffff",
-                        shadowRadius: 20,
-                        shadowOpacity: 1,
-                    }}
-                />
-            </View>
-
-            <View className="absolute -z-10" style={{ right: 24, top: 18 }}>
-                {trailParticles.map((particle, i) => (
-                    <TwinklingTrailParticle
-                        key={i}
-                        color={color}
-                        offset={particle.offset}
-                        size={particle.size}
-                        opacity={particle.opacity}
-                        delay={delay + i * 30}
-                    />
-                ))}
-
-                <View
-                    className="absolute h-3 rounded-full"
-                    style={{
-                        width: 350,
-                        right: 0,
-                        backgroundColor: color,
-                        opacity: 0.35,
-                        shadowColor: color,
-                        shadowRadius: 20,
-                        shadowOpacity: 0.9,
-                    }}
-                />
-
-                <View
-                    className="absolute h-5 rounded-full"
-                    style={{
-                        width: 400,
-                        right: -25,
-                        top: -1,
-                        backgroundColor: color,
-                        opacity: 0.15,
-                        shadowColor: color,
-                        shadowRadius: 30,
-                        shadowOpacity: 0.6,
-                    }}
-                />
-            </View>
-
-            {Array.from({ length: 12 }).map((_, i) => {
-                const angle = i * 30 * (Math.PI / 180)
-                const distance = 35
-                return (
-                    <AnimatedSparkle
-                        key={i}
-                        color={color}
-                        x={Math.cos(angle) * distance}
-                        y={Math.sin(angle) * distance}
-                        delay={delay + i * 80}
-                    />
-                )
-            })}
-        </Animated.View>
-    )
-}
-
-const TwinklingTrailParticle = ({ color, offset, size, opacity: baseOpacity, delay }: any) => {
-    const opacity = useSharedValue(0)
-
-    useEffect(() => {
-        opacity.value = withDelay(
-            delay,
-            withRepeat(
-                withSequence(
-                    withTiming(baseOpacity, { duration: 200, easing: Easing.inOut(Easing.ease) }),
-                    withTiming(baseOpacity * 0.3, { duration: 300, easing: Easing.inOut(Easing.ease) }),
-                    withTiming(baseOpacity, { duration: 200, easing: Easing.inOut(Easing.ease) }),
-                    withTiming(baseOpacity * 0.5, { duration: 400, easing: Easing.inOut(Easing.ease) }),
-                ),
-                -1,
-                true,
-            ),
-        )
-    }, [])
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
-    }))
-
-    return (
-        <Animated.View
-            style={[
-                animatedStyle,
-                {
-                    position: "absolute",
-                    right: offset,
-                    width: size * 5,
-                    height: size * 5,
-                    borderRadius: (size * 5) / 2,
-                    backgroundColor: color,
-                    shadowColor: color,
-                    shadowRadius: 12,
-                    shadowOpacity: 0.8,
-                },
-            ]}
-        />
-    )
-}
-
-const AnimatedSparkle = ({ color, x, y, delay }: any) => {
-    const opacity = useSharedValue(0)
-    const scale = useSharedValue(0)
-
-    useEffect(() => {
-        opacity.value = withDelay(
-            delay,
-            withRepeat(
-                withSequence(
-                    withTiming(1, { duration: 800, easing: Easing.inOut(Easing.sin) }),
-                    withTiming(0, { duration: 800, easing: Easing.inOut(Easing.sin) }),
-                ),
-                -1,
-                true,
-            ),
-        )
-        scale.value = withDelay(
-            delay,
-            withRepeat(
-                withSequence(
-                    withTiming(1.8, { duration: 800, easing: Easing.inOut(Easing.sin) }),
-                    withTiming(0.8, { duration: 800, easing: Easing.inOut(Easing.sin) }),
-                ),
-                -1,
-                true,
-            ),
-        )
-    }, [])
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
-        transform: [{ translateX: x }, { translateY: y }, { scale: scale.value }],
-    }))
-
-    return (
-        <Animated.View
-            style={[
-                animatedStyle,
-                {
-                    position: "absolute",
-                    width: 5,
-                    height: 5,
-                    borderRadius: 2.5,
-                    backgroundColor: color,
-                    shadowColor: color,
-                    shadowRadius: 8,
-                    shadowOpacity: 1,
-                },
-            ]}
-        />
-    )
-}
-
-const CenterGlow = ({ color }: { color: string }) => {
-    const scale = useSharedValue(0)
-    const opacity = useSharedValue(0)
-    const pulse = useSharedValue(1)
-
-    useEffect(() => {
-        scale.value = withDelay(
-            1500,
-            withSequence(
-                withTiming(2, { duration: 1500, easing: Easing.out(Easing.cubic) }),
-                withTiming(2.5, { duration: 800, easing: Easing.inOut(Easing.cubic) }),
-                withTiming(0, { duration: 600 }),
-            ),
-        )
-        opacity.value = withDelay(
-            1500,
-            withSequence(
-                withTiming(0.6, { duration: 1500, easing: Easing.out(Easing.cubic) }),
-                withTiming(0.9, { duration: 800 }),
-                withTiming(0, { duration: 600 }),
-            ),
-        )
-
-        pulse.value = withDelay(
-            1500,
-            withRepeat(
-                withSequence(
-                    withTiming(1.1, { duration: 600, easing: Easing.inOut(Easing.sin) }),
-                    withTiming(1, { duration: 600, easing: Easing.inOut(Easing.sin) }),
-                ),
-                4,
-                true,
-            ),
-        )
-    }, [])
-
-    const animatedStyle = useAnimatedStyle(() => ({
-        opacity: opacity.value,
-        transform: [{ scale: scale.value * pulse.value }],
-    }))
-
-    return (
-        <Animated.View
-            style={[
-                animatedStyle,
-                {
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    marginLeft: -200,
-                    marginTop: -200,
-                },
-            ]}
-        >
-            <View
-                className="w-[400px] h-[400px] rounded-full absolute"
-                style={{
-                    backgroundColor: color,
-                    opacity: 0.15,
-                    shadowColor: color,
-                    shadowRadius: 150,
-                    shadowOpacity: 1,
-                }}
-            />
-            <View
-                className="w-[400px] h-[400px] rounded-full"
-                style={{
-                    backgroundColor: color,
-                    opacity: 0.25,
-                    shadowColor: color,
-                    shadowRadius: 100,
-                    shadowOpacity: 1,
-                }}
-            />
-        </Animated.View>
-    )
-}
-
+// --- Các component hiển thị (Giữ nguyên) ---
 type FloatingSparkleProps = {
     color: string
     delay: number
@@ -868,8 +590,9 @@ const RevealItem = ({ item, onNext }: { item: any; onNext: () => void }) => {
     )
 }
 
+// --- Component Chính (Giữ nguyên) ---
 export default function GachaAnimation({ results, onFinish }: { results: any; onFinish: () => void }) {
-    const [stage, setStage] = useState("star")
+    const [stage, setStage] = useState("pokeballThrow")
     const [currentIndex, setCurrentIndex] = useState(0)
 
     const highestRarity = useMemo(() => {
@@ -888,14 +611,14 @@ export default function GachaAnimation({ results, onFinish }: { results: any; on
 
     const renderContent = () => {
         switch (stage) {
-            case "star":
-                return <ShootingStar highestRarity={highestRarity as number} onComplete={() => setStage("reveal")} />
+            case "pokeballThrow":
+                return <PokeballThrowAnimation highestRarity={highestRarity as number} onComplete={() => setStage("reveal")} />
             case "reveal":
                 return <RevealItem item={results[currentIndex]} onNext={handleNextItem} />
             case "summary":
                 return (
                     <Animated.View entering={FadeIn} className="absolute inset-0 bg-slate-900/95 justify-center p-4">
-                        <Text className="text-3xl font-bold text-white text-center mb-6">Kết quả Cầu nguyện</Text>
+                        <Text className="text-3xl font-bold text-white text-center mb-6">Kết quả Gặp Gỡ</Text>
                         <View className="flex-row flex-wrap justify-center gap-2">
                             {results.map((item: any, index: number) => {
                                 const itemColor = RARITY_GLOW_COLORS[item.rarity] || RARITY_GLOW_COLORS[RARITY_MAP.COMMON]

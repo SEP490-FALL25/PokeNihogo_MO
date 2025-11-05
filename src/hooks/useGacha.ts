@@ -75,9 +75,6 @@ export const useGachaPurchase = () => {
             queryClient.invalidateQueries({ queryKey: ['gacha-roll-history-user'] });
             queryClient.invalidateQueries({ queryKey: ['gacha-pity-user'] });
         },
-        onError: (error) => {
-            console.error(error);
-        },
     });
 }
 //--------------------------End------------------------//
