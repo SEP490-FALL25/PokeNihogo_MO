@@ -6,13 +6,16 @@ import GlowingRingEffect from "@components/molecules/GlowingRingEffect";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import TypingText from "@components/ui/TypingText";
+import { getSocket } from "@configs/socket";
 import { IBattleMatch } from "@models/battle/battle.types";
 import battleService from "@services/battle";
+import { useAuthStore } from "@stores/auth/auth.config";
 import { useRouter } from "expo-router";
 import { Award, Crown, History, Info, Target, Trophy } from "lucide-react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { Alert, Animated, Easing, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { Socket } from "socket.io-client";
 
 // Mock battle history data
 const mockBattleHistory = [
@@ -27,6 +30,7 @@ const mockBattleHistory = [
 
 export default function BattleLobbyScreen() {
   const router = useRouter();
+  const accessToken = useAuthStore((s) => s.accessToken);
   const [inQueue, setInQueue] = React.useState(false);
   const [showHistory, setShowHistory] = React.useState(false);
   const [historyFilter, setHistoryFilter] = React.useState<"all" | "win" | "loss">("all");
@@ -36,6 +40,7 @@ export default function BattleLobbyScreen() {
   const insets = useSafeAreaInsets();
   const shimmer = React.useRef(new Animated.Value(0)).current;
   const pulse = React.useRef(new Animated.Value(1)).current;
+  const socketRef = React.useRef<Socket | null>(null);
 
   React.useEffect(() => {
     const loop = Animated.loop(
@@ -75,13 +80,6 @@ export default function BattleLobbyScreen() {
     setInQueue(true);
     try {
       await battleService.startQueue();
-
-      // Simulate matching after 3 seconds
-      setTimeout(async () => {
-        const match = await battleService.getCurrentMatch();
-        setMatchedPlayer(match);
-        setShowAcceptModal(true);
-      }, 3000);
     } catch (error) {
       Alert.alert("Lỗi", "Không thể tìm trận đấu");
       setInQueue(false);
@@ -133,6 +131,68 @@ export default function BattleLobbyScreen() {
     setMatchedPlayer(null);
     setInQueue(false);
   };
+
+  useEffect(() => {
+    if (!accessToken) return;
+
+    const socket = getSocket("matching", accessToken);
+    socketRef.current = socket;
+
+    const onConnect = () => {
+      console.log("Connected:", socket.id);
+      socket.emit("join-searching-room");
+    };
+    const onDisconnect = (reason: string) => {
+      console.log("Disconnected:", reason);
+    };
+    const onConnectError = (err: any) => {
+      console.log("❌ Connect error:", err?.message || err);
+    };
+    const onMatchingEvent = async (payload: any) => {
+      console.log("🔥 MATCHING EVENT RECEIVED:", payload);
+
+      if (payload?.type === "MATCH_FOUND") {
+        const match: IBattleMatch | undefined = payload?.match;
+        if (match) {
+          setMatchedPlayer(match);
+          setShowAcceptModal(true);
+        }
+      }
+
+      if (payload?.type === "MATCH_STATUS_UPDATE") {
+        if (payload.status === "IN_PROGRESS" && payload.matchId) {
+          socket.emit("join-matching-room", { matchId: payload.matchId });
+          console.log("match->room:", payload.matchId);
+        }
+      }
+
+      if (payload?.type === "MATCHMAKING_FAILED") {
+        console.log("❌ Failed:", payload?.reason);
+        setInQueue(false);
+      }
+    };
+    const onSelectPokemon = (payload: any) => {
+      console.log("select poke ne");
+      console.log(payload);
+    };
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("connect_error", onConnectError);
+    socket.on("matching-event", onMatchingEvent);
+    socket.on("select-pokemon", onSelectPokemon);
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("connect_error", onConnectError);
+      socket.off("matching-event", onMatchingEvent);
+      socket.off("select-pokemon", onSelectPokemon);
+      // Do not force disconnect here if other screens reuse the singleton.
+      // If you want hard cleanup on unmount, uncomment:
+      // disconnectSocket();
+    };
+  }, [accessToken]);
 
   return (
     <ThemedView style={styles.container}>

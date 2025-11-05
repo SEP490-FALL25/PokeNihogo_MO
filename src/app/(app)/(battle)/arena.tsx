@@ -5,7 +5,7 @@ import { ThemedView } from "@components/ThemedView";
 import useOwnedPokemons from "@hooks/useOwnedPokemons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Award, CheckCircle, Clock, Shield, XCircle, Zap } from "lucide-react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import {
     Animated,
     Easing,
@@ -84,7 +84,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     const opponentPokemon = ownedPokemons?.find(p => p.pokemon.id === opponentPokemonIds[opponentPokemonIndex]);
 
     // Check type advantage
-    React.useEffect(() => {
+    useEffect(() => {
         if (!playerPokemon || !opponentPokemon) return;
 
         const playerType = playerPokemon.pokemon.types[0]?.type_name;
