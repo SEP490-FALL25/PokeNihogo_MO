@@ -46,8 +46,7 @@ export default function ConversationScreen() {
           },
         ]);
         setNextUserPrompt("「こんにちは」。");
-      } catch (e) {
-        console.error(e);
+      } catch {
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -117,15 +116,12 @@ export default function ConversationScreen() {
     }
 
     const json: any = await res.json();
-    console.log("[STT] Raw JSON:", JSON.stringify(json));
     const alt = json?.results?.[0]?.alternatives?.[0];
     const transcript: string = alt?.transcript ?? "";
-    console.log("[STT] Transcript:", transcript);
 
     // Build feedback from word-level confidence when available
     let words: { word: string; correct: boolean; score?: number }[] | undefined;
     if (alt?.words?.length) {
-      console.log("[STT] Word-level confidences:", alt.words);
       words = alt.words.map((w: any) => {
         const rawWord = (w.word ?? "").trim();
         const conf =
@@ -153,8 +149,7 @@ export default function ConversationScreen() {
   ): { word: string; correct: boolean; score?: number }[] => {
     const target = normalizeJa(targetRaw).split("");
     const spoken = normalizeJa(spokenRaw).split("");
-    console.log("[DIFF] normalized target:", target.join(""));
-    console.log("[DIFF] normalized spoken:", spoken.join(""));
+    
     const m = target.length;
     const n = spoken.length;
     const dp: number[][] = Array.from({ length: m + 1 }, () =>
@@ -203,8 +198,7 @@ export default function ConversationScreen() {
         tokens.push({ word: a.s, correct, score: correct ? 100 : 0 });
       }
     }
-    console.log("[DIFF] aligned pairs:", aligned);
-    console.log("[DIFF] tokens:", tokens);
+    
     // Fallback: if no spoken after normalization, return original spokenRaw as incorrect
     if (!tokens.length && spokenRaw) {
       return spokenRaw
@@ -222,7 +216,6 @@ export default function ConversationScreen() {
         nextUserPrompt || "",
         submit.recognizedText || ""
       );
-      console.log("[FEEDBACK] words:", diffWords);
       // Append user's result as a message with feedback coloring
       setMessages((prev) => [
         ...prev,
@@ -234,8 +227,7 @@ export default function ConversationScreen() {
         },
       ]);
       // Keep the same nextUserPrompt (local) for now
-    } catch (e) {
-      console.error(e);
+    } catch {
     } finally {
       setIsSubmitting(false);
     }
@@ -362,15 +354,19 @@ export default function ConversationScreen() {
           {/* Recorder fixed at bottom */}
           <View>
             <VoiceRecorder
-              onRecordingComplete={(uri: string, _duration: number) =>
-                handleRecordingComplete(uri)
-              }
+              onRecordingComplete={(uri: string, _duration: number) => {
+                handleRecordingComplete(uri);
+              }}
               exerciseTitle={
                 isSubmitting ? "Đang gửi và chấm phát âm…" : "Nhấn để nói"
               }
               showPlayback={true}
               disabled={isSubmitting}
               maxDuration={10}
+              showSaveButton={false}
+              autoStopOnSilence={true}
+              silenceDurationSeconds={2}
+              silenceDbThreshold={-50}
             />
           </View>
         </>

@@ -10,6 +10,7 @@ import React, {
   useState,
 } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Animated,
   Dimensions,
@@ -33,6 +34,13 @@ interface VoiceRecorderProps {
   exerciseTitle?: string;
   showPlayback?: boolean;
   customSavePath?: string; // Custom path for saving recordings
+  // UI controls visibility
+  showDeleteButton?: boolean;
+  showSaveButton?: boolean;
+  // Auto stop recording when silence is detected
+  autoStopOnSilence?: boolean; // enable/disable auto stop on silence
+  silenceDurationSeconds?: number; // how long of continuous silence to stop (default 4s)
+  silenceDbThreshold?: number; // dB threshold to consider as silence (default -50dB)
 }
 
 const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
@@ -46,17 +54,25 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   exerciseTitle,
   showPlayback = true,
   customSavePath,
+  showDeleteButton = true,
+  showSaveButton = true,
+  autoStopOnSilence = false,
+  silenceDurationSeconds = 4,
+  silenceDbThreshold = -50,
 }) => {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const isRecordingRef = useRef<boolean>(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlayLoading, setIsPlayLoading] = useState(false);
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [playbackDuration, setPlaybackDuration] = useState(0);
   const [playbackPosition, setPlaybackPosition] = useState(0);
-  
-  const { hasPermission, requestMicrophonePermission } = useMicrophonePermission();
+
+  const { hasPermission, requestMicrophonePermission } =
+    useMicrophonePermission();
 
   // Metering values for real-time audio visualization
   const [meteringValues, setMeteringValues] = useState<number[]>([]);
@@ -66,7 +82,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
   const barWidth = 3;
   const barSpacing = 2;
-  
+
   // Tính toán chiều rộng container (trừ padding card và container)
   const waveContainerWidth = width - 40 - 32 - 8; // width - container padding - card padding - scrollContent padding
 
@@ -79,8 +95,13 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   // Last metering values length to detect new bars
   const lastMeteringLengthRef = useRef<number>(0);
 
+  // Silence detection: track last time we detected non-silence
+  const lastNonSilentTimestampRef = useRef<number | null>(null);
+
   // Timer ref for maxDuration auto-stop
-  const maxDurationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const maxDurationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
   // Ref to store stopRecording function for use in effect
   const stopRecordingRef = useRef<(() => Promise<void>) | undefined>(undefined);
 
@@ -95,15 +116,15 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   // Function to delete file from device
   const deleteFileFromDevice = async (uri: string) => {
     try {
-      if (uri && uri.startsWith('file://')) {
+      if (uri && uri.startsWith("file://")) {
         const fileExists = await FileSystem.getInfoAsync(uri);
         if (fileExists.exists) {
           await FileSystem.deleteAsync(uri);
-          console.log('File deleted from device:', uri);
+          console.log("File deleted from device:", uri);
         }
       }
     } catch (error) {
-      console.error('Failed to delete file from device:', error);
+      console.error("Failed to delete file from device:", error);
     }
   };
 
@@ -111,7 +132,9 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const createCustomSavePath = () => {
     if (customSavePath) {
       // Ensure directory exists
-      const dirPath = customSavePath.endsWith('/') ? customSavePath : `${customSavePath}/`;
+      const dirPath = customSavePath.endsWith("/")
+        ? customSavePath
+        : `${customSavePath}/`;
       return `${dirPath}recording_${Date.now()}.m4a`;
     }
     return null;
@@ -121,7 +144,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     const recordingRef = recording;
     const soundRef = sound;
     const timerRef = maxDurationTimerRef.current;
-    
+
     return () => {
       if (recordingRef) {
         recordingRef.stopAndUnloadAsync();
@@ -220,15 +243,15 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   useEffect(() => {
     if (isRecording && maxDuration && recordingDuration > 0) {
       const durationSeconds = recordingDuration / 1000;
-      
+
       // Clear existing timer if any
       if (maxDurationTimerRef.current) {
         clearTimeout(maxDurationTimerRef.current);
       }
-      
+
       // Calculate remaining time
       const remainingTime = maxDuration - durationSeconds;
-      
+
       if (remainingTime <= 0) {
         // Already exceeded, stop immediately
         stopRecordingRef.current?.();
@@ -239,7 +262,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         }, remainingTime * 1000);
       }
     }
-    
+
     return () => {
       if (maxDurationTimerRef.current) {
         clearTimeout(maxDurationTimerRef.current);
@@ -335,7 +358,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         },
       } as any;
 
-      const recordingOptions = customSavePath 
+      const recordingOptions = customSavePath
         ? {
             ...baseOptions,
             uri: createCustomSavePath(),
@@ -351,6 +374,27 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
             // Update wave visualization with real metering data
             if (status.metering !== undefined) {
               updateMeteringDisplay(status.metering);
+
+              // Auto stop on silence logic
+              if (autoStopOnSilence) {
+                const nowTs = Date.now();
+                const isSilent = status.metering <= silenceDbThreshold;
+                if (!isSilent) {
+                  lastNonSilentTimestampRef.current = nowTs;
+                } else {
+                  if (
+                    lastNonSilentTimestampRef.current !== null &&
+                    nowTs - lastNonSilentTimestampRef.current >=
+                      silenceDurationSeconds * 1000
+                  ) {
+                    // Prevent repeated calls using ref to avoid stale state
+                    if (isRecordingRef.current) {
+                      isRecordingRef.current = false;
+                      stopRecordingRef.current?.();
+                    }
+                  }
+                }
+              }
             }
           }
         },
@@ -359,21 +403,23 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
       setRecording(newRecording);
       setIsRecording(true);
+      isRecordingRef.current = true;
       setRecordingDuration(0);
       meteringHistoryRef.current = [];
       setMeteringValues([]);
       waveAnimationsRef.current.clear();
       lastMeteringLengthRef.current = 0;
       lastScrollTimeRef.current = 0;
+      lastNonSilentTimestampRef.current = Date.now();
 
       // Reset scroll position
       scrollViewRef.current?.scrollTo({ x: 0, animated: false });
-      
+
       // Call callback
       onRecordingStart?.();
     } catch (err) {
       console.error("Failed to start recording", err);
-      Alert.alert('Lỗi', 'Không thể bắt đầu ghi âm. Vui lòng thử lại.');
+      Alert.alert("Lỗi", "Không thể bắt đầu ghi âm. Vui lòng thử lại.");
     }
   };
 
@@ -382,17 +428,17 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
     try {
       setIsRecording(false);
-      
+
       // Clear maxDuration timer
       if (maxDurationTimerRef.current) {
         clearTimeout(maxDurationTimerRef.current);
         maxDurationTimerRef.current = null;
       }
-      
+
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
       const duration = recordingDuration / 1000; // Convert to seconds
-      
+
       setRecordingUri(uri);
       setRecording(null);
 
@@ -408,7 +454,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
       // Call callbacks
       onRecordingStop?.();
-      
+
       if (uri && onRecordingComplete) {
         onRecordingComplete(uri, duration);
       }
@@ -423,11 +469,19 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         playThroughEarpieceAndroid: false,
         staysActiveInBackground: false,
       });
+      lastNonSilentTimestampRef.current = null;
+      isRecordingRef.current = false;
     } catch (err) {
       console.error("Failed to stop recording", err);
-      Alert.alert('Lỗi', 'Không thể dừng ghi âm. Vui lòng thử lại.');
+      Alert.alert("Lỗi", "Không thể dừng ghi âm. Vui lòng thử lại.");
     }
-  }, [recording, recordingDuration, onRecordingStop, onRecordingComplete, performScroll]);
+  }, [
+    recording,
+    recordingDuration,
+    onRecordingStop,
+    onRecordingComplete,
+    performScroll,
+  ]);
 
   // Update stopRecording ref
   useEffect(() => {
@@ -438,6 +492,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     if (!recordingUri) return;
 
     try {
+      setIsPlayLoading(true);
       if (sound) {
         await sound.unloadAsync();
       }
@@ -486,9 +541,11 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       });
 
       await newSound.playAsync();
+      setIsPlayLoading(false);
     } catch (err) {
       console.error("Failed to play sound", err);
-      Alert.alert('Lỗi', 'Không thể phát lại bản ghi âm.');
+      Alert.alert("Lỗi", "Không thể phát lại bản ghi âm.");
+      setIsPlayLoading(false);
     }
   };
 
@@ -505,7 +562,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     if (recordingUri) {
       await deleteFileFromDevice(recordingUri);
     }
-    
+
     if (sound) {
       await sound.unloadAsync();
     }
@@ -522,6 +579,8 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     lastScrollTimeRef.current = 0;
     setMeteringValues([]);
     waveAnimationsRef.current.clear();
+    lastNonSilentTimestampRef.current = null;
+    isRecordingRef.current = false;
 
     // Reset scroll position
     scrollViewRef.current?.scrollTo({ x: 0, animated: false });
@@ -540,9 +599,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           >
             <Ionicons name="mic-off" size={26} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.recordLabel}>
-            Cấp quyền microphone
-          </Text>
+          <Text style={styles.recordLabel}>Cấp quyền microphone</Text>
         </View>
       </View>
     );
@@ -555,90 +612,92 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         {exerciseTitle && (
           <Text style={styles.exerciseTitle}>{exerciseTitle}</Text>
         )}
-        
+
         {/* Wave Visualization - chỉ hiển thị khi đang recording hoặc có recording */}
         {(isRecording || recordingUri) && (
           <View style={styles.waveContainer}>
-          <ScrollView
-            ref={scrollViewRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.scrollView}
-            contentContainerStyle={[
-              styles.scrollContent,
-              meteringValues.length > 0 && {
-                minWidth: waveContainerWidth,
-                justifyContent: 'flex-start',
-              }
-            ]}
-            removeClippedSubviews={true}
-            scrollEnabled={false}
-            bounces={false}
-          >
-            {meteringValues.map((value, index) => {
-              const baseHeight = 8;
-              const maxHeight = 80;
-              const anim = getAnimationValue(index);
-              
-              // Tính toán để giữ bar width đồng bộ và phân bổ khoảng cách để fit ngang
-              const totalBars = meteringValues.length;
-              const targetBarWidth = 3; // giữ cố định để không bị phình to lúc đầu
-              const minSpacing = barSpacing;
-              const maxSpacing = 10;
-              const dynamicSpacing = totalBars > 1
-                ? Math.min(
-                    maxSpacing,
-                    Math.max(
-                      minSpacing,
-                      (waveContainerWidth - totalBars * targetBarWidth) / (totalBars - 1)
-                    )
-                  )
-                : 0;
-              const calculatedBarWidth = targetBarWidth;
+            <ScrollView
+              ref={scrollViewRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.scrollView}
+              contentContainerStyle={[
+                styles.scrollContent,
+                meteringValues.length > 0 && {
+                  minWidth: waveContainerWidth,
+                  justifyContent: "flex-start",
+                },
+              ]}
+              removeClippedSubviews={true}
+              scrollEnabled={false}
+              bounces={false}
+            >
+              {meteringValues.map((value, index) => {
+                const baseHeight = 8;
+                const maxHeight = 80;
+                const anim = getAnimationValue(index);
 
-              // Determine if this bar is in the played section during playback
-              const isPlayed =
-                recordingUri && index <= playbackIndexRef.current;
-              const isCurrentBar =
-                recordingUri && index === playbackIndexRef.current;
+                // Tính toán để giữ bar width đồng bộ và phân bổ khoảng cách để fit ngang
+                const totalBars = meteringValues.length;
+                const targetBarWidth = 3; // giữ cố định để không bị phình to lúc đầu
+                const minSpacing = barSpacing;
+                const maxSpacing = 10;
+                const dynamicSpacing =
+                  totalBars > 1
+                    ? Math.min(
+                        maxSpacing,
+                        Math.max(
+                          minSpacing,
+                          (waveContainerWidth - totalBars * targetBarWidth) /
+                            (totalBars - 1)
+                        )
+                      )
+                    : 0;
+                const calculatedBarWidth = targetBarWidth;
 
-              return (
-                <Animated.View
-                  key={index}
-                  style={[
-                    styles.waveBar,
-                    {
-                      width: calculatedBarWidth,
-                      borderRadius: calculatedBarWidth / 2,
-                      height: anim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [baseHeight, maxHeight],
-                      }),
-                      backgroundColor: isPlayed
-                        ? "#007AFF"
-                        : isRecording
+                // Determine if this bar is in the played section during playback
+                const isPlayed =
+                  recordingUri && index <= playbackIndexRef.current;
+                const isCurrentBar =
+                  recordingUri && index === playbackIndexRef.current;
+
+                return (
+                  <Animated.View
+                    key={index}
+                    style={[
+                      styles.waveBar,
+                      {
+                        width: calculatedBarWidth,
+                        borderRadius: calculatedBarWidth / 2,
+                        height: anim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [baseHeight, maxHeight],
+                        }),
+                        backgroundColor: isPlayed
                           ? "#007AFF"
-                          : "#C7C7CC",
-                      opacity: isCurrentBar
-                        ? 1
-                        : isPlayed
-                          ? 0.9
                           : isRecording
-                            ? 0.6
-                            : 0.4,
-                      transform: [
-                        {
-                          scaleY: isCurrentBar ? 1.1 : 1,
-                        },
-                      ],
-                      marginRight: index < totalBars - 1 ? dynamicSpacing : 0,
-                    },
-                  ]}
-                />
-              );
-            })}
-          </ScrollView>
-        </View>
+                            ? "#007AFF"
+                            : "#C7C7CC",
+                        opacity: isCurrentBar
+                          ? 1
+                          : isPlayed
+                            ? 0.9
+                            : isRecording
+                              ? 0.6
+                              : 0.4,
+                        transform: [
+                          {
+                            scaleY: isCurrentBar ? 1.1 : 1,
+                          },
+                        ],
+                        marginRight: index < totalBars - 1 ? dynamicSpacing : 0,
+                      },
+                    ]}
+                  />
+                );
+              })}
+            </ScrollView>
+          </View>
         )}
 
         {/* Timer Display */}
@@ -676,43 +735,51 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           ) : showPlayback ? (
             // Playback Mode
             <View style={styles.playbackControls}>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={deleteRecording}
-                activeOpacity={0.7}
-                disabled={disabled}
-              >
-                <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-              </TouchableOpacity>
+              {showDeleteButton && (
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={deleteRecording}
+                  activeOpacity={0.7}
+                  disabled={disabled}
+                >
+                  <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity
                 style={styles.playButton}
                 onPress={isPlaying ? pauseSound : playSound}
                 activeOpacity={0.8}
-                disabled={disabled}
+                disabled={disabled || isPlayLoading}
               >
-                <Ionicons
-                  name={isPlaying ? "pause" : "play"}
-                  size={26}
-                  color="#fff"
-                />
+                {isPlayLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Ionicons
+                    name={isPlaying ? "pause" : "play"}
+                    size={26}
+                    color="#fff"
+                  />
+                )}
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() => {
-                  // Add save/export functionality here
-                  console.log("Save recording:", recordingUri);
-                }}
-                activeOpacity={0.7}
-                disabled={disabled}
-              >
-                <Ionicons
-                  name="checkmark-circle-outline"
-                  size={24}
-                  color="#34C759"
-                />
-              </TouchableOpacity>
+              {showSaveButton && (
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={() => {
+                    // Add save/export functionality here
+                    console.log("Save recording:", recordingUri);
+                  }}
+                  activeOpacity={0.7}
+                  disabled={disabled}
+                >
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={24}
+                    color="#34C759"
+                  />
+                </TouchableOpacity>
+              )}
             </View>
           ) : null}
         </View>
