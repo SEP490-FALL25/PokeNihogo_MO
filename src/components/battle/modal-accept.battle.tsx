@@ -65,30 +65,20 @@ const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal,
      */
     const handleAcceptMatch = async () => {
         try {
-            const response = await battleService.updateMatchParticipant(matchedPlayer.matchId.toString(), true);
+            const response = await battleService.updateMatchParticipant(matchedPlayer.participant.id.toString(), true);
             if (response.status === 200) {
                 setShowAcceptModal(false);
                 setInQueue(false);
-                if (matchedPlayer) {
-                    router.push({
-                        pathname: "/(app)/(battle)/draft",
-                        params: {
-                            matchId: matchedPlayer.matchId,
-                            opponentName: matchedPlayer.opponent.name,
-                        },
-                    });
-                }
             }
         }
-        catch (error) {
-            console.log(error);
+        catch (error: any) {
+            console.log(error.response.data.message);
         }
     };
 
     const handleRejectMatch = async () => {
         try {
-            const response = await battleService.updateMatchParticipant(matchedPlayer.matchId.toString(), false);
-            console.log(response);
+            const response = await battleService.updateMatchParticipant(matchedPlayer.participant.id.toString(), false);
             if (response.status === 200) {
                 setShowAcceptModal(false);
                 setMatchedPlayer(null);
