@@ -80,6 +80,10 @@ export default function BattleLobbyScreen() {
     setInQueue(true);
     try {
       await battleService.startQueue();
+      // Emit join-searching-room when user starts queueing
+      if (socketRef.current) {
+        socketRef.current.emit("join-searching-room");
+      }
     } catch (error) {
       Alert.alert("Lỗi", "Không thể tìm trận đấu");
       setInQueue(false);
@@ -140,7 +144,6 @@ export default function BattleLobbyScreen() {
 
     const onConnect = () => {
       console.log("Connected:", socket.id);
-      socket.emit("join-searching-room");
     };
     const onDisconnect = (reason: string) => {
       console.log("Disconnected:", reason);
