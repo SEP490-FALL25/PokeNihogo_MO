@@ -6,13 +6,16 @@ import GlowingRingEffect from "@components/molecules/GlowingRingEffect";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import TypingText from "@components/ui/TypingText";
+import { getSocket } from "@configs/socket";
 import { IBattleMatch } from "@models/battle/battle.types";
 import battleService from "@services/battle";
+import { useAuthStore } from "@stores/auth/auth.config";
 import { useRouter } from "expo-router";
 import { Award, Crown, History, Info, Target, Trophy } from "lucide-react-native";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Alert, Animated, Easing, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { Socket } from "socket.io-client";
 
 // Mock battle history data
 const mockBattleHistory = [
@@ -27,17 +30,19 @@ const mockBattleHistory = [
 
 export default function BattleLobbyScreen() {
   const router = useRouter();
-  const [inQueue, setInQueue] = React.useState(false);
-  const [showHistory, setShowHistory] = React.useState(false);
-  const [historyFilter, setHistoryFilter] = React.useState<"all" | "win" | "loss">("all");
-  const [selectedBattle, setSelectedBattle] = React.useState<typeof mockBattleHistory[0] | null>(null);
-  const [matchedPlayer, setMatchedPlayer] = React.useState<IBattleMatch | null>(null);
-  const [showAcceptModal, setShowAcceptModal] = React.useState(false);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const [inQueue, setInQueue] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState<"all" | "win" | "loss">("all");
+  const [selectedBattle, setSelectedBattle] = useState<typeof mockBattleHistory[0] | null>(null);
+  const [matchedPlayer, setMatchedPlayer] = useState<IBattleMatch | null>(null);
+  const [showAcceptModal, setShowAcceptModal] = useState(false);
   const insets = useSafeAreaInsets();
-  const shimmer = React.useRef(new Animated.Value(0)).current;
-  const pulse = React.useRef(new Animated.Value(1)).current;
+  const shimmer = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(1)).current;
+  const socketRef = useRef<Socket | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loop = Animated.loop(
       Animated.timing(shimmer, {
         toValue: 1,
@@ -50,7 +55,7 @@ export default function BattleLobbyScreen() {
     return () => loop.stop();
   }, [shimmer]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
@@ -72,18 +77,29 @@ export default function BattleLobbyScreen() {
   }, [pulse]);
 
   const handleStartRanked = async () => {
+    console.log("[QUEUE] Start button pressed");
     setInQueue(true);
     try {
-      await battleService.startQueue();
-
-      // Simulate matching after 3 seconds
-      setTimeout(async () => {
-        const match = await battleService.getCurrentMatch();
-        setMatchedPlayer(match);
-        setShowAcceptModal(true);
-      }, 3000);
+      console.log("[QUEUE] Calling matchQueue()");
+      await battleService.matchQueue();
+      console.log("[QUEUE] startQueue success");
+      // Emit join-searching-room when user starts queueing
+      console.log("[SOCKET] Socket:", socketRef.current);
+      if (socketRef.current) {
+        console.log("[SOCKET] Emitting join-searching-room, socketId:", socketRef.current.id);
+        try {
+          socketRef.current.emit("join-searching-room", {}, (ack: any) => {
+            console.log("[SOCKET][ACK] join-searching-room:", ack);
+          });
+        } catch (e) {
+          console.log("[SOCKET][ERROR] emit join-searching-room failed:", e);
+        }
+      } else {
+        console.log("[SOCKET] socket not ready to emit join-searching-room");
+      }
     } catch (error) {
       Alert.alert("Lỗi", "Không thể tìm trận đấu");
+      console.log("[QUEUE] startQueue failed:", error);
       setInQueue(false);
     }
   };
@@ -133,6 +149,107 @@ export default function BattleLobbyScreen() {
     setMatchedPlayer(null);
     setInQueue(false);
   };
+
+  useEffect(() => {
+    if (!accessToken) return;
+
+    const socket = getSocket("matching", accessToken);
+    socketRef.current = socket;
+
+    const onConnect = () => {
+      console.log("[SOCKET][LIFECYCLE] connected, id:", socket.id);
+    };
+    const onDisconnect = (reason: string) => {
+      console.log("[SOCKET][LIFECYCLE] disconnected:", reason);
+    };
+    const onConnectError = (err: any) => {
+      console.log("[SOCKET][LIFECYCLE][ERROR] connect_error:", err?.message || err);
+    };
+    const onReconnect = (attempt: number) => {
+      console.log("[SOCKET][LIFECYCLE] reconnect:", attempt);
+    };
+    const onReconnectAttempt = (attempt: number) => {
+      console.log("[SOCKET][LIFECYCLE] reconnect_attempt:", attempt);
+    };
+    const onReconnectError = (err: any) => {
+      console.log("[SOCKET][LIFECYCLE][ERROR] reconnect_error:", err?.message || err);
+    };
+    const onReconnectFailed = () => {
+      console.log("[SOCKET][LIFECYCLE][ERROR] reconnect_failed");
+    };
+    const onAnyIncoming = (event: string, ...args: any[]) => {
+      console.log("[SOCKET][IN]", event, ...args);
+    };
+    const setupOnAnyOutgoing = () => {
+      const anySocket: any = socket as any;
+      if (typeof anySocket.onAnyOutgoing === 'function') {
+        anySocket.onAnyOutgoing((event: string, ...args: any[]) => {
+          console.log("[SOCKET][OUT]", event, ...args);
+        });
+        return () => anySocket.offAnyOutgoing?.();
+      }
+      return () => { };
+    };
+    const teardownOnAnyOutgoing = setupOnAnyOutgoing();
+    const onMatchingEvent = async (payload: any) => {
+      console.log("🔥 MATCHING EVENT RECEIVED:", payload);
+
+      if (payload?.type === "MATCH_FOUND") {
+        const match: IBattleMatch | undefined = payload?.match;
+        if (match) {
+          setMatchedPlayer(match);
+          setShowAcceptModal(true);
+        }
+      }
+
+      if (payload?.type === "MATCH_STATUS_UPDATE") {
+        if (payload.status === "IN_PROGRESS" && payload.matchId) {
+          console.log("[SOCKET] Emitting join-matching-room with matchId:", payload.matchId);
+          socket.emit("join-matching-room", { matchId: payload.matchId }, (ack: any) => {
+            console.log("[SOCKET][ACK] join-matching-room:", ack);
+          });
+          console.log("[MATCH] match->room:", payload.matchId);
+        }
+      }
+
+      if (payload?.type === "MATCHMAKING_FAILED") {
+        console.log("❌ Failed:", payload?.reason);
+        setInQueue(false);
+      }
+    };
+    const onSelectPokemon = (payload: any) => {
+      console.log("select poke ne");
+      console.log(payload);
+    };
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("connect_error", onConnectError);
+    socket.on("matching-event", onMatchingEvent);
+    socket.on("select-pokemon", onSelectPokemon);
+    socket.on("reconnect", onReconnect);
+    socket.on("reconnect_attempt", onReconnectAttempt as any);
+    socket.on("reconnect_error", onReconnectError as any);
+    socket.on("reconnect_failed", onReconnectFailed as any);
+    socket.onAny(onAnyIncoming);
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("connect_error", onConnectError);
+      socket.off("reconnect", onReconnect);
+      socket.off("reconnect_attempt", onReconnectAttempt as any);
+      socket.off("reconnect_error", onReconnectError as any);
+      socket.off("reconnect_failed", onReconnectFailed as any);
+      socket.off("matching-event", onMatchingEvent);
+      socket.off("select-pokemon", onSelectPokemon);
+      socket.offAny(onAnyIncoming);
+      teardownOnAnyOutgoing();
+      // Do not force disconnect here if other screens reuse the singleton.
+      // If you want hard cleanup on unmount, uncomment:
+      // disconnectSocket();
+    };
+  }, [accessToken]);
 
   return (
     <ThemedView style={styles.container}>

@@ -1,9 +1,7 @@
 import GachaIcon from "@components/atoms/GachaIcon";
-import QuestIcon from "@components/atoms/QuestIcon";
 import StoreIcon from "@components/atoms/StoreIcon";
 import RewardShopModal from "@components/Organism/ShopPokemon";
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
-import DailyQuestModal from "@components/ui/DailyQuestModal";
 import HomeTourGuide from "@components/ui/HomeTourGuide";
 import { useWalletUser } from "@hooks/useWallet";
 import { LinearGradient } from "expo-linear-gradient";
@@ -133,14 +131,14 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
                 <StoreIcon onPress={handleStorePress} size="small" />
               </WTView>
             </CopilotStep>
-            <CopilotStep text={t("tour.quest_description")} order={4} name="quest">
+            {/* <CopilotStep text={t("tour.quest_description")} order={4} name="quest">
               <WTView style={{ marginTop: 12, alignSelf: "flex-end" }}>
                 <QuestIcon
                   onPress={() => setShowDailyQuests(true)}
                   size="small"
                 />
               </WTView>
-            </CopilotStep>
+            </CopilotStep> */}
             <CopilotStep text={t("tour.gacha_description")} order={5} name="gacha">
               <WTView style={{ marginTop: 12, alignSelf: "flex-end" }}>
                 <GachaIcon
@@ -158,11 +156,11 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
           />
 
           {/* Daily Quest Modal */}
-          <DailyQuestModal
+          {/* <DailyQuestModal
             visible={showDailyQuests}
             onClose={() => setShowDailyQuests(false)}
             requests={dailyQuestsMock}
-          />
+          /> */}
         </LinearGradient>
       </HomeTourGuide>
     );
