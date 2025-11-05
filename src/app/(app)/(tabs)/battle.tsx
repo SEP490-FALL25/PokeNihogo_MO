@@ -9,6 +9,7 @@ import { ThemedView } from "@components/ThemedView";
 import TypingText from "@components/ui/TypingText";
 import { getSocket } from "@configs/socket";
 import { BATTLE_STATUS } from "@constants/battle.enum";
+import useAuth from "@hooks/useAuth";
 import { IBattleMatchFound, IBattleMatchStatusUpdate } from "@models/battle/battle.types";
 import battleService from "@services/battle";
 import { useAuthStore } from "@stores/auth/auth.config";
@@ -32,12 +33,13 @@ const mockBattleHistory = [
 
 export default function BattleLobbyScreen() {
   const router = useRouter();
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const [inQueue, setInQueue] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<"all" | "win" | "loss">("all");
   const [selectedBattle, setSelectedBattle] = useState<typeof mockBattleHistory[0] | null>(null);
-  const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const { user } = useAuth();
+  console.log("user: ", user);
+
+  const [showAcceptModal, setShowAcceptModal] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
 
   /**
@@ -90,6 +92,8 @@ export default function BattleLobbyScreen() {
    * Socket reference
    */
   const socketRef = useRef<Socket | null>(null);
+  const [inQueue, setInQueue] = useState<boolean>(false);
+
   const handleStartRanked = async () => {
     console.log("[QUEUE] Start button pressed");
     setInQueue(true);
@@ -170,8 +174,10 @@ export default function BattleLobbyScreen() {
 
   /**
    * Handle matching event
-   * 
    */
+  const [statusMatch, setStatusMatch] = useState<"reject" | "accept" | null>(null);
+  const accessToken = useAuthStore((s) => s.accessToken);
+
   useEffect(() => {
     if (!accessToken) return;
 
@@ -179,6 +185,8 @@ export default function BattleLobbyScreen() {
     socketRef.current = socket;
 
     const onMatchingEvent = async (payload: IBattleMatchFound | IBattleMatchStatusUpdate) => {
+      console.log("payload", payload);
+
       if (payload?.type === BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_FOUND) {
         const match = payload?.match;
 
@@ -191,9 +199,20 @@ export default function BattleLobbyScreen() {
       if (payload?.type === BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_STATUS_UPDATE) {
         if (payload.status === "IN_PROGRESS" && payload.matchId) {
           socket.emit("join-matching-room", { matchId: payload.matchId });
+          setShowAcceptModal(false);
+          setStatusMatch(null);
+          setMatchedPlayer(null);
+          setInQueue(false);
+          router.push({
+            pathname: "/(app)/(battle)/draft",
+            params: {
+              matchId: payload.matchId,
+            },
+          });
         }
         if (payload.status === "CANCELLED") {
           setShowAcceptModal(false);
+          setStatusMatch(null);
           setMatchedPlayer(null);
           setInQueue(false);
           Alert.alert("Thông báo", payload.message || "Trận đấu đã bị hủy.");
@@ -202,6 +221,7 @@ export default function BattleLobbyScreen() {
 
       if (payload?.type === "MATCHMAKING_FAILED") {
         setInQueue(false);
+        setStatusMatch(null);
       }
     };
 
@@ -306,9 +326,9 @@ export default function BattleLobbyScreen() {
               <View className="flex-row items-center gap-5 mt-2">
                 <View className="items-center gap-1">
                   <Animated.View style={{ transform: [{ scale: pulse }] }}>
-                    <UserAvatar name="You" size="large" />
+                    <UserAvatar avatar={user?.data?.avatar} name={user?.data?.name || ""} size="large" />
                   </Animated.View>
-                  <ThemedText style={{ color: "#cbd5e1", fontSize: 12, fontWeight: "600" }}>Bạn</ThemedText>
+                  <ThemedText style={{ color: "#cbd5e1", fontSize: 12, fontWeight: "600" }}>{user?.data?.name}</ThemedText>
                 </View>
                 <TWLinearGradient
                   colors={["#ec4899", "#8b5cf6"]}
@@ -623,6 +643,8 @@ export default function BattleLobbyScreen() {
         setShowAcceptModal={setShowAcceptModal}
         setMatchedPlayer={setMatchedPlayer}
         setInQueue={setInQueue}
+        statusMatch={statusMatch}
+        setStatusMatch={setStatusMatch}
       />
 
     </ThemedView>

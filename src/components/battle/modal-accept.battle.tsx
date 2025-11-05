@@ -2,9 +2,9 @@ import { TWLinearGradient } from '@components/atoms/TWLinearGradient'
 import UserAvatar from '@components/atoms/UserAvatar'
 import { HapticPressable } from '@components/HapticPressable'
 import { ThemedText } from '@components/ThemedText'
+import useAuth from '@hooks/useAuth'
 import { IBattleMatchFound } from '@models/battle/battle.types'
 import battleService from '@services/battle'
-import { useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { Modal, View } from 'react-native'
 
@@ -14,10 +14,12 @@ interface ModalBattleAcceptProps {
     setShowAcceptModal: (show: boolean) => void;
     setMatchedPlayer: (player: IBattleMatchFound | null) => void;
     setInQueue: (inQueue: boolean) => void;
+    statusMatch: "reject" | "accept" | null;
+    setStatusMatch: (status: "reject" | "accept" | null) => void;
 }
 
-const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal, setMatchedPlayer, setInQueue }: ModalBattleAcceptProps) => {
-    const router = useRouter();
+const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal, setMatchedPlayer, setInQueue, statusMatch, setStatusMatch }: ModalBattleAcceptProps) => {
+    const { user } = useAuth();
 
     /**
      * Time remaining
@@ -67,8 +69,7 @@ const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal,
         try {
             const response = await battleService.updateMatchParticipant(matchedPlayer.participant.id.toString(), true);
             if (response.status === 200) {
-                setShowAcceptModal(false);
-                setInQueue(false);
+                setStatusMatch("accept");
             }
         }
         catch (error: any) {
@@ -80,9 +81,7 @@ const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal,
         try {
             const response = await battleService.updateMatchParticipant(matchedPlayer.participant.id.toString(), false);
             if (response.status === 200) {
-                setShowAcceptModal(false);
-                setMatchedPlayer(null);
-                setInQueue(false);
+                setStatusMatch("reject");
             }
         }
         catch (error: any) {
@@ -116,9 +115,9 @@ const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal,
                     <View className="p-6">
                         <View className="flex-row items-center justify-center gap-8 mb-6">
                             <View className="items-center">
-                                <UserAvatar name={matchedPlayer?.participant.userId.toString() || "You"} size="large" />
+                                <UserAvatar avatar={user?.data?.avatar} name={user?.data?.name || ""} size="large" />
                                 <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
-                                    Bạn
+                                    {user?.data?.name || "Bạn"}
                                 </ThemedText>
                             </View>
                             <TWLinearGradient
@@ -132,9 +131,9 @@ const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal,
                                 </View>
                             </TWLinearGradient>
                             <View className="items-center">
-                                <UserAvatar name={matchedPlayer?.opponent.name || "Opponent"} size="large" />
+                                <UserAvatar avatar={matchedPlayer?.opponent.avatar} name={matchedPlayer?.opponent.name || ""} size="large" />
                                 <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
-                                    {matchedPlayer?.opponent.name || "Đối thủ"}
+                                    {matchedPlayer?.opponent.name || "Opponent"}
                                 </ThemedText>
                             </View>
                         </View>
@@ -158,23 +157,27 @@ const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal,
                         )}
 
                         <View className="flex-row gap-3">
-                            <HapticPressable className="flex-1 py-4 rounded-2xl bg-white/10 border border-white/20" onPress={handleRejectMatch}>
-                                <ThemedText style={{ color: "#fca5a5", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
-                                    Từ chối
-                                </ThemedText>
-                            </HapticPressable>
-                            <HapticPressable className="flex-1 rounded-2xl overflow-hidden" onPress={handleAcceptMatch}>
-                                <TWLinearGradient
-                                    colors={["#22c55e", "#16a34a"]}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
-                                    style={{ paddingVertical: 16 }}
-                                >
-                                    <ThemedText style={{ color: "#ffffff", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
-                                        ĐỒNG Ý
+                            {statusMatch !== "accept" &&
+                                <HapticPressable className="flex-1 py-4 rounded-2xl bg-white/10 border border-white/20" onPress={handleRejectMatch} disabled={statusMatch === "reject"}>
+                                    <ThemedText style={{ color: statusMatch === "reject" ? "#64748b" : "#fca5a5", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
+                                        Từ chối
                                     </ThemedText>
-                                </TWLinearGradient>
-                            </HapticPressable>
+                                </HapticPressable>
+                            }
+                            {statusMatch !== "reject" &&
+                                <HapticPressable className="flex-1 rounded-2xl overflow-hidden" onPress={handleAcceptMatch} disabled={statusMatch === "accept"}>
+                                    <TWLinearGradient
+                                        colors={statusMatch === "accept" ? ["#64748b", "#374151"] : ["#22c55e", "#16a34a"]}
+                                        start={{ x: 0, y: 0 }}
+                                        end={{ x: 1, y: 1 }}
+                                        style={{ paddingVertical: 16 }}
+                                    >
+                                        <ThemedText style={{ color: "#ffffff", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
+                                            ĐỒNG Ý
+                                        </ThemedText>
+                                    </TWLinearGradient>
+                                </HapticPressable>
+                            }
                         </View>
                     </View>
                 </View>
