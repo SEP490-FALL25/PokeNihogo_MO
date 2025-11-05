@@ -55,7 +55,7 @@ export default function BattleLobbyScreen() {
     return () => loop.stop();
   }, [shimmer]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
@@ -77,15 +77,28 @@ export default function BattleLobbyScreen() {
   }, [pulse]);
 
   const handleStartRanked = async () => {
+    console.log("[QUEUE] Start button pressed");
     setInQueue(true);
     try {
+      console.log("[QUEUE] Calling startQueue()");
       await battleService.startQueue();
+      console.log("[QUEUE] startQueue success");
       // Emit join-searching-room when user starts queueing
       if (socketRef.current) {
-        socketRef.current.emit("join-searching-room");
+        console.log("[SOCKET] Emitting join-searching-room, socketId:", socketRef.current.id);
+        try {
+          socketRef.current.emit("join-searching-room", {}, (ack: any) => {
+            console.log("[SOCKET][ACK] join-searching-room:", ack);
+          });
+        } catch (e) {
+          console.log("[SOCKET][ERROR] emit join-searching-room failed:", e);
+        }
+      } else {
+        console.log("[SOCKET] socket not ready to emit join-searching-room");
       }
     } catch (error) {
       Alert.alert("Lỗi", "Không thể tìm trận đấu");
+      console.log("[QUEUE] startQueue failed:", error);
       setInQueue(false);
     }
   };
