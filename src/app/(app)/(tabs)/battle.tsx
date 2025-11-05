@@ -1,21 +1,24 @@
 import { CountdownTimer } from "@components/atoms/CountdownTimer";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import UserAvatar from "@components/atoms/UserAvatar";
+import ModalBattleAccept from "@components/battle/modal-accept.battle";
 import { HapticPressable } from "@components/HapticPressable";
 import GlowingRingEffect from "@components/molecules/GlowingRingEffect";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import TypingText from "@components/ui/TypingText";
 import { getSocket } from "@configs/socket";
-import { IBattleMatch } from "@models/battle/battle.types";
+import { BATTLE_STATUS } from "@constants/battle.enum";
+import useAuth from "@hooks/useAuth";
+import { IBattleMatchFound, IBattleMatchStatusUpdate } from "@models/battle/battle.types";
 import battleService from "@services/battle";
 import { useAuthStore } from "@stores/auth/auth.config";
 import { useRouter } from "expo-router";
 import { Award, Crown, History, Info, Target, Trophy } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Animated, Easing, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import type { Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
 
 // Mock battle history data
 const mockBattleHistory = [
@@ -30,18 +33,19 @@ const mockBattleHistory = [
 
 export default function BattleLobbyScreen() {
   const router = useRouter();
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const [inQueue, setInQueue] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<"all" | "win" | "loss">("all");
   const [selectedBattle, setSelectedBattle] = useState<typeof mockBattleHistory[0] | null>(null);
-  const [matchedPlayer, setMatchedPlayer] = useState<IBattleMatch | null>(null);
-  const [showAcceptModal, setShowAcceptModal] = useState(false);
-  const insets = useSafeAreaInsets();
-  const shimmer = useRef(new Animated.Value(0)).current;
-  const pulse = useRef(new Animated.Value(1)).current;
-  const socketRef = useRef<Socket | null>(null);
+  const { user } = useAuth();
+  console.log("user: ", user);
 
+  const [showAcceptModal, setShowAcceptModal] = useState<boolean>(false);
+  const insets = useSafeAreaInsets();
+
+  /**
+   * Shimmer effect
+   */
+  const shimmer = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const loop = Animated.loop(
       Animated.timing(shimmer, {
@@ -54,7 +58,13 @@ export default function BattleLobbyScreen() {
     loop.start();
     return () => loop.stop();
   }, [shimmer]);
+  //------------------------End------------------------//
 
+
+  /**
+   * Pulse effect
+   */
+  const pulse = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
@@ -75,6 +85,14 @@ export default function BattleLobbyScreen() {
     loop.start();
     return () => loop.stop();
   }, [pulse]);
+  //------------------------End------------------------//
+
+
+  /**
+   * Socket reference
+   */
+  const socketRef = useRef<Socket | null>(null);
+  const [inQueue, setInQueue] = useState<boolean>(false);
 
   const handleStartRanked = async () => {
     console.log("[QUEUE] Start button pressed");
@@ -97,13 +115,18 @@ export default function BattleLobbyScreen() {
       } else {
         console.log("[SOCKET] socket not ready to emit join-searching-room");
       }
-    } catch (error) {
+    } catch (error: any) {
       Alert.alert("Lỗi", "Không thể tìm trận đấu");
-      console.log("[QUEUE] startQueue failed:", error);
+      console.log("[QUEUE] startQueue failed:", error?.response?.data?.message);
       setInQueue(false);
     }
   };
+  //------------------------End------------------------//
 
+
+  /**
+   * Handle open leaderboard
+   */
   const handleOpenLeaderboard = () => {
     Alert.alert(
       "Bảng xếp hạng",
@@ -124,31 +147,36 @@ export default function BattleLobbyScreen() {
       "Thông tin về bậc rank, lên hạng và bảo lưu điểm (WIP).",
     );
   };
+  //------------------------End------------------------//
 
-  const filteredHistory = React.useMemo(() => {
+  const filteredHistory = useMemo(() => {
     if (historyFilter === "all") return mockBattleHistory;
     return mockBattleHistory.filter(battle => battle.result === historyFilter);
   }, [historyFilter]);
 
-  const handleAcceptMatch = () => {
-    setShowAcceptModal(false);
-    setInQueue(false);
-    if (matchedPlayer) {
-      router.push({
-        pathname: "/(app)/(battle)/draft",
-        params: {
-          matchId: matchedPlayer.id,
-          opponentName: matchedPlayer.opponentName,
-        },
-      });
-    }
-  };
 
-  const handleRejectMatch = () => {
-    setShowAcceptModal(false);
-    setMatchedPlayer(null);
+  /**
+   * Matched player
+   * - Handle accept match
+   * - Handle reject match
+   * - Handle cancel queue
+   */
+  const [matchedPlayer, setMatchedPlayer] = useState<IBattleMatchFound | null>(null);
+
+
+
+  const handleCancelQueue = async () => {
     setInQueue(false);
+    await battleService.cancelQueue();
   };
+  //------------------------End------------------------//
+
+
+  /**
+   * Handle matching event
+   */
+  const [statusMatch, setStatusMatch] = useState<"reject" | "accept" | null>(null);
+  const accessToken = useAuthStore((s) => s.accessToken);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -156,100 +184,57 @@ export default function BattleLobbyScreen() {
     const socket = getSocket("matching", accessToken);
     socketRef.current = socket;
 
-    const onConnect = () => {
-      console.log("[SOCKET][LIFECYCLE] connected, id:", socket.id);
-    };
-    const onDisconnect = (reason: string) => {
-      console.log("[SOCKET][LIFECYCLE] disconnected:", reason);
-    };
-    const onConnectError = (err: any) => {
-      console.log("[SOCKET][LIFECYCLE][ERROR] connect_error:", err?.message || err);
-    };
-    const onReconnect = (attempt: number) => {
-      console.log("[SOCKET][LIFECYCLE] reconnect:", attempt);
-    };
-    const onReconnectAttempt = (attempt: number) => {
-      console.log("[SOCKET][LIFECYCLE] reconnect_attempt:", attempt);
-    };
-    const onReconnectError = (err: any) => {
-      console.log("[SOCKET][LIFECYCLE][ERROR] reconnect_error:", err?.message || err);
-    };
-    const onReconnectFailed = () => {
-      console.log("[SOCKET][LIFECYCLE][ERROR] reconnect_failed");
-    };
-    const onAnyIncoming = (event: string, ...args: any[]) => {
-      console.log("[SOCKET][IN]", event, ...args);
-    };
-    const setupOnAnyOutgoing = () => {
-      const anySocket: any = socket as any;
-      if (typeof anySocket.onAnyOutgoing === 'function') {
-        anySocket.onAnyOutgoing((event: string, ...args: any[]) => {
-          console.log("[SOCKET][OUT]", event, ...args);
-        });
-        return () => anySocket.offAnyOutgoing?.();
-      }
-      return () => { };
-    };
-    const teardownOnAnyOutgoing = setupOnAnyOutgoing();
-    const onMatchingEvent = async (payload: any) => {
-      console.log("🔥 MATCHING EVENT RECEIVED:", payload);
+    const onMatchingEvent = async (payload: IBattleMatchFound | IBattleMatchStatusUpdate) => {
+      console.log("payload", payload);
 
-      if (payload?.type === "MATCH_FOUND") {
-        const match: IBattleMatch | undefined = payload?.match;
+      if (payload?.type === BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_FOUND) {
+        const match = payload?.match;
+
         if (match) {
-          setMatchedPlayer(match);
+          setMatchedPlayer(payload);
           setShowAcceptModal(true);
         }
       }
 
-      if (payload?.type === "MATCH_STATUS_UPDATE") {
+      if (payload?.type === BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_STATUS_UPDATE) {
         if (payload.status === "IN_PROGRESS" && payload.matchId) {
-          console.log("[SOCKET] Emitting join-matching-room with matchId:", payload.matchId);
-          socket.emit("join-matching-room", { matchId: payload.matchId }, (ack: any) => {
-            console.log("[SOCKET][ACK] join-matching-room:", ack);
+          socket.emit("join-matching-room", { matchId: payload.matchId });
+          setShowAcceptModal(false);
+          setStatusMatch(null);
+          setMatchedPlayer(null);
+          setInQueue(false);
+          router.push({
+            pathname: "/(app)/(battle)/draft",
+            params: {
+              matchId: payload.matchId,
+            },
           });
-          console.log("[MATCH] match->room:", payload.matchId);
+        }
+        if (payload.status === "CANCELLED") {
+          setShowAcceptModal(false);
+          setStatusMatch(null);
+          setMatchedPlayer(null);
+          setInQueue(false);
+          Alert.alert("Thông báo", payload.message || "Trận đấu đã bị hủy.");
         }
       }
 
       if (payload?.type === "MATCHMAKING_FAILED") {
-        console.log("❌ Failed:", payload?.reason);
         setInQueue(false);
+        setStatusMatch(null);
       }
     };
-    const onSelectPokemon = (payload: any) => {
-      console.log("select poke ne");
-      console.log(payload);
-    };
 
-    socket.on("connect", onConnect);
-    socket.on("disconnect", onDisconnect);
-    socket.on("connect_error", onConnectError);
     socket.on("matching-event", onMatchingEvent);
-    socket.on("select-pokemon", onSelectPokemon);
-    socket.on("reconnect", onReconnect);
-    socket.on("reconnect_attempt", onReconnectAttempt as any);
-    socket.on("reconnect_error", onReconnectError as any);
-    socket.on("reconnect_failed", onReconnectFailed as any);
-    socket.onAny(onAnyIncoming);
 
     return () => {
-      socket.off("connect", onConnect);
-      socket.off("disconnect", onDisconnect);
-      socket.off("connect_error", onConnectError);
-      socket.off("reconnect", onReconnect);
-      socket.off("reconnect_attempt", onReconnectAttempt as any);
-      socket.off("reconnect_error", onReconnectError as any);
-      socket.off("reconnect_failed", onReconnectFailed as any);
       socket.off("matching-event", onMatchingEvent);
-      socket.off("select-pokemon", onSelectPokemon);
-      socket.offAny(onAnyIncoming);
-      teardownOnAnyOutgoing();
-      // Do not force disconnect here if other screens reuse the singleton.
-      // If you want hard cleanup on unmount, uncomment:
       // disconnectSocket();
     };
   }, [accessToken]);
+  //------------------------End------------------------//
+
+
 
   return (
     <ThemedView style={styles.container}>
@@ -341,9 +326,9 @@ export default function BattleLobbyScreen() {
               <View className="flex-row items-center gap-5 mt-2">
                 <View className="items-center gap-1">
                   <Animated.View style={{ transform: [{ scale: pulse }] }}>
-                    <UserAvatar name="You" size="large" />
+                    <UserAvatar avatar={user?.data?.avatar} name={user?.data?.name || ""} size="large" />
                   </Animated.View>
-                  <ThemedText style={{ color: "#cbd5e1", fontSize: 12, fontWeight: "600" }}>Bạn</ThemedText>
+                  <ThemedText style={{ color: "#cbd5e1", fontSize: 12, fontWeight: "600" }}>{user?.data?.name}</ThemedText>
                 </View>
                 <TWLinearGradient
                   colors={["#ec4899", "#8b5cf6"]}
@@ -370,6 +355,7 @@ export default function BattleLobbyScreen() {
                 <HapticPressable
                   className="rounded-full overflow-hidden"
                   onPress={handleStartRanked}
+                  disabled={inQueue ? true : false}
                 >
                   <TWLinearGradient
                     colors={inQueue ? ["#10b981", "#059669"] : ["#22c55e", "#16a34a"]}
@@ -387,7 +373,7 @@ export default function BattleLobbyScreen() {
                 {inQueue ? (
                   <HapticPressable
                     className="px-5 py-3 rounded-full border border-red-400/40 bg-red-500/20"
-                    onPress={() => setInQueue(false)}
+                    onPress={handleCancelQueue}
                   >
                     <ThemedText style={{ color: "#fca5a5", fontWeight: "700" }}>Hủy</ThemedText>
                   </HapticPressable>
@@ -651,80 +637,16 @@ export default function BattleLobbyScreen() {
       </Modal>
 
       {/* Accept Match Modal */}
-      <Modal
-        visible={showAcceptModal}
-        animationType="fade"
-        transparent
-        onRequestClose={handleRejectMatch}
-      >
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.9)", justifyContent: "center", alignItems: "center" }}>
-          <View className="w-11/12 max-w-md bg-slate-900 rounded-3xl overflow-hidden border border-white/10">
-            <TWLinearGradient
-              colors={["#22c55e", "#16a34a"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ padding: 20 }}
-            >
-              <View className="items-center">
-                <ThemedText style={{ color: "#ffffff", fontSize: 24, fontWeight: "900" }}>
-                  🎮 TRẬN ĐẤU SẴN SÀNG
-                </ThemedText>
-              </View>
-            </TWLinearGradient>
+      <ModalBattleAccept
+        showAcceptModal={showAcceptModal}
+        matchedPlayer={matchedPlayer as IBattleMatchFound}
+        setShowAcceptModal={setShowAcceptModal}
+        setMatchedPlayer={setMatchedPlayer}
+        setInQueue={setInQueue}
+        statusMatch={statusMatch}
+        setStatusMatch={setStatusMatch}
+      />
 
-            <View className="p-6">
-              <View className="flex-row items-center justify-center gap-8 mb-6">
-                <View className="items-center">
-                  <UserAvatar name={matchedPlayer?.playerName || "You"} size="large" />
-                  <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
-                    Bạn
-                  </ThemedText>
-                </View>
-                <TWLinearGradient
-                  colors={["#ec4899", "#8b5cf6"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{ padding: 2, borderRadius: 999 }}
-                >
-                  <View className="px-4 py-2 rounded-full bg-black/70">
-                    <ThemedText style={{ color: "#ffffff", fontWeight: "700", fontSize: 16 }}>VS</ThemedText>
-                  </View>
-                </TWLinearGradient>
-                <View className="items-center">
-                  <UserAvatar name={matchedPlayer?.opponentName || "Opponent"} size="large" />
-                  <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
-                    {matchedPlayer?.opponentName || "Đối thủ"}
-                  </ThemedText>
-                </View>
-              </View>
-
-              <ThemedText style={{ color: "#94a3b8", fontSize: 14, textAlign: "center", marginBottom: 24 }}>
-                Đã tìm thấy đối thủ phù hợp!
-              </ThemedText>
-
-              <View className="flex-row gap-3">
-                <HapticPressable className="flex-1 py-4 rounded-2xl bg-white/10 border border-white/20" onPress={handleRejectMatch}>
-                  <ThemedText style={{ color: "#fca5a5", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
-                    Từ chối
-                  </ThemedText>
-                </HapticPressable>
-                <HapticPressable className="flex-1 rounded-2xl overflow-hidden" onPress={handleAcceptMatch}>
-                  <TWLinearGradient
-                    colors={["#22c55e", "#16a34a"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{ paddingVertical: 16 }}
-                  >
-                    <ThemedText style={{ color: "#ffffff", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
-                      ĐỒNG Ý
-                    </ThemedText>
-                  </TWLinearGradient>
-                </HapticPressable>
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </ThemedView>
   );
 }

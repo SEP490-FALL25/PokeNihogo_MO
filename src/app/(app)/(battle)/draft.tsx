@@ -15,6 +15,7 @@ import { Check, Clock } from "lucide-react-native";
 import React from "react";
 import { ActivityIndicator, Alert, Animated, Image, ImageBackground, ScrollView, StyleSheet, View } from "react-native";
 
+//TODO: Sáng làm
 export default function BattleDraftScreen() {
     const router = useRouter();
     const params = useLocalSearchParams();
