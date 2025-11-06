@@ -1,18 +1,11 @@
+import { IUserEntity } from "@models/user/user.entity";
 import React, { useState } from "react";
 import { Animated, Modal, Pressable, StyleSheet } from "react-native";
 import CompactHeader from "../molecules/CompactHeader";
 import ExpandedContent from "../molecules/ExpandedContent";
 
-interface User {
-  name: string;
-  level: number;
-  currentExp: number;
-  expToNextLevel: number;
-  avatar?: string;
-}
-
 interface UserProfileHeaderAtomicProps {
-  user: User;
+  user: IUserEntity;
   style?: any;
 }
 

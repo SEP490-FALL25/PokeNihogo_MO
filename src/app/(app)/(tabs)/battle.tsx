@@ -37,7 +37,6 @@ export default function BattleLobbyScreen() {
   const [historyFilter, setHistoryFilter] = useState<"all" | "win" | "loss">("all");
   const [selectedBattle, setSelectedBattle] = useState<typeof mockBattleHistory[0] | null>(null);
   const { user } = useAuth();
-  console.log("user: ", user);
 
   const [showAcceptModal, setShowAcceptModal] = useState<boolean>(false);
   const insets = useSafeAreaInsets();

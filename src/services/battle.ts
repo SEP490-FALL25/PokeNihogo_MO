@@ -18,6 +18,10 @@ const battleService = {
         return axiosPrivate.put(`/match-participant/${matchId}`, { hasAccepted });
     },
 
+    getListMatchRound: async () => {
+        return axiosPrivate.get(`/match-round/now/user}`);
+    },
+
     // Get current match status (simulated)
     getCurrentMatch: async (): Promise<IBattleMatch> => {
         // Simulated matchmaking with random delay
