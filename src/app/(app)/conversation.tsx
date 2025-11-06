@@ -18,6 +18,7 @@ import AudioPlayer from "@components/ui/AudioPlayer";
 
 import VoiceRecorder from "@components/ui/EnhancedAudioRecorder";
 
+import { startConversation } from "@services/conversation";
 import { router, useLocalSearchParams } from "expo-router";
 
 import { ArrowLeftIcon } from "lucide-react-native";
@@ -33,6 +34,8 @@ type Message = {
 
   feedback?: { words: { word: string; correct: boolean; score?: number }[] };
 };
+
+type FeedbackWord = { word: string; correct: boolean; score?: number };
 
 export default function ConversationScreen() {
   const { topicId } = useLocalSearchParams<{ topicId?: string }>();
@@ -59,22 +62,32 @@ export default function ConversationScreen() {
     (async () => {
       try {
         setIsLoading(true);
-
         if (!mounted) return;
 
-        // Local onboarding message since we are not using BE conversation flow
-
-        setMessages([
-          {
-            id: `ai-${Date.now()}`,
-
-            role: "ai",
-
-            text: "Hãy nói 'こんにちは'.",
-          },
-        ]);
-
-        setNextUserPrompt("「こんにちは」。");
+        // Call BE to start conversation using provided topicId
+        if (topicId) {
+          const data = await startConversation(String(topicId));
+          if (!mounted) return;
+          setMessages([
+            {
+              id: data.turnId || `ai-${Date.now()}`,
+              role: "ai",
+              text: data.aiMessage?.text || "",
+              audioUrl: data.aiMessage?.audioUrl,
+            },
+          ]);
+          setNextUserPrompt(data.nextUserPrompt);
+        } else {
+          // Fallback when no topicId is passed
+          setMessages([
+            {
+              id: `ai-${Date.now()}`,
+              role: "ai",
+              text: "Hãy nói 'こんにちは'.",
+            },
+          ]);
+          setNextUserPrompt("「こんにちは」。");
+        }
       } catch {
       } finally {
         if (mounted) setIsLoading(false);
@@ -86,140 +99,186 @@ export default function ConversationScreen() {
     };
   }, [topicId]);
 
-  // Call Google Cloud Speech-to-Text directly from client
+  // Send audio + referenceText to Gemini (client-side REST)
 
-  const transcribeWithGoogle = async (
-    uri: string
+  const sendToGemini = async (
+    uri: string,
+    referenceText?: string
   ): Promise<{
-    recognizedText: string;
-
-    words?: { word: string; correct: boolean; score?: number }[];
+    feedbackText?: string;
+    words?: FeedbackWord[];
+    aiMessageText?: string;
+    aiAudioBase64?: string;
+    aiAudioMimeType?: string;
   }> => {
-    const apiKey = process.env.EXPO_PUBLIC_GOOGLE_STT || process.env.GOOGLE_STT;
+    const apiKey =
+      process.env.EXPO_PUBLIC_GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
     if (!apiKey) {
       throw new Error(
-        "Missing Google STT API key (EXPO_PUBLIC_GOOGLE_STT/GOOGLE_STT)"
+        "Missing Gemini API key (EXPO_PUBLIC_GEMINI_API_KEY/GOOGLE_API_KEY)"
       );
     }
 
-    const fileBase64 = await FileSystem.readAsStringAsync(uri, {
+    const audioBase64 = await FileSystem.readAsStringAsync(uri, {
       encoding: FileSystem.EncodingType.Base64,
     });
 
-    // Platform-specific encoding for Google STT
-
-    let encoding: string | undefined;
-
-    let sampleRateHertz: number | undefined;
-
-    if (Platform.OS === "android") {
-      encoding = "AMR_WB";
-
-      sampleRateHertz = 16000;
-    } else if (Platform.OS === "ios") {
-      encoding = "LINEAR16";
-
-      sampleRateHertz = 16000;
-    } else {
-      // Web uses WebM with Opus
-
-      encoding = "WEBM_OPUS";
-    }
-
-    const body = {
-      config: {
-        languageCode: "ja-JP",
-
-        enableWordConfidence: true,
-
-        enableAutomaticPunctuation: true,
-
-        model: "default",
-
-        encoding,
-
-        sampleRateHertz,
-      },
-
-      audio: {
-        content: fileBase64,
-      },
+    const getMimeFromUri = (u: string) => {
+      const lower = u.toLowerCase();
+      if (lower.endsWith(".wav")) return "audio/wav";
+      if (lower.endsWith(".mp3")) return "audio/mpeg";
+      if (lower.endsWith(".m4a")) return "audio/mp4";
+      if (lower.endsWith(".aac")) return "audio/aac";
+      if (lower.endsWith(".3gp") || lower.endsWith(".3gpp"))
+        return "audio/3gpp";
+      if (lower.endsWith(".webm")) return "audio/webm";
+      return Platform.OS === "ios" ? "audio/mp4" : "audio/3gpp";
     };
 
-    const res = await fetch(
-      `https://speech.googleapis.com/v1p1beta1/speech:recognize?key=${apiKey}`,
+    const mimeType = getMimeFromUri(uri);
 
-      {
-        method: "POST",
+    const candidateModels = [
+      "gemini-2.5-flash-native-audio-dialog",
+      "gemini-2.0-flash-exp",
+      "gemini-2.0-flash",
+      "gemini-1.5-flash-8b",
+      "gemini-1.5-pro",
+    ];
 
-        headers: { "Content-Type": "application/json" },
+    const baseBody = {
+      system_instruction: {
+        parts: [
+          {
+            text: "Role: You are a specialized Japanese Pronunciation Assessment AI. Your task is to analyze the user's spoken Japanese audio against a provided reference text and generate a detailed evaluation in JSON format.\n\nInput:\n1. Reference Text (Japanese): The exact Japanese text the user is attempting to pronounce.\n2. User Audio: The audio file containing the user's spoken attempt.\n\nOutput Requirement: Generate a single JSON object structured similarly to the detailed pronunciation assessment examples, containing both overall scores and syllable-level analysis.\n\nAssessment Criteria:\n1. Fundamental Sound Accuracy (Sei-on/Basic Phonemes):\n- Evaluate the correctness of the 5 basic vowels (a, i, u, e, o).\n- Check for accurate pronunciation of challenging consonants for Vietnamese speakers: 「し」(shi), 「ち」(chi), 「つ」(tsu).\n- Assess the Japanese 'r' sound (/r/, often trilled or flapped).\n\n2. Pitch Accent and Intonation:\n- Pitch Accent: Determine if the word-level pitch pattern (high-low sequence) matches Tokyo dialect.\n- Sentence Intonation: Assess if sentence-level intonation is natural (question vs. statement).\n\n3. Special Sound Accuracy:\n- Sokuon (促音/Small Tsu): Detect correct brief stop.\n- Chouon (長音/Long Vowels): Verify correct duration (2 mora).\n- Syllabic Nasal (ん/N): Realization as [-n]/[-m]/[-ng] contextually.\n\n4. Fluency and Intelligibility:\n- FluencyScore: speed, rhythm, pausing.\n- Intelligibility: how easily a native would understand.\n\nJSON Output Structure:\n- Overall Scores: include AccuracyScore, FluencyScore, PronScore (overall).\n- Syllables: array per kana/mora with fields: Syllable, Romaji, AccuracyScore (0-100), ErrorType (Substitution|Omission|Insertion|PitchAccentError|None), ErrorDetail, and optional Offset/Duration (simulated).\n\nFinal Action: Analyze the provided user audio against the provided Japanese reference text based on the above criteria, calculate the overall percentage, and output the result in the specified JSON format.",
+          },
+        ],
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `Reference Text (Japanese): ${referenceText ?? ""}`,
+            },
+            {
+              inline_data: { mime_type: mimeType, data: audioBase64 },
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        response_mime_type: "application/json",
+        temperature: 0.2,
+      },
+    } as const;
 
-        body: JSON.stringify(body),
+    let lastError: Error | undefined;
+    for (const model of candidateModels) {
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(baseBody),
+          }
+        );
+
+        if (!res.ok) {
+          const errText = await res.text();
+          if (
+            res.status === 404 ||
+            /NOT_FOUND|is not found|unsupported/i.test(errText)
+          ) {
+            continue; // try next model
+          }
+          throw new Error(`Gemini error: ${res.status} ${errText}`);
+        }
+
+        const json: any = await res.json();
+        const raw = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+        let parsed: any = {};
+        try {
+          parsed = raw ? JSON.parse(raw) : {};
+        } catch {
+          parsed = {};
+        }
+
+        // Normalize to our expected structure (supports multiple shapes)
+        let wordsOut: FeedbackWord[] | undefined;
+        if (Array.isArray(parsed)) {
+          wordsOut = parsed
+            .map((it: any) => {
+              const ch =
+                typeof it?.character === "string"
+                  ? it.character
+                  : String(it?.character ?? "");
+              const acc = String(it?.accuracy ?? "").toLowerCase();
+              const score =
+                acc === "good"
+                  ? 100
+                  : acc === "ok" || acc === "medium"
+                    ? 60
+                    : acc
+                      ? 0
+                      : undefined;
+              const correct =
+                score !== undefined ? score >= 85 : acc === "good";
+              return ch ? { word: ch, correct, score } : undefined;
+            })
+            .filter(Boolean) as FeedbackWord[];
+        } else if (parsed?.words && Array.isArray(parsed.words)) {
+          wordsOut = parsed.words as FeedbackWord[];
+        } else if (parsed?.Syllables && Array.isArray(parsed.Syllables)) {
+          wordsOut = (parsed.Syllables as any[])
+            .map((syl: any) => {
+              const word = String(syl?.Syllable ?? "");
+              const scoreNum =
+                typeof syl?.AccuracyScore === "number"
+                  ? syl.AccuracyScore
+                  : parseFloat(String(syl?.AccuracyScore ?? ""));
+              const score = isFinite(scoreNum)
+                ? Math.max(0, Math.min(100, Math.round(scoreNum)))
+                : undefined;
+              const correct = score !== undefined ? score >= 85 : false;
+              return word ? { word, correct, score } : undefined;
+            })
+            .filter(Boolean) as FeedbackWord[];
+        }
+
+        return {
+          feedbackText: parsed.ReferenceText || parsed.feedbackText,
+          words: wordsOut,
+          aiMessageText: parsed.aiMessageText,
+          aiAudioBase64: parsed.aiAudioBase64,
+          aiAudioMimeType: parsed.aiAudioMimeType,
+        };
+      } catch (e: any) {
+        lastError = e instanceof Error ? e : new Error(String(e));
       }
+    }
+
+    if (lastError) throw lastError;
+    throw new Error(
+      "Gemini models unavailable or unsupported for this endpoint."
     );
-
-    if (!res.ok) {
-      const text = await res.text();
-
-      throw new Error(`Google STT error: ${res.status} ${text}`);
-    }
-
-    console.log(res);
-
-    const json: any = await res.json();
-
-    const alt = json?.results?.[0]?.alternatives?.[0];
-
-    const transcript: string = alt?.transcript ?? "";
-
-    console.log(json);
-
-    console.log(transcript);
-
-    console.log(alt);
-
-    // Build feedback from word-level confidence when available
-
-    let words: { word: string; correct: boolean; score?: number }[] | undefined;
-
-    if (alt?.words?.length) {
-      words = alt.words.map((w: any) => {
-        const rawWord = (w.word ?? "").trim();
-
-        const conf =
-          typeof w.confidence === "number" ? w.confidence : undefined;
-
-        const score = conf !== undefined ? Math.round(conf * 100) : undefined;
-
-        const correct = conf !== undefined ? conf >= 0.85 : true;
-
-        return { word: rawWord, correct, score };
-      });
-    }
-
-    return { recognizedText: transcript, words };
   };
 
-  // Normalize Japanese text: strip quotes/spaces/punctuation for alignment
+  // Normalize Japanese text for diff
 
-  const normalizeJa = (s: string) => {
-    return (s || "")
-
-      .replace(/[\s\u3000]/g, "") // spaces incl. full-width
-
+  const normalizeJa = (s: string) =>
+    (s || "")
+      .replace(/[\s\u3000]/g, "")
       .replace(/[「」『』（）()、。．・…~〜!！?？:：;；，,\.\-—]/g, "");
-  };
 
   // Levenshtein alignment for per-character correctness
-
-  // Returns feedback for TARGET sequence (the expected text) based on comparison with spoken text
 
   const buildFeedbackFromDiff = (
     targetRaw: string,
 
     spokenRaw: string
-  ): { word: string; correct: boolean; score?: number }[] => {
+  ): FeedbackWord[] => {
     const target = normalizeJa(targetRaw).split("");
 
     const spoken = normalizeJa(spokenRaw).split("");
@@ -284,7 +343,7 @@ export default function ConversationScreen() {
 
     // Build tokens for the TARGET sequence (the expected text) with correctness based on spoken text
 
-    const tokens: { word: string; correct: boolean; score?: number }[] = [];
+    const tokens: FeedbackWord[] = [];
 
     for (const a of aligned) {
       if (a.t !== undefined) {
@@ -300,9 +359,7 @@ export default function ConversationScreen() {
 
     if (!tokens.length && targetRaw) {
       return targetRaw
-
         .split("")
-
         .map((ch) => ({ word: ch, correct: false, score: 0 }));
     }
 
@@ -313,27 +370,19 @@ export default function ConversationScreen() {
     setIsSubmitting(true);
 
     try {
-      const submit = await transcribeWithGoogle(uri);
+      const result = await sendToGemini(uri, nextUserPrompt);
+      console.log("result", result);
+      const displayText = result.feedbackText || nextUserPrompt || "";
 
-      // Always use nextUserPrompt as the display text if available, otherwise use recognized text
-
-      const displayText = nextUserPrompt || submit.recognizedText || "";
-
-      const diffWords = buildFeedbackFromDiff(
-        displayText,
-
-        submit.recognizedText || ""
-      );
-
-      // Set feedback to display in recorder component
+      const words =
+        result.words && Array.isArray(result.words) && result.words.length
+          ? result.words
+          : buildFeedbackFromDiff(displayText, "");
 
       setFeedbackText(displayText);
+      setFeedbackWords(words);
 
-      setFeedbackWords(diffWords);
-
-      // Don't add user message to messages list - only show AI messages
-
-      // Keep the same nextUserPrompt (local) for now
+      // Optionally append next AI message here
     } catch {
     } finally {
       setIsSubmitting(false);

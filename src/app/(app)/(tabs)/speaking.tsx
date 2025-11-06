@@ -1,144 +1,65 @@
-
 import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
-import { ThemedView } from "@components/ThemedView";  
-import VoiceRecorder from "@components/ui/EnhancedAudioRecorder";
-import { IconSymbol } from "@components/ui/IconSymbol";
-import * as FileSystem from "expo-file-system";
-import React, { useState } from "react";
+import { TestStatus } from "@constants/test.enum";
+import { ROUTES } from "@routes/routes";
+import userTestService from "@services/user-test";
+import { router } from "expo-router";
+import { Mic } from "lucide-react-native";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
 
-const sampleSpeakingExercises = [
-  {
-    id: 1,
-    title: "Basic Greetings",
-    description: "Practice common Japanese greetings and responses",
-    level: "Beginner",
-    estimatedTime: "5 min",
-    icon: "hand.wave.fill",
-    color: "#10b981",
-    progress: 100,
-  },
-  {
-    id: 2,
-    title: "Self Introduction",
-    description: "Learn how to introduce yourself in Japanese",
-    level: "Beginner",
-    estimatedTime: "8 min",
-    icon: "person.fill",
-    color: "#f59e0b",
-    progress: 75,
-  },
-  {
-    id: 3,
-    title: "Daily Conversations",
-    description: "Practice everyday Japanese conversations",
-    level: "Intermediate",
-    estimatedTime: "12 min",
-    icon: "bubble.left.and.bubble.right.fill",
-    color: "#3b82f6",
-    progress: 30,
-  },
-  {
-    id: 4,
-    title: "Shopping & Dining",
-    description: "Speaking practice for shopping and restaurant situations",
-    level: "Intermediate",
-    estimatedTime: "15 min",
-    icon: "cart.fill",
-    color: "#8b5cf6",
-    progress: 0,
-  },
-  {
-    id: 5,
-    title: "Business Japanese",
-    description: "Formal business conversations and presentations",
-    level: "Advanced",
-    estimatedTime: "20 min",
-    icon: "briefcase.fill",
-    color: "#ef4444",
-    progress: 0,
-  },
-  {
-    id: 6,
-    title: "Cultural Topics",
-    description: "Discuss Japanese culture and traditions",
-    level: "Advanced",
-    estimatedTime: "25 min",
-    icon: "globe",
-    color: "#06b6d4",
-    progress: 0,
-  },
-];
+type UserTestItem = {
+  id: number;
+  limit: number;
+  status: string;
+  test: {
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+    levelN: number;
+    testType: string;
+    status: string;
+    limit: number;
+  };
+};
 
 const SpeakingCard: React.FC<{
-  exercise: (typeof sampleSpeakingExercises)[0];
+  item: UserTestItem;
   onPress: () => void;
-}> = ({ exercise, onPress }) => {
+}> = ({ item, onPress }) => {
   return (
     <TouchableOpacity
-      style={[styles.speakingCard, { borderLeftColor: exercise.color }]}
+      style={[styles.speakingCard, { borderLeftColor: "#3b82f6" }]}
       onPress={onPress}
       activeOpacity={0.8}
     >
       <View style={styles.cardHeader}>
-        <View
-          style={[styles.iconContainer, { backgroundColor: exercise.color }]}
-        >
-          <IconSymbol name={exercise.icon as any} size={24} color="#ffffff" />
+        <View style={[styles.iconContainer, { backgroundColor: "#3b82f6" }]}>
+          <Mic size={24} color="#ffffff" />
         </View>
         <View style={styles.exerciseInfo}>
           <ThemedText type="subtitle" style={styles.exerciseTitle}>
-            {exercise.title}
+            {item.test?.name}
           </ThemedText>
           <ThemedText style={styles.exerciseDescription}>
-            {exercise.description}
+            {item.test?.description}
           </ThemedText>
-        </View>
-        <View style={styles.micButton}>
-          <IconSymbol
-            name={"mic.fill" as any}
-            size={32}
-            color={exercise.color}
-          />
         </View>
       </View>
 
       <View style={styles.cardFooter}>
         <View style={styles.metaInfo}>
           <View style={styles.levelBadge}>
-            <ThemedText style={styles.levelText}>{exercise.level}</ThemedText>
-          </View>
-          <ThemedText style={styles.timeText}>
-            ⏱️ {exercise.estimatedTime}
-          </ThemedText>
-        </View>
-
-        {exercise.progress > 0 && (
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${exercise.progress}%`,
-                    backgroundColor: exercise.color,
-                  },
-                ]}
-              />
-            </View>
-            <ThemedText style={styles.progressText}>
-              {exercise.progress}%
+            <ThemedText style={styles.levelText}>
+              N{item.test?.levelN}
             </ThemedText>
           </View>
-        )}
+          <ThemedText style={styles.timeText}>
+            {item.limit} / {item.test?.limit}
+          </ThemedText>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -146,268 +67,131 @@ const SpeakingCard: React.FC<{
 
 export default function SpeakingScreen() {
   const { t } = useTranslation();
-  const [selectedExercise, setSelectedExercise] = useState<number | null>(null);
-  const [recordingUri, setRecordingUri] = useState<string | null>(null);
-  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [items, setItems] = React.useState<UserTestItem[]>([]);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = React.useState(false);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const slideAnim = React.useRef(new Animated.Value(30)).current;
 
-  const handleSpeakingPress = (exerciseId: number) => {
-    setSelectedExercise(exerciseId);
-  };
-
-  const handleRecordingComplete = (uri: string, duration: number) => {
-    setRecordingUri(uri);
-    setRecordingDuration(duration);
-    console.log("Recording completed:", uri, "Duration:", duration);
-  };
-
-  const handleRecordingStart = () => {
-    console.log("Recording started");
-  };
-
-  const handleRecordingStop = () => {
-    console.log("Recording stopped");
-  };
-
-  const handlePlaybackStart = () => {
-    console.log("Playback started");
-  };
-
-  const handlePlaybackStop = () => {
-    console.log("Playback stopped");
-  };
-
-  const uploadRecording = async (uri: string) => {
-    try {
-      // Tạo FormData để upload file
-      const formData = new FormData();
-      formData.append("audio", {
-        uri: uri,
-        type: "audio/m4a",
-        name: `speaking_exercise_${selectedExercise}_${Date.now()}.m4a`,
-      } as any);
-      formData.append("exerciseId", selectedExercise?.toString() || "");
-      formData.append("duration", recordingDuration.toString());
-
-      // Gửi lên server
-      const response = await fetch("YOUR_SERVER_ENDPOINT", {
-        method: "POST",
-        body: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Upload successful:", result);
-
-        // Xóa file khỏi thiết bị sau khi upload thành công
-        try {
-          if (uri && uri.startsWith("file://")) {
-            const fileExists = await FileSystem.getInfoAsync(uri);
-            if (fileExists.exists) {
-              await FileSystem.deleteAsync(uri);
-              console.log("File deleted from device after successful upload");
-            }
-          }
-        } catch (deleteError) {
-          console.error("Failed to delete file after upload:", deleteError);
-        }
-
-        Alert.alert(
-          t("speaking.upload_success"),
-          t("speaking.upload_success_message")
-        );
-
-        // Reset recording state
-        setRecordingUri(null);
-        setRecordingDuration(0);
-      } else {
-        throw new Error("Upload failed");
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setIsLoading(true);
+        const res = await userTestService.getMy({
+          type: TestStatus.SPEAKING_TEST,
+          currentPage: 1,
+          pageSize: 10,
+        });
+        const data = (res as any)?.data?.data?.results ?? [];
+        if (mounted) setItems(data);
+      } catch (e: any) {
+        if (mounted) setError(e?.message || "Error");
+      } finally {
+        if (mounted) setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Upload error:", error);
-      Alert.alert(
-        t("speaking.upload_error"),
-        t("speaking.upload_error_message")
-      );
-    }
-  };
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
+  React.useEffect(() => {
+    const ready = !isLoading;
+    if (ready && !isLoaded) {
+      setIsLoaded(true);
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isLoading, isLoaded, fadeAnim, slideAnim]);
+
+  const handleSpeakingPress = (materialId: number) => {
+    // Navigate to conversation screen and pass topicId for API to use
+    router.push({
+      pathname: ROUTES.APP.CONVERSATION,
+      params: { topicId: String(materialId) },
+    });
+  };
+  
   return (
     <HomeLayout>
       <ThemedText type="title" style={styles.title}>
         🎤 {t("speaking.title")}
       </ThemedText>
       <ThemedText style={styles.subtitle}>{t("speaking.subtitle")}</ThemedText>
+
+      <Animated.View
+        style={[
+          styles.statsCard,
+          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        ]}
+      >
+        <ThemedText type="subtitle" style={styles.statsTitle}>
+          📊 {t("speaking.progress_title")}
+        </ThemedText>
+        <View style={styles.statsGrid}>
+          <View style={styles.statItem}>
+            <ThemedText style={styles.statNumber}>8</ThemedText>
+            <ThemedText style={styles.statLabel}>
+              {t("reading.articles_read")}
+            </ThemedText>
+          </View>
+          <View style={styles.statItem}>
+            <ThemedText style={styles.statNumber}>245</ThemedText>
+            <ThemedText style={styles.statLabel}>
+              {t("reading.words_learned")}
+            </ThemedText>
+          </View>
+          <View style={styles.statItem}>
+            <ThemedText style={styles.statNumber}>92%</ThemedText>
+            <ThemedText style={styles.statLabel}>
+              {t("reading.comprehension")}
+            </ThemedText>
+          </View>
+        </View>
+      </Animated.View>
+
       <ThemedText type="subtitle" style={styles.sectionTitle}>
         🗣️ {t("speaking.exercises_title")}
       </ThemedText>
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.exercisesContainer}>
-          {sampleSpeakingExercises.map((exercise) => (
-            <SpeakingCard
-              key={exercise.id}
-              exercise={exercise}
-              onPress={() => handleSpeakingPress(exercise.id)}
-            />
-          ))}
-        </View>
-
-        {/* Audio Recorder Section */}
-        {selectedExercise && (
-          <ThemedView style={styles.recorderSection}>
-            <ThemedText type="subtitle" style={styles.recorderTitle}>
-              🎙️ {t("speaking.recorder_title")}
-            </ThemedText>
-            <ThemedText style={styles.recorderDescription}>
-              {t("speaking.recorder_description")}
-            </ThemedText>
-            <VoiceRecorder
-              exerciseTitle={
-                selectedExercise
-                  ? sampleSpeakingExercises[selectedExercise - 1]?.title
-                  : t("speaking.default_exercise")
-              }
-              onRecordingComplete={handleRecordingComplete}
-              onRecordingStart={handleRecordingStart}
-              onRecordingStop={handleRecordingStop}
-              onPlaybackStart={handlePlaybackStart}
-              onPlaybackStop={handlePlaybackStop}
-              maxDuration={10}
-              showPlayback={true}
-              customSavePath={`${FileSystem.documentDirectory}recordings/${new Date().toISOString().split("T")[0]}`}
-            />
-
-            {/* <AudioRecorder
-              exerciseTitle={
-                selectedExercise
-                  ? sampleSpeakingExercises[selectedExercise - 1]?.title
-                  : t("speaking.default_exercise")
-              }
-              onRecordingComplete={handleRecordingComplete}
-              onRecordingStart={handleRecordingStart}
-              onRecordingStop={handleRecordingStop}
-              onPlaybackStart={handlePlaybackStart}
-              onPlaybackStop={handlePlaybackStop}
-              maxDuration={60}
-              showPlayback={true}
-              customSavePath={`${FileSystem.documentDirectory}recordings/${new Date().toISOString().split("T")[0]}`}
-            /> */}
-
-            {recordingUri && (
-              <ThemedView style={styles.recordingResult}>
-                <ThemedText style={styles.resultTitle}>
-                  ✅ {t("speaking.recording_complete")} (
-                  {Math.floor(recordingDuration / 60)}:
-                  {(recordingDuration % 60).toString().padStart(2, "0")})
-                </ThemedText>
-                <ThemedText style={styles.resultDescription}>
-                  {t("speaking.recording_description")}
-                </ThemedText>
-
-                <View style={styles.uploadContainer}>
-                  <TouchableOpacity
-                    style={styles.uploadButton}
-                    onPress={() => uploadRecording(recordingUri)}
-                  >
-                    <IconSymbol
-                      name="icloud.and.arrow.up"
-                      size={20}
-                      color="#ffffff"
-                    />
-                    <ThemedText style={styles.uploadButtonText}>
-                      {t("speaking.upload_to_server")}
-                    </ThemedText>
-                  </TouchableOpacity>
-                </View>
-              </ThemedView>
-            )}
-          </ThemedView>
+      <View style={styles.exercisesContainer}>
+        {isLoading && (
+          <ThemedText style={{ textAlign: "center" }}>Loading...</ThemedText>
         )}
-
-        <ThemedView style={styles.statsCard}>
-          <ThemedText type="subtitle" style={styles.statsTitle}>
-            📊 {t("speaking.progress_title")}
+        {!!error && (
+          <ThemedText style={{ textAlign: "center", color: "#ef4444" }}>
+            {error}
           </ThemedText>
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <ThemedText style={styles.statNumber}>12</ThemedText>
-              <ThemedText style={styles.statLabel}>
-                {t("speaking.exercises_done")}
-              </ThemedText>
-            </View>
-            <View style={styles.statItem}>
-              <ThemedText style={styles.statNumber}>1.5h</ThemedText>
-              <ThemedText style={styles.statLabel}>
-                {t("speaking.practice_time")}
-              </ThemedText>
-            </View>
-            <View style={styles.statItem}>
-              <ThemedText style={styles.statNumber}>85%</ThemedText>
-              <ThemedText style={styles.statLabel}>
-                {t("speaking.pronunciation")}
-              </ThemedText>
-            </View>
-          </View>
-        </ThemedView>
-
-        <ThemedView style={styles.tipsCard}>
-          <ThemedText type="subtitle" style={styles.tipsTitle}>
-            🎯 {t("speaking.tips_title")}
-          </ThemedText>
-          <View style={styles.tipsList}>
-            <ThemedText style={styles.tipItem}>
-              • {t("speaking.tip_1")}
-            </ThemedText>
-            <ThemedText style={styles.tipItem}>
-              • {t("speaking.tip_2")}
-            </ThemedText>
-            <ThemedText style={styles.tipItem}>
-              • {t("speaking.tip_3")}
-            </ThemedText>
-            <ThemedText style={styles.tipItem}>
-              • {t("speaking.tip_4")}
-            </ThemedText>
-          </View>
-        </ThemedView>
-
-        <ThemedView style={styles.controlsCard}>
-          <ThemedText type="subtitle" style={styles.controlsTitle}>
-            🎛️ {t("speaking.controls_title")}
-          </ThemedText>
-          <View style={styles.controlsRow}>
-            <TouchableOpacity style={styles.controlButton}>
-              <IconSymbol
-                name={"stop.circle.fill" as any}
-                size={24}
-                color="#ef4444"
+        )}
+        {!isLoading &&
+          !error &&
+          items.map((item) => (
+            <Animated.View
+              key={item.id}
+              style={{
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }}
+            >
+              <SpeakingCard
+                item={item}
+                onPress={() => handleSpeakingPress(item.test?.id)}
               />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.controlButton}>
-              <IconSymbol
-                name={"mic.circle.fill" as any}
-                size={48}
-                color="#3b82f6"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.controlButton}>
-              <IconSymbol
-                name={"play.circle.fill" as any}
-                size={24}
-                color="#10b981"
-              />
-            </TouchableOpacity>
-          </View>
-          <ThemedText style={styles.controlsHint}>
-            {t("speaking.controls_hint")}
-          </ThemedText>
-        </ThemedView>
-      </ScrollView>
+            </Animated.View>
+          ))}
+      </View>
     </HomeLayout>
   );
 }
@@ -434,6 +218,7 @@ const styles = StyleSheet.create({
   },
   exercisesContainer: {
     gap: 16,
+    marginBottom: 16,
   },
   speakingCard: {
     backgroundColor: "rgba(255, 255, 255, 0.9)",
@@ -475,9 +260,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6b7280",
   },
-  micButton: {
-    marginLeft: 8,
-  },
   cardFooter: {
     gap: 8,
   },
@@ -502,31 +284,11 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     fontWeight: "500",
   },
-  progressContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  progressBar: {
-    flex: 1,
-    height: 6,
-    backgroundColor: "#e5e7eb",
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 3,
-  },
-  progressText: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontWeight: "500",
-  },
   statsCard: {
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 16,
     padding: 20,
+    marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -553,7 +315,7 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#ef4444",
+    color: "#3b82f6",
     marginBottom: 4,
   },
   statLabel: {

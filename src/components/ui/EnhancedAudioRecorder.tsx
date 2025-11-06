@@ -23,6 +23,35 @@ import {
 
 const { width } = Dimensions.get("window");
 
+// Centralized color tiers for feedback
+const getFeedbackColors = (score?: number, correct?: boolean) => {
+  if (typeof score === "number" && correct === false) {
+    if (score >= 80)
+      return { fg: "#92400e", bg: "rgba(251,191,36,0.22)", br: "#f59e0b" };
+    if (score >= 50)
+      return { fg: "#b45309", bg: "rgba(245,158,11,0.20)", br: "#f59e0b" };
+    return { fg: "#991b1b", bg: "rgba(239,68,68,0.20)", br: "#ef4444" };
+  }
+
+  if (typeof score === "number") {
+    if (score >= 90)
+      return { fg: "#065f46", bg: "rgba(16,185,129,0.18)", br: "#10b981" };
+    if (score >= 80)
+      return { fg: "#047857", bg: "rgba(52,211,153,0.16)", br: "#34d399" };
+    if (score >= 70)
+      return { fg: "#15803d", bg: "rgba(74,222,128,0.16)", br: "#4ade80" };
+    if (score >= 50)
+      return { fg: "#92400e", bg: "rgba(251,191,36,0.20)", br: "#f59e0b" };
+    if (score >= 30)
+      return { fg: "#b45309", bg: "rgba(245,158,11,0.20)", br: "#f59e0b" };
+    return { fg: "#991b1b", bg: "rgba(239,68,68,0.20)", br: "#ef4444" };
+  }
+
+  return correct
+    ? { fg: "#065f46", bg: "rgba(16,185,129,0.12)", br: "#10b981" }
+    : { fg: "#991b1b", bg: "rgba(239,68,68,0.12)", br: "#ef4444" };
+};
+
 interface VoiceRecorderProps {
   onRecordingComplete?: (uri: string, duration: number) => void;
   onRecordingStart?: () => void;
@@ -610,40 +639,40 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     );
   }
 
-  // Render feedback text with coloring
+  // Render feedback: prioritize per-word feedback; fallback to full text
   const renderFeedbackText = () => {
-    if (!feedbackText) return null;
-    
     if (feedbackWords && feedbackWords.length > 0) {
       return (
         <View style={styles.feedbackContainer}>
           <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center" }}>
-            {feedbackWords.map((w, idx) => (
-              <Text
-                key={`${w.word}-${idx}`}
-                style={[
-                  styles.feedbackWord,
-                  {
-                    color: w.correct ? "#065f46" : "#991b1b",
-                    backgroundColor: w.correct
-                      ? "rgba(16,185,129,0.12)"
-                      : "rgba(239,68,68,0.12)",
-                  },
-                ]}
-              >
-                {w.word}
-              </Text>
-            ))}
+            {feedbackWords.map((w, idx) => {
+              const { fg, bg, br } = getFeedbackColors(w.score, w.correct);
+              return (
+                <Text
+                  key={`${w.word}-${idx}`}
+                  style={[
+                    styles.feedbackWord,
+                    { color: fg, backgroundColor: bg, borderColor: br, borderWidth: 1 },
+                  ]}
+                >
+                  {w.word}
+                </Text>
+              );
+            })}
           </View>
         </View>
       );
     }
-    
-    return (
-      <View style={styles.feedbackContainer}>
-        <Text style={styles.feedbackText}>{feedbackText}</Text>
-      </View>
-    );
+
+    if (feedbackText) {
+      return (
+        <View style={styles.feedbackContainer}>
+          <Text style={styles.feedbackText}>{feedbackText}</Text>
+        </View>
+      );
+    }
+
+    return null;
   };
 
   return (
