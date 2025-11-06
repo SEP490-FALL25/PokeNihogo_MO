@@ -27,6 +27,8 @@ export const useListUserPokemonRound = (typeId: number) => {
     const { data, isLoading, isError } = useQuery({
         queryKey: ['list-user-pokemon-round', language, typeId],
         queryFn: () => battleService.getListUserPokemonRound(typeId),
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
     });
     return { data: data?.data.data, isLoading, isError };
 };

@@ -62,7 +62,7 @@ const getTabConfig = (t: (key: string) => string): Tab[] => [
     name: "battle",
     icon: "game-controller",
     label: t("tabs.battle"),
-    route: ROUTES.TABS.BATTLE,
+    route: ROUTES.APP.PICK_POKEMON,
     color: "#ef4444",
   },
 ];
@@ -147,17 +147,17 @@ const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
       // Chỉ rotate khi active, với sequence animation
       ...(active
         ? [
-            Animated.sequence([
-              Animated.timing(rotateAnim, {
-                toValue: 1,
-                ...ANIMATION_CONFIG.ROTATE_TIMING,
-              }),
-              Animated.timing(rotateAnim, {
-                toValue: 0,
-                ...ANIMATION_CONFIG.ROTATE_TIMING,
-              }),
-            ]),
-          ]
+          Animated.sequence([
+            Animated.timing(rotateAnim, {
+              toValue: 1,
+              ...ANIMATION_CONFIG.ROTATE_TIMING,
+            }),
+            Animated.timing(rotateAnim, {
+              toValue: 0,
+              ...ANIMATION_CONFIG.ROTATE_TIMING,
+            }),
+          ]),
+        ]
         : []),
     ]).start();
   }, [active, bounceAnim, scaleAnim, rotateAnim]);

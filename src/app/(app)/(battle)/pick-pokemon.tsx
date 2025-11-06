@@ -11,7 +11,6 @@ import { useListElemental } from "@hooks/useElemental";
 import { IBattleMatchRound } from "@models/battle/battle.response";
 import { IElementalEntity } from "@models/elemental/elemental.entity";
 import { IPokemonType } from "@models/pokemon/pokemon.common";
-import { ROUTES } from "@routes/routes";
 import { useGlobalStore } from "@stores/global/global.config";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Check, Clock } from "lucide-react-native";
@@ -34,10 +33,10 @@ export default function PickPokemonScreen() {
     //---------------End---------------//
 
 
-    if (!matchId) {
-        router.replace(ROUTES.TABS.BATTLE);
-        return;
-    }
+    // if (!matchId) {
+    //     router.replace(ROUTES.TABS.BATTLE);
+    //     return;
+    // }
 
 
     /**
@@ -73,6 +72,7 @@ export default function PickPokemonScreen() {
     const [typeId, setTypeId] = useState<number>(1);
     const { data: listUserPokemonRound, isLoading: isLoadingListUserPokemonRound } = useListUserPokemonRound(typeId);
     console.log("listUserPokemonRound", listUserPokemonRound);
+
     //------------------------End------------------------//
 
 
@@ -113,7 +113,6 @@ export default function PickPokemonScreen() {
             const playerHasPicked = !!currentPlayer?.selectedUserPokemonId;
             const opponentHasPicked = !!currentOpponent?.selectedUserPokemonId;
             if (!playerHasPicked && !opponentHasPicked) {
-                // First picker by orderSelected === 1
                 if (currentPlayer?.orderSelected === 1) isPlayerTurn = true;
                 if (currentOpponent?.orderSelected === 1) isOpponentTurn = true;
             } else if (!playerHasPicked && opponentHasPicked) {
@@ -133,18 +132,14 @@ export default function PickPokemonScreen() {
             return null; // only rely on endTimeSelected per requirement
         })();
 
-        // Build picks arrays for UI display (length 3) - store both ID and Pokemon object
+        // Build picks arrays for UI display (length 3)
         const playerPicks: Array<number | null> = [null, null, null];
         const opponentPicks: Array<number | null> = [null, null, null];
-        const playerPicksData: Array<any | null> = [null, null, null];
-        const opponentPicksData: Array<any | null> = [null, null, null];
         matchRound.rounds.forEach((round, idx) => {
             const rpPlayer = round.participants.find((rp) => rp.matchParticipantId === playerMatchParticipantId);
             const rpOpponent = round.participants.find((rp) => rp.matchParticipantId === opponentMatchParticipantId);
             playerPicks[idx] = rpPlayer?.selectedUserPokemon?.pokemon?.id ?? null;
             opponentPicks[idx] = rpOpponent?.selectedUserPokemon?.pokemon?.id ?? null;
-            playerPicksData[idx] = rpPlayer?.selectedUserPokemon?.pokemon ?? null;
-            opponentPicksData[idx] = rpOpponent?.selectedUserPokemon?.pokemon ?? null;
         });
 
         return {
@@ -157,8 +152,6 @@ export default function PickPokemonScreen() {
             pickDeadline,
             playerPicks,
             opponentPicks,
-            playerPicksData,
-            opponentPicksData,
         };
     }, [matchRound, currentUserId]);
 
@@ -219,9 +212,31 @@ export default function PickPokemonScreen() {
         return pokemonByType[currentTypeFilter] || [];
     }, [roundList, currentTypeFilter, pokemonByType]);
 
+    // Get current elemental name by typeId
+    const currentElementalName = useMemo(() => {
+        const elemental = listElemental?.results?.find((elem: IElementalEntity) => elem.id === typeId);
+        if (!elemental) return "";
+        return elemental.display_name?.[language as keyof typeof elemental.display_name] ||
+            elemental.display_name?.vi ||
+            elemental.display_name?.en ||
+            elemental.display_name?.ja ||
+            elemental.type_name ||
+            "";
+    }, [listElemental, typeId, language]);
+
     // Helper to get Pokemon by ID
     const getPokemonById = (pokemonId: number) => {
         return roundList.find((pokemon: any) => pokemon?.id === pokemonId);
+    };
+
+    // Helper to get Pokemon name based on language
+    const getPokemonName = (pokemon: any) => {
+        if (!pokemon) return "";
+        if (language === "ja") {
+            return pokemon.nameTranslations?.ja || pokemon.nameJp || "";
+        }
+        // For vi or en, use English name
+        return pokemon.nameTranslations?.en || pokemon.nameJp || "";
     };
 
     // Handle Pokemon pick (pending backend integration)
@@ -340,28 +355,27 @@ export default function PickPokemonScreen() {
                                 Đối thủ ({matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""})
                             </ThemedText>
                             <View className="flex-row flex-wrap gap-2">
-                                {[0, 1, 2].map((idx) => {
-                                    const pokemon = battleContext?.opponentPicksData[idx];
-                                    return (
-                                        <View key={idx} className="w-16 h-16 rounded-xl border border-white/20 bg-black/40">
-                                            {pokemon ? (
-                                                <View className="flex-1 items-center justify-center">
+                                {[0, 1, 2].map((idx) => (
+                                    <View key={idx} className="w-16 h-16 rounded-xl border border-white/20 bg-black/40">
+                                        {battleContext && battleContext.opponentPicks[idx] ? (
+                                            <View className="flex-1 items-center justify-center">
+                                                {getPokemonById(battleContext.opponentPicks[idx]!) && (
                                                     <Image
-                                                        source={{ uri: pokemon.imageUrl }}
+                                                        source={{ uri: getPokemonById(battleContext.opponentPicks[idx]!)!.imageUrl }}
                                                         style={{ width: 48, height: 48 }}
                                                         resizeMode="contain"
                                                     />
-                                                </View>
-                                            ) : (
-                                                <View className="flex-1 items-center justify-center">
-                                                    <Animated.View style={{ opacity: 0.3 }}>
-                                                        <Clock size={24} color="#64748b" />
-                                                    </Animated.View>
-                                                </View>
-                                            )}
-                                        </View>
-                                    );
-                                })}
+                                                )}
+                                            </View>
+                                        ) : (
+                                            <View className="flex-1 items-center justify-center">
+                                                <Animated.View style={{ opacity: 0.3 }}>
+                                                    <Clock size={24} color="#64748b" />
+                                                </Animated.View>
+                                            </View>
+                                        )}
+                                    </View>
+                                ))}
                             </View>
                         </View>
 
@@ -371,28 +385,27 @@ export default function PickPokemonScreen() {
                                 Bạn
                             </ThemedText>
                             <View className="flex-row flex-wrap gap-2">
-                                {[0, 1, 2].map((idx) => {
-                                    const pokemon = battleContext?.playerPicksData[idx];
-                                    return (
-                                        <View key={idx} className="w-16 h-16 rounded-xl border border-white/20 bg-black/40">
-                                            {pokemon ? (
-                                                <View className="flex-1 items-center justify-center">
+                                {[0, 1, 2].map((idx) => (
+                                    <View key={idx} className="w-16 h-16 rounded-xl border border-white/20 bg-black/40">
+                                        {battleContext && battleContext.playerPicks[idx] ? (
+                                            <View className="flex-1 items-center justify-center">
+                                                {getPokemonById(battleContext.playerPicks[idx]!) && (
                                                     <Image
-                                                        source={{ uri: pokemon.imageUrl }}
+                                                        source={{ uri: getPokemonById(battleContext.playerPicks[idx]!)!.imageUrl }}
                                                         style={{ width: 48, height: 48 }}
                                                         resizeMode="contain"
                                                     />
-                                                </View>
-                                            ) : (
-                                                <View className="flex-1 items-center justify-center">
-                                                    <Animated.View style={{ opacity: 0.3 }}>
-                                                        <Clock size={24} color="#64748b" />
-                                                    </Animated.View>
-                                                </View>
-                                            )}
-                                        </View>
-                                    );
-                                })}
+                                                )}
+                                            </View>
+                                        ) : (
+                                            <View className="flex-1 items-center justify-center">
+                                                <Animated.View style={{ opacity: 0.3 }}>
+                                                    <Clock size={24} color="#64748b" />
+                                                </Animated.View>
+                                            </View>
+                                        )}
+                                    </View>
+                                ))}
                             </View>
                         </View>
                     </View>
@@ -473,11 +486,19 @@ export default function PickPokemonScreen() {
 
                 {/* Pokemon List */}
                 <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
-                    {isLoadingListUserPokemonRound || !displayPokemons || displayPokemons.length === 0 ? (
+                    {isLoadingListUserPokemonRound ? (
                         <View className="flex-1 items-center justify-center py-20">
                             <ActivityIndicator size="large" color="#22d3ee" />
                             <ThemedText style={{ color: "#64748b", marginTop: 16, fontSize: 14 }}>
-                                {isLoadingListUserPokemonRound ? "Đang tải Pokemon..." : "Không có Pokemon nào"}
+                                Đang tải Pokemon...
+                            </ThemedText>
+                        </View>
+                    ) : !displayPokemons || displayPokemons.length === 0 ? (
+                        <View className="flex-1 items-center justify-center py-20">
+                            <ThemedText style={{ color: "#64748b", marginTop: 16, fontSize: 14, textAlign: "center" }}>
+                                {currentElementalName
+                                    ? `Bạn không có Pokemon hệ ${currentElementalName}`
+                                    : "Không có Pokemon nào"}
                             </ThemedText>
                         </View>
                     ) : (
@@ -531,7 +552,7 @@ export default function PickPokemonScreen() {
                                                                 textAlign: "center",
                                                             }}
                                                         >
-                                                            {pokemon.nameTranslations?.vi || pokemon.nameJp}
+                                                            {getPokemonName(pokemon)}
                                                         </ThemedText>
                                                     </View>
                                                 </View>

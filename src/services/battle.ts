@@ -22,7 +22,7 @@ const battleService = {
     },
 
     getListUserPokemonRound: async (typeId: number) => {
-        return axiosPrivate.get(`/user-pokemon/user/rounds/pokemons?qs=types=${typeId}`);
+        return await axiosPrivate.get(`/user-pokemon/user/rounds/pokemons?qs=types=${typeId}`);
     },
 
     // Get current match status (simulated)
