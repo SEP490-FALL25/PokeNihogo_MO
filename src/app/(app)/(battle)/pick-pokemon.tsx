@@ -5,13 +5,12 @@ import UserAvatar from "@components/atoms/UserAvatar";
 import { HapticPressable } from "@components/HapticPressable";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
-import { useListMatchRound } from "@hooks/useBattle";
-import useOwnedPokemons from "@hooks/useOwnedPokemons";
-import { IBattleDraftState, IBattleMatch } from "@models/battle/battle.response";
+import useAuth from "@hooks/useAuth";
+import { useListMatchRound, useListUserPokemonRound } from "@hooks/useBattle";
+import { useListElemental } from "@hooks/useElemental";
+import { IBattleMatchRound } from "@models/battle/battle.response";
 import { IPokemonType } from "@models/pokemon/pokemon.common";
-import { IUserPokemon } from "@models/user-pokemon/user-pokemon.common";
 import { ROUTES } from "@routes/routes";
-import battleService from "@services/battle";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Check, Clock } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
@@ -30,7 +29,6 @@ export default function PickPokemonScreen() {
      * Param variables
      */
     const matchId = params.matchId as string;
-    const opponentName = params.opponentName as string;
     //---------------End---------------//
 
 
@@ -39,145 +37,184 @@ export default function PickPokemonScreen() {
         return;
     }
 
+
+    /**
+     * List elemental
+     */
+    const { data: listElemental, isLoading: isLoadingListElemental } = useListElemental();
+    console.log("listElemental", listElemental);
+    //------------------------End------------------------//
+
+
     /**
      * Hooks
      */
-    const { data: matchRound, isLoading: isLoadingMatchRound } = useListMatchRound();
-    console.log(matchRound);
+    const { user } = useAuth();
+    const { data: matchRound, isLoading: isLoadingMatchRound } = useListMatchRound() as { data: IBattleMatchRound; isLoading: boolean };
+
+    const currentUserId = user?.data?.id as number | undefined;
+    const opponentName = useMemo(() => {
+        const opponent = matchRound?.match?.participants?.find((p) => {
+            if (currentUserId !== undefined) return p.user.id !== currentUserId;
+            return p.user.name !== "Bạn";
+        });
+        return opponent?.user.name || "";
+    }, [matchRound, currentUserId]);
+
     //---------------End---------------//
 
 
-    const match: IBattleMatch = {
-        id: matchId,
-        playerId: 1,
-        opponentId: 2,
-        playerName: "You",
-        opponentName,
-        playerAvatar: undefined,
-        opponentAvatar: undefined,
-        status: "draft",
-        createdAt: new Date().toISOString(),
-    };
-    const { ownedPokemons, isLoading } = useOwnedPokemons();
-    const [draftState, setDraftState] = useState<IBattleDraftState | null>(null);
-    const [isLoadingDraft, setIsLoadingDraft] = useState(true);
+    const [typeId, setTypeId] = useState<number>(1);
+    const { data: listUserPokemonRound, isLoading: isLoadingListUserPokemonRound } = useListUserPokemonRound(typeId);
+    console.log("listUserPokemonRound", listUserPokemonRound);
+
     const [selectedPokemonId, setSelectedPokemonId] = useState<number | null>(null);
     const [currentTypeFilter, setCurrentTypeFilter] = useState<string | null>(null);
-    const [showOpponentPicks, setShowOpponentPicks] = useState<boolean[]>([]);
 
-    // Initialize draft state
-    useEffect(() => {
-        const initializeDraft = async () => {
-            try {
-                const state = await battleService.acceptMatch(matchId);
-                setDraftState(state);
-                setIsLoadingDraft(false);
-            } catch (error) {
-                Alert.alert("Lỗi", "Không thể khởi tạo trận đấu");
-                router.back();
+
+    // Derive battle participant mapping (player/opponent) from matchRound and params
+    const battleContext = useMemo(() => {
+        if (!matchRound) return null;
+
+        const matchParticipants = matchRound.match.participants;
+        const opponent = matchParticipants.find((p) => {
+            if (currentUserId !== undefined) return p.user.id !== currentUserId;
+            return p.user.name !== "Bạn";
+        });
+        const player = matchParticipants.find((p) => {
+            if (currentUserId !== undefined) return p.user.id === currentUserId;
+            return p.user.name === "Bạn";
+        });
+
+        const opponentMatchParticipantId = opponent?.id;
+        const playerMatchParticipantId = player?.id;
+
+        // Determine current round index
+        const currentRoundIndex = matchRound.rounds.findIndex((r) => r.status === "SELECTING_POKEMON" || r.status === "PENDING");
+        const safeCurrentRoundIndex = currentRoundIndex === -1 ? 2 : currentRoundIndex;
+
+        // Determine turn based on orderSelected and whether already selected
+        const currentRound = matchRound.rounds[safeCurrentRoundIndex];
+        const currentPlayer = currentRound?.participants.find((rp) => rp.matchParticipantId === playerMatchParticipantId);
+        const currentOpponent = currentRound?.participants.find((rp) => rp.matchParticipantId === opponentMatchParticipantId);
+
+        let isPlayerTurn = false;
+        let isOpponentTurn = false;
+
+        if (currentRound?.status === "SELECTING_POKEMON") {
+            const playerHasPicked = !!currentPlayer?.selectedUserPokemonId;
+            const opponentHasPicked = !!currentOpponent?.selectedUserPokemonId;
+            if (!playerHasPicked && !opponentHasPicked) {
+                // First picker by orderSelected === 1
+                if (currentPlayer?.orderSelected === 1) isPlayerTurn = true;
+                if (currentOpponent?.orderSelected === 1) isOpponentTurn = true;
+            } else if (!playerHasPicked && opponentHasPicked) {
+                isPlayerTurn = true;
+            } else if (playerHasPicked && !opponentHasPicked) {
+                isOpponentTurn = true;
             }
-        };
-
-        if (matchId) {
-            initializeDraft();
         }
-    }, [matchId, router]);
 
-    // Picking turn logic: Alternate between player and opponent
-    const getTurnPicker = (turn: number): "player" | "opponent" => {
-        // Turn 1: player, Turn 2: opponent, Turn 3: player, Turn 4: opponent, Turn 5: player
-        return turn % 2 === 1 ? "player" : "opponent";
+        // Determine current picker and deadline
+        const currentPicker: "player" | "opponent" | null = isPlayerTurn ? "player" : isOpponentTurn ? "opponent" : null;
+        const pickDeadline = (() => {
+            if (currentRound?.status === "SELECTING_POKEMON") {
+                if (currentPicker === "player") return currentPlayer?.endTimeSelected || null;
+                if (currentPicker === "opponent") return currentOpponent?.endTimeSelected || null;
+            }
+            return null; // only rely on endTimeSelected per requirement
+        })();
+
+        // Build picks arrays for UI display (length 3)
+        const playerPicks: Array<number | null> = [null, null, null];
+        const opponentPicks: Array<number | null> = [null, null, null];
+        matchRound.rounds.forEach((round, idx) => {
+            const rpPlayer = round.participants.find((rp) => rp.matchParticipantId === playerMatchParticipantId);
+            const rpOpponent = round.participants.find((rp) => rp.matchParticipantId === opponentMatchParticipantId);
+            playerPicks[idx] = rpPlayer?.selectedUserPokemon?.pokemon?.id ?? null;
+            opponentPicks[idx] = rpOpponent?.selectedUserPokemon?.pokemon?.id ?? null;
+        });
+
+        return {
+            playerMatchParticipantId,
+            opponentMatchParticipantId,
+            currentRoundIndex: safeCurrentRoundIndex,
+            isPlayerTurn,
+            isOpponentTurn,
+            currentPicker,
+            pickDeadline,
+            playerPicks,
+            opponentPicks,
+        };
+    }, [matchRound, currentUserId]);
+
+    // Countdown for current picker
+    const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (!battleContext?.pickDeadline) {
+            setRemainingSeconds(null);
+            return;
+        }
+        const compute = () => {
+            const endTs = new Date(battleContext.pickDeadline as string).getTime();
+            const now = Date.now();
+            const secs = Math.max(0, Math.floor((endTs - now) / 1000));
+            setRemainingSeconds(Number.isFinite(secs) ? secs : null);
+        };
+        compute();
+        const interval = setInterval(compute, 1000);
+        return () => clearInterval(interval);
+    }, [battleContext?.pickDeadline]);
+
+    const formatTime = (seconds: number | null) => {
+        if (seconds === null || seconds === undefined) return "--:--";
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
     };
 
-    const isPlayerTurn = draftState && getTurnPicker(draftState.currentTurn) === "player";
-    const isOpponentTurn = draftState && getTurnPicker(draftState.currentTurn) === "opponent";
-
-    // Group Pokemon by type
+    // Group Pokemon by type (from round list)
     const pokemonByType = useMemo(() => {
-        if (!ownedPokemons || !Array.isArray(ownedPokemons)) return {};
-        const grouped: Record<string, typeof ownedPokemons> = {};
-        ownedPokemons.forEach((pokemon) => {
-            pokemon.pokemon.types.forEach((type: IPokemonType) => {
-                if (!grouped[type.type_name]) {
-                    grouped[type.type_name] = [];
-                }
-                grouped[type.type_name].push(pokemon);
+        const src: any[] = Array.isArray(listUserPokemonRound) ? (listUserPokemonRound as any[]) : [];
+        const grouped: Record<string, any[]> = {};
+        src.forEach((item: any) => {
+            (item?.pokemon?.types || []).forEach((type: IPokemonType) => {
+                if (!grouped[type.type_name]) grouped[type.type_name] = [];
+                grouped[type.type_name].push(item);
             });
         });
         return grouped;
-    }, [ownedPokemons]);
+    }, [listUserPokemonRound]);
 
     // Get unique types
-    const availableTypes = useMemo(() => {
-        return Object.keys(pokemonByType);
-    }, [pokemonByType]);
+    const availableTypes = useMemo(() => Object.keys(pokemonByType), [pokemonByType]);
 
     // Get Pokemon to display based on type filter
     const displayPokemons = useMemo(() => {
-        if (!ownedPokemons || !Array.isArray(ownedPokemons)) return [];
-        if (!currentTypeFilter) return ownedPokemons;
+        const src: any[] = Array.isArray(listUserPokemonRound) ? (listUserPokemonRound as any[]) : [];
+        if (!currentTypeFilter) return src;
         return pokemonByType[currentTypeFilter] || [];
-    }, [ownedPokemons, currentTypeFilter, pokemonByType]);
+    }, [listUserPokemonRound, currentTypeFilter, pokemonByType]);
 
     // Helper to get Pokemon by ID
     const getPokemonById = (pokemonId: number) => {
-        return ownedPokemons?.find((up: IUserPokemon) => up.pokemon.id === pokemonId)?.pokemon;
+        const src: any[] = Array.isArray(listUserPokemonRound) ? (listUserPokemonRound as any[]) : [];
+        return src.find((up: any) => up?.pokemon?.id === pokemonId)?.pokemon;
     };
 
-    // Handle Pokemon pick
+    // Handle Pokemon pick (pending backend integration)
     const handlePickPokemon = async (pokemonId: number) => {
-        if (!draftState || !isPlayerTurn) return;
-
+        if (!battleContext?.isPlayerTurn) return;
         setSelectedPokemonId(pokemonId);
-
-        try {
-            const updatedState = await battleService.submitDraftPick(
-                matchId,
-                pokemonId,
-                draftState.currentTurn,
-                true // isPlayerPick
-            );
-            setDraftState(updatedState);
-            setSelectedPokemonId(null);
-        } catch (error) {
-            Alert.alert("Lỗi", "Không thể chọn Pokemon");
-            setSelectedPokemonId(null);
-        }
+        Alert.alert("Thông báo", "Chức năng chọn Pokemon sẽ sớm được kích hoạt.");
+        setSelectedPokemonId(null);
     };
 
-    // Simulate opponent pick for demo
-    useEffect(() => {
-        if (!draftState || !isOpponentTurn || !displayPokemons.length) return;
-
-        const timer = setTimeout(async () => {
-            // Simulate opponent picking
-            const randomPokemon = displayPokemons[Math.floor(Math.random() * displayPokemons.length)];
-            if (randomPokemon) {
-                const updatedState = await battleService.submitDraftPick(
-                    matchId,
-                    randomPokemon.pokemon.id,
-                    draftState.currentTurn,
-                    false // isPlayerPick
-                );
-                setDraftState(updatedState);
-
-                // Check if draft is complete after opponent pick
-                if (updatedState.isComplete || updatedState.currentTurn > 6) {
-                    setTimeout(() => {
-                        router.push({
-                            pathname: "/(app)/(battle)/arena",
-                            params: { matchId },
-                        });
-                    }, 2000);
-                }
-            }
-        }, 1500);
-
-        return () => clearTimeout(timer);
-    }, [draftState, isOpponentTurn, matchId, displayPokemons, router]);
+    // No simulated opponent pick; live data comes from matchRound
 
 
-    if (isLoadingDraft) {
+    if (isLoadingMatchRound) {
         return (
             <ThemedView className="flex-1">
                 <ImageBackground
@@ -194,7 +231,7 @@ export default function PickPokemonScreen() {
                     <View className="flex-1 items-center justify-center">
                         <ActivityIndicator size="large" color="#22d3ee" />
                         <ThemedText style={{ color: "#93c5fd", marginTop: 16, fontSize: 16 }}>
-                            Đang khởi tạo trận đấu...
+                            Đang tải thông tin trận đấu...
                         </ThemedText>
                     </View>
                 </ImageBackground>
@@ -218,7 +255,7 @@ export default function PickPokemonScreen() {
                         <View className="flex-row items-center gap-2">
                             <Clock size={16} color="#22d3ee" />
                             <ThemedText style={{ color: "#cbd5e1", fontSize: 14 }}>
-                                Lượt {draftState?.currentTurn || 0}/6
+                                Round {(battleContext?.currentRoundIndex ?? 0) + 1}/3
                             </ThemedText>
                         </View>
                     </View>
@@ -227,14 +264,14 @@ export default function PickPokemonScreen() {
                     <View className="flex-row items-center justify-between">
                         {/* Opponent */}
                         <View className="items-center flex-1">
-                            <UserAvatar name={match.opponentName} size="large" />
+                            <UserAvatar name={matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""} size="large" />
                             <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
-                                {match.opponentName}
+                                {matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""}
                             </ThemedText>
-                            {isOpponentTurn && (
+                            {battleContext?.isOpponentTurn && (
                                 <View className="mt-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40">
                                     <ThemedText style={{ color: "#fca5a5", fontSize: 11, fontWeight: "700" }}>
-                                        ĐANG PICK...
+                                        ĐANG PICK
                                     </ThemedText>
                                 </View>
                             )}
@@ -247,18 +284,23 @@ export default function PickPokemonScreen() {
                             end={{ x: 1, y: 1 }}
                             style={{ padding: 2, borderRadius: 999, marginHorizontal: 20 }}
                         >
-                            <View className="px-4 py-2 rounded-full bg-black/70">
-                                <ThemedText style={{ color: "#ffffff", fontWeight: "700", fontSize: 16 }}>VS</ThemedText>
+                            <View className="px-4 py-2 rounded-full bg-black/70 items-center">
+                                <ThemedText style={{ color: "#ffffff", fontWeight: "800", fontSize: 18 }}>
+                                    {formatTime(remainingSeconds)}
+                                </ThemedText>
+                                <ThemedText style={{ color: "#cbd5e1", fontWeight: "700", fontSize: 10, opacity: 0.85 }}>
+                                    VS
+                                </ThemedText>
                             </View>
                         </TWLinearGradient>
 
                         {/* Player */}
                         <View className="items-center flex-1">
-                            <UserAvatar name={match.playerName} size="large" />
+                            <UserAvatar name={"Bạn"} size="large" />
                             <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
                                 Bạn
                             </ThemedText>
-                            {isPlayerTurn && (
+                            {battleContext?.isPlayerTurn && (
                                 <View className="mt-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/40">
                                     <ThemedText style={{ color: "#86efac", fontSize: 11, fontWeight: "700" }}>
                                         CHỌN NGAY
@@ -275,16 +317,16 @@ export default function PickPokemonScreen() {
                         {/* Opponent Picks */}
                         <View className="flex-1">
                             <ThemedText style={{ color: "#94a3b8", fontSize: 12, marginBottom: 8 }}>
-                                Đối thủ ({match.opponentName})
+                                Đối thủ ({matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""})
                             </ThemedText>
                             <View className="flex-row flex-wrap gap-2">
                                 {[0, 1, 2].map((idx) => (
                                     <View key={idx} className="w-16 h-16 rounded-xl border border-white/20 bg-black/40">
-                                        {draftState && draftState.opponentPicks[idx] ? (
+                                        {battleContext && battleContext.opponentPicks[idx] ? (
                                             <View className="flex-1 items-center justify-center">
-                                                {getPokemonById(draftState.opponentPicks[idx]) && (
+                                                {getPokemonById(battleContext.opponentPicks[idx]!) && (
                                                     <Image
-                                                        source={{ uri: getPokemonById(draftState.opponentPicks[idx])!.imageUrl }}
+                                                        source={{ uri: getPokemonById(battleContext.opponentPicks[idx]!)!.imageUrl }}
                                                         style={{ width: 48, height: 48 }}
                                                         resizeMode="contain"
                                                     />
@@ -310,11 +352,11 @@ export default function PickPokemonScreen() {
                             <View className="flex-row flex-wrap gap-2">
                                 {[0, 1, 2].map((idx) => (
                                     <View key={idx} className="w-16 h-16 rounded-xl border border-white/20 bg-black/40">
-                                        {draftState && draftState.playerPicks[idx] ? (
+                                        {battleContext && battleContext.playerPicks[idx] ? (
                                             <View className="flex-1 items-center justify-center">
-                                                {getPokemonById(draftState.playerPicks[idx]) && (
+                                                {getPokemonById(battleContext.playerPicks[idx]!) && (
                                                     <Image
-                                                        source={{ uri: getPokemonById(draftState.playerPicks[idx])!.imageUrl }}
+                                                        source={{ uri: getPokemonById(battleContext.playerPicks[idx]!)!.imageUrl }}
                                                         style={{ width: 48, height: 48 }}
                                                         resizeMode="contain"
                                                     />
@@ -332,6 +374,34 @@ export default function PickPokemonScreen() {
                             </View>
                         </View>
                     </View>
+                </View>
+
+                {/* Elemental Filter (sets typeId for useListUserPokemonRound) */}
+                <View className="px-5 mb-3">
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <View className="flex-row gap-2">
+                            {(listElemental || []).map((elem: any) => (
+                                <HapticPressable
+                                    key={elem?.id}
+                                    onPress={() => setTypeId(elem?.id)}
+                                    className={`px-4 py-2 rounded-full border ${elem?.id === typeId
+                                        ? "border-cyan-400 bg-cyan-500/20"
+                                        : "border-white/20 bg-white/5"
+                                        }`}
+                                >
+                                    <ThemedText
+                                        style={{
+                                            color: elem?.id === typeId ? "#22d3ee" : "#cbd5e1",
+                                            fontSize: 13,
+                                            fontWeight: "600",
+                                        }}
+                                    >
+                                        {(elem?.nameTranslations?.vi || elem?.name || elem?.type_name || "Elemental")}
+                                    </ThemedText>
+                                </HapticPressable>
+                            ))}
+                        </View>
+                    </ScrollView>
                 </View>
 
                 {/* Type Filter */}
@@ -381,27 +451,27 @@ export default function PickPokemonScreen() {
 
                 {/* Pokemon List */}
                 <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
-                    {isLoading || !displayPokemons || displayPokemons.length === 0 ? (
+                    {isLoadingListUserPokemonRound || !displayPokemons || displayPokemons.length === 0 ? (
                         <View className="flex-1 items-center justify-center py-20">
                             <ActivityIndicator size="large" color="#22d3ee" />
                             <ThemedText style={{ color: "#64748b", marginTop: 16, fontSize: 14 }}>
-                                {isLoading ? "Đang tải Pokemon..." : "Không có Pokemon nào"}
+                                {isLoadingListUserPokemonRound ? "Đang tải Pokemon..." : "Không có Pokemon nào"}
                             </ThemedText>
                         </View>
                     ) : (
                         <View className="flex-row flex-wrap gap-3 pb-8">
-                            {displayPokemons.map((userPokemon) => {
-                                const pokemon = userPokemon.pokemon;
+                            {displayPokemons.map((userPokemon: any) => {
+                                const pokemon = userPokemon.pokemon as any;
                                 const isSelected =
-                                    draftState?.playerPicks.includes(pokemon.id) ||
-                                    draftState?.opponentPicks.includes(pokemon.id);
+                                    (battleContext?.playerPicks || []).includes(pokemon.id) ||
+                                    (battleContext?.opponentPicks || []).includes(pokemon.id);
                                 const isCurrentlySelected = selectedPokemonId === pokemon.id;
 
                                 return (
                                     <HapticPressable
                                         key={userPokemon.id}
                                         onPress={() => handlePickPokemon(pokemon.id)}
-                                        disabled={!isPlayerTurn || isSelected}
+                                        disabled={!battleContext?.isPlayerTurn || isSelected}
                                         className="relative"
                                     >
                                         <RarityBackground rarity={pokemon.rarity} className="rounded-2xl overflow-hidden">
@@ -410,7 +480,7 @@ export default function PickPokemonScreen() {
                                                     ? "border-red-500 opacity-50"
                                                     : isCurrentlySelected
                                                         ? "border-green-500"
-                                                        : isPlayerTurn
+                                                        : battleContext?.isPlayerTurn
                                                             ? "border-cyan-400"
                                                             : "border-white/20"
                                                     }`}
