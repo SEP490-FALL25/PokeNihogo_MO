@@ -158,7 +158,6 @@ const LessonNodeComponent: React.FC<{
   onPress?: (lesson: LessonProgress) => void;
 }> = ({ node, onPress }) => {
   const { isActive, isUnlocked, id, progressPercentage } = node;
-
   const style = useMemo(() => {
     let iconContainerStyle: ViewStyle[] = [styles.baseIconContainer];
     let iconColor = "#555";
@@ -363,7 +362,7 @@ export default function LessonMap({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1a1a1a",
+    backgroundColor: "transparent",
   },
   lessonContainer: {
     flexDirection: "column",

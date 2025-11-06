@@ -1,10 +1,15 @@
 import HomeLayout from "@components/layouts/HomeLayout";
 import LessonCategory from "@components/lesson/LessonCategory";
+import LessonMap from "@components/lesson/LessonMap";
 import { ThemedText } from "@components/ThemedText";
 import { Badge } from "@components/ui/Badge";
 import ErrorState from "@components/ui/ErrorState";
 import { Skeleton } from "@components/ui/Skeleton";
-import { useLessonCategories, useUserProgress } from "@hooks/useLessons";
+import {
+  useInfiniteUserLessons,
+  useLessonCategories,
+  useUserProgress,
+} from "@hooks/useLessons";
 import { LessonProgress } from "@models/lesson/lesson.common";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
@@ -97,6 +102,85 @@ const AnimatedLessonCategory = React.memo(
 
 AnimatedLessonCategory.displayName = "AnimatedLessonCategory";
 
+// Component để render LessonMap cho từng level JLPT
+const JLPTLevelMap: React.FC<{
+  categoryId: string;
+  levelName: string;
+  onLessonPress: (lesson: LessonProgress) => void;
+}> = ({ categoryId, levelName, onLessonPress }) => {
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteUserLessons({
+    pageSize: 50,
+    lessonCategoryId: parseInt(categoryId, 10),
+  });
+
+  // Lấy tất cả lessons từ tất cả pages
+  const allLessons = useMemo(() => {
+    return (data?.pages ?? []).flatMap((p: any) => p?.data?.results ?? []);
+  }, [data]);
+
+  // Load more khi cần
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage && !isLoading) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, isLoading, fetchNextPage]);
+
+  if (isError) {
+    return (
+      <View style={styles.levelMapContainer}>
+        <ThemedText type="subtitle" style={styles.levelTitle}>
+          {levelName}
+        </ThemedText>
+        <ErrorState
+          title="Error loading lessons"
+          description="Failed to load lessons for this level"
+          error="Unknown error"
+          onRetry={() => {}}
+          retryText="Retry"
+        />
+      </View>
+    );
+  }
+
+  if (isLoading && allLessons.length === 0) {
+    return (
+      <View style={styles.levelMapContainer}>
+        <ThemedText type="subtitle" style={styles.levelTitle}>
+          {levelName}
+        </ThemedText>
+        <Skeleton className="h-96 w-full rounded-lg" />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.levelMapContainer}>
+      <ThemedText type="subtitle" style={styles.levelTitle}>
+        {levelName}
+      </ThemedText>
+      {allLessons.length > 0 ? (
+        <LessonMap
+          lessons={allLessons}
+          onLessonPress={onLessonPress}
+        />
+      ) : (
+        <View style={styles.emptyLevelContainer}>
+          <ThemedText style={styles.emptyLevelText}>
+            No lessons available for this level
+          </ThemedText>
+        </View>
+      )}
+    </View>
+  );
+};
+
 const CategoriesScreen = () => {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
@@ -162,17 +246,6 @@ const CategoriesScreen = () => {
     router.push({
       pathname: ROUTES.LESSON.DETAIL,
       params: { id: lesson.lessonId.toString() },
-    });
-  }, []);
-
-  const handleCategoryPress = useCallback((category: any) => {
-    // Navigate to dedicated lessons screen with category ID
-    router.push({
-      pathname: ROUTES.LESSON.LIST_WITH_ID,
-      params: {
-        id: category.id,
-        title: category.name,
-      },
     });
   }, []);
 
@@ -243,6 +316,11 @@ const CategoriesScreen = () => {
         })) || [],
     [lessonCategoriesData?.data.results]
   );
+
+  // Lấy 3 level đầu tiên (N5, N4, N3) để hiển thị LessonMap
+  const jlptLevelsForMap = useMemo(() => {
+    return levelCategories.slice(0, 3);
+  }, [levelCategories]);
   // Memoized skill categories - non-JLPT categories from API
   const skillCategories = useMemo(
     () =>
@@ -301,91 +379,29 @@ const CategoriesScreen = () => {
         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
       }
     >
-      <ThemedText type="title" style={styles.title}>
-        📚 {t("lessons.title")}
-      </ThemedText>
-      <ThemedText style={styles.subtitle}>
-        {t("lessons.progress_title")}
-      </ThemedText>
 
       <View style={styles.contentContainer}>
         {/* Progress Header */}
-        {progressData && isLoaded && (
-          <Animated.View
-            style={[
-              styles.progressCard,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            <ThemedText type="subtitle" style={styles.progressTitle}>
-              📊 {t("lessons.progress_title")}
-            </ThemedText>
-            <View style={styles.progressStats}>
-              <View style={styles.progressStatItem}>
-                <ThemedText style={styles.progressStatNumber}>
-                  {lessonCategoriesData?.data.results
-                    .filter((category: any) =>
-                      category.slug.startsWith("jlpt-")
-                    )
-                    .reduce(
-                      (acc: number, category: any) =>
-                        acc + category.completedLessons,
-                      0
-                    ) || 0}
-                </ThemedText>
-                <ThemedText style={styles.progressStatLabel}>
-                  {t("lessons.lessons_completed")}
-                </ThemedText>
-              </View>
-              <View style={styles.progressStatItem}>
-                <ThemedText style={styles.progressStatNumber}>
-                  {lessonCategoriesData?.data.results.filter((category: any) =>
-                    category.slug.startsWith("jlpt-")
-                  ).length || 0}
-                </ThemedText>
-                <ThemedText style={styles.progressStatLabel}>
-                  {t("lessons.overall_progress")}
-                </ThemedText>
-              </View>
-              <View style={styles.progressStatItem}>
-                <ThemedText style={styles.progressStatNumber}>
-                  {userLevel || "N5"}
-                </ThemedText>
-                <ThemedText style={styles.progressStatLabel}>
-                  {t("lessons.select_level")}
-                </ThemedText>
-              </View>
-            </View>
-          </Animated.View>
-        )}
 
-        {/* Level Categories (N5, N4, N3) */}
-        <View style={styles.categoriesSection}>
-          <View style={styles.categoriesHeader}>
-            <ThemedText type="subtitle" style={styles.categoriesTitle}>
-              🎯 {t("lessons.level_categories.title")}
-            </ThemedText>
-            <Badge variant="outline">
-              {levelCategories.length} {t("lessons.categories_count")}
-            </Badge>
-          </View>
-
-          <View style={styles.categoriesContainer}>
-            {levelCategories.map((category, index) => (
-              <AnimatedLessonCategory
-                key={category.id}
-                category={category}
-                onLessonPress={handleLessonPress}
-                onCategoryPress={handleCategoryPress}
-                delay={index * 100}
-                isLoaded={isLoaded}
-              />
-            ))}
-          </View>
-        </View>
+        {/* Lesson Maps for JLPT Levels (N5, N4, N3) */}
+        {jlptLevelsForMap.map((level, index) => (
+          <React.Fragment key={level.id}>
+            {index > 0 && (
+              <View style={styles.separatorContainer}>
+                <View style={styles.separatorLine} />
+                <ThemedText style={styles.separatorText}>
+                  {"-".repeat(30)}
+                </ThemedText>
+                <View style={styles.separatorLine} />
+              </View>
+            )}
+            <JLPTLevelMap
+              categoryId={level.id}
+              levelName={level.name}
+              onLessonPress={handleLessonPress}
+            />
+          </React.Fragment>
+        ))}
 
         {/* Skill Categories (Reading, Speaking, Listening) */}
         <View style={styles.categoriesSection}>
@@ -595,6 +611,44 @@ const styles = StyleSheet.create({
   },
   skillCategoryArrow: {
     marginLeft: 8,
+  },
+  // LessonMap styles
+  levelMapContainer: {
+    marginBottom: 24,
+  },
+  levelTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#1f2937",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  emptyLevelContainer: {
+    padding: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyLevelText: {
+    fontSize: 16,
+    color: "#6b7280",
+    textAlign: "center",
+  },
+  separatorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 32,
+    paddingHorizontal: 16,
+  },
+  separatorLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#e5e7eb",
+  },
+  separatorText: {
+    fontSize: 14,
+    color: "#9ca3af",
+    marginHorizontal: 12,
+    fontFamily: "monospace",
   },
 });
 
