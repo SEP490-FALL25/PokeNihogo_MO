@@ -1,6 +1,8 @@
 enum APP {
   GACHA = "/(app)/gacha",
   CONVERSATION = "/(app)/conversation",
+  DEMO = "/(app)/lesson-demo",
+
 }
 
 enum ME {

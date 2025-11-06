@@ -287,7 +287,7 @@ const CategoriesScreen = () => {
           description={t("lessons.error_loading_lessons_description")}
           error={lessonCategoriesError?.message || t("common.error")}
           onRetry={() => {
-           setRefreshing(true);
+            setRefreshing(true);
           }}
           retryText={t("common.retry")}
         />
@@ -451,9 +451,18 @@ const CategoriesScreen = () => {
                 {t("lessons.view_all_categories")}
               </ThemedText>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push(ROUTES.APP.CONVERSATION)}>
+            <TouchableOpacity
+              onPress={() => router.push(ROUTES.APP.CONVERSATION)}
+            >
               <ThemedText type="subtitle" style={styles.categoriesTitle}>
                 speak
+              </ThemedText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push(ROUTES.APP.DEMO)}
+            >
+              <ThemedText type="subtitle" style={styles.categoriesTitle}>
+                test ui
               </ThemedText>
             </TouchableOpacity>
           </View>
