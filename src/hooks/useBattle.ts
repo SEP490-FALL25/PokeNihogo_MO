@@ -1,6 +1,6 @@
 import battleService from "@services/battle";
 import { useGlobalStore } from "@stores/global/global.config";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
  * List match round
@@ -31,5 +31,25 @@ export const useListUserPokemonRound = (typeId: number) => {
         refetchOnWindowFocus: false,
     });
     return { data: data?.data.data, isLoading, isError };
+};
+//------------------------End------------------------//
+
+
+/**
+ * Choose pokemon
+ * @returns Choose pokemon data
+ */
+export const useChoosePokemon = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ matchId, pokemonId }: { matchId: number, pokemonId: number }) => battleService.choosePokemon(matchId, pokemonId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
+            queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
+        },
+        onError: (error) => {
+            console.error(error);
+        },
+    });
 };
 //------------------------End------------------------//

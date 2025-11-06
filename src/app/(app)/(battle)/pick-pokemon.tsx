@@ -1,4 +1,3 @@
-import { RarityBackground } from "@components/atoms/RarityBackground";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import TypeBadge from "@components/atoms/TypeBadge";
 import UserAvatar from "@components/atoms/UserAvatar";
@@ -6,14 +5,14 @@ import { HapticPressable } from "@components/HapticPressable";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import useAuth from "@hooks/useAuth";
-import { useListMatchRound, useListUserPokemonRound } from "@hooks/useBattle";
+import { useChoosePokemon, useListMatchRound, useListUserPokemonRound } from "@hooks/useBattle";
 import { useListElemental } from "@hooks/useElemental";
 import { IBattleMatchRound } from "@models/battle/battle.response";
 import { IElementalEntity } from "@models/elemental/elemental.entity";
 import { IPokemonType } from "@models/pokemon/pokemon.common";
 import { useGlobalStore } from "@stores/global/global.config";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Check, Clock } from "lucide-react-native";
+import { Check, Clock, Sparkles, Star } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Animated, Image, ImageBackground, ScrollView, StyleSheet, View } from "react-native";
 
@@ -78,6 +77,9 @@ export default function PickPokemonScreen() {
 
     const [selectedPokemonId, setSelectedPokemonId] = useState<number | null>(null);
     const [currentTypeFilter, setCurrentTypeFilter] = useState<string | null>(null);
+
+    // Choose Pokemon mutation
+    const choosePokemonMutation = useChoosePokemon();
 
 
     // Derive battle participant mapping (player/opponent) from matchRound and params
@@ -239,12 +241,32 @@ export default function PickPokemonScreen() {
         return pokemon.nameTranslations?.en || pokemon.nameJp || "";
     };
 
-    // Handle Pokemon pick (pending backend integration)
-    const handlePickPokemon = async (pokemonId: number) => {
-        if (!battleContext?.isPlayerTurn) return;
+    // Handle Pokemon pick - allow selection anytime for preview
+    const handlePickPokemon = (pokemonId: number) => {
+        // Check if Pokemon is already selected by player or opponent
+        const isSelected =
+            (battleContext?.playerPicks || []).includes(pokemonId) ||
+            (battleContext?.opponentPicks || []).includes(pokemonId);
+
+        // Don't allow selecting already picked Pokemon
+        if (isSelected) return;
+
         setSelectedPokemonId(pokemonId);
-        Alert.alert("Thông báo", "Chức năng chọn Pokemon sẽ sớm được kích hoạt.");
-        setSelectedPokemonId(null);
+    };
+
+    // Handle choose Pokemon
+    const handleChoosePokemon = async () => {
+        if (!selectedPokemonId || !matchRound?.match?.id) return;
+
+        try {
+            await choosePokemonMutation.mutateAsync({
+                matchId: matchRound.match.id,
+                pokemonId: selectedPokemonId,
+            });
+            setSelectedPokemonId(null);
+        } catch (error) {
+            Alert.alert("Lỗi", "Không thể chọn Pokemon. Vui lòng thử lại.");
+        }
     };
 
 
@@ -440,49 +462,65 @@ export default function PickPokemonScreen() {
                 </View>
 
                 {/* Type Filter */}
-                <View className="px-5 mb-4">
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <View className="flex-row gap-2">
-                            <HapticPressable
-                                onPress={() => setCurrentTypeFilter(null)}
-                                className={`px-4 py-2 rounded-full border ${currentTypeFilter === null
-                                    ? "border-cyan-400 bg-cyan-500/20"
-                                    : "border-white/20 bg-white/5"
-                                    }`}
-                            >
+                {availableTypes.length > 0 && (
+                    <View className="px-5 mb-4">
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                            <View className="flex-row gap-2">
+                                {availableTypes.map((type) => (
+                                    <HapticPressable
+                                        key={type}
+                                        onPress={() => {
+                                            // Toggle: if already selected, deselect to show all
+                                            setCurrentTypeFilter(currentTypeFilter === type ? null : type);
+                                        }}
+                                        className={`px-4 py-2 rounded-full border ${currentTypeFilter === type
+                                            ? "border-cyan-400 bg-cyan-500/20"
+                                            : "border-white/20 bg-white/5"
+                                            }`}
+                                    >
+                                        <ThemedText
+                                            style={{
+                                                color: currentTypeFilter === type ? "#22d3ee" : "#cbd5e1",
+                                                fontSize: 13,
+                                                fontWeight: "600",
+                                            }}
+                                        >
+                                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                                        </ThemedText>
+                                    </HapticPressable>
+                                ))}
+                            </View>
+                        </ScrollView>
+                    </View>
+                )}
+
+                {/* Choose Button */}
+                {selectedPokemonId && (
+                    <View className="px-5 mb-4">
+                        <HapticPressable
+                            onPress={handleChoosePokemon}
+                            disabled={choosePokemonMutation.isPending || !battleContext?.isPlayerTurn}
+                            className={`w-full py-4 rounded-xl border-2 items-center justify-center ${battleContext?.isPlayerTurn && !choosePokemonMutation.isPending
+                                ? "bg-green-500/20 border-green-500"
+                                : "bg-gray-500/20 border-gray-500"
+                                }`}
+                        >
+                            {choosePokemonMutation.isPending ? (
+                                <ActivityIndicator size="small" color="#86efac" />
+                            ) : (
                                 <ThemedText
                                     style={{
-                                        color: currentTypeFilter === null ? "#22d3ee" : "#cbd5e1",
-                                        fontSize: 13,
-                                        fontWeight: "600",
+                                        color: battleContext?.isPlayerTurn ? "#86efac" : "#9ca3af",
+                                        fontSize: 16,
+                                        fontWeight: "700"
                                     }}
                                 >
-                                    Tất cả
+                                    {battleContext?.isPlayerTurn ? "Chọn" : "Chờ đến lượt bạn"}
                                 </ThemedText>
-                            </HapticPressable>
-                            {availableTypes.map((type) => (
-                                <HapticPressable
-                                    key={type}
-                                    onPress={() => setCurrentTypeFilter(type)}
-                                    className={`px-4 py-2 rounded-full border ${currentTypeFilter === type
-                                        ? "border-cyan-400 bg-cyan-500/20"
-                                        : "border-white/20 bg-white/5"
-                                        }`}
-                                >
-                                    <ThemedText
-                                        style={{
-                                            color: currentTypeFilter === type ? "#22d3ee" : "#cbd5e1",
-                                            fontSize: 13,
-                                            fontWeight: "600",
-                                        }}
-                                    >
-                                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                                    </ThemedText>
-                                </HapticPressable>
-                            ))}
-                        </View>
-                    </ScrollView>
-                </View>
+                            )}
+                        </HapticPressable>
+                    </View>
+                )}
 
                 {/* Pokemon List */}
                 <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
@@ -502,7 +540,7 @@ export default function PickPokemonScreen() {
                             </ThemedText>
                         </View>
                     ) : (
-                        <View className="flex-row flex-wrap gap-3 pb-8">
+                        <View className="flex-row flex-wrap gap-4 pb-8 justify-center">
                             {displayPokemons.map((pokemon: any) => {
                                 // Pokemon is already the direct object from results
                                 const isSelected =
@@ -511,58 +549,231 @@ export default function PickPokemonScreen() {
                                 const isCurrentlySelected = selectedPokemonId === pokemon.id;
                                 const canPick = pokemon?.canPick !== false; // Default to true if not specified
 
+                                // Get rarity config first
+                                const getRarityConfig = () => {
+                                    const config: Record<string, { label: string; color: string; borderColor: string; stars: number; icon?: any }> = {
+                                        COMMON: { label: "Common", color: "#94a3b8", borderColor: "#94a3b89e", stars: 1 },
+                                        UNCOMMON: { label: "Uncommon", color: "#34d399", borderColor: "#34d3999e", stars: 2 },
+                                        RARE: { label: "Rare", color: "#3b82f6", borderColor: "#3b82f69e", stars: 3 },
+                                        EPIC: { label: "Epic", color: "#8b5cf6", borderColor: "#8b5cf69e", stars: 4, icon: Sparkles },
+                                        LEGENDARY: { label: "Legendary", color: "#facc15", borderColor: "#facc159e", stars: 5, icon: Star },
+                                    };
+                                    return config[pokemon.rarity] || config.COMMON;
+                                };
+
+                                const rarityConfig = getRarityConfig();
+                                const isEpicOrLegendary = pokemon.rarity === "EPIC" || pokemon.rarity === "LEGENDARY";
+
+                                // Get rarity colors
+                                const getRarityColors = (): string[] => {
+                                    const rarityMap: Record<string, string[]> = {
+                                        COMMON: ["rgba(248, 250, 252, 0.1)", "rgba(226, 232, 240, 0.15)", "rgba(203, 213, 225, 0.2)"],
+                                        UNCOMMON: ["rgba(236, 253, 245, 0.15)", "rgba(167, 243, 208, 0.2)", "rgba(110, 231, 183, 0.25)"],
+                                        RARE: ["rgba(239, 246, 255, 0.15)", "rgba(147, 197, 253, 0.2)", "rgba(96, 165, 250, 0.25)"],
+                                        EPIC: ["rgba(250, 245, 255, 0.2)", "rgba(196, 181, 253, 0.25)", "rgba(167, 139, 250, 0.3)"],
+                                        LEGENDARY: ["rgba(254, 252, 232, 0.25)", "rgba(254, 240, 138, 0.3)", "rgba(253, 224, 71, 0.35)"],
+                                    };
+                                    return rarityMap[pokemon.rarity] || rarityMap.COMMON;
+                                };
+
+                                // Get border color based on state
+                                const getBorderColor = () => {
+                                    if (isSelected) return "border-red-500/60";
+                                    if (isCurrentlySelected) return "border-green-400 border-2";
+                                    if (canPick) return "border-cyan-400/50";
+                                    return "border-white/20";
+                                };
+
+                                // Get shadow color based on state and rarity
+                                const getShadowStyle = () => {
+                                    const rarityShadowColor = rarityConfig.color;
+
+                                    if (isCurrentlySelected) {
+                                        return {
+                                            shadowColor: "#22d3ee",
+                                            shadowOffset: { width: 0, height: 4 },
+                                            shadowOpacity: 0.5,
+                                            shadowRadius: 12,
+                                            elevation: 8,
+                                        };
+                                    }
+                                    if (isEpicOrLegendary) {
+                                        return {
+                                            shadowColor: rarityShadowColor,
+                                            shadowOffset: { width: 0, height: 3 },
+                                            shadowOpacity: 0.6,
+                                            shadowRadius: 10,
+                                            elevation: 6,
+                                        };
+                                    }
+                                    if (canPick && !isSelected) {
+                                        return {
+                                            shadowColor: "#06b6d4",
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.3,
+                                            shadowRadius: 8,
+                                            elevation: 4,
+                                        };
+                                    }
+                                    return {
+                                        shadowColor: "#000",
+                                        shadowOffset: { width: 0, height: 1 },
+                                        shadowOpacity: 0.2,
+                                        shadowRadius: 3,
+                                        elevation: 2,
+                                    };
+                                };
+
                                 return (
                                     <HapticPressable
                                         key={pokemon.id}
                                         onPress={() => handlePickPokemon(pokemon.id)}
-                                        disabled={!battleContext?.isPlayerTurn || isSelected || !canPick}
+                                        disabled={isSelected || !canPick}
                                         className="relative"
+                                        style={getShadowStyle()}
                                     >
-                                        <RarityBackground rarity={pokemon.rarity} className="rounded-2xl overflow-hidden">
-                                            <View
-                                                className={`w-24 h-32 border-2 rounded-2xl overflow-hidden ${isSelected
-                                                    ? "border-red-500 opacity-50"
-                                                    : isCurrentlySelected
-                                                        ? "border-green-500"
-                                                        : battleContext?.isPlayerTurn && canPick
-                                                            ? "border-cyan-400"
-                                                            : "border-white/20"
-                                                    }`}
-                                            >
-                                                <View className="relative flex-1 bg-black/40">
-                                                    <View className="absolute top-1 left-1 right-1 flex-row gap-1 flex-wrap">
-                                                        {(pokemon.types || []).map((type: IPokemonType) => (
-                                                            <TypeBadge key={type.id} type={type.type_name} />
-                                                        ))}
-                                                    </View>
-                                                    <View className="flex-1 items-center justify-center pt-2">
-                                                        <Image
-                                                            source={{ uri: pokemon.imageUrl }}
-                                                            style={{ width: 60, height: 60 }}
-                                                            resizeMode="contain"
-                                                        />
-                                                    </View>
-                                                    <View className="px-2 pb-1">
-                                                        <ThemedText
-                                                            numberOfLines={1}
-                                                            style={{
-                                                                color: "#ffffff",
-                                                                fontSize: 10,
-                                                                fontWeight: "700",
-                                                                textAlign: "center",
-                                                            }}
-                                                        >
-                                                            {getPokemonName(pokemon)}
-                                                        </ThemedText>
-                                                    </View>
+                                        <View
+                                            className={`w-32 h-44 rounded-3xl overflow-hidden ${getBorderColor()} ${isSelected ? "opacity-50" : "opacity-100"
+                                                } ${isCurrentlySelected ? "scale-105" : "scale-100"}`}
+                                            style={{
+                                                borderWidth: isCurrentlySelected ? 2 : isEpicOrLegendary ? 2 : 1,
+                                                borderColor: isCurrentlySelected
+                                                    ? undefined
+                                                    : isEpicOrLegendary
+                                                        ? rarityConfig.borderColor
+                                                        : undefined,
+                                            }}
+                                        >
+                                            {/* Rarity gradient background */}
+                                            <TWLinearGradient
+                                                colors={getRarityColors() as any}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 0, y: 1 }}
+                                                style={{ ...StyleSheet.absoluteFillObject, borderRadius: 24 }}
+                                            />
+
+                                            {/* Dark overlay for better contrast */}
+                                            <TWLinearGradient
+                                                colors={["rgba(0,0,0,0.2)", "rgba(0,0,0,0.4)", "rgba(0,0,0,0.7)"]}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 0, y: 1 }}
+                                                style={{ ...StyleSheet.absoluteFillObject, borderRadius: 24 }}
+                                            />
+
+                                            {/* Rarity badge */}
+                                            <View className="absolute top-1.5 left-1.5 z-20">
+                                                <View
+                                                    className="px-2 py-0.5 rounded-full flex-row items-center gap-1"
+                                                    style={{
+                                                        backgroundColor: `${rarityConfig.color}20`,
+                                                        borderWidth: 1,
+                                                        borderColor: rarityConfig.color,
+                                                    }}
+                                                >
+                                                    {rarityConfig.icon && (
+                                                        React.createElement(rarityConfig.icon, {
+                                                            size: 10,
+                                                            color: rarityConfig.color,
+                                                            fill: rarityConfig.color,
+                                                        })
+                                                    )}
+                                                    <ThemedText
+                                                        style={{
+                                                            color: rarityConfig.color,
+                                                            fontSize: 8,
+                                                            fontWeight: "800",
+                                                            textTransform: "uppercase",
+                                                            letterSpacing: 0.5,
+                                                        }}
+                                                    >
+                                                        {rarityConfig.label.slice(0, 3)}
+                                                    </ThemedText>
                                                 </View>
                                             </View>
-                                        </RarityBackground>
-                                        {isCurrentlySelected && (
-                                            <View className="absolute -top-1 -right-1 bg-green-500 rounded-full p-1">
-                                                <Check size={16} color="#ffffff" />
+
+                                            {/* Rarity stars */}
+                                            <View className="absolute top-1.5 right-1.5 z-20 flex-row gap-0.5">
+                                                {Array.from({ length: rarityConfig.stars }).map((_, i) => (
+                                                    <Star
+                                                        key={i}
+                                                        size={8}
+                                                        color={rarityConfig.color}
+                                                        fill={rarityConfig.color}
+                                                    />
+                                                ))}
                                             </View>
-                                        )}
+
+                                            {/* Type badges */}
+                                            <View className="absolute top-10 left-2 right-2 flex-row gap-1 flex-wrap z-10">
+                                                {(pokemon.types || []).slice(0, 2).map((type: IPokemonType) => (
+                                                    <TypeBadge key={type.id} type={type.type_name} />
+                                                ))}
+                                            </View>
+
+                                            {/* Selected indicator */}
+                                            {isCurrentlySelected && (
+                                                <View className="absolute top-2 right-2 bg-green-500 rounded-full p-1.5 z-10" style={{ shadowColor: "#22c55e", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.8, shadowRadius: 4, elevation: 4 }}>
+                                                    <Check size={14} color="#ffffff" strokeWidth={3} />
+                                                </View>
+                                            )}
+
+                                            {/* Pokemon image */}
+                                            <View className="flex-1 items-center justify-center pt-6 pb-2">
+                                                <View className="bg-white/5 rounded-full p-3" style={{ shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 3 }}>
+                                                    <Image
+                                                        source={{ uri: pokemon.imageUrl }}
+                                                        style={{ width: 80, height: 80 }}
+                                                        resizeMode="contain"
+                                                    />
+                                                </View>
+                                            </View>
+
+                                            {/* Pokemon name and info */}
+                                            <View className="px-3 pb-3 pt-1">
+                                                <ThemedText
+                                                    numberOfLines={1}
+                                                    style={{
+                                                        color: "#ffffff",
+                                                        fontSize: 12,
+                                                        fontWeight: "800",
+                                                        textAlign: "center",
+                                                        textShadowColor: "rgba(0, 0, 0, 0.75)",
+                                                        textShadowOffset: { width: 0, height: 1 },
+                                                        textShadowRadius: 3,
+                                                        letterSpacing: 0.5,
+                                                    }}
+                                                >
+                                                    {getPokemonName(pokemon)}
+                                                </ThemedText>
+                                                {pokemon.pokedex_number && (
+                                                    <ThemedText
+                                                        style={{
+                                                            color: "#cbd5e1",
+                                                            fontSize: 10,
+                                                            fontWeight: "600",
+                                                            textAlign: "center",
+                                                            marginTop: 2,
+                                                            opacity: 0.8,
+                                                        }}
+                                                    >
+                                                        #{String(pokemon.pokedex_number).padStart(3, "0")}
+                                                    </ThemedText>
+                                                )}
+                                            </View>
+
+                                            {/* Disabled overlay */}
+                                            {(isSelected || !canPick) && (
+                                                <View className="absolute inset-0 bg-black/60 rounded-3xl items-center justify-center">
+                                                    {isSelected && (
+                                                        <View className="bg-red-500/80 px-3 py-1 rounded-full">
+                                                            <ThemedText style={{ color: "#ffffff", fontSize: 10, fontWeight: "700" }}>
+                                                                Đã chọn
+                                                            </ThemedText>
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            )}
+                                        </View>
                                     </HapticPressable>
                                 );
                             })}
