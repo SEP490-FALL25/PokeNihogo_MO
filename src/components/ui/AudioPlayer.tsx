@@ -4,7 +4,7 @@
 import { Audio } from "expo-av";
 import { Loader2, Volume2 } from "lucide-react-native";
 import React from "react";
-import { Animated, TouchableOpacity, View } from "react-native";
+import { Animated, Easing, TouchableOpacity, View } from "react-native";
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -34,6 +34,7 @@ export default function AudioPlayer({
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const rotateAnim = React.useRef(new Animated.Value(0)).current;
 
   // ============================================================================
   // EFFECTS
@@ -146,6 +147,26 @@ export default function AudioPlayer({
     }
   }, [isPlaying, scaleAnim]);
 
+  // Loading spinner rotation
+  React.useEffect(() => {
+    let loop: Animated.CompositeAnimation | undefined;
+    if (isLoading) {
+      rotateAnim.setValue(0);
+      loop = Animated.loop(
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      );
+      loop.start();
+    }
+    return () => {
+      if (loop) loop.stop();
+    };
+  }, [isLoading, rotateAnim]);
+
   // ============================================================================
   // RENDER
   // ============================================================================
@@ -171,7 +192,24 @@ export default function AudioPlayer({
           buttonStyle,
         ]}
       >
-        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        <Animated.View
+          style={{
+            transform: [
+              { scale: scaleAnim },
+              // rotate only while loading
+              ...(isLoading
+                ? [
+                    {
+                      rotate: rotateAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ["0deg", "360deg"],
+                      }),
+                    },
+                  ]
+                : []),
+            ],
+          }}
+        >
           {isLoading ? (
             <Loader2 size={18} color="#3b82f6" />
           ) : (

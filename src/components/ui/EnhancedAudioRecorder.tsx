@@ -60,7 +60,7 @@ interface VoiceRecorderProps {
   onPlaybackStop?: () => void;
   maxDuration?: number; // in seconds
   disabled?: boolean;
-  exerciseTitle?: string;
+  exerciseTitle?: React.ReactNode;
   showPlayback?: boolean;
   customSavePath?: string; // Custom path for saving recordings
   // UI controls visibility
@@ -682,9 +682,15 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         {renderFeedbackText()}
         
         {/* Exercise Title */}
-        {exerciseTitle && (
-          <Text style={styles.exerciseTitle}>{exerciseTitle}</Text>
-        )}
+        {exerciseTitle ? (
+          typeof exerciseTitle === "string" ? (
+            <Text style={styles.exerciseTitle}>{exerciseTitle}</Text>
+          ) : (
+            <View style={{ marginBottom: 8, alignItems: "center" }}>
+              {exerciseTitle}
+            </View>
+          )
+        ) : null}
 
         {/* Wave Visualization - chỉ hiển thị khi đang recording hoặc có recording */}
         {(isRecording || recordingUri) && (
