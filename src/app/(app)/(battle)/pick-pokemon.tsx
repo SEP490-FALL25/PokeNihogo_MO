@@ -9,8 +9,10 @@ import useAuth from "@hooks/useAuth";
 import { useListMatchRound, useListUserPokemonRound } from "@hooks/useBattle";
 import { useListElemental } from "@hooks/useElemental";
 import { IBattleMatchRound } from "@models/battle/battle.response";
+import { IElementalEntity } from "@models/elemental/elemental.entity";
 import { IPokemonType } from "@models/pokemon/pokemon.common";
 import { ROUTES } from "@routes/routes";
+import { useGlobalStore } from "@stores/global/global.config";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Check, Clock } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
@@ -42,7 +44,6 @@ export default function PickPokemonScreen() {
      * List elemental
      */
     const { data: listElemental, isLoading: isLoadingListElemental } = useListElemental();
-    console.log("listElemental", listElemental);
     //------------------------End------------------------//
 
 
@@ -50,6 +51,7 @@ export default function PickPokemonScreen() {
      * Hooks
      */
     const { user } = useAuth();
+    const language = useGlobalStore((s) => s.language);
     const { data: matchRound, isLoading: isLoadingMatchRound } = useListMatchRound() as { data: IBattleMatchRound; isLoading: boolean };
 
     const currentUserId = user?.data?.id as number | undefined;
@@ -64,9 +66,15 @@ export default function PickPokemonScreen() {
     //---------------End---------------//
 
 
+    /**
+     * List user pokemon round
+     * @param typeId Type ID
+     */
     const [typeId, setTypeId] = useState<number>(1);
     const { data: listUserPokemonRound, isLoading: isLoadingListUserPokemonRound } = useListUserPokemonRound(typeId);
     console.log("listUserPokemonRound", listUserPokemonRound);
+    //------------------------End------------------------//
+
 
     const [selectedPokemonId, setSelectedPokemonId] = useState<number | null>(null);
     const [currentTypeFilter, setCurrentTypeFilter] = useState<string | null>(null);
@@ -174,33 +182,40 @@ export default function PickPokemonScreen() {
         return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
     };
 
-    // Group Pokemon by type (from round list)
+    // Normalize round list from results array
+    const roundList: any[] = useMemo(() => {
+        const dataAny: any = listUserPokemonRound as any;
+        if (dataAny?.results && Array.isArray(dataAny.results)) return dataAny.results as any[];
+        if (Array.isArray(dataAny)) return dataAny as any[];
+        return [];
+    }, [listUserPokemonRound]);
+
+    // Group Pokemon by type (from round list) - memoized for >100 items
     const pokemonByType = useMemo(() => {
-        const src: any[] = Array.isArray(listUserPokemonRound) ? (listUserPokemonRound as any[]) : [];
         const grouped: Record<string, any[]> = {};
-        src.forEach((item: any) => {
-            (item?.pokemon?.types || []).forEach((type: IPokemonType) => {
+        roundList.forEach((pokemon: any) => {
+            // Support both item.types and item.pokemon.types structures
+            const types = pokemon?.types || pokemon?.pokemon?.types || [];
+            types.forEach((type: IPokemonType) => {
                 if (!grouped[type.type_name]) grouped[type.type_name] = [];
-                grouped[type.type_name].push(item);
+                grouped[type.type_name].push(pokemon);
             });
         });
         return grouped;
-    }, [listUserPokemonRound]);
+    }, [roundList]);
 
-    // Get unique types
-    const availableTypes = useMemo(() => Object.keys(pokemonByType), [pokemonByType]);
+    // Get unique types - no memo needed (lightweight operation)
+    const availableTypes = Object.keys(pokemonByType);
 
-    // Get Pokemon to display based on type filter
+    // Get Pokemon to display based on type filter - memoized for >100 items
     const displayPokemons = useMemo(() => {
-        const src: any[] = Array.isArray(listUserPokemonRound) ? (listUserPokemonRound as any[]) : [];
-        if (!currentTypeFilter) return src;
+        if (!currentTypeFilter) return roundList;
         return pokemonByType[currentTypeFilter] || [];
-    }, [listUserPokemonRound, currentTypeFilter, pokemonByType]);
+    }, [roundList, currentTypeFilter, pokemonByType]);
 
     // Helper to get Pokemon by ID
     const getPokemonById = (pokemonId: number) => {
-        const src: any[] = Array.isArray(listUserPokemonRound) ? (listUserPokemonRound as any[]) : [];
-        return src.find((up: any) => up?.pokemon?.id === pokemonId)?.pokemon;
+        return roundList.find((pokemon: any) => pokemon?.id === pokemonId);
     };
 
     // Handle Pokemon pick (pending backend integration)
@@ -211,7 +226,6 @@ export default function PickPokemonScreen() {
         setSelectedPokemonId(null);
     };
 
-    // No simulated opponent pick; live data comes from matchRound
 
 
     if (isLoadingMatchRound) {
@@ -380,7 +394,7 @@ export default function PickPokemonScreen() {
                 <View className="px-5 mb-3">
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <View className="flex-row gap-2">
-                            {(listElemental || []).map((elem: any) => (
+                            {listElemental?.results?.map((elem: IElementalEntity) => (
                                 <HapticPressable
                                     key={elem?.id}
                                     onPress={() => setTypeId(elem?.id)}
@@ -396,7 +410,7 @@ export default function PickPokemonScreen() {
                                             fontWeight: "600",
                                         }}
                                     >
-                                        {(elem?.nameTranslations?.vi || elem?.name || elem?.type_name || "Elemental")}
+                                        {(elem?.display_name?.[language as keyof typeof elem.display_name] || elem?.display_name?.vi || elem?.display_name?.en || elem?.display_name?.ja || elem?.type_name || "Elemental")}
                                     </ThemedText>
                                 </HapticPressable>
                             ))}
@@ -460,18 +474,19 @@ export default function PickPokemonScreen() {
                         </View>
                     ) : (
                         <View className="flex-row flex-wrap gap-3 pb-8">
-                            {displayPokemons.map((userPokemon: any) => {
-                                const pokemon = userPokemon.pokemon as any;
+                            {displayPokemons.map((pokemon: any) => {
+                                // Pokemon is already the direct object from results
                                 const isSelected =
                                     (battleContext?.playerPicks || []).includes(pokemon.id) ||
                                     (battleContext?.opponentPicks || []).includes(pokemon.id);
                                 const isCurrentlySelected = selectedPokemonId === pokemon.id;
+                                const canPick = pokemon?.canPick !== false; // Default to true if not specified
 
                                 return (
                                     <HapticPressable
-                                        key={userPokemon.id}
+                                        key={pokemon.id}
                                         onPress={() => handlePickPokemon(pokemon.id)}
-                                        disabled={!battleContext?.isPlayerTurn || isSelected}
+                                        disabled={!battleContext?.isPlayerTurn || isSelected || !canPick}
                                         className="relative"
                                     >
                                         <RarityBackground rarity={pokemon.rarity} className="rounded-2xl overflow-hidden">
@@ -480,14 +495,14 @@ export default function PickPokemonScreen() {
                                                     ? "border-red-500 opacity-50"
                                                     : isCurrentlySelected
                                                         ? "border-green-500"
-                                                        : battleContext?.isPlayerTurn
+                                                        : battleContext?.isPlayerTurn && canPick
                                                             ? "border-cyan-400"
                                                             : "border-white/20"
                                                     }`}
                                             >
                                                 <View className="relative flex-1 bg-black/40">
                                                     <View className="absolute top-1 left-1 right-1 flex-row gap-1 flex-wrap">
-                                                        {pokemon.types.map((type: IPokemonType) => (
+                                                        {(pokemon.types || []).map((type: IPokemonType) => (
                                                             <TypeBadge key={type.id} type={type.type_name} />
                                                         ))}
                                                     </View>
@@ -508,7 +523,7 @@ export default function PickPokemonScreen() {
                                                                 textAlign: "center",
                                                             }}
                                                         >
-                                                            {pokemon.nameTranslations.vi || pokemon.nameJp}
+                                                            {pokemon.nameTranslations?.vi || pokemon.nameJp}
                                                         </ThemedText>
                                                     </View>
                                                 </View>

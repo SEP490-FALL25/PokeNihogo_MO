@@ -2,9 +2,9 @@ import { PokemonRarity } from "@constants/pokemon.enum";
 import { at } from "@models/common/common.request";
 import { LevelSchema } from "@models/user-pokemon/user-pokemon.common";
 import { z } from "zod";
-import { BackendResponseModel } from "../backend/common";
+import { BackendResponseModel, BackendResponsePaginationModel } from "../backend/common";
 import { PokemonResponseSchema } from "./pokemon.common";
-import { EvolutionPokemonEntitySchema } from "./pokemon.entity";
+import { EvolutionPokemonEntitySchema, UserPokemonRoundEntitySchema } from "./pokemon.entity";
 
 // Request schemas for Pokemon operations
 export const GetPokemonListRequestSchema = z.object({
@@ -60,6 +60,15 @@ export const EvolutionPokemonSchema = z.object({
 });
 export type IEvolutionPokemonSchema = z.infer<typeof EvolutionPokemonSchema>;
 //------------------------End------------------------//
+
+
+/**
+ * List User Pokemon Round Response Schema
+ */
+export const ListUserPokemonRoundResponseSchema = BackendResponsePaginationModel(UserPokemonRoundEntitySchema);
+export type IListUserPokemonRoundResponse = z.infer<typeof ListUserPokemonRoundResponseSchema>;
+//------------------------End------------------------//
+
 
 // Export types
 export type IGetPokemonListRequest = z.infer<typeof GetPokemonListRequestSchema>;

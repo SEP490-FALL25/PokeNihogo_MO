@@ -14,7 +14,6 @@ const battleService = {
     },
 
     updateMatchParticipant: async (matchId: string, hasAccepted: boolean) => {
-        console.log("updateMatchParticipant", matchId, hasAccepted);
         return axiosPrivate.put(`/match-participant/${matchId}`, { hasAccepted });
     },
 
