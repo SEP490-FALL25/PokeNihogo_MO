@@ -5,22 +5,47 @@ import UserAvatar from "@components/atoms/UserAvatar";
 import { HapticPressable } from "@components/HapticPressable";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
+import { useListMatchRound } from "@hooks/useBattle";
 import useOwnedPokemons from "@hooks/useOwnedPokemons";
-import { IBattleDraftState, IBattleMatch } from "@models/battle/battle.types";
+import { IBattleDraftState, IBattleMatch } from "@models/battle/battle.response";
 import { IPokemonType } from "@models/pokemon/pokemon.common";
 import { IUserPokemon } from "@models/user-pokemon/user-pokemon.common";
+import { ROUTES } from "@routes/routes";
 import battleService from "@services/battle";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Check, Clock } from "lucide-react-native";
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Animated, Image, ImageBackground, ScrollView, StyleSheet, View } from "react-native";
 
-//TODO: Sáng làm
-export default function BattleDraftScreen() {
+export default function PickPokemonScreen() {
+    /**
+     * Define Variables
+     */
     const router = useRouter();
     const params = useLocalSearchParams();
+    //---------------End---------------//
+
+
+    /**
+     * Param variables
+     */
     const matchId = params.matchId as string;
     const opponentName = params.opponentName as string;
+    //---------------End---------------//
+
+
+    if (!matchId) {
+        router.replace(ROUTES.TABS.BATTLE);
+        return;
+    }
+
+    /**
+     * Hooks
+     */
+    const { data: matchRound, isLoading: isLoadingMatchRound } = useListMatchRound();
+    console.log(matchRound);
+    //---------------End---------------//
+
 
     const match: IBattleMatch = {
         id: matchId,
@@ -34,14 +59,14 @@ export default function BattleDraftScreen() {
         createdAt: new Date().toISOString(),
     };
     const { ownedPokemons, isLoading } = useOwnedPokemons();
-    const [draftState, setDraftState] = React.useState<IBattleDraftState | null>(null);
-    const [isLoadingDraft, setIsLoadingDraft] = React.useState(true);
-    const [selectedPokemonId, setSelectedPokemonId] = React.useState<number | null>(null);
-    const [currentTypeFilter, setCurrentTypeFilter] = React.useState<string | null>(null);
-    const [showOpponentPicks, setShowOpponentPicks] = React.useState<boolean[]>([]);
+    const [draftState, setDraftState] = useState<IBattleDraftState | null>(null);
+    const [isLoadingDraft, setIsLoadingDraft] = useState(true);
+    const [selectedPokemonId, setSelectedPokemonId] = useState<number | null>(null);
+    const [currentTypeFilter, setCurrentTypeFilter] = useState<string | null>(null);
+    const [showOpponentPicks, setShowOpponentPicks] = useState<boolean[]>([]);
 
     // Initialize draft state
-    React.useEffect(() => {
+    useEffect(() => {
         const initializeDraft = async () => {
             try {
                 const state = await battleService.acceptMatch(matchId);
@@ -68,7 +93,7 @@ export default function BattleDraftScreen() {
     const isOpponentTurn = draftState && getTurnPicker(draftState.currentTurn) === "opponent";
 
     // Group Pokemon by type
-    const pokemonByType = React.useMemo(() => {
+    const pokemonByType = useMemo(() => {
         if (!ownedPokemons || !Array.isArray(ownedPokemons)) return {};
         const grouped: Record<string, typeof ownedPokemons> = {};
         ownedPokemons.forEach((pokemon) => {
@@ -83,12 +108,12 @@ export default function BattleDraftScreen() {
     }, [ownedPokemons]);
 
     // Get unique types
-    const availableTypes = React.useMemo(() => {
+    const availableTypes = useMemo(() => {
         return Object.keys(pokemonByType);
     }, [pokemonByType]);
 
     // Get Pokemon to display based on type filter
-    const displayPokemons = React.useMemo(() => {
+    const displayPokemons = useMemo(() => {
         if (!ownedPokemons || !Array.isArray(ownedPokemons)) return [];
         if (!currentTypeFilter) return ownedPokemons;
         return pokemonByType[currentTypeFilter] || [];
@@ -121,7 +146,7 @@ export default function BattleDraftScreen() {
     };
 
     // Simulate opponent pick for demo
-    React.useEffect(() => {
+    useEffect(() => {
         if (!draftState || !isOpponentTurn || !displayPokemons.length) return;
 
         const timer = setTimeout(async () => {
@@ -154,17 +179,17 @@ export default function BattleDraftScreen() {
 
     if (isLoadingDraft) {
         return (
-            <ThemedView style={styles.container}>
+            <ThemedView className="flex-1">
                 <ImageBackground
                     source={require("../../../../assets/images/list_pokemon_bg.png")}
-                    style={styles.bg}
-                    imageStyle={styles.bgImage}
+                    style={{ flex: 1 }}
+                    imageStyle={{ resizeMode: "cover" }}
                 >
                     <TWLinearGradient
                         colors={["rgba(17,24,39,0.85)", "rgba(17,24,39,0.6)", "rgba(17,24,39,0.85)"]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
-                        style={styles.overlay}
+                        style={{ ...StyleSheet.absoluteFillObject }}
                     />
                     <View className="flex-1 items-center justify-center">
                         <ActivityIndicator size="large" color="#22d3ee" />
@@ -178,19 +203,12 @@ export default function BattleDraftScreen() {
     }
 
     return (
-        <ThemedView style={styles.container}>
+        <ThemedView style={{ flex: 1 }}>
             <ImageBackground
                 source={require("../../../../assets/images/list_pokemon_bg.png")}
-                style={styles.bg}
-                imageStyle={styles.bgImage}
+                style={{ flex: 1 }}
+                imageStyle={{ resizeMode: "cover" }}
             >
-                <TWLinearGradient
-                    colors={["rgba(17,24,39,0.85)", "rgba(17,24,39,0.6)", "rgba(17,24,39,0.85)"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.overlay}
-                />
-
                 {/* Header */}
                 <View className="px-5 pt-16 pb-6">
                     <View className="flex-row items-center justify-between mb-4">
@@ -442,18 +460,4 @@ export default function BattleDraftScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    bg: {
-        flex: 1,
-    },
-    bgImage: {
-        resizeMode: "cover",
-    },
-    overlay: {
-        ...StyleSheet.absoluteFillObject,
-    },
-});
 

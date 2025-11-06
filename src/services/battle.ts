@@ -1,5 +1,5 @@
 import { axiosPrivate } from "@configs/axios";
-import { IBattleDraftState, IBattleMatch, IBattleState } from "@models/battle/battle.types";
+import { IBattleDraftState, IBattleMatch, IBattleState } from "@models/battle/battle.response";
 
 // Store draft state in memory for demo
 let draftStateStore: Record<string, IBattleDraftState> = {};
@@ -19,7 +19,11 @@ const battleService = {
     },
 
     getListMatchRound: async () => {
-        return axiosPrivate.get(`/match-round/now/user}`);
+        return axiosPrivate.get(`/match-round/now/user`);
+    },
+
+    getListUserPokemonRound: async (typeId: number) => {
+        return axiosPrivate.get(`/user-pokemon/user/rounds/pokemons?qs=types=${typeId}`);
     },
 
     // Get current match status (simulated)

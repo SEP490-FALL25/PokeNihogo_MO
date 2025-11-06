@@ -10,7 +10,8 @@ import TypingText from "@components/ui/TypingText";
 import { getSocket } from "@configs/socket";
 import { BATTLE_STATUS } from "@constants/battle.enum";
 import useAuth from "@hooks/useAuth";
-import { IBattleMatchFound, IBattleMatchStatusUpdate } from "@models/battle/battle.types";
+import { IBattleMatchFound, IBattleMatchStatusUpdate } from "@models/battle/battle.response";
+import { ROUTES } from "@routes/routes";
 import battleService from "@services/battle";
 import { useAuthStore } from "@stores/auth/auth.config";
 import { useRouter } from "expo-router";
@@ -203,7 +204,7 @@ export default function BattleLobbyScreen() {
           setMatchedPlayer(null);
           setInQueue(false);
           router.push({
-            pathname: "/(app)/(battle)/draft",
+            pathname: ROUTES.APP.PICK_POKEMON,
             params: {
               matchId: payload.matchId,
             },

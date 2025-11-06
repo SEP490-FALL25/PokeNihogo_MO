@@ -52,7 +52,7 @@ export default function UserAvatar({
           ]}
         >
           <Text style={[styles.placeholderText, { fontSize }]}>
-            {name.charAt(0).toUpperCase()}
+            {name?.charAt(0)?.toUpperCase()}
           </Text>
         </View>
       )}

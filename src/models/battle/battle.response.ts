@@ -45,6 +45,61 @@ export type IBattleMatchStatusUpdate = z.infer<typeof BattleMatchStatusUpdate>;
 //------------------------End------------------------//
 
 
+/**
+ * Battle Match Round Schema
+ */
+export const BattleMatchRoundSchema = z.object({
+    match: z.object({
+        id: z.number(),
+        status: z.string(),
+        participants: z.array(z.object({
+            id: z.number(),
+            userId: z.number(),
+            user: z.object({
+                id: z.number(),
+                name: z.string(),
+                email: z.string(),
+                eloscore: z.number(),
+                avatar: z.string().optional(),
+            }),
+        })),
+    }),
+    rounds: z.array(z.object({
+        id: z.number(),
+        roundNumber: z.enum(["ONE", "TWO", "THREE"]),
+        status: z.enum(["PENDING", "SELECTING_POKEMON", "SELECTED_POKEMON", "COMPLETED"]),
+        endTimeRound: z.string().optional(),
+        participants: z.array(z.object({
+            id: z.number(),
+            matchParticipantId: z.number(),
+            orderSelected: z.number(),
+            endTimeSelected: z.string().optional(),
+            selectedUserPokemonId: z.number().optional(),
+            selectedUserPokemon: z.object({
+                id: z.number(),
+                userId: z.number(),
+                pokemonId: z.number(),
+                pokemon: z.object({
+                    id: z.number(),
+                    pokedex_number: z.number(),
+                    nameJp: z.string(),
+                    nameTranslations: z.object({
+                        en: z.string(),
+                        ja: z.string(),
+                        vi: z.string(),
+                    }),
+                    imageUrl: z.string().url(),
+                    rarity: z.string(),
+                }),
+            }).optional(),
+        })),
+    })),
+});
+
+export type IBattleMatchRound = z.infer<typeof BattleMatchRoundSchema>;
+//------------------------End------------------------//
+
+
 export const BattleMatchSchema = z.object({
     id: z.string(),
     playerId: z.number(),
