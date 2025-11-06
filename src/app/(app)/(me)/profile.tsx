@@ -1,7 +1,9 @@
+import UserAvatar from '@components/atoms/UserAvatar';
 import BackScreen from '@components/molecules/Back';
 import { useAuth } from '@hooks/useAuth';
 import { useListPokemons } from '@hooks/usePokemonData';
 import { IPokemon } from '@models/pokemon/pokemon.common';
+import { IUserEntity } from '@models/user/user.entity';
 import { ROUTES } from '@routes/routes';
 import { formatDateToMMYYYY } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -170,7 +172,7 @@ const AchievementBadge: React.FC<AchievementBadgeProps> = ({ name, icon, colors 
 export default function ProfileScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const userProfile = user?.data;
+  const userProfile = user?.data as IUserEntity;
   const insets = useSafeAreaInsets();
 
   const { data: pokemonsData } = useListPokemons({
@@ -226,7 +228,7 @@ export default function ProfileScreen() {
               <View style={styles.progressGlow} />
               <Progress.Circle
                 size={152}
-                progress={mockUserData?.level?.progress}
+                progress={user?.level?.progress}
                 thickness={11}
                 color={'#10b981'}
                 unfilledColor={'rgba(255,255,255,0.25)'}
@@ -235,10 +237,12 @@ export default function ProfileScreen() {
               />
 
               {/* Avatar with White Border */}
-              <View className="absolute w-34 h-34 rounded-full bg-white items-center justify-center shadow-lg">
-                <Image
-                  source={{ uri: userProfile?.avatar }}
-                  className="w-32 h-32 rounded-full"
+              <View className="absolute w-34 h-34 rounded-full items-center justify-center shadow-lg">
+                <UserAvatar
+                  name={userProfile?.name ?? ""}
+                  avatar={userProfile?.avatar ?? undefined}
+                  size="large"
+                  onPress={() => { }}
                 />
               </View>
 
@@ -265,7 +269,7 @@ export default function ProfileScreen() {
               className="flex-row items-center px-4.5 py-2.5 rounded-2xl gap-1.5 mb-3"
             >
               <Trophy size={16} color="white" strokeWidth={2.5} />
-              <Text className="text-base font-bold text-white tracking-wide">{mockUserData?.level?.name}</Text>
+              <Text className="text-base font-bold text-white tracking-wide">{userProfile?.level.levelNumber}</Text>
             </LinearGradient>
 
             <View className="flex-row items-center gap-1.5">
