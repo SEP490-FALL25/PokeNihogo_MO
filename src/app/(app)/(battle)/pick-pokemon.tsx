@@ -133,14 +133,18 @@ export default function PickPokemonScreen() {
             return null; // only rely on endTimeSelected per requirement
         })();
 
-        // Build picks arrays for UI display (length 3)
+        // Build picks arrays for UI display (length 3) - store both ID and Pokemon object
         const playerPicks: Array<number | null> = [null, null, null];
         const opponentPicks: Array<number | null> = [null, null, null];
+        const playerPicksData: Array<any | null> = [null, null, null];
+        const opponentPicksData: Array<any | null> = [null, null, null];
         matchRound.rounds.forEach((round, idx) => {
             const rpPlayer = round.participants.find((rp) => rp.matchParticipantId === playerMatchParticipantId);
             const rpOpponent = round.participants.find((rp) => rp.matchParticipantId === opponentMatchParticipantId);
             playerPicks[idx] = rpPlayer?.selectedUserPokemon?.pokemon?.id ?? null;
             opponentPicks[idx] = rpOpponent?.selectedUserPokemon?.pokemon?.id ?? null;
+            playerPicksData[idx] = rpPlayer?.selectedUserPokemon?.pokemon ?? null;
+            opponentPicksData[idx] = rpOpponent?.selectedUserPokemon?.pokemon ?? null;
         });
 
         return {
@@ -153,6 +157,8 @@ export default function PickPokemonScreen() {
             pickDeadline,
             playerPicks,
             opponentPicks,
+            playerPicksData,
+            opponentPicksData,
         };
     }, [matchRound, currentUserId]);
 
@@ -334,27 +340,28 @@ export default function PickPokemonScreen() {
                                 Đối thủ ({matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""})
                             </ThemedText>
                             <View className="flex-row flex-wrap gap-2">
-                                {[0, 1, 2].map((idx) => (
-                                    <View key={idx} className="w-16 h-16 rounded-xl border border-white/20 bg-black/40">
-                                        {battleContext && battleContext.opponentPicks[idx] ? (
-                                            <View className="flex-1 items-center justify-center">
-                                                {getPokemonById(battleContext.opponentPicks[idx]!) && (
+                                {[0, 1, 2].map((idx) => {
+                                    const pokemon = battleContext?.opponentPicksData[idx];
+                                    return (
+                                        <View key={idx} className="w-16 h-16 rounded-xl border border-white/20 bg-black/40">
+                                            {pokemon ? (
+                                                <View className="flex-1 items-center justify-center">
                                                     <Image
-                                                        source={{ uri: getPokemonById(battleContext.opponentPicks[idx]!)!.imageUrl }}
+                                                        source={{ uri: pokemon.imageUrl }}
                                                         style={{ width: 48, height: 48 }}
                                                         resizeMode="contain"
                                                     />
-                                                )}
-                                            </View>
-                                        ) : (
-                                            <View className="flex-1 items-center justify-center">
-                                                <Animated.View style={{ opacity: 0.3 }}>
-                                                    <Clock size={24} color="#64748b" />
-                                                </Animated.View>
-                                            </View>
-                                        )}
-                                    </View>
-                                ))}
+                                                </View>
+                                            ) : (
+                                                <View className="flex-1 items-center justify-center">
+                                                    <Animated.View style={{ opacity: 0.3 }}>
+                                                        <Clock size={24} color="#64748b" />
+                                                    </Animated.View>
+                                                </View>
+                                            )}
+                                        </View>
+                                    );
+                                })}
                             </View>
                         </View>
 
@@ -364,27 +371,28 @@ export default function PickPokemonScreen() {
                                 Bạn
                             </ThemedText>
                             <View className="flex-row flex-wrap gap-2">
-                                {[0, 1, 2].map((idx) => (
-                                    <View key={idx} className="w-16 h-16 rounded-xl border border-white/20 bg-black/40">
-                                        {battleContext && battleContext.playerPicks[idx] ? (
-                                            <View className="flex-1 items-center justify-center">
-                                                {getPokemonById(battleContext.playerPicks[idx]!) && (
+                                {[0, 1, 2].map((idx) => {
+                                    const pokemon = battleContext?.playerPicksData[idx];
+                                    return (
+                                        <View key={idx} className="w-16 h-16 rounded-xl border border-white/20 bg-black/40">
+                                            {pokemon ? (
+                                                <View className="flex-1 items-center justify-center">
                                                     <Image
-                                                        source={{ uri: getPokemonById(battleContext.playerPicks[idx]!)!.imageUrl }}
+                                                        source={{ uri: pokemon.imageUrl }}
                                                         style={{ width: 48, height: 48 }}
                                                         resizeMode="contain"
                                                     />
-                                                )}
-                                            </View>
-                                        ) : (
-                                            <View className="flex-1 items-center justify-center">
-                                                <Animated.View style={{ opacity: 0.3 }}>
-                                                    <Clock size={24} color="#64748b" />
-                                                </Animated.View>
-                                            </View>
-                                        )}
-                                    </View>
-                                ))}
+                                                </View>
+                                            ) : (
+                                                <View className="flex-1 items-center justify-center">
+                                                    <Animated.View style={{ opacity: 0.3 }}>
+                                                        <Clock size={24} color="#64748b" />
+                                                    </Animated.View>
+                                                </View>
+                                            )}
+                                        </View>
+                                    );
+                                })}
                             </View>
                         </View>
                     </View>
