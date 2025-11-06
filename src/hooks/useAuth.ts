@@ -11,13 +11,6 @@ export const useAuth = () => {
         queryFn: () => authService.getProfile(),
         enabled: !!accessToken,
     });
-console.log('user: ', user?.data?.level);
-    useEffect(() => {
-        if (isError) {
-            console.error("--- LỖI TỪ API GET PROFILE ---");
-            console.error("Lỗi chi tiết:", error.message);
-        }
-    }, [isError, error]);
 
     return {
         isAuthenticated: !!user,
