@@ -160,6 +160,14 @@ const JLPTLevelMap: React.FC<{
     );
   }
 
+  const DUO_IMAGE = [
+    require("@assets/animations/Animation - 1740640302159.json"),
+    require("@assets/animations/Day 18 - Dreaming Snorlax.json"),
+    require("@assets/animations/hectordev4pokeball.json"),
+    require("@assets/animations/It's a Squirtle Christmas.json"),
+    require("@assets/animations/Mystery Gift by Oscar Soronellas.json"),
+  ];
+
   return (
     <View style={styles.levelMapContainer}>
       <ThemedText type="subtitle" style={styles.levelTitle}>
@@ -167,6 +175,7 @@ const JLPTLevelMap: React.FC<{
       </ThemedText>
       {allLessons.length > 0 ? (
         <LessonMap
+          duoImages={DUO_IMAGE}
           lessons={allLessons}
           onLessonPress={onLessonPress}
         />
@@ -379,10 +388,7 @@ const CategoriesScreen = () => {
         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
       }
     >
-
       <View style={styles.contentContainer}>
-        {/* Progress Header */}
-
         {/* Lesson Maps for JLPT Levels (N5, N4, N3) */}
         {jlptLevelsForMap.map((level, index) => (
           <React.Fragment key={level.id}>
@@ -474,9 +480,7 @@ const CategoriesScreen = () => {
                 speak
               </ThemedText>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => router.push(ROUTES.APP.DEMO)}
-            >
+            <TouchableOpacity onPress={() => router.push(ROUTES.APP.DEMO)}>
               <ThemedText type="subtitle" style={styles.categoriesTitle}>
                 test ui
               </ThemedText>

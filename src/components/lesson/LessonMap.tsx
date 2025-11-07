@@ -1,3 +1,4 @@
+import LottieAnimation from "@components/ui/LottieAnimation";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { LessonProgress } from "@models/lesson/lesson.common";
 import { Image } from "expo-image";
@@ -26,8 +27,8 @@ const HALF_CYCLE_NODES = 4; // Số bước (segments) từ Tâm đến Tâm (No
 const PEAK_NODE_INDEX = 2; // Node thứ 3 là đỉnh (index 2)
 const CYCLE_LENGTH = 8; // Tổng số bước (Node 1 -> Node 9)
 
-const DUO_OFFSET = NODE_SIZE / 2 + 30; // Khoảng cách Duo so với cạnh node
-const DUO_IMAGE_SIZE = 80;
+const DUO_OFFSET = NODE_SIZE / 2 + 120; // Khoảng cách Duo so với cạnh node
+const DUO_IMAGE_SIZE = 300;
 const DUO_FIXED_Y_OFFSET = 0; // Điều chỉnh Duo lên trên một chút
 
 // Định nghĩa kiểu dữ liệu cho node bài học
@@ -46,9 +47,23 @@ export type LessonNode = {
   lessonProgress: LessonProgress; // Lưu thông tin gốc
 };
 
+// Type cho Duo source - có thể là ảnh hoặc Lottie animation
+export type DuoSource = 
+  | { type: "lottie"; source: any } // Lottie: require() hoặc URL string
+  | { type: "image"; source: any }; // Image: require() hoặc { uri: string }
+
 export interface LessonMapProps {
   lessons: LessonProgress[];
-  duoImages?: string[]; // Danh sách ảnh Duo (optional)
+  /**
+   * Danh sách ảnh hoặc Lottie animation cho Duo (optional)
+   * 
+   * Có thể truyền theo 2 cách:
+   * 1. Format mới (khuyến nghị): [{ type: "lottie", source: require(...) }, { type: "image", source: "url" }]
+   * 2. Format cũ (backward compatible): [require(...), "url", { uri: "..." }]
+   *    - String hoặc object có uri -> tự động detect là image
+   *    - require() hoặc object khác -> tự động detect là lottie
+   */
+  duoImages?: (DuoSource | any)[]; 
   onLessonPress?: (lesson: LessonProgress) => void;
   screenWidth?: number; // Cho phép override screen width
 }
@@ -157,7 +172,7 @@ const LessonNodeComponent: React.FC<{
   node: LessonNode;
   onPress?: (lesson: LessonProgress) => void;
 }> = ({ node, onPress }) => {
-  const { isActive, isUnlocked, id, progressPercentage } = node;
+  const { isActive, isUnlocked, progressPercentage } = node;
   const style = useMemo(() => {
     let iconContainerStyle: ViewStyle[] = [styles.baseIconContainer];
     let iconColor = "#555";
@@ -251,10 +266,26 @@ const LessonNodeComponent: React.FC<{
   );
 };
 
+// Helper function để detect và convert source cũ (backward compatibility)
+const normalizeDuoSource = (source: any): DuoSource => {
+  // Nếu đã là DuoSource format mới
+  if (source && typeof source === "object" && "type" in source) {
+    return source as DuoSource;
+  }
+  
+  // Auto-detect: nếu là string hoặc có uri -> image, ngược lại -> lottie
+  if (typeof source === "string" || (source && typeof source === "object" && "uri" in source)) {
+    return { type: "image", source };
+  }
+  
+  // Mặc định là Lottie (require() hoặc object khác)
+  return { type: "lottie", source };
+};
+
 // --- Component Duo Động ---
 const DynamicDuo: React.FC<{
   lessonData: LessonNode[];
-  duoImages: string[];
+  duoImages: DuoSource[];
 }> = ({ lessonData, duoImages }) => {
   if (duoImages.length === 0) return null;
 
@@ -268,15 +299,15 @@ const DynamicDuo: React.FC<{
   return (
     <>
       {duoNodes.map((duoNode, index) => {
-        // Chỉ hiển thị Duo nếu có đủ ảnh cho peak node này
+        // Chỉ hiển thị Duo nếu có đủ animation cho peak node này
         if (index >= duoImages.length) {
           return null;
         }
 
         let duoX: number;
         let duoY: number;
-        // Lấy ảnh trực tiếp theo index (không dùng modulo để lặp lại)
-        const duoImageSource = duoImages[index];
+        // Lấy source (đã được normalize trong LessonMap)
+        const duoSource = duoImages[index];
         let duoTransform: { scaleX: number };
 
         // Logic định vị Duo dựa trên hướng cong (curveSide)
@@ -295,7 +326,7 @@ const DynamicDuo: React.FC<{
         // Điều chỉnh vị trí Y để Duo nằm cạnh node
         duoY = duoNode.y - DUO_IMAGE_SIZE / 2 + DUO_FIXED_Y_OFFSET;
 
-        // Vị trí cuối cùng của Duo (căn giữa hình ảnh)
+        // Vị trí cuối cùng của Duo (căn giữa animation)
         const DUO_FINAL_POSITION = {
           left: duoX - DUO_IMAGE_SIZE / 2,
           top: duoY,
@@ -306,11 +337,28 @@ const DynamicDuo: React.FC<{
             key={`duo-${duoNode.id}`}
             style={[styles.duoPlaceholder, DUO_FINAL_POSITION]}
           >
-            <Image
-              source={duoImageSource}
-              style={[styles.duoImage, { transform: [duoTransform] }]}
-              contentFit="contain"
-            />
+            {duoSource.type === "lottie" ? (
+              <LottieAnimation
+                source={duoSource.source}
+                autoPlay
+                loop
+                width={DUO_IMAGE_SIZE}
+                height={DUO_IMAGE_SIZE}
+                style={{ transform: [duoTransform] }}
+              />
+            ) : (
+              <Image
+                source={duoSource.source}
+                style={[
+                  {
+                    width: DUO_IMAGE_SIZE,
+                    height: DUO_IMAGE_SIZE,
+                    transform: [duoTransform],
+                  },
+                ]}
+                contentFit="contain"
+              />
+            )}
           </View>
         );
       })}
@@ -330,6 +378,11 @@ export default function LessonMap({
     () => convertLessonsToNodes(lessons, screenWidth),
     [lessons, screenWidth]
   );
+
+  // Normalize duoImages để hỗ trợ backward compatibility
+  const normalizedDuoImages = useMemo(() => {
+    return duoImages.map((source) => normalizeDuoSource(source));
+  }, [duoImages]);
 
   // Tính toán chiều cao ScrollView để cuộn được hết các node
   const contentHeight =
@@ -351,8 +404,8 @@ export default function LessonMap({
         ))}
 
         {/* Linh vật Duo (vị trí động và hướng nhìn động) */}
-        {duoImages.length > 0 && (
-          <DynamicDuo lessonData={lessonNodes} duoImages={duoImages} />
+        {normalizedDuoImages.length > 0 && (
+          <DynamicDuo lessonData={lessonNodes} duoImages={normalizedDuoImages} />
         )}
       </ScrollView>
     </View>
@@ -401,10 +454,6 @@ const styles = StyleSheet.create({
   duoPlaceholder: {
     position: "absolute",
     zIndex: 100,
-  },
-  duoImage: {
-    width: DUO_IMAGE_SIZE,
-    height: DUO_IMAGE_SIZE,
   },
 });
 
