@@ -17,7 +17,7 @@ import { useGlobalStore } from "@stores/global/global.config";
 import { useQueryClient } from "@tanstack/react-query"; // Thêm dòng này
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Check, Clock, Sparkles, Star } from "lucide-react-native";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Animated, Image, ImageBackground, ScrollView, StyleSheet, View } from "react-native";
 
 export default function PickPokemonScreen() {
@@ -103,16 +103,24 @@ export default function PickPokemonScreen() {
 
         //#region Xác định round hiện tại
 
-        // Tìm vòng SELECTING_POKEMON *đầu tiên* (lặp từ 0 tăng lên)
-        let currentRoundIndex = matchRound.rounds.findIndex(
-            (r) => r.status === "SELECTING_POKEMON"
-        );
+        // Tìm vòng SELECTING_POKEMON *cuối cùng* (round đang active - thường là round mới nhất)
+        // Vì có thể có nhiều round cùng status, ta cần lấy round cuối cùng
+        let currentRoundIndex = -1;
+        for (let i = matchRound.rounds.length - 1; i >= 0; i--) {
+            if (matchRound.rounds[i].status === "SELECTING_POKEMON") {
+                currentRoundIndex = i;
+                break;
+            }
+        }
 
-        // Nếu không tìm thấy, thì tìm vòng PENDING *đầu tiên* (lặp từ 0 tăng lên)
+        // Nếu không tìm thấy SELECTING_POKEMON, thì tìm vòng PENDING *cuối cùng*
         if (currentRoundIndex === -1) {
-            currentRoundIndex = matchRound.rounds.findIndex(
-                (r) => r.status === "PENDING"
-            );
+            for (let i = matchRound.rounds.length - 1; i >= 0; i--) {
+                if (matchRound.rounds[i].status === "PENDING") {
+                    currentRoundIndex = i;
+                    break;
+                }
+            }
         }
         //#endregion
 
@@ -306,6 +314,34 @@ export default function PickPokemonScreen() {
      * Countdown for current picker
      */
     const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+
+    /**
+     * Pulse animation for active turn indicator
+     */
+    const pulseAnim = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        if (battleContext?.isPlayerTurn || battleContext?.isOpponentTurn) {
+            const pulse = Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, {
+                        toValue: 1.05,
+                        duration: 1500,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(pulseAnim, {
+                        toValue: 1,
+                        duration: 1500,
+                        useNativeDriver: true,
+                    }),
+                ])
+            );
+            pulse.start();
+            return () => pulse.stop();
+        } else {
+            pulseAnim.setValue(1);
+        }
+    }, [battleContext?.isPlayerTurn, battleContext?.isOpponentTurn, pulseAnim]);
 
     useEffect(() => {
         // Reset when round changes
@@ -576,10 +612,16 @@ export default function PickPokemonScreen() {
                         <View className="flex-row items-center gap-2">
                             <Clock size={16} color="#22d3ee" />
                             <ThemedText style={{ color: "#cbd5e1", fontSize: 14 }}>
-                                Round {battleContext?.currentRound ?
-                                    (battleContext.currentRound.roundNumber === "ONE" ? "1" :
-                                        battleContext.currentRound.roundNumber === "TWO" ? "2" : "3")
-                                    : (battleContext?.currentRoundIndex ?? 0) + 1}/3
+                                Round {(() => {
+                                    if (battleContext?.currentRound?.roundNumber) {
+                                        const roundNum = battleContext.currentRound.roundNumber;
+                                        if (roundNum === "ONE") return "1";
+                                        if (roundNum === "TWO") return "2";
+                                        if (roundNum === "THREE") return "3";
+                                        return String(battleContext.currentRoundIndex + 1);
+                                    }
+                                    return String((battleContext?.currentRoundIndex ?? 0) + 1);
+                                })()}/3
                             </ThemedText>
                         </View>
                     </View>
@@ -587,19 +629,99 @@ export default function PickPokemonScreen() {
                     {/* Opponent vs Player */}
                     <View className="flex-row items-center justify-between">
                         {/* Opponent */}
-                        <View className="items-center flex-1">
-                            <UserAvatar name={matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""} size="large" />
-                            <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
+                        <Animated.View
+                            className="items-center flex-1 px-3 py-4 rounded-2xl"
+                            style={{
+                                transform: battleContext?.isOpponentTurn ? [{ scale: pulseAnim }] : [{ scale: 1 }],
+                                opacity: battleContext?.isOpponentTurn ? 1 : 0.7,
+                            }}
+                        >
+                            {battleContext?.isOpponentTurn ? (
+                                <TWLinearGradient
+                                    colors={["rgba(239, 68, 68, 0.08)", "rgba(239, 68, 68, 0.15)", "rgba(239, 68, 68, 0.08)"]}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                    style={{
+                                        position: "absolute",
+                                        left: 0,
+                                        right: 0,
+                                        top: 0,
+                                        bottom: 0,
+                                        borderRadius: 16,
+                                        borderWidth: 1.5,
+                                        borderColor: "rgba(239, 68, 68, 0.4)",
+                                    }}
+                                />
+                            ) : null}
+                            <View className="relative items-center">
+                                <View
+                                    className="rounded-full"
+                                    style={{
+                                        padding: battleContext?.isOpponentTurn ? 2 : 0,
+                                        borderRadius: 999,
+                                    }}
+                                >
+                                    {battleContext?.isOpponentTurn ? (
+                                        <TWLinearGradient
+                                            colors={["rgba(239, 68, 68, 0.6)", "rgba(220, 38, 38, 0.8)", "rgba(239, 68, 68, 0.6)"]}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={{
+                                                borderRadius: 999,
+                                                padding: 2,
+                                            }}
+                                        >
+                                            <View style={{ borderRadius: 999, backgroundColor: "transparent" }}>
+                                                <UserAvatar name={matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""} size="large" />
+                                            </View>
+                                        </TWLinearGradient>
+                                    ) : (
+                                        <UserAvatar name={matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""} size="large" />
+                                    )}
+                                </View>
+                                {battleContext?.isOpponentTurn && (
+                                    <View
+                                        style={{
+                                            position: "absolute",
+                                            bottom: -2,
+                                            left: "50%",
+                                            marginLeft: -8,
+                                            width: 16,
+                                            height: 3,
+                                            borderRadius: 2,
+                                            backgroundColor: "#ef4444",
+                                            shadowColor: "#ef4444",
+                                            shadowOffset: { width: 0, height: 0 },
+                                            shadowOpacity: 0.8,
+                                            shadowRadius: 4,
+                                            elevation: 4,
+                                        }}
+                                    />
+                                )}
+                            </View>
+                            <ThemedText style={{
+                                color: battleContext?.isOpponentTurn ? "#fca5a5" : "#9ca3af",
+                                fontSize: 14,
+                                fontWeight: battleContext?.isOpponentTurn ? "700" : "600",
+                                marginTop: 8,
+                                textShadowColor: battleContext?.isOpponentTurn ? "rgba(239, 68, 68, 0.5)" : "transparent",
+                                textShadowOffset: { width: 0, height: 1 },
+                                textShadowRadius: 4,
+                            }}>
                                 {matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""}
                             </ThemedText>
                             {battleContext?.isOpponentTurn && (
-                                <View className="mt-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40">
+                                <View className="mt-2 px-3 py-1 rounded-full" style={{
+                                    backgroundColor: "rgba(239, 68, 68, 0.2)",
+                                    borderWidth: 1,
+                                    borderColor: "rgba(239, 68, 68, 0.5)",
+                                }}>
                                     <ThemedText style={{ color: "#fca5a5", fontSize: 11, fontWeight: "700" }}>
                                         ĐANG PICK
                                     </ThemedText>
                                 </View>
                             )}
-                        </View>
+                        </Animated.View>
 
                         {/* VS */}
                         <TWLinearGradient
@@ -625,19 +747,99 @@ export default function PickPokemonScreen() {
                         </TWLinearGradient>
 
                         {/* Player */}
-                        <View className="items-center flex-1">
-                            <UserAvatar name={"Bạn"} size="large" />
-                            <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
+                        <Animated.View
+                            className="items-center flex-1 px-3 py-4 rounded-2xl"
+                            style={{
+                                transform: battleContext?.isPlayerTurn ? [{ scale: pulseAnim }] : [{ scale: 1 }],
+                                opacity: battleContext?.isPlayerTurn ? 1 : 0.7,
+                            }}
+                        >
+                            {battleContext?.isPlayerTurn ? (
+                                <TWLinearGradient
+                                    colors={["rgba(34, 197, 94, 0.08)", "rgba(34, 197, 94, 0.15)", "rgba(34, 197, 94, 0.08)"]}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                    style={{
+                                        position: "absolute",
+                                        left: 0,
+                                        right: 0,
+                                        top: 0,
+                                        bottom: 0,
+                                        borderRadius: 16,
+                                        borderWidth: 1.5,
+                                        borderColor: "rgba(34, 197, 94, 0.4)",
+                                    }}
+                                />
+                            ) : null}
+                            <View className="relative items-center">
+                                <View
+                                    className="rounded-full"
+                                    style={{
+                                        padding: battleContext?.isPlayerTurn ? 2 : 0,
+                                        borderRadius: 999,
+                                    }}
+                                >
+                                    {battleContext?.isPlayerTurn ? (
+                                        <TWLinearGradient
+                                            colors={["rgba(34, 197, 94, 0.6)", "rgba(22, 163, 74, 0.8)", "rgba(34, 197, 94, 0.6)"]}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={{
+                                                borderRadius: 999,
+                                                padding: 2,
+                                            }}
+                                        >
+                                            <View style={{ borderRadius: 999, backgroundColor: "transparent" }}>
+                                                <UserAvatar name={"Bạn"} size="large" />
+                                            </View>
+                                        </TWLinearGradient>
+                                    ) : (
+                                        <UserAvatar name={"Bạn"} size="large" />
+                                    )}
+                                </View>
+                                {battleContext?.isPlayerTurn && (
+                                    <View
+                                        style={{
+                                            position: "absolute",
+                                            bottom: -2,
+                                            left: "50%",
+                                            marginLeft: -8,
+                                            width: 16,
+                                            height: 3,
+                                            borderRadius: 2,
+                                            backgroundColor: "#22c55e",
+                                            shadowColor: "#22c55e",
+                                            shadowOffset: { width: 0, height: 0 },
+                                            shadowOpacity: 0.8,
+                                            shadowRadius: 4,
+                                            elevation: 4,
+                                        }}
+                                    />
+                                )}
+                            </View>
+                            <ThemedText style={{
+                                color: battleContext?.isPlayerTurn ? "#86efac" : "#9ca3af",
+                                fontSize: 14,
+                                fontWeight: battleContext?.isPlayerTurn ? "700" : "600",
+                                marginTop: 8,
+                                textShadowColor: battleContext?.isPlayerTurn ? "rgba(34, 197, 94, 0.5)" : "transparent",
+                                textShadowOffset: { width: 0, height: 1 },
+                                textShadowRadius: 4,
+                            }}>
                                 Bạn
                             </ThemedText>
                             {battleContext?.isPlayerTurn && (
-                                <View className="mt-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/40">
+                                <View className="mt-2 px-3 py-1 rounded-full" style={{
+                                    backgroundColor: "rgba(34, 197, 94, 0.2)",
+                                    borderWidth: 1,
+                                    borderColor: "rgba(34, 197, 94, 0.5)",
+                                }}>
                                     <ThemedText style={{ color: "#86efac", fontSize: 11, fontWeight: "700" }}>
                                         CHỌN NGAY
                                     </ThemedText>
                                 </View>
                             )}
-                        </View>
+                        </Animated.View>
                     </View>
                 </View>
 
