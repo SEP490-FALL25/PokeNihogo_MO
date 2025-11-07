@@ -28,6 +28,7 @@ type Message = {
   text?: string;
   translation?: string;
   audioUrl?: string;
+  messageId?: string | number; // Backend message ID for audio updates (can be string or number)
 };
 
 type MessageUpdate = (message: Message) => Message;
@@ -39,14 +40,16 @@ const devLog = (...args: unknown[]) => {
 };
 
 export default function AiConversationScreen() {
-  const { topicId } = useLocalSearchParams<{ topicId?: string }>();
+  const { topicId, conversationId: initialConversationId } = useLocalSearchParams<{
+    topicId?: string;
+    conversationId?: string;
+  }>();
   const accessToken = useAuthStore((s) => s.accessToken);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<
@@ -91,6 +94,28 @@ export default function AiConversationScreen() {
       return prev;
     });
   }, []);
+
+  const updateMessageById = useCallback(
+    (messageId: string | number, updater: MessageUpdate) => {
+      setMessages((prev) => {
+        // Compare messageIds (handle both string and number)
+        const index = prev.findIndex((msg) => {
+          if (msg.messageId === undefined || messageId === undefined)
+            return false;
+          return String(msg.messageId) === String(messageId);
+        });
+        if (index === -1) return prev;
+        const nextMessage = updater(prev[index]);
+        if (nextMessage === prev[index]) {
+          return prev;
+        }
+        const next = [...prev];
+        next[index] = nextMessage;
+        return next;
+      });
+    },
+    []
+  );
 
   const scheduleApplyPendingTranslation = useCallback(() => {
     clearTranslationTimer();
@@ -214,11 +239,10 @@ export default function AiConversationScreen() {
             </ThemedText>
           ) : null}
 
-          {item.audioUrl ? (
-            <View style={{ marginTop: 8 }}>
-              <AudioPlayer audioUrl={item.audioUrl} />
-            </View>
-          ) : null}
+          {/* Always show audio player, disabled if no audioUrl */}
+          <View style={{ marginTop: 8 }}>
+            <AudioPlayer audioUrl={item.audioUrl || null} />
+          </View>
         </View>
       </View>
     );
@@ -361,8 +385,17 @@ export default function AiConversationScreen() {
       setIsSocketConnected(true);
       setIsConnecting(false);
 
-      // Emit join event (no data, just join)
-      socket.emit("join");
+      // Emit join event - use join-kaiwa-room with optional conversationId
+      if (initialConversationId) {
+        // Join existing conversation
+        socket.emit("join-kaiwa-room", {
+          conversationId: initialConversationId,
+        });
+        setConversationId(initialConversationId);
+      } else {
+        // Join new conversation
+        socket.emit("join-kaiwa-room", {});
+      }
       setIsLoading(true);
     });
 
@@ -373,6 +406,40 @@ export default function AiConversationScreen() {
         setConversationId(data.conversationId);
       }
       setIsLoading(false);
+    });
+
+    // Listen for history event (load previous messages when joining existing conversation)
+    socket.on("history", (data: {
+      messages?: {
+        messageId?: string | number;
+        role: "USER" | "AI";
+        message: string;
+        translation?: string;
+        audioUrl?: string;
+      }[];
+    }) => {
+      devLog("[SOCKET] History loaded:", data);
+      if (data.messages && data.messages.length > 0) {
+        const historyMessages: Message[] = data.messages.map((msg, index) => ({
+          id:
+            msg.messageId !== undefined && msg.messageId !== null
+              ? String(msg.messageId)
+              : `${msg.role}-${Date.now()}-${index}-${Math.random()}`,
+          role: msg.role === "USER" ? "user" : "ai",
+          text: msg.message,
+          translation: msg.translation,
+          audioUrl: msg.audioUrl,
+          messageId: msg.messageId,
+        }));
+        setMessages(historyMessages);
+        devLog(`[SOCKET] Loaded ${historyMessages.length} messages from history`);
+      }
+    });
+
+    // Listen for room-updated event (refresh room list when conversation is updated)
+    socket.on("room-updated", (data: unknown) => {
+      devLog("[SOCKET] Room updated:", data);
+      // Could trigger room list refresh here if we had room list UI
     });
 
     socket.on("disconnect", () => {
@@ -401,32 +468,58 @@ export default function AiConversationScreen() {
     });
 
     // Listen for transcription (user's speech to text)
-    socket.on("transcription", (data: { text?: string }) => {
-      devLog("[SOCKET] Transcription:", data.text);
-      if (data.text) {
-        appendMessage({
-          id: `user-${Date.now()}`,
-          role: "user",
-          text: data.text,
-        });
+    socket.on(
+      "transcription",
+      (data: {
+        text?: string;
+        messageId?: string | number;
+        audioUrl?: string;
+      }) => {
+        devLog("[SOCKET] Transcription:", data);
+        if (data.text) {
+          appendMessage({
+            id: `user-${Date.now()}`,
+            role: "user",
+            text: data.text,
+            messageId: data.messageId,
+            // If audioUrl is already available in transcription event, use it
+            audioUrl: data.audioUrl,
+          });
+          devLog(
+            "[SOCKET] User message created with messageId:",
+            data.messageId,
+            "audioUrl:",
+            data.audioUrl
+          );
+        }
+        setProcessingStatus(undefined);
       }
-      setProcessingStatus(undefined);
-    });
+    );
 
     // Listen for AI text response
     socket.on(
       "text-response",
-      (data: { text?: string; translation?: string }) => {
+      (data: {
+        text?: string;
+        translation?: string;
+        messageId?: string | number;
+      }) => {
         devLog("[SOCKET] AI Response:", data.text);
         if (data.text || data.translation) {
+          const messageId = `ai-${Date.now()}`;
           appendMessage({
-            id: `ai-${Date.now()}`,
+            id: messageId,
             role: "ai",
             // Start empty to animate typing
             text: "",
             // Translation will be delayed if typing is ongoing
             translation: undefined,
+            messageId: data.messageId,
           });
+          devLog(
+            "[SOCKET] AI message created with messageId:",
+            data.messageId
+          );
           // Kick off client-side typing animation
           startTypingAnimation(data.text);
 
@@ -494,6 +587,108 @@ export default function AiConversationScreen() {
       }
     );
 
+    // Listen for message-audio-updated event (update audio URL for existing message)
+    socket.on(
+      "message-audio-updated",
+      (data: {
+        messageId?: string | number;
+        role?: "USER" | "AI";
+        audioUrl?: string;
+      }) => {
+        devLog("[SOCKET] Message audio updated:", data);
+        if (!data.audioUrl) {
+          devLog("[SOCKET] No audioUrl in message-audio-updated event");
+          return;
+        }
+
+        if (!data.role) {
+          devLog("[SOCKET] No role in message-audio-updated event");
+          return;
+        }
+
+        const role = data.role === "USER" ? "user" : "ai";
+        devLog(
+          `[SOCKET] Updating audio for ${role} message (role: ${data.role}), messageId:`,
+          data.messageId
+        );
+
+        // Helper function to compare messageIds (handle both string and number)
+        const compareMessageId = (
+          msgId1: string | number | undefined,
+          msgId2: string | number | undefined
+        ): boolean => {
+          if (msgId1 === undefined || msgId2 === undefined) return false;
+          // Convert both to string for comparison
+          return String(msgId1) === String(msgId2);
+        };
+
+        // Try to update by messageId if provided
+        if (data.messageId !== undefined && data.messageId !== null) {
+          setMessages((prev) => {
+            // First, try to find by messageId
+            const index = prev.findIndex((msg) =>
+              compareMessageId(msg.messageId, data.messageId)
+            );
+            if (index !== -1) {
+              // Verify role matches
+              if (prev[index].role === role) {
+                const next = [...prev];
+                next[index] = { ...next[index], audioUrl: data.audioUrl };
+                devLog(
+                  `[SOCKET] ✅ Successfully updated ${role} message by messageId: ${data.messageId} at index ${index}`
+                );
+                return next;
+              } else {
+                devLog(
+                  `[SOCKET] ⚠️ Message found by messageId but role mismatch. Expected: ${role}, Found: ${prev[index].role}`
+                );
+              }
+            }
+
+            // Not found by messageId or role mismatch, use fallback
+            devLog(
+              `[SOCKET] Message not found by messageId or role mismatch, using fallback for ${role}`
+            );
+            for (let i = prev.length - 1; i >= 0; i--) {
+              if (prev[i].role === role && !prev[i].audioUrl) {
+                const next = [...prev];
+                next[i] = { ...next[i], audioUrl: data.audioUrl };
+                devLog(
+                  `[SOCKET] ✅ Updated ${role} message at index ${i} with fallback (messageId: ${prev[i].messageId})`
+                );
+                return next;
+              }
+            }
+            devLog(
+              `[SOCKET] ❌ No ${role} message found to update (searched ${prev.length} messages)`
+            );
+            return prev;
+          });
+        } else {
+          // No messageId provided, use fallback: update last message of matching role
+          devLog(
+            `[SOCKET] No messageId provided, using fallback for ${role} message`
+          );
+          setMessages((prev) => {
+            for (let i = prev.length - 1; i >= 0; i--) {
+              if (prev[i].role === role && !prev[i].audioUrl) {
+                const next = [...prev];
+                next[i] = { ...next[i], audioUrl: data.audioUrl };
+                devLog(
+                  `[SOCKET] ✅ Updated last ${role} message at index ${i} without audioUrl (messageId: ${prev[i].messageId})`
+                );
+                return next;
+              }
+            }
+            devLog(
+              `[SOCKET] ❌ No ${role} message found to update (searched ${prev.length} messages)`
+            );
+            return prev;
+          });
+        }
+      }
+    );
+
     // Listen for errors
     socket.on("error", (error: { message?: string }) => {
       console.error("[SOCKET] Error:", error);
@@ -507,11 +702,14 @@ export default function AiConversationScreen() {
       socket.off("disconnect");
       socket.off("connect_error");
       socket.off("joined");
+      socket.off("history");
+      socket.off("room-updated");
       socket.off("processing");
       socket.off("transcription");
       socket.off("text-response");
       socket.off("text-response-update");
       socket.off("audio-response");
+      socket.off("message-audio-updated");
       socket.off("error");
       disconnectSocket();
       clearTranslationTimer();
@@ -520,8 +718,10 @@ export default function AiConversationScreen() {
   }, [
     accessToken,
     topicId,
+    initialConversationId,
     appendMessage,
     updateLastAiMessage,
+    updateMessageById,
     scheduleApplyPendingTranslation,
     startTypingAnimation,
   ]);
@@ -600,6 +800,13 @@ export default function AiConversationScreen() {
       if (isLikelySilent) {
         setProcessingStatus("Không phát hiện âm thanh. Thử lại nhé.");
         return;
+      }
+
+      // Check if we have a conversation, if not create one
+      if (!conversationId && socketRef.current && socketRef.current.connected) {
+        socketRef.current.emit("join-kaiwa-room", {});
+        // Wait a bit for the join to complete
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
       setIsSubmitting(true);
