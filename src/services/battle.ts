@@ -22,7 +22,8 @@ const battleService = {
     },
 
     choosePokemon: async (matchId: number, pokemonId: number) => {
-        return axiosPrivate.post(`/match-round-participant/choose-pokemon/round/${matchId}`, { pokemonId });
+        console.log("choosePokemon", matchId, pokemonId);
+        return axiosPrivate.put(`/match-round-participant/choose-pokemon/round/${matchId}`, { pokemonId });
     },
 };
 

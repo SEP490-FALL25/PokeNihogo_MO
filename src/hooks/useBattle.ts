@@ -47,8 +47,8 @@ export const useChoosePokemon = () => {
             queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
             queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
         },
-        onError: (error) => {
-            console.error(error);
+        onError: (error: any) => {
+            console.error(error.response.data.message);
         },
     });
 };

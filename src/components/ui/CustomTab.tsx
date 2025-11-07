@@ -62,7 +62,7 @@ const getTabConfig = (t: (key: string) => string): Tab[] => [
     name: "battle",
     icon: "game-controller",
     label: t("tabs.battle"),
-    route: ROUTES.APP.PICK_POKEMON,
+    route: ROUTES.TABS.BATTLE,
     color: "#ef4444",
   },
 ];
