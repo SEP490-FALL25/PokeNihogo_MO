@@ -474,10 +474,10 @@ const CategoriesScreen = () => {
               </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => router.push(ROUTES.APP.CONVERSATION)}
+              onPress={() => router.push(ROUTES.APP.AI_CONVERSATION)}
             >
               <ThemedText type="subtitle" style={styles.categoriesTitle}>
-                speak
+                speak with ai
               </ThemedText>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push(ROUTES.APP.DEMO)}>
