@@ -10,7 +10,7 @@ import { Animated, Easing, TouchableOpacity, View } from "react-native";
 // TYPES & INTERFACES
 // ============================================================================
 interface AudioPlayerProps {
-  audioUrl: string;
+  audioUrl?: string | null;
   onPlaybackStatusUpdate?: (status: any) => void;
   style?: any;
   buttonStyle?: any;
@@ -58,6 +58,10 @@ export default function AudioPlayer({
    * @param shouldAutoPlay - Whether to start playing immediately after loading
    */
   const loadAudio = async (shouldAutoPlay = false) => {
+    if (!audioUrl) {
+      console.warn("AudioPlayer: No audioUrl provided");
+      return;
+    }
     try {
       setIsLoading(true);
       const { sound: newSound } = await Audio.Sound.createAsync(
@@ -170,11 +174,13 @@ export default function AudioPlayer({
   // ============================================================================
   // RENDER
   // ============================================================================
+  const isDisabled = disabled || isLoading || !audioUrl;
+
   return (
     <View style={style}>
       <TouchableOpacity
         onPress={playAudio}
-        disabled={disabled || isLoading}
+        disabled={isDisabled}
         activeOpacity={0.8}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         style={[
@@ -187,7 +193,7 @@ export default function AudioPlayer({
             borderWidth: 1,
             borderColor: isPlaying ? "#3b82f6" : "#e5e7eb",
             backgroundColor: isPlaying ? "rgba(59,130,246,0.1)" : "#ffffff",
-            opacity: disabled || isLoading ? 0.5 : 1,
+            opacity: isDisabled ? 0.5 : 1,
           },
           buttonStyle,
         ]}
