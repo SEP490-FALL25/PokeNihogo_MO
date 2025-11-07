@@ -2,12 +2,14 @@ import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeftIcon } from "lucide-react-native";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
   Easing,
-  ScrollView,
+  FlatList,
+  InteractionManager,
+  ListRenderItem,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -28,6 +30,14 @@ type Message = {
   audioUrl?: string;
 };
 
+type MessageUpdate = (message: Message) => Message;
+
+const devLog = (...args: unknown[]) => {
+  if (__DEV__) {
+    console.log(...args);
+  }
+};
+
 export default function AiConversationScreen() {
   const { topicId } = useLocalSearchParams<{ topicId?: string }>();
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -42,9 +52,197 @@ export default function AiConversationScreen() {
   const [processingStatus, setProcessingStatus] = useState<
     string | undefined
   >();
-  const [transcribedText, setTranscribedText] = useState<string | undefined>();
 
   const socketRef = useRef<Socket | null>(null);
+  const listRef = useRef<FlatList<Message>>(null);
+
+  // Control when translation should appear: wait until AI text "typing" ends
+  const aiTypingEndsAtRef = useRef<number | null>(null);
+  const pendingTranslationRef = useRef<string | null>(null);
+  const translationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const typingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearTranslationTimer = () => {
+    if (translationTimeoutRef.current) {
+      clearTimeout(translationTimeoutRef.current);
+      translationTimeoutRef.current = null;
+    }
+  };
+
+  const appendMessage = useCallback((message: Message) => {
+    setMessages((prev) => [...prev, message]);
+  }, []);
+
+  const updateLastAiMessage = useCallback((updater: MessageUpdate) => {
+    setMessages((prev) => {
+      for (let i = prev.length - 1; i >= 0; i--) {
+        if (prev[i].role === "ai") {
+          const nextMessage = updater(prev[i]);
+          if (nextMessage === prev[i]) {
+            return prev;
+          }
+          const next = [...prev];
+          next[i] = nextMessage;
+          return next;
+        }
+      }
+      return prev;
+    });
+  }, []);
+
+  const scheduleApplyPendingTranslation = useCallback(() => {
+    clearTranslationTimer();
+    const now = Date.now();
+    const endsAt = aiTypingEndsAtRef.current ?? now;
+    const delay = Math.max(0, endsAt - now);
+    translationTimeoutRef.current = setTimeout(() => {
+      if (pendingTranslationRef.current) {
+        const translation = pendingTranslationRef.current;
+        pendingTranslationRef.current = null;
+        updateLastAiMessage((message) => ({
+          ...message,
+          translation: translation ?? message.translation,
+        }));
+      }
+      clearTranslationTimer();
+    }, delay);
+  }, [updateLastAiMessage]);
+
+  const clearTypingInterval = () => {
+    if (typingIntervalRef.current) {
+      clearInterval(typingIntervalRef.current);
+      typingIntervalRef.current = null;
+    }
+  };
+
+  const startTypingAnimation = useCallback(
+    (fullText: string | undefined) => {
+      clearTypingInterval();
+      if (!fullText || fullText.length === 0) {
+        // No typing needed
+        aiTypingEndsAtRef.current = Date.now();
+        // If a translation was buffered for an empty text, apply immediately
+        if (pendingTranslationRef.current) {
+          const translation = pendingTranslationRef.current;
+          pendingTranslationRef.current = null;
+          updateLastAiMessage((message) => ({
+            ...message,
+            translation: translation ?? message.translation,
+          }));
+        }
+        return;
+      }
+
+      const len = fullText.length;
+      const perCharMs = 30;
+      const minMs = 500;
+      const maxMs = 5000;
+      const typingMs = Math.min(maxMs, Math.max(minMs, len * perCharMs));
+      aiTypingEndsAtRef.current = Date.now() + typingMs;
+
+      let index = 0;
+      // Reveal multiple characters per tick for a smoother feel
+      const step = Math.max(1, Math.floor(len / Math.max(typingMs / 40, 1)));
+
+      typingIntervalRef.current = setInterval(() => {
+        index = Math.min(len, index + step);
+        const current = fullText.slice(0, index);
+        updateLastAiMessage((message) => ({
+          ...message,
+          text: current,
+        }));
+        if (index >= len) {
+          clearTypingInterval();
+          aiTypingEndsAtRef.current = Date.now();
+          // Apply any pending translation now
+          if (pendingTranslationRef.current) {
+            const translation = pendingTranslationRef.current;
+            pendingTranslationRef.current = null;
+            updateLastAiMessage((message) => ({
+              ...message,
+              translation: translation ?? message.translation,
+            }));
+          }
+        }
+      }, 40);
+    },
+    [updateLastAiMessage]
+  );
+
+  const listData = useMemo(() => messages, [messages]);
+
+  useEffect(() => {
+    if (listData.length > 0) {
+      listRef.current?.scrollToEnd({ animated: true });
+    }
+  }, [listData]);
+
+  const renderMessageItem = useCallback<ListRenderItem<Message>>(({ item }) => {
+    const isUser = item.role === "user";
+    return (
+      <View
+        style={{
+          marginTop: 12,
+          alignItems: isUser ? "flex-end" : "flex-start",
+        }}
+      >
+        <View
+          style={{
+            backgroundColor: isUser ? "#DCFCE7" : "#ffffff",
+            borderRadius: 14,
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            maxWidth: "85%",
+            borderWidth: 1,
+            borderColor: "rgba(0,0,0,0.06)",
+          }}
+        >
+          {item.text ? (
+            <ThemedText style={{ fontSize: 16 }}>{item.text}</ThemedText>
+          ) : null}
+          {item.translation ? (
+            <ThemedText
+              style={{
+                fontSize: 15,
+                opacity: 0.75,
+                marginTop: item.text ? 6 : 0,
+              }}
+            >
+              {item.translation}
+            </ThemedText>
+          ) : null}
+
+          {item.audioUrl ? (
+            <View style={{ marginTop: 8 }}>
+              <AudioPlayer audioUrl={item.audioUrl} />
+            </View>
+          ) : null}
+        </View>
+      </View>
+    );
+  }, []);
+
+  const keyExtractor = useCallback((item: Message) => item.id, []);
+
+  const renderEmptyComponent = useCallback(
+    () => (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          paddingTop: 48,
+        }}
+      >
+        <ThemedText style={{ opacity: 0.6 }}>
+          Bắt đầu ghi âm để luyện hội thoại nhé!
+        </ThemedText>
+      </View>
+    ),
+    []
+  );
 
   const AnimatedDots = () => {
     const dotAnimsRef = useState(() => [
@@ -135,6 +333,18 @@ export default function AiConversationScreen() {
     } catch {}
   };
 
+  const saveBase64ToFile = async (
+    base64Data: string,
+    extension: string
+  ): Promise<string> => {
+    const ext = extension || "mp3";
+    const fileUri = `${FileSystem.cacheDirectory}kaiwa-${Date.now()}.${ext}`;
+    await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    return fileUri;
+  };
+
   // Initialize WebSocket connection
   useEffect(() => {
     if (!accessToken) {
@@ -147,7 +357,7 @@ export default function AiConversationScreen() {
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      console.log("[SOCKET] Connected to AI conversation room");
+      devLog("[SOCKET] Connected to AI conversation room");
       setIsSocketConnected(true);
       setIsConnecting(false);
 
@@ -158,7 +368,7 @@ export default function AiConversationScreen() {
 
     // Listen for joined event (after join)
     socket.on("joined", (data: { conversationId?: string }) => {
-      console.log("[SOCKET] Joined room:", data);
+      devLog("[SOCKET] Joined room:", data);
       if (data?.conversationId) {
         setConversationId(data.conversationId);
       }
@@ -166,7 +376,7 @@ export default function AiConversationScreen() {
     });
 
     socket.on("disconnect", () => {
-      console.log("[SOCKET] Disconnected from AI conversation room");
+      devLog("[SOCKET] Disconnected from AI conversation room");
       setIsSocketConnected(false);
     });
 
@@ -178,7 +388,7 @@ export default function AiConversationScreen() {
 
     // Listen for processing status
     socket.on("processing", (data: { status?: string; message?: string }) => {
-      console.log("[SOCKET] Processing:", data);
+      devLog("[SOCKET] Processing:", data);
       const statusText =
         data.status === "speech-to-text"
           ? "Đang nhận diện giọng nói..."
@@ -192,17 +402,13 @@ export default function AiConversationScreen() {
 
     // Listen for transcription (user's speech to text)
     socket.on("transcription", (data: { text?: string }) => {
-      console.log("[SOCKET] Transcription:", data.text);
+      devLog("[SOCKET] Transcription:", data.text);
       if (data.text) {
-        setTranscribedText(data.text);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `user-${Date.now()}`,
-            role: "user",
-            text: data.text,
-          },
-        ]);
+        appendMessage({
+          id: `user-${Date.now()}`,
+          role: "user",
+          text: data.text,
+        });
       }
       setProcessingStatus(undefined);
     });
@@ -211,17 +417,27 @@ export default function AiConversationScreen() {
     socket.on(
       "text-response",
       (data: { text?: string; translation?: string }) => {
-        console.log("[SOCKET] AI Response:", data.text);
+        devLog("[SOCKET] AI Response:", data.text);
         if (data.text || data.translation) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: `ai-${Date.now()}`,
-              role: "ai",
-              text: data.text,
-              translation: data.translation,
-            },
-          ]);
+          appendMessage({
+            id: `ai-${Date.now()}`,
+            role: "ai",
+            // Start empty to animate typing
+            text: "",
+            // Translation will be delayed if typing is ongoing
+            translation: undefined,
+          });
+          // Kick off client-side typing animation
+          startTypingAnimation(data.text);
+
+          // If server already sent a translation, buffer it until typing ends
+          if (data.translation) {
+            pendingTranslationRef.current = data.translation;
+            scheduleApplyPendingTranslation();
+          } else {
+            // Ensure timer cleared if no pending translation
+            clearTranslationTimer();
+          }
         }
         setProcessingStatus(undefined);
       }
@@ -229,50 +445,52 @@ export default function AiConversationScreen() {
 
     // Listen for text response update (translation update)
     socket.on("text-response-update", (data: { translation?: string }) => {
-      console.log("[SOCKET] Translation update:", data.translation);
-      // Update last AI message with translation
-      setMessages((prev) => {
-        const updated = [...prev];
-        const lastAiMessage = updated
-          .slice()
-          .reverse()
-          .find((m) => m.role === "ai");
-        if (lastAiMessage && data.translation) {
-          lastAiMessage.translation = data.translation;
-        }
-        return updated;
-      });
+      devLog("[SOCKET] Translation update:", data.translation);
+      if (!data.translation) return;
+
+      const now = Date.now();
+      const endsAt = aiTypingEndsAtRef.current;
+      if (endsAt && now < endsAt) {
+        // Still typing AI text → buffer and schedule apply
+        pendingTranslationRef.current = data.translation;
+        scheduleApplyPendingTranslation();
+      } else {
+        // Typing finished → apply immediately
+        updateLastAiMessage((message) => ({
+          ...message,
+          translation: data.translation,
+        }));
+      }
     });
 
     // Listen for AI audio response
     socket.on(
       "audio-response",
       (data: { audio?: string; audioFormat?: string }) => {
-        console.log("[SOCKET] Audio response received");
+        devLog("[SOCKET] Audio response received");
         if (data.audio) {
-          // Convert base64 to data URI and play
-          const mimeType =
-            data.audioFormat === "mp3"
-              ? "audio/mpeg"
-              : `audio/${data.audioFormat || "mp3"}`;
-          const audioUri = `data:${mimeType};base64,${data.audio}`;
-          playAudio(audioUri);
-
-          // Update last AI message with audio
-          setMessages((prev) => {
-            const updated = [...prev];
-            const lastAiMessage = updated
-              .slice()
-              .reverse()
-              .find((m) => m.role === "ai");
-            if (lastAiMessage) {
-              lastAiMessage.audioUrl = audioUri;
-            }
-            return updated;
-          });
+          const ext = data.audioFormat || "mp3";
+          // Save to cache file to avoid heavy data URI playback on JS thread
+          saveBase64ToFile(data.audio, ext)
+            .then((fileUri) => {
+              // Schedule playback after current interactions to avoid jank
+              InteractionManager.runAfterInteractions(() => {
+                playAudio(fileUri);
+              });
+              // Attach file URI to last AI message
+              updateLastAiMessage((message) => ({
+                ...message,
+                audioUrl: fileUri,
+              }));
+            })
+            .catch((err) => {
+              console.error("[AUDIO] Failed to write audio file:", err);
+            });
         }
         setProcessingStatus(undefined);
         setIsSubmitting(false);
+        // Do not interfere with typing animation; let it finish naturally.
+        // Translation will be flushed when typing completes or by scheduled timer.
       }
     );
 
@@ -296,8 +514,17 @@ export default function AiConversationScreen() {
       socket.off("audio-response");
       socket.off("error");
       disconnectSocket();
+      clearTranslationTimer();
+      clearTypingInterval();
     };
-  }, [accessToken, topicId]);
+  }, [
+    accessToken,
+    topicId,
+    appendMessage,
+    updateLastAiMessage,
+    scheduleApplyPendingTranslation,
+    startTypingAnimation,
+  ]);
 
   // Send audio to server via WebSocket
   // Backend expects Int16Array buffer via "user-audio-chunk" event
@@ -376,7 +603,6 @@ export default function AiConversationScreen() {
       }
 
       setIsSubmitting(true);
-      setTranscribedText(undefined);
       setProcessingStatus("Đang gửi audio...");
 
       // Use WebSocket if connected, otherwise fallback to old method
@@ -432,55 +658,18 @@ export default function AiConversationScreen() {
         </View>
       ) : (
         <>
-          <ScrollView
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
-          >
-            {messages.map((m) => {
-              const isUser = m.role === "user";
-              return (
-                <View
-                  key={m.id}
-                  style={{
-                    marginTop: 12,
-                    alignItems: isUser ? "flex-end" : "flex-start",
-                  }}
-                >
-                  <View
-                    style={{
-                      backgroundColor: isUser ? "#DCFCE7" : "#ffffff",
-                      borderRadius: 14,
-                      paddingVertical: 10,
-                      paddingHorizontal: 12,
-                      maxWidth: "85%",
-                      borderWidth: 1,
-                      borderColor: "rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    {m.text ? (
-                      <ThemedText style={{ fontSize: 16 }}>{m.text}</ThemedText>
-                    ) : null}
-                    {m.translation ? (
-                      <ThemedText
-                        style={{
-                          fontSize: 15,
-                          opacity: 0.75,
-                          marginTop: m.text ? 6 : 0,
-                        }}
-                      >
-                        {m.translation}
-                      </ThemedText>
-                    ) : null}
-
-                    {m.audioUrl ? (
-                      <View style={{ marginTop: 8 }}>
-                        <AudioPlayer audioUrl={m.audioUrl} />
-                      </View>
-                    ) : null}
-                  </View>
-                </View>
-              );
-            })}
-          </ScrollView>
+          <FlatList
+            ref={listRef}
+            data={listData}
+            keyExtractor={keyExtractor}
+            renderItem={renderMessageItem}
+            contentContainerStyle={{
+              paddingHorizontal: 16,
+              paddingBottom: 24,
+              paddingTop: 12,
+            }}
+            ListEmptyComponent={renderEmptyComponent}
+          />
 
           <View>
             <VoiceRecorder
@@ -488,10 +677,9 @@ export default function AiConversationScreen() {
                 handleRecordingComplete(uri, _duration);
               }}
               onRecordingStart={() => {
-                setTranscribedText(undefined);
                 setProcessingStatus(undefined);
               }}
-              exerciseTitle={isSubmitting ? <AnimatedDots /> : undefined}
+              exerciseTitle={isSubmitting ? <AnimatedDots /> : processingStatus}
               showPlayback={false}
               showWaveform={false}
               disabled={isSubmitting || !isSocketConnected}
@@ -517,6 +705,21 @@ export default function AiConversationScreen() {
                 </ThemedText>
               </View>
             )}
+            {/* {processingStatus ? (
+              <View
+                style={{
+                  alignItems: "center",
+                  marginTop: 12,
+                  paddingHorizontal: 16,
+                }}
+              >
+                <ThemedText
+                  style={{ fontSize: 13, opacity: 0.7, textAlign: "center" }}
+                >
+                  {processingStatus}
+                </ThemedText>
+              </View>
+            ) : null} */}
           </View>
         </>
       )}
