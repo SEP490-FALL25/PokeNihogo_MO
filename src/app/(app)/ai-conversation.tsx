@@ -8,6 +8,7 @@ import {
   Animated,
   Easing,
   FlatList,
+  Image,
   InteractionManager,
   ListRenderItem,
   TouchableOpacity,
@@ -20,6 +21,7 @@ import { ThemedText } from "@components/ThemedText";
 import AudioPlayer from "@components/ui/AudioPlayer";
 import VoiceRecorder from "@components/ui/EnhancedAudioRecorder";
 import { disconnectSocket, getSocket } from "@configs/socket";
+import { useAuth } from "@hooks/useAuth";
 import { useAuthStore } from "@stores/auth/auth.config";
 
 type Message = {
@@ -39,12 +41,67 @@ const devLog = (...args: unknown[]) => {
   }
 };
 
+// Helper component for user avatar with error handling
+const UserAvatarWithFallback = ({
+  avatar,
+  name,
+}: {
+  avatar?: string;
+  name: string;
+}) => {
+  const [imageError, setImageError] = useState(false);
+
+  return (
+    <View
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        overflow: "hidden",
+        backgroundColor: !avatar || imageError ? "#007AFF" : "transparent",
+      }}
+    >
+      {!avatar || imageError ? (
+        <View
+          style={{
+            width: "100%",
+            height: "100%",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ThemedText
+            style={{
+              color: "#ffffff",
+              fontSize: 16,
+              fontWeight: "600",
+            }}
+          >
+            {name.charAt(0).toUpperCase()}
+          </ThemedText>
+        </View>
+      ) : (
+        <Image
+          source={{ uri: avatar }}
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+          resizeMode="cover"
+          onError={() => setImageError(true)}
+        />
+      )}
+    </View>
+  );
+};
+
 export default function AiConversationScreen() {
   const { topicId, conversationId: initialConversationId } = useLocalSearchParams<{
     topicId?: string;
     conversationId?: string;
   }>();
   const accessToken = useAuthStore((s) => s.accessToken);
+  const { user } = useAuth();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -206,33 +263,68 @@ export default function AiConversationScreen() {
 
   const renderMessageItem = useCallback<ListRenderItem<Message>>(({ item }) => {
     const isUser = item.role === "user";
+    const userAvatar = user?.avatar;
+    const userName = user?.name || "User";
+    
     return (
       <View
         style={{
           marginTop: 12,
-          alignItems: isUser ? "flex-end" : "flex-start",
+          flexDirection: "row",
+          alignItems: "flex-start",
+          justifyContent: isUser ? "flex-end" : "flex-start",
+          paddingHorizontal: 4,
         }}
       >
+        {!isUser && (
+          <View
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              marginRight: 8,
+              overflow: "hidden",
+              backgroundColor: "#f3f4f6",
+            }}
+          >
+            <Image
+              source={require("../../../assets/images/PokeNihongoLogo.png")}
+              style={{
+                width: "100%",
+                height: "100%",
+              }}
+              resizeMode="cover"
+            />
+          </View>
+        )}
         <View
           style={{
-            backgroundColor: isUser ? "#DCFCE7" : "#ffffff",
+            backgroundColor: isUser ? "#007AFF" : "#ffffff",
             borderRadius: 14,
             paddingVertical: 10,
             paddingHorizontal: 12,
-            maxWidth: "85%",
-            borderWidth: 1,
+            maxWidth: "75%",
+            borderWidth: isUser ? 0 : 1,
             borderColor: "rgba(0,0,0,0.06)",
           }}
         >
           {item.text ? (
-            <ThemedText style={{ fontSize: 16 }}>{item.text}</ThemedText>
+            <ThemedText
+              style={{
+                fontSize: 16,
+                color: isUser ? "#ffffff" : undefined,
+              }}
+            >
+              {item.text}
+            </ThemedText>
           ) : null}
           {item.translation ? (
             <ThemedText
               style={{
                 fontSize: 15,
-                opacity: 0.75,
+                opacity: isUser ? 0.9 : 0.75,
                 marginTop: item.text ? 6 : 0,
+                color: isUser ? "#ffffff" : undefined,
               }}
             >
               {item.translation}
@@ -241,12 +333,28 @@ export default function AiConversationScreen() {
 
           {/* Always show audio player, disabled if no audioUrl */}
           <View style={{ marginTop: 8 }}>
-            <AudioPlayer audioUrl={item.audioUrl || null} />
+            <AudioPlayer
+              audioUrl={item.audioUrl || null}
+              iconColor={isUser ? "#ffffff" : "#3b82f6"}
+              buttonStyle={
+                isUser
+                  ? {
+                      borderColor: "rgba(255,255,255,0.3)",
+                      backgroundColor: "rgba(255,255,255,0.2)",
+                    }
+                  : undefined
+              }
+            />
           </View>
         </View>
+        {isUser && (
+          <View style={{ marginLeft: 8 }}>
+            <UserAvatarWithFallback avatar={userAvatar} name={userName} />
+          </View>
+        )}
       </View>
     );
-  }, []);
+  }, [user]);
 
   const keyExtractor = useCallback((item: Message) => item.id, []);
 
