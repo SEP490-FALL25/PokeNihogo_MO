@@ -157,7 +157,7 @@ const GrammarCard = ({ item }: { item: any }) => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const heightAnim = useRef(new Animated.Value(0)).current;
-
+console.log('item', item);
   useEffect(() => {
     Animated.timing(heightAnim, {
       toValue: expanded ? 1 : 0,

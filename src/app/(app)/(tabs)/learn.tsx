@@ -484,6 +484,11 @@ const CategoriesScreen = () => {
                 test ui
               </ThemedText>
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/(app)/bottom")}>
+              <ThemedText type="subtitle" style={styles.categoriesTitle}>
+              bottom
+              </ThemedText>
+            </TouchableOpacity>
           </View>
         </View>
 
