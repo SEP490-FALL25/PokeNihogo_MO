@@ -41,4 +41,21 @@ declare namespace ZUSTAND {
         setSparklesBalance: (balance: number) => void;
         setPokeCoinsBalance: (balance: number) => void;
     }
+
+    export interface IMatchingState {
+        // Matching status
+        isInQueue: boolean;
+        setIsInQueue: (inQueue: boolean) => void;
+
+        // Match found modal (reuse ModalBattleAccept)
+        matchFoundModal: {
+            show: boolean;
+            matchedPlayer: any | null; // IBattleMatchFound
+            matchId: string | null;
+            statusMatch: "reject" | "accept" | null;
+        };
+        showMatchFoundModal: (matchedPlayer: any, matchId: string) => void; // IBattleMatchFound
+        hideMatchFoundModal: () => void;
+        setMatchStatus: (status: "reject" | "accept" | null) => void;
+    }
 }
