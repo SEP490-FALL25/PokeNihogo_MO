@@ -79,7 +79,11 @@ const BottomSheet = ({ children }: BottomSheetProps) => {
             isOpen,
             onOpenChange: handleOpenChange,
           } as any)
-          console.log('BottomSheet cloned child:', child.type, 'with isOpen:', isOpen)
+          console.log('BottomSheet cloned child:', 
+            typeof child.type === 'string' ? child.type : (child.type as any)?.displayName || (child.type as any)?.name || 'Unknown',
+            'with isOpen:', isOpen,
+            'onOpenChange:', !!handleOpenChange
+          )
           return cloned
         }
         return child
@@ -95,35 +99,66 @@ const BottomSheetTrigger = React.forwardRef<
     onOpenChange?: (open: boolean) => void
   }
 >(({ children, isOpen, onOpenChange, ...props }, ref) => {
-  const handlePress = () => {
-    console.log('BottomSheetTrigger pressed, onOpenChange:', !!onOpenChange)
-    onOpenChange?.(true)
+  const handlePress = (e?: any) => {
+    console.log('BottomSheetTrigger pressed, onOpenChange:', !!onOpenChange, 'isOpen:', isOpen)
+    if (onOpenChange) {
+      onOpenChange(true)
+    } else {
+      console.warn('BottomSheetTrigger: onOpenChange is not defined!')
+    }
   }
 
-  // If children is a valid element (like Button), clone it and add onPress
+  // Always wrap children in TouchableOpacity to ensure touch events work
+  // If children is a TouchableOpacity or Pressable, we need to handle it differently
   if (React.isValidElement(children)) {
     const childProps = children.props as any
-    return React.cloneElement(children as any, {
-      ...props,
-      onPress: (e: any) => {
-        handlePress()
-        // Call original onPress if it exists
-        if (childProps?.onPress) {
-          childProps.onPress(e)
-        }
-      },
-    } as any)
+    
+    // If children already has onPress, clone and combine handlers
+    if (childProps?.onPress !== undefined) {
+      return React.cloneElement(children as any, {
+        ...props,
+        onPress: (e: any) => {
+          handlePress(e)
+          // Call original onPress if it exists
+          if (childProps.onPress) {
+            childProps.onPress(e)
+          }
+        },
+      } as any)
+    }
   }
 
-  // Fallback: wrap in TouchableOpacity if children is not a valid element
+  // Default: wrap in TouchableOpacity
+  // Use pointerEvents to ensure children don't block touches
+  let processedChildren = children
+  if (React.isValidElement(children)) {
+    const childType = children.type as any
+    const isViewType = 
+      childType === View ||
+      (typeof childType === 'object' && (
+        childType?.displayName === 'View' ||
+        childType?.name === 'View' ||
+        (typeof childType === 'function' && childType.toString().includes('View'))
+      ))
+    
+    if (isViewType) {
+      processedChildren = React.cloneElement(children as any, {
+        ...(children.props as any),
+        pointerEvents: 'box-none' as const,
+      } as any)
+    }
+  }
+
   return (
     <TouchableOpacity
       ref={ref}
       onPress={handlePress}
-      activeOpacity={0.8}
-      {...props}
+      activeOpacity={0.7}
+      style={[{ flexShrink: 0 }, props.style]}
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      {...(props as any)}
     >
-      {children}
+      {processedChildren}
     </TouchableOpacity>
   )
 })
