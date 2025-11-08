@@ -4,13 +4,18 @@ import { LessonProgress } from "@models/lesson/lesson.common";
 import { Image } from "expo-image";
 import React, { useMemo } from "react";
 import {
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View,
-    ViewStyle,
+  Dimensions,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+  ViewStyle,
 } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 
 // Lấy kích thước màn hình
@@ -28,7 +33,7 @@ const PEAK_NODE_INDEX = 2; // Node thứ 3 là đỉnh (index 2)
 const CYCLE_LENGTH = 8; // Tổng số bước (Node 1 -> Node 9)
 
 const DUO_OFFSET = NODE_SIZE / 2 + 120; // Khoảng cách Duo so với cạnh node
-const DUO_IMAGE_SIZE = 300;
+const DUO_IMAGE_SIZE = 120;
 const DUO_FIXED_Y_OFFSET = 0; // Điều chỉnh Duo lên trên một chút
 
 // Định nghĩa kiểu dữ liệu cho node bài học
@@ -173,29 +178,73 @@ const LessonNodeComponent: React.FC<{
   onPress?: (lesson: LessonProgress) => void;
 }> = ({ node, onPress }) => {
   const { isActive, isUnlocked, progressPercentage } = node;
+  const translateY = useSharedValue(0);
+  const shadowOpacity = useSharedValue(1);
+
   const style = useMemo(() => {
     let iconContainerStyle: ViewStyle[] = [styles.baseIconContainer];
     let iconColor = "#555";
+    let shadowColor = "#1a1a1a"; // Màu shadow mặc định
 
     if (isActive) {
       iconContainerStyle.push(styles.lessonIconActive);
       iconColor = "#fff";
+      // Shadow màu xanh đậm hơn (tối hơn) cho active node - tạo hiệu ứng 3D
+      shadowColor = "#1b9e28";
     } else if (isUnlocked) {
       iconContainerStyle.push(styles.lessonIconUnlocked);
       iconColor = "#888";
+      // Shadow tối hơn cho unlocked node - phần dưới của node
+      shadowColor = "#222";
     } else {
       iconContainerStyle.push(styles.lessonIconLocked);
       iconColor = "#444";
+      // Shadow tối nhất cho locked node
+      shadowColor = "#111";
     }
 
-    return { iconContainerStyle, iconColor };
+    return { iconContainerStyle, iconColor, shadowColor };
   }, [isActive, isUnlocked]);
 
+  const handlePressIn = () => {
+    if (!isUnlocked) return;
+    translateY.value = withTiming(4, { duration: 100 });
+    shadowOpacity.value = withTiming(0, { duration: 100 });
+  };
+
+  const handlePressOut = () => {
+    if (!isUnlocked) return;
+    translateY.value = withTiming(0, { duration: 150 });
+    shadowOpacity.value = withTiming(1, { duration: 150 });
+  };
+
+  const handlePress = () => {
+    if (!isUnlocked) return;
+    onPress?.(node.lessonProgress);
+  };
+
+  const animatedNodeStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateY: translateY.value }],
+    };
+  });
+
+  const animatedShadowStyle = useAnimatedStyle(() => {
+    return {
+      opacity: shadowOpacity.value * 0.75, // Opacity mặc định 0.75, khi press sẽ về 0
+    };
+  });
+
   // Căn giữa node tại vị trí (x, y)
+  // Container cần đủ lớn để chứa progress ring (94px) và shadow
+  const containerPadding = 15; // Padding để chứa progress ring lớn hơn và shadow
+  
   const nodeViewStyle = {
     position: "absolute" as const,
-    left: node.x - NODE_SIZE / 2,
-    top: node.y - NODE_SIZE / 2,
+    left: node.x - (NODE_SIZE / 2 + containerPadding),
+    top: node.y - (NODE_SIZE / 2 + containerPadding),
+    width: NODE_SIZE + containerPadding * 2,
+    height: NODE_SIZE + containerPadding * 2 + 6, // Thêm 6px cho shadow
     zIndex: 10,
   };
 
@@ -205,11 +254,24 @@ const LessonNodeComponent: React.FC<{
     { justifyContent: "center" as const, alignItems: "center" as const },
   ];
 
-  // Logic Progress Ring (Chỉ cho node Active hoặc IN_PROGRESS)
-  const showProgress = isActive && progressPercentage > 0;
-  const progress = progressPercentage / 100;
+  // Shadow style dựa trên trạng thái node - tạo hiệu ứng 3D
+  const shadowStyle: ViewStyle = {
+    position: "absolute",
+    width: NODE_SIZE - 2, // Nhỏ hơn node một chút để tạo hiệu ứng tự nhiên
+    height: NODE_SIZE - 2,
+    borderRadius: (NODE_SIZE - 2) / 2,
+    backgroundColor: style.shadowColor,
+    top: containerPadding + 6, // Đẩy shadow xuống dưới để tạo hiệu ứng 3D
+    left: containerPadding + 1, // Căn giữa với node (vì width nhỏ hơn 2px)
+    zIndex: 8,
+  };
+
+  // Logic Progress Ring - luôn hiển thị cho node Active
+  // Tăng kích thước để bao phủ cả shadow (shadow có offset 6px xuống dưới)
+  const showProgress = isActive;
+  const progress = Math.max(0, Math.min(100, progressPercentage)) / 100;
   const progressColor = "#a3e635";
-  const progressSize = NODE_SIZE + 10;
+  const progressSize = NODE_SIZE + 20; // Tăng từ 10 lên 24 để bao phủ cả shadow (shadow offset 6px + margin)
   const strokeWidth = 5;
   const radius = (progressSize - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -217,51 +279,83 @@ const LessonNodeComponent: React.FC<{
 
   return (
     <View style={nodeViewStyle}>
-      <TouchableOpacity
-        activeOpacity={0.8}
-        style={styles.lessonContainer}
-        disabled={!isUnlocked}
-        onPress={() => onPress?.(node.lessonProgress)}
-      >
-        {/* Progress Ring (Chỉ hiển thị cho node Active với progress > 0) */}
-        {showProgress && (
+      {/* Shadow Layer (tạo hiệu ứng 3D) */}
+      {isUnlocked && (
+        <Animated.View style={[shadowStyle, animatedShadowStyle]} />
+      )}
+
+      {/* Progress Ring (Luôn hiển thị cho node Active) - Đặt ngoài để không bị clip và không di chuyển khi press */}
+      {showProgress && (
+        <View
+          style={{
+            position: "absolute",
+            top: containerPadding - 8, // Căn giữa với node và shadow (điều chỉnh để bao phủ shadow)
+            left: containerPadding - 10,
+            zIndex: 10,
+            pointerEvents: "none", // Không chặn touch events
+          }}
+        >
           <Svg
             height={progressSize}
             width={progressSize}
             style={styles.progressRing}
           >
-            <Circle
-              stroke="#2e2e2e"
-              fill="none"
-              cx={progressSize / 2}
-              cy={progressSize / 2}
-              r={radius}
-              strokeWidth={strokeWidth}
-            />
-            <Circle
-              stroke={progressColor}
-              fill="none"
-              cx={progressSize / 2}
-              cy={progressSize / 2}
-              r={radius}
-              strokeWidth={strokeWidth}
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              transform={`rotate(-90 ${progressSize / 2} ${progressSize / 2})`}
-            />
-          </Svg>
-        )}
-
-        {/* Node Icon */}
-        <View style={IconContainerStyle}>
-          <FontAwesome5
-            name={node.icon}
-            size={NODE_INNER_SIZE}
-            color={style.iconColor}
+          <Circle
+            stroke="#d6d3c7"
+            fill="none"
+            cx={progressSize / 2}
+            cy={progressSize / 2}
+            r={radius}
+            strokeWidth={strokeWidth}
           />
+          <Circle
+            stroke={progressColor}
+            fill="none"
+            cx={progressSize / 2}
+            cy={progressSize / 2}
+            r={radius}
+            strokeWidth={strokeWidth}
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${progressSize / 2} ${progressSize / 2})`}
+          />
+        </Svg>
         </View>
-      </TouchableOpacity>
+      )}
+
+      <Animated.View
+        style={[
+          animatedNodeStyle,
+          {
+            position: "absolute",
+            top: containerPadding,
+            left: containerPadding,
+            width: NODE_SIZE,
+            height: NODE_SIZE,
+            borderRadius: NODE_SIZE / 2, // Bo tròn
+            overflow: "hidden", // Clip nội dung
+            zIndex: 11, // Nằm trên progress ring
+          },
+        ]}
+      >
+        <Pressable
+          style={styles.lessonContainer}
+          disabled={!isUnlocked}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          onPress={handlePress}
+        >
+          {/* Node Icon */}
+          <View style={[IconContainerStyle, { zIndex: 12 }]}>
+            <FontAwesome5
+              name={node.icon}
+              size={NODE_INNER_SIZE}
+              color={style.iconColor}
+            />
+          </View>
+        </Pressable>
+      </Animated.View>
     </View>
   );
 };
@@ -335,17 +429,42 @@ const DynamicDuo: React.FC<{
         return (
           <View
             key={`duo-${duoNode.id}`}
-            style={[styles.duoPlaceholder, DUO_FINAL_POSITION]}
+            style={[styles.duoPlaceholder, DUO_FINAL_POSITION, {
+              width: DUO_IMAGE_SIZE,
+              height: DUO_IMAGE_SIZE,
+              borderRadius: DUO_IMAGE_SIZE / 2, // Bo tròn hoàn toàn
+              overflow: "hidden",
+              aspectRatio: 1, // Đảm bảo hình vuông
+            }]}
           >
             {duoSource.type === "lottie" ? (
-              <LottieAnimation
-                source={duoSource.source}
-                autoPlay
-                loop
-                width={DUO_IMAGE_SIZE}
-                height={DUO_IMAGE_SIZE}
-                style={{ transform: [duoTransform] }}
-              />
+              <View
+                style={{
+                  width: DUO_IMAGE_SIZE,
+                  height: DUO_IMAGE_SIZE,
+                  borderRadius: DUO_IMAGE_SIZE / 2,
+                  overflow: "hidden",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  aspectRatio: 1, // Đảm bảo hình vuông
+                }}
+              >
+                <LottieAnimation
+                  source={duoSource.source}
+                  autoPlay
+                  loop
+                  width={DUO_IMAGE_SIZE}
+                  height={DUO_IMAGE_SIZE}
+                  style={{
+                    transform: [duoTransform],
+                    maxWidth: DUO_IMAGE_SIZE,
+                    maxHeight: DUO_IMAGE_SIZE,
+                    width: DUO_IMAGE_SIZE,
+                    height: DUO_IMAGE_SIZE,
+                    aspectRatio: 1, // Đảm bảo hình vuông
+                  }}
+                />
+              </View>
             ) : (
               <Image
                 source={duoSource.source}
@@ -353,6 +472,10 @@ const DynamicDuo: React.FC<{
                   {
                     width: DUO_IMAGE_SIZE,
                     height: DUO_IMAGE_SIZE,
+                    maxWidth: DUO_IMAGE_SIZE,
+                    maxHeight: DUO_IMAGE_SIZE,
+                    borderRadius: DUO_IMAGE_SIZE / 2,
+                    aspectRatio: 1, // Đảm bảo hình vuông
                     transform: [duoTransform],
                   },
                 ]}
@@ -421,11 +544,14 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
+    position: "relative",
+    width: 70, // NODE_SIZE
+    height: 70, // NODE_SIZE
+    borderRadius: 35, // NODE_SIZE / 2 - Bo tròn
+    overflow: "hidden",
   },
   progressRing: {
-    position: "absolute",
-    transform: [{ rotate: "-90deg" }],
-    zIndex: 9,
+    // Position, top, left, zIndex được set inline để căn giữa với node
   },
   baseIconContainer: {
     shadowColor: "#000",
@@ -454,6 +580,7 @@ const styles = StyleSheet.create({
   duoPlaceholder: {
     position: "absolute",
     zIndex: 100,
+    // Kích thước được set inline để đồng bộ với DUO_IMAGE_SIZE
   },
 });
 
