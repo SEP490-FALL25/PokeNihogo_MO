@@ -147,17 +147,17 @@ const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
       // Chỉ rotate khi active, với sequence animation
       ...(active
         ? [
-            Animated.sequence([
-              Animated.timing(rotateAnim, {
-                toValue: 1,
-                ...ANIMATION_CONFIG.ROTATE_TIMING,
-              }),
-              Animated.timing(rotateAnim, {
-                toValue: 0,
-                ...ANIMATION_CONFIG.ROTATE_TIMING,
-              }),
-            ]),
-          ]
+          Animated.sequence([
+            Animated.timing(rotateAnim, {
+              toValue: 1,
+              ...ANIMATION_CONFIG.ROTATE_TIMING,
+            }),
+            Animated.timing(rotateAnim, {
+              toValue: 0,
+              ...ANIMATION_CONFIG.ROTATE_TIMING,
+            }),
+          ]),
+        ]
         : []),
     ]).start();
   }, [active, bounceAnim, scaleAnim, rotateAnim]);

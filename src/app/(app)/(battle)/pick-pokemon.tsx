@@ -1,0 +1,1267 @@
+import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
+import TypeBadge from "@components/atoms/TypeBadge";
+import UserAvatar from "@components/atoms/UserAvatar";
+import { HapticPressable } from "@components/HapticPressable";
+import { ThemedText } from "@components/ThemedText";
+import { ThemedView } from "@components/ThemedView";
+import { getSocket } from "@configs/socket";
+import useAuth from "@hooks/useAuth";
+import { useChoosePokemon, useListMatchRound, useListUserPokemonRound } from "@hooks/useBattle";
+import { useListElemental } from "@hooks/useElemental";
+import { IBattleMatchRound } from "@models/battle/battle.response";
+import { IElementalEntity } from "@models/elemental/elemental.entity";
+import { IPokemonType } from "@models/pokemon/pokemon.common";
+import { ROUTES } from "@routes/routes";
+import { useAuthStore } from "@stores/auth/auth.config";
+import { useGlobalStore } from "@stores/global/global.config";
+import { useQueryClient } from "@tanstack/react-query"; // Thêm dòng này
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { Check, Clock, Sparkles, Star } from "lucide-react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Alert, Animated, Image, ImageBackground, ScrollView, StyleSheet, View } from "react-native";
+
+export default function PickPokemonScreen() {
+    /**
+     * Define Variables
+     */
+    const router = useRouter();
+    const params = useLocalSearchParams();
+    //---------------End---------------//
+
+
+    /**
+     * Param variables
+     */
+    const matchId = params.matchId as string;
+    //---------------End---------------//
+
+
+    if (!matchId) {
+        router.replace(ROUTES.TABS.BATTLE);
+        return;
+    }
+
+
+    /**
+     * List elemental
+     */
+    const { data: listElemental } = useListElemental();
+    //------------------------End------------------------//
+
+
+    /**
+     * Get List Match Round
+     */
+    const language = useGlobalStore((s) => s.language);
+    const { data: matchRound, isLoading: isLoadingMatchRound } = useListMatchRound() as { data: IBattleMatchRound; isLoading: boolean };
+
+    //---------------End---------------//
+
+
+    /**
+     * Get Current User ID and Opponent Name
+     */
+    const { user } = useAuth();
+    const currentUserId = user?.data?.id as number | undefined;
+    const opponentName = matchRound?.match?.participants?.find((p) => {
+        if (currentUserId !== undefined) return p.user.id !== currentUserId;
+        return p.user.name !== "Bạn";
+    })?.user.name || "";
+    //---------------End---------------//
+
+
+    /**
+     * List user pokemon round
+     * @param typeId Type ID
+     */
+    const [typeId, setTypeId] = useState<number>(1);
+    const { data: listUserPokemonRound, isLoading: isLoadingListUserPokemonRound } = useListUserPokemonRound(typeId);
+    //------------------------End------------------------//
+
+
+    /**
+     * Get Battle Context
+     */
+    const battleContext = useMemo(() => {
+        if (!matchRound) return null;
+
+        //#region Xác định địch và ta
+        const matchParticipants = matchRound.match.participants;
+        const opponent = matchParticipants.find((p) => {
+            if (currentUserId !== undefined) return p.user.id !== currentUserId;
+            return p.user.name !== "Bạn";
+        });
+        const player = matchParticipants.find((p) => {
+            if (currentUserId !== undefined) return p.user.id === currentUserId;
+            return p.user.name === "Bạn";
+        });
+
+        const opponentMatchParticipantId = opponent?.id;
+        const playerMatchParticipantId = player?.id;
+        //#endregion
+
+
+        //#region Xác định round hiện tại
+
+        // Tìm vòng SELECTING_POKEMON *cuối cùng* (round đang active - thường là round mới nhất)
+        // Vì có thể có nhiều round cùng status, ta cần lấy round cuối cùng
+        let currentRoundIndex = -1;
+        for (let i = matchRound.rounds.length - 1; i >= 0; i--) {
+            if (matchRound.rounds[i].status === "SELECTING_POKEMON") {
+                currentRoundIndex = i;
+                break;
+            }
+        }
+
+        // Nếu không tìm thấy SELECTING_POKEMON, thì tìm vòng PENDING *cuối cùng*
+        if (currentRoundIndex === -1) {
+            for (let i = matchRound.rounds.length - 1; i >= 0; i--) {
+                if (matchRound.rounds[i].status === "PENDING") {
+                    currentRoundIndex = i;
+                    break;
+                }
+            }
+        }
+        //#endregion
+
+
+        const safeCurrentRoundIndex = currentRoundIndex === -1 ? 0 : currentRoundIndex;
+
+        // Determine turn based on orderSelected and whether already selected
+        const currentRound = matchRound.rounds[safeCurrentRoundIndex];
+        const currentPlayer = currentRound?.participants.find((rp) => rp.matchParticipantId === playerMatchParticipantId);
+        const currentOpponent = currentRound?.participants.find((rp) => rp.matchParticipantId === opponentMatchParticipantId);
+
+        let isPlayerTurn = false;
+        let isOpponentTurn = false;
+
+        // Only determine turn if round is actively selecting (not if both have already picked)
+        if (currentRound?.status === "SELECTING_POKEMON") {
+            const playerHasPicked = !!currentPlayer?.selectedUserPokemonId;
+            const opponentHasPicked = !!currentOpponent?.selectedUserPokemonId;
+
+            // Case 1: One has picked, the other hasn't - the one who hasn't picked is next
+            if (!playerHasPicked && opponentHasPicked) {
+                isPlayerTurn = true;
+            } else if (playerHasPicked && !opponentHasPicked) {
+                isOpponentTurn = true;
+            }
+            // Case 2: Both haven't picked - determine by orderSelected (lower number picks first)
+            else if (!playerHasPicked && !opponentHasPicked) {
+                if (currentPlayer?.orderSelected !== undefined && currentOpponent?.orderSelected !== undefined) {
+                    if (currentPlayer.orderSelected < currentOpponent.orderSelected) {
+                        isPlayerTurn = true;
+                    } else if (currentOpponent.orderSelected < currentPlayer.orderSelected) {
+                        isOpponentTurn = true;
+                    }
+                } else {
+                    // Fallback: check if orderSelected === 1 (first picker in round)
+                    // In round 2, orderSelected might be 3, 4, etc.
+                    // We need to find the minimum orderSelected
+                    const playerOrder = currentPlayer?.orderSelected;
+                    const opponentOrder = currentOpponent?.orderSelected;
+
+                    if (playerOrder !== undefined && opponentOrder !== undefined) {
+                        if (playerOrder < opponentOrder) {
+                            isPlayerTurn = true;
+                        } else if (opponentOrder < playerOrder) {
+                            isOpponentTurn = true;
+                        }
+                    } else {
+                        // Last resort: check for orderSelected === 1
+                        if (currentPlayer?.orderSelected === 1) isPlayerTurn = true;
+                        if (currentOpponent?.orderSelected === 1) isOpponentTurn = true;
+                    }
+                }
+            }
+        } else if (currentRound?.status === "PENDING") {
+            // Round is pending - might be transitioning or waiting
+            // Check if someone still needs to pick
+            const playerHasPicked = !!currentPlayer?.selectedUserPokemonId;
+            const opponentHasPicked = !!currentOpponent?.selectedUserPokemonId;
+
+            if (!playerHasPicked && opponentHasPicked) {
+                isPlayerTurn = true;
+            } else if (playerHasPicked && !opponentHasPicked) {
+                isOpponentTurn = true;
+            } else if (!playerHasPicked && !opponentHasPicked) {
+                // Both haven't picked in PENDING round - determine by orderSelected
+                if (currentPlayer?.orderSelected !== undefined && currentOpponent?.orderSelected !== undefined) {
+                    if (currentPlayer.orderSelected < currentOpponent.orderSelected) {
+                        isPlayerTurn = true;
+                    } else if (currentOpponent.orderSelected < currentPlayer.orderSelected) {
+                        isOpponentTurn = true;
+                    }
+                }
+            }
+        }
+
+        // Determine current picker and deadline
+        const currentPicker: "player" | "opponent" | null = isPlayerTurn ? "player" : isOpponentTurn ? "opponent" : null;
+
+        // Helper function to validate deadline
+        const validateDeadline = (deadlineStr: string | undefined | null): string | null => {
+            if (!deadlineStr) return null;
+            try {
+                const deadlineTs = new Date(deadlineStr).getTime();
+                if (isNaN(deadlineTs)) return null;
+                // Only return deadline if it's in the future (at least 1 second)
+                if (deadlineTs <= Date.now()) return null;
+                return deadlineStr;
+            } catch {
+                return null;
+            }
+        };
+
+        const pickDeadline = (() => {
+            if (currentRound?.status === "SELECTING_POKEMON" || currentRound?.status === "PENDING") {
+                // Priority 1: If we know who's picking, use their endTimeSelected
+                if (currentPicker === "player") {
+                    const deadline = validateDeadline(currentPlayer?.endTimeSelected);
+                    if (deadline) return deadline;
+                }
+                if (currentPicker === "opponent") {
+                    const deadline = validateDeadline(currentOpponent?.endTimeSelected);
+                    if (deadline) return deadline;
+                }
+
+                // Priority 2: If picker is determined but no endTimeSelected, 
+                // find who hasn't picked and check if they have endTimeSelected
+                const playerNeedsToPick = !currentPlayer?.selectedUserPokemonId;
+                const opponentNeedsToPick = !currentOpponent?.selectedUserPokemonId;
+
+                if (playerNeedsToPick) {
+                    const deadline = validateDeadline(currentPlayer?.endTimeSelected);
+                    if (deadline) return deadline;
+                }
+                if (opponentNeedsToPick) {
+                    const deadline = validateDeadline(currentOpponent?.endTimeSelected);
+                    if (deadline) return deadline;
+                }
+
+                // Priority 3: If we determined who should pick but they don't have endTimeSelected,
+                // try to use the other participant's endTimeSelected as a reference
+                // This handles the case: round 2 starts, opponent (orderSelected: 3) already picked,
+                // player (orderSelected: 4) needs to pick but endTimeSelected is null
+                if (isPlayerTurn && !currentPlayer?.endTimeSelected) {
+                    const deadline = validateDeadline(currentOpponent?.endTimeSelected);
+                    if (deadline) return deadline;
+                }
+                if (isOpponentTurn && !currentOpponent?.endTimeSelected) {
+                    const deadline = validateDeadline(currentPlayer?.endTimeSelected);
+                    if (deadline) return deadline;
+                }
+
+                // Priority 4: Use endTimeRound as fallback (this is the round deadline)
+                // This handles cases where backend hasn't set endTimeSelected yet
+                const roundDeadline = validateDeadline(currentRound?.endTimeRound);
+                if (roundDeadline) return roundDeadline;
+
+                // Last resort: return null (no deadline available yet - will be set by socket)
+                // In this case, countdown won't show but user can still pick
+                return null;
+            }
+            return null;
+        })();
+
+        // Build picks arrays for UI display (length 3)
+        // Also build a map of all picked Pokemon for easy lookup (regardless of type)
+        const playerPicks: Array<number | null> = [null, null, null];
+        const opponentPicks: Array<number | null> = [null, null, null];
+        const pickedPokemonMap = new Map<number, any>(); // Map<pokemonId, pokemonData>
+
+        matchRound.rounds.forEach((round, idx) => {
+            const rpPlayer = round.participants.find((rp) => rp.matchParticipantId === playerMatchParticipantId);
+            const rpOpponent = round.participants.find((rp) => rp.matchParticipantId === opponentMatchParticipantId);
+
+            // Try selectedUserPokemon.pokemon.id first, fallback to selectedUserPokemonId
+            const playerPickId = rpPlayer?.selectedUserPokemon?.pokemon?.id ?? rpPlayer?.selectedUserPokemonId ?? null;
+            const opponentPickId = rpOpponent?.selectedUserPokemon?.pokemon?.id ?? rpOpponent?.selectedUserPokemonId ?? null;
+
+            playerPicks[idx] = playerPickId;
+            opponentPicks[idx] = opponentPickId;
+
+            // Store Pokemon data in map for easy lookup
+            if (playerPickId && rpPlayer?.selectedUserPokemon?.pokemon) {
+                pickedPokemonMap.set(playerPickId, rpPlayer.selectedUserPokemon.pokemon);
+            }
+            if (opponentPickId && rpOpponent?.selectedUserPokemon?.pokemon) {
+                pickedPokemonMap.set(opponentPickId, rpOpponent.selectedUserPokemon.pokemon);
+            }
+        });
+
+        return {
+            playerMatchParticipantId,
+            opponentMatchParticipantId,
+            currentRoundIndex: safeCurrentRoundIndex,
+            currentRound,
+            currentRoundId: currentRound?.id,
+            isPlayerTurn,
+            isOpponentTurn,
+            currentPicker,
+            pickDeadline,
+            playerPicks,
+            opponentPicks,
+            pickedPokemonMap,
+            currentPlayer,
+            currentOpponent,
+        };
+    }, [matchRound, currentUserId]);
+    //---------------End---------------//
+
+
+    /**
+     * Countdown for current picker
+     */
+    const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
+
+    /**
+     * Pulse animation for active turn indicator
+     */
+    const pulseAnim = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        if (battleContext?.isPlayerTurn || battleContext?.isOpponentTurn) {
+            const pulse = Animated.loop(
+                Animated.sequence([
+                    Animated.timing(pulseAnim, {
+                        toValue: 1.05,
+                        duration: 1500,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(pulseAnim, {
+                        toValue: 1,
+                        duration: 1500,
+                        useNativeDriver: true,
+                    }),
+                ])
+            );
+            pulse.start();
+            return () => pulse.stop();
+        } else {
+            pulseAnim.setValue(1);
+        }
+    }, [battleContext?.isPlayerTurn, battleContext?.isOpponentTurn, pulseAnim]);
+
+    useEffect(() => {
+        // Reset when round changes
+        if (!battleContext?.pickDeadline || !battleContext?.currentRound) {
+            setRemainingSeconds(null);
+            return;
+        }
+
+        const compute = () => {
+            try {
+                const deadlineStr = battleContext.pickDeadline as string;
+                if (!deadlineStr) {
+                    setRemainingSeconds(null);
+                    return;
+                }
+
+                const endTs = new Date(deadlineStr).getTime();
+                const now = Date.now();
+
+                // Check if deadline is valid (not NaN)
+                if (isNaN(endTs)) {
+                    console.error("Invalid deadline timestamp:", deadlineStr);
+                    setRemainingSeconds(null);
+                    return;
+                }
+
+                const secs = Math.max(0, Math.floor((endTs - now) / 1000));
+                setRemainingSeconds(Number.isFinite(secs) ? secs : null);
+            } catch (error) {
+                console.error("Error computing countdown:", error, battleContext.pickDeadline);
+                setRemainingSeconds(null);
+            }
+        };
+
+        // Compute immediately
+        compute();
+
+        // Update every second
+        const interval = setInterval(compute, 1000);
+
+        return () => clearInterval(interval);
+    }, [battleContext?.pickDeadline, battleContext?.currentRoundIndex, battleContext?.currentRound?.id]);
+
+
+    const formatTime = (seconds: number | null) => {
+        if (seconds === null || seconds === undefined) return "--:--";
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    };
+    //------------------------End------------------------//
+
+
+
+
+    // Normalize round list from results array
+    const roundList: any[] = useMemo(() => {
+        const dataAny: any = listUserPokemonRound as any;
+        if (dataAny?.results && Array.isArray(dataAny.results)) return dataAny.results as any[];
+        if (Array.isArray(dataAny)) return dataAny as any[];
+        return [];
+    }, [listUserPokemonRound]);
+
+    // Group Pokemon by type (from round list) - memoized for >100 items
+    const pokemonByType = useMemo(() => {
+        const grouped: Record<string, any[]> = {};
+        roundList.forEach((pokemon: any) => {
+            // Support both item.types and item.pokemon.types structures
+            const types = pokemon?.types || pokemon?.pokemon?.types || [];
+            types.forEach((type: IPokemonType) => {
+                if (!grouped[type.type_name]) grouped[type.type_name] = [];
+                grouped[type.type_name].push(pokemon);
+            });
+        });
+        return grouped;
+    }, [roundList]);
+
+    // Get unique types - no memo needed (lightweight operation)
+    const availableTypes = Object.keys(pokemonByType);
+
+    /**
+     * Current type filter
+     */
+    const [currentTypeFilter, setCurrentTypeFilter] = useState<string | null>(null);
+    const displayPokemons = useMemo(() => {
+        if (!currentTypeFilter) return roundList;
+        return pokemonByType[currentTypeFilter] || [];
+    }, [roundList, currentTypeFilter, pokemonByType]);
+    //------------------------End------------------------//
+
+
+    /**
+     * Current elemental name
+     */
+    const currentElementalName = useMemo(() => {
+        const elemental = listElemental?.results?.find((elem: IElementalEntity) => elem.id === typeId);
+        if (!elemental) return "";
+        return elemental.display_name?.[language as keyof typeof elemental.display_name] ||
+            elemental.display_name?.vi ||
+            elemental.display_name?.en ||
+            elemental.display_name?.ja ||
+            elemental.type_name ||
+            "";
+    }, [listElemental, typeId, language]);
+    //------------------------End------------------------//
+
+
+
+    const getPokemonById = (pokemonId: number) => {
+        // First, try to find in pickedPokemonMap (from battleContext) - this includes all picked Pokemon
+        // This ensures we can display opponent's picks even if they're not in our available Pokemon list
+        if (battleContext?.pickedPokemonMap?.has(pokemonId)) {
+            return battleContext.pickedPokemonMap.get(pokemonId);
+        }
+
+        // Try to find in roundList (user's available Pokemon)
+        let pokemon = roundList.find((pokemon: any) => pokemon?.id === pokemonId);
+
+        // If not found, try to find in matchRound rounds (fallback)
+        if (!pokemon && matchRound) {
+            for (const round of matchRound.rounds) {
+                for (const participant of round.participants) {
+                    if (participant.selectedUserPokemon?.pokemon?.id === pokemonId) {
+                        return participant.selectedUserPokemon.pokemon;
+                    }
+                    // Also check if selectedUserPokemonId matches
+                    if (participant.selectedUserPokemonId === pokemonId && participant.selectedUserPokemon?.pokemon) {
+                        return participant.selectedUserPokemon.pokemon;
+                    }
+                }
+            }
+        }
+
+        return pokemon;
+    };
+
+    const getPokemonName = (pokemon: any) => {
+        if (!pokemon) return "";
+        if (language === "ja") {
+            return pokemon.nameTranslations?.ja || pokemon.nameJp || "";
+        }
+        // For vi or en, use English name
+        return pokemon.nameTranslations?.en || pokemon.nameJp || "";
+    };
+
+
+    /**
+     * Handle Pokemon pick - allow selection anytime for preview
+     */
+    const [selectedPokemonId, setSelectedPokemonId] = useState<number | null>(null);
+    const handlePickPokemon = (pokemonId: number) => {
+        const isSelected =
+            (battleContext?.playerPicks || []).includes(pokemonId) ||
+            (battleContext?.opponentPicks || []).includes(pokemonId);
+
+        if (isSelected) return;
+
+        setSelectedPokemonId(pokemonId);
+    };
+    //------------------------End------------------------//
+
+
+    /**
+     * Choose Pokemon
+     */
+    const choosePokemonMutation = useChoosePokemon();
+    const handleChoosePokemon = async () => {
+        if (!selectedPokemonId || !battleContext?.currentRoundId) return;
+
+        try {
+            await choosePokemonMutation.mutateAsync({
+                matchId: battleContext.currentRoundId,
+                pokemonId: selectedPokemonId,
+            });
+            setSelectedPokemonId(null);
+        } catch (error) {
+            Alert.alert("Lỗi", "Không thể chọn Pokemon. Vui lòng thử lại.");
+        }
+    };
+    //------------------------End------------------------//
+
+
+    /**
+     * Handle socket events for real-time updates
+     */
+    const accessToken = useAuthStore((s) => s.accessToken);
+    const queryClient = useQueryClient();
+
+    useEffect(() => {
+        if (!accessToken || !matchId) return;
+
+        const socket = getSocket("matching", accessToken);
+
+        socket.on("select-pokemon", (payload: any) => {
+            if (payload?.matchId && payload.matchId.toString() === matchId.toString()) {
+                console.log("Socket select-pokemon event:", payload);
+
+                // Update matchRound data from socket payload for real-time updates
+                if (payload?.data) {
+                    // Update cache directly with socket data for immediate UI update
+                    queryClient.setQueryData(['list-match-round'], (oldData: any) => {
+                        if (oldData?.data?.data) {
+                            return {
+                                ...oldData,
+                                data: {
+                                    ...oldData.data,
+                                    data: payload.data,
+                                },
+                            };
+                        }
+                        return {
+                            data: {
+                                data: payload.data,
+                            },
+                        };
+                    });
+                }
+
+                queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
+                queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
+            }
+        });
+
+        return () => {
+            socket.off("select-pokemon");
+        };
+    }, [accessToken, matchId, queryClient]);
+    //------------------------End------------------------//
+
+    if (isLoadingMatchRound) {
+        return (
+            <ThemedView className="flex-1">
+                <ImageBackground
+                    source={require("../../../../assets/images/list_pokemon_bg.png")}
+                    style={{ flex: 1 }}
+                    imageStyle={{ resizeMode: "cover" }}
+                >
+                    <TWLinearGradient
+                        colors={["rgba(17,24,39,0.85)", "rgba(17,24,39,0.6)", "rgba(17,24,39,0.85)"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{ ...StyleSheet.absoluteFillObject }}
+                    />
+                    <View className="flex-1 items-center justify-center">
+                        <ActivityIndicator size="large" color="#22d3ee" />
+                        <ThemedText style={{ color: "#93c5fd", marginTop: 16, fontSize: 16 }}>
+                            Đang tải thông tin trận đấu...
+                        </ThemedText>
+                    </View>
+                </ImageBackground>
+            </ThemedView>
+        );
+    }
+
+    return (
+        <ThemedView style={{ flex: 1 }}>
+            <ImageBackground
+                source={require("../../../../assets/images/list_pokemon_bg.png")}
+                style={{ flex: 1 }}
+                imageStyle={{ resizeMode: "cover" }}
+            >
+                {/* Header */}
+                <View className="px-5 pt-16 pb-6">
+                    <View className="flex-row items-center justify-between mb-4">
+                        <ThemedText style={{ color: "#fbbf24", fontSize: 20, fontWeight: "800" }}>
+                            PICK PHASE
+                        </ThemedText>
+                        <View className="flex-row items-center gap-2">
+                            <Clock size={16} color="#22d3ee" />
+                            <ThemedText style={{ color: "#cbd5e1", fontSize: 14 }}>
+                                Round {(() => {
+                                    if (battleContext?.currentRound?.roundNumber) {
+                                        const roundNum = battleContext.currentRound.roundNumber;
+                                        if (roundNum === "ONE") return "1";
+                                        if (roundNum === "TWO") return "2";
+                                        if (roundNum === "THREE") return "3";
+                                        return String(battleContext.currentRoundIndex + 1);
+                                    }
+                                    return String((battleContext?.currentRoundIndex ?? 0) + 1);
+                                })()}/3
+                            </ThemedText>
+                        </View>
+                    </View>
+
+                    {/* Opponent vs Player */}
+                    <View className="flex-row items-center justify-between">
+                        {/* Opponent */}
+                        <Animated.View
+                            className="items-center flex-1 px-3 py-4 rounded-2xl"
+                            style={{
+                                transform: battleContext?.isOpponentTurn ? [{ scale: pulseAnim }] : [{ scale: 1 }],
+                                opacity: battleContext?.isOpponentTurn ? 1 : 0.7,
+                            }}
+                        >
+                            {battleContext?.isOpponentTurn ? (
+                                <TWLinearGradient
+                                    colors={["rgba(239, 68, 68, 0.08)", "rgba(239, 68, 68, 0.15)", "rgba(239, 68, 68, 0.08)"]}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                    style={{
+                                        position: "absolute",
+                                        left: 0,
+                                        right: 0,
+                                        top: 0,
+                                        bottom: 0,
+                                        borderRadius: 16,
+                                        borderWidth: 1.5,
+                                        borderColor: "rgba(239, 68, 68, 0.4)",
+                                    }}
+                                />
+                            ) : null}
+                            <View className="relative items-center">
+                                <View
+                                    className="rounded-full"
+                                    style={{
+                                        padding: battleContext?.isOpponentTurn ? 2 : 0,
+                                        borderRadius: 999,
+                                    }}
+                                >
+                                    {battleContext?.isOpponentTurn ? (
+                                        <TWLinearGradient
+                                            colors={["rgba(239, 68, 68, 0.6)", "rgba(220, 38, 38, 0.8)", "rgba(239, 68, 68, 0.6)"]}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={{
+                                                borderRadius: 999,
+                                                padding: 2,
+                                            }}
+                                        >
+                                            <View style={{ borderRadius: 999, backgroundColor: "transparent" }}>
+                                                <UserAvatar name={matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""} size="large" />
+                                            </View>
+                                        </TWLinearGradient>
+                                    ) : (
+                                        <UserAvatar name={matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""} size="large" />
+                                    )}
+                                </View>
+                                {battleContext?.isOpponentTurn && (
+                                    <View
+                                        style={{
+                                            position: "absolute",
+                                            bottom: -2,
+                                            left: "50%",
+                                            marginLeft: -8,
+                                            width: 16,
+                                            height: 3,
+                                            borderRadius: 2,
+                                            backgroundColor: "#ef4444",
+                                            shadowColor: "#ef4444",
+                                            shadowOffset: { width: 0, height: 0 },
+                                            shadowOpacity: 0.8,
+                                            shadowRadius: 4,
+                                            elevation: 4,
+                                        }}
+                                    />
+                                )}
+                            </View>
+                            <ThemedText style={{
+                                color: battleContext?.isOpponentTurn ? "#fca5a5" : "#9ca3af",
+                                fontSize: 14,
+                                fontWeight: battleContext?.isOpponentTurn ? "700" : "600",
+                                marginTop: 8,
+                                textShadowColor: battleContext?.isOpponentTurn ? "rgba(239, 68, 68, 0.5)" : "transparent",
+                                textShadowOffset: { width: 0, height: 1 },
+                                textShadowRadius: 4,
+                            }}>
+                                {matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""}
+                            </ThemedText>
+                            {battleContext?.isOpponentTurn && (
+                                <View className="mt-2 px-3 py-1 rounded-full" style={{
+                                    backgroundColor: "rgba(239, 68, 68, 0.2)",
+                                    borderWidth: 1,
+                                    borderColor: "rgba(239, 68, 68, 0.5)",
+                                }}>
+                                    <ThemedText style={{ color: "#fca5a5", fontSize: 11, fontWeight: "700" }}>
+                                        ĐANG PICK
+                                    </ThemedText>
+                                </View>
+                            )}
+                        </Animated.View>
+
+                        {/* VS */}
+                        <TWLinearGradient
+                            colors={["#ec4899", "#8b5cf6"]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={{ padding: 2, borderRadius: 999, marginHorizontal: 20 }}
+                        >
+                            <View className="px-4 py-2 rounded-full bg-black/70 items-center">
+                                {remainingSeconds !== null && remainingSeconds > 0 ? (
+                                    <ThemedText style={{ color: "#ffffff", fontWeight: "800", fontSize: 18 }}>
+                                        {formatTime(remainingSeconds)}
+                                    </ThemedText>
+                                ) : (
+                                    <ThemedText style={{ color: "#ffffff", fontWeight: "800", fontSize: 18 }}>
+                                        --
+                                    </ThemedText>
+                                )}
+                                <ThemedText style={{ color: "#cbd5e1", fontWeight: "700", fontSize: 10, opacity: 0.85 }}>
+                                    VS
+                                </ThemedText>
+                            </View>
+                        </TWLinearGradient>
+
+                        {/* Player */}
+                        <Animated.View
+                            className="items-center flex-1 px-3 py-4 rounded-2xl"
+                            style={{
+                                transform: battleContext?.isPlayerTurn ? [{ scale: pulseAnim }] : [{ scale: 1 }],
+                                opacity: battleContext?.isPlayerTurn ? 1 : 0.7,
+                            }}
+                        >
+                            {battleContext?.isPlayerTurn ? (
+                                <TWLinearGradient
+                                    colors={["rgba(34, 197, 94, 0.08)", "rgba(34, 197, 94, 0.15)", "rgba(34, 197, 94, 0.08)"]}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                    style={{
+                                        position: "absolute",
+                                        left: 0,
+                                        right: 0,
+                                        top: 0,
+                                        bottom: 0,
+                                        borderRadius: 16,
+                                        borderWidth: 1.5,
+                                        borderColor: "rgba(34, 197, 94, 0.4)",
+                                    }}
+                                />
+                            ) : null}
+                            <View className="relative items-center">
+                                <View
+                                    className="rounded-full"
+                                    style={{
+                                        padding: battleContext?.isPlayerTurn ? 2 : 0,
+                                        borderRadius: 999,
+                                    }}
+                                >
+                                    {battleContext?.isPlayerTurn ? (
+                                        <TWLinearGradient
+                                            colors={["rgba(34, 197, 94, 0.6)", "rgba(22, 163, 74, 0.8)", "rgba(34, 197, 94, 0.6)"]}
+                                            start={{ x: 0, y: 0 }}
+                                            end={{ x: 1, y: 1 }}
+                                            style={{
+                                                borderRadius: 999,
+                                                padding: 2,
+                                            }}
+                                        >
+                                            <View style={{ borderRadius: 999, backgroundColor: "transparent" }}>
+                                                <UserAvatar name={"Bạn"} size="large" />
+                                            </View>
+                                        </TWLinearGradient>
+                                    ) : (
+                                        <UserAvatar name={"Bạn"} size="large" />
+                                    )}
+                                </View>
+                                {battleContext?.isPlayerTurn && (
+                                    <View
+                                        style={{
+                                            position: "absolute",
+                                            bottom: -2,
+                                            left: "50%",
+                                            marginLeft: -8,
+                                            width: 16,
+                                            height: 3,
+                                            borderRadius: 2,
+                                            backgroundColor: "#22c55e",
+                                            shadowColor: "#22c55e",
+                                            shadowOffset: { width: 0, height: 0 },
+                                            shadowOpacity: 0.8,
+                                            shadowRadius: 4,
+                                            elevation: 4,
+                                        }}
+                                    />
+                                )}
+                            </View>
+                            <ThemedText style={{
+                                color: battleContext?.isPlayerTurn ? "#86efac" : "#9ca3af",
+                                fontSize: 14,
+                                fontWeight: battleContext?.isPlayerTurn ? "700" : "600",
+                                marginTop: 8,
+                                textShadowColor: battleContext?.isPlayerTurn ? "rgba(34, 197, 94, 0.5)" : "transparent",
+                                textShadowOffset: { width: 0, height: 1 },
+                                textShadowRadius: 4,
+                            }}>
+                                Bạn
+                            </ThemedText>
+                            {battleContext?.isPlayerTurn && (
+                                <View className="mt-2 px-3 py-1 rounded-full" style={{
+                                    backgroundColor: "rgba(34, 197, 94, 0.2)",
+                                    borderWidth: 1,
+                                    borderColor: "rgba(34, 197, 94, 0.5)",
+                                }}>
+                                    <ThemedText style={{ color: "#86efac", fontSize: 11, fontWeight: "700" }}>
+                                        CHỌN NGAY
+                                    </ThemedText>
+                                </View>
+                            )}
+                        </Animated.View>
+                    </View>
+                </View>
+
+                {/* Picks Display */}
+                <View className="px-5 mb-4">
+                    <View className="flex-row justify-between gap-2">
+                        {/* Opponent Picks */}
+                        <View className="flex-1">
+                            <ThemedText style={{ color: "#94a3b8", fontSize: 12, marginBottom: 8 }}>
+                                Đối thủ ({matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""})
+                            </ThemedText>
+                            <View className="flex-row flex-wrap gap-2">
+                                {[0, 1, 2].map((idx) => {
+                                    const opponentPickId = battleContext?.opponentPicks[idx];
+                                    const opponentPokemon = opponentPickId ? getPokemonById(opponentPickId) : null;
+
+                                    return (
+                                        <View key={idx} className="w-16 h-16 rounded-xl border border-white/20 bg-black/40">
+                                            {opponentPokemon ? (
+                                                <View className="flex-1 items-center justify-center">
+                                                    <Image
+                                                        source={{ uri: opponentPokemon.imageUrl }}
+                                                        style={{ width: 48, height: 48 }}
+                                                        resizeMode="contain"
+                                                    />
+                                                </View>
+                                            ) : (
+                                                <View className="flex-1 items-center justify-center">
+                                                    <Animated.View style={{ opacity: 0.3 }}>
+                                                        <Clock size={24} color="#64748b" />
+                                                    </Animated.View>
+                                                </View>
+                                            )}
+                                        </View>
+                                    );
+                                })}
+                            </View>
+                        </View>
+
+                        {/* Player Picks */}
+                        <View className="flex-1">
+                            <ThemedText style={{ color: "#94a3b8", fontSize: 12, marginBottom: 8 }}>
+                                Bạn
+                            </ThemedText>
+                            <View className="flex-row flex-wrap gap-2">
+                                {[0, 1, 2].map((idx) => {
+                                    const playerPickId = battleContext?.playerPicks[idx];
+                                    const playerPokemon = playerPickId ? getPokemonById(playerPickId) : null;
+
+                                    return (
+                                        <View key={idx} className="w-16 h-16 rounded-xl border border-white/20 bg-black/40">
+                                            {playerPokemon ? (
+                                                <View className="flex-1 items-center justify-center">
+                                                    <Image
+                                                        source={{ uri: playerPokemon.imageUrl }}
+                                                        style={{ width: 48, height: 48 }}
+                                                        resizeMode="contain"
+                                                    />
+                                                </View>
+                                            ) : (
+                                                <View className="flex-1 items-center justify-center">
+                                                    <Animated.View style={{ opacity: 0.3 }}>
+                                                        <Clock size={24} color="#64748b" />
+                                                    </Animated.View>
+                                                </View>
+                                            )}
+                                        </View>
+                                    );
+                                })}
+                            </View>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Elemental Filter (sets typeId for useListUserPokemonRound) */}
+                <View className="px-5 mb-3">
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        <View className="flex-row gap-2">
+                            {listElemental?.results?.map((elem: IElementalEntity) => (
+                                <HapticPressable
+                                    key={elem?.id}
+                                    onPress={() => setTypeId(elem?.id)}
+                                    className={`px-4 py-2 rounded-full border ${elem?.id === typeId
+                                        ? "border-cyan-400 bg-cyan-500/20"
+                                        : "border-white/20 bg-white/5"
+                                        }`}
+                                >
+                                    <ThemedText
+                                        style={{
+                                            color: elem?.id === typeId ? "#22d3ee" : "#cbd5e1",
+                                            fontSize: 13,
+                                            fontWeight: "600",
+                                        }}
+                                    >
+                                        {(elem?.display_name?.[language as keyof typeof elem.display_name] || elem?.display_name?.vi || elem?.display_name?.en || elem?.display_name?.ja || elem?.type_name || "Elemental")}
+                                    </ThemedText>
+                                </HapticPressable>
+                            ))}
+                        </View>
+                    </ScrollView>
+                </View>
+
+                {/* Type Filter */}
+                {availableTypes.length > 0 && (
+                    <View className="px-5 mb-4">
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                            <View className="flex-row gap-2">
+                                {availableTypes.map((type) => (
+                                    <HapticPressable
+                                        key={type}
+                                        onPress={() => {
+                                            // Toggle: if already selected, deselect to show all
+                                            setCurrentTypeFilter(currentTypeFilter === type ? null : type);
+                                        }}
+                                        className={`px-4 py-2 rounded-full border ${currentTypeFilter === type
+                                            ? "border-cyan-400 bg-cyan-500/20"
+                                            : "border-white/20 bg-white/5"
+                                            }`}
+                                    >
+                                        <ThemedText
+                                            style={{
+                                                color: currentTypeFilter === type ? "#22d3ee" : "#cbd5e1",
+                                                fontSize: 13,
+                                                fontWeight: "600",
+                                            }}
+                                        >
+                                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                                        </ThemedText>
+                                    </HapticPressable>
+                                ))}
+                            </View>
+                        </ScrollView>
+                    </View>
+                )}
+
+                {/* Choose Button */}
+                {selectedPokemonId && (
+                    <View className="px-5 mb-4">
+                        <HapticPressable
+                            onPress={handleChoosePokemon}
+                            disabled={choosePokemonMutation.isPending || !battleContext?.isPlayerTurn}
+                            className={`w-full py-4 rounded-xl border-2 items-center justify-center ${battleContext?.isPlayerTurn && !choosePokemonMutation.isPending
+                                ? "bg-green-500/20 border-green-500"
+                                : "bg-gray-500/20 border-gray-500"
+                                }`}
+                        >
+                            {choosePokemonMutation.isPending ? (
+                                <ActivityIndicator size="small" color="#86efac" />
+                            ) : (
+                                <ThemedText
+                                    style={{
+                                        color: battleContext?.isPlayerTurn ? "#86efac" : "#9ca3af",
+                                        fontSize: 16,
+                                        fontWeight: "700"
+                                    }}
+                                >
+                                    {battleContext?.isPlayerTurn ? "Chọn" : "Chờ đến lượt bạn"}
+                                </ThemedText>
+                            )}
+                        </HapticPressable>
+                    </View>
+                )}
+
+                {/* Pokemon List */}
+                <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
+                    {isLoadingListUserPokemonRound ? (
+                        <View className="flex-1 items-center justify-center py-20">
+                            <ActivityIndicator size="large" color="#22d3ee" />
+                            <ThemedText style={{ color: "#64748b", marginTop: 16, fontSize: 14 }}>
+                                Đang tải Pokemon...
+                            </ThemedText>
+                        </View>
+                    ) : !displayPokemons || displayPokemons.length === 0 ? (
+                        <View className="flex-1 items-center justify-center py-20">
+                            <ThemedText style={{ color: "#64748b", marginTop: 16, fontSize: 14, textAlign: "center" }}>
+                                {currentElementalName
+                                    ? `Bạn không có Pokemon hệ ${currentElementalName}`
+                                    : "Không có Pokemon nào"}
+                            </ThemedText>
+                        </View>
+                    ) : (
+                        <View className="flex-row flex-wrap gap-4 pb-8 justify-center">
+                            {displayPokemons.map((pokemon: any) => {
+                                // Pokemon is already the direct object from results
+                                const isSelected =
+                                    (battleContext?.playerPicks || []).includes(pokemon.id) ||
+                                    (battleContext?.opponentPicks || []).includes(pokemon.id);
+                                const isCurrentlySelected = selectedPokemonId === pokemon.id;
+                                const canPick = pokemon?.canPick !== false; // Default to true if not specified
+
+                                // Get rarity config first
+                                const getRarityConfig = () => {
+                                    const config: Record<string, { label: string; color: string; borderColor: string; stars: number; icon?: any }> = {
+                                        COMMON: { label: "Common", color: "#94a3b8", borderColor: "#94a3b89e", stars: 1 },
+                                        UNCOMMON: { label: "Uncommon", color: "#34d399", borderColor: "#34d3999e", stars: 2 },
+                                        RARE: { label: "Rare", color: "#3b82f6", borderColor: "#3b82f69e", stars: 3 },
+                                        EPIC: { label: "Epic", color: "#8b5cf6", borderColor: "#8b5cf69e", stars: 4, icon: Sparkles },
+                                        LEGENDARY: { label: "Legendary", color: "#facc15", borderColor: "#facc159e", stars: 5, icon: Star },
+                                    };
+                                    return config[pokemon.rarity] || config.COMMON;
+                                };
+
+                                const rarityConfig = getRarityConfig();
+                                const isEpicOrLegendary = pokemon.rarity === "EPIC" || pokemon.rarity === "LEGENDARY";
+
+                                // Get rarity colors
+                                const getRarityColors = (): string[] => {
+                                    const rarityMap: Record<string, string[]> = {
+                                        COMMON: ["rgba(248, 250, 252, 0.1)", "rgba(226, 232, 240, 0.15)", "rgba(203, 213, 225, 0.2)"],
+                                        UNCOMMON: ["rgba(236, 253, 245, 0.15)", "rgba(167, 243, 208, 0.2)", "rgba(110, 231, 183, 0.25)"],
+                                        RARE: ["rgba(239, 246, 255, 0.15)", "rgba(147, 197, 253, 0.2)", "rgba(96, 165, 250, 0.25)"],
+                                        EPIC: ["rgba(250, 245, 255, 0.2)", "rgba(196, 181, 253, 0.25)", "rgba(167, 139, 250, 0.3)"],
+                                        LEGENDARY: ["rgba(254, 252, 232, 0.25)", "rgba(254, 240, 138, 0.3)", "rgba(253, 224, 71, 0.35)"],
+                                    };
+                                    return rarityMap[pokemon.rarity] || rarityMap.COMMON;
+                                };
+
+                                // Get border color based on state
+                                const getBorderColor = () => {
+                                    if (isSelected) return "border-red-500/60";
+                                    if (isCurrentlySelected) return "border-green-400 border-2";
+                                    if (canPick) return "border-cyan-400/50";
+                                    return "border-white/20";
+                                };
+
+                                // Get shadow color based on state and rarity
+                                const getShadowStyle = () => {
+                                    const rarityShadowColor = rarityConfig.color;
+
+                                    if (isCurrentlySelected) {
+                                        return {
+                                            shadowColor: "#22d3ee",
+                                            shadowOffset: { width: 0, height: 4 },
+                                            shadowOpacity: 0.5,
+                                            shadowRadius: 12,
+                                            elevation: 8,
+                                        };
+                                    }
+                                    if (isEpicOrLegendary) {
+                                        return {
+                                            shadowColor: rarityShadowColor,
+                                            shadowOffset: { width: 0, height: 3 },
+                                            shadowOpacity: 0.6,
+                                            shadowRadius: 10,
+                                            elevation: 6,
+                                        };
+                                    }
+                                    if (canPick && !isSelected) {
+                                        return {
+                                            shadowColor: "#06b6d4",
+                                            shadowOffset: { width: 0, height: 2 },
+                                            shadowOpacity: 0.3,
+                                            shadowRadius: 8,
+                                            elevation: 4,
+                                        };
+                                    }
+                                    return {
+                                        shadowColor: "#000",
+                                        shadowOffset: { width: 0, height: 1 },
+                                        shadowOpacity: 0.2,
+                                        shadowRadius: 3,
+                                        elevation: 2,
+                                    };
+                                };
+
+                                return (
+                                    <HapticPressable
+                                        key={pokemon.id}
+                                        onPress={() => handlePickPokemon(pokemon.id)}
+                                        disabled={isSelected || !canPick}
+                                        className="relative"
+                                        style={getShadowStyle()}
+                                    >
+                                        <View
+                                            className={`w-32 h-44 rounded-3xl overflow-hidden ${getBorderColor()} ${isSelected ? "opacity-50" : "opacity-100"
+                                                } ${isCurrentlySelected ? "scale-105" : "scale-100"}`}
+                                            style={{
+                                                borderWidth: isCurrentlySelected ? 2 : isEpicOrLegendary ? 2 : 1,
+                                                borderColor: isCurrentlySelected
+                                                    ? undefined
+                                                    : isEpicOrLegendary
+                                                        ? rarityConfig.borderColor
+                                                        : undefined,
+                                            }}
+                                        >
+                                            {/* Rarity gradient background */}
+                                            <TWLinearGradient
+                                                colors={getRarityColors() as any}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 0, y: 1 }}
+                                                style={{ ...StyleSheet.absoluteFillObject, borderRadius: 24 }}
+                                            />
+
+                                            {/* Dark overlay for better contrast */}
+                                            <TWLinearGradient
+                                                colors={["rgba(0,0,0,0.2)", "rgba(0,0,0,0.4)", "rgba(0,0,0,0.7)"]}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 0, y: 1 }}
+                                                style={{ ...StyleSheet.absoluteFillObject, borderRadius: 24 }}
+                                            />
+
+                                            {/* Rarity badge */}
+                                            <View className="absolute top-1.5 left-1.5 z-20">
+                                                <View
+                                                    className="px-2 py-0.5 rounded-full flex-row items-center gap-1"
+                                                    style={{
+                                                        backgroundColor: `${rarityConfig.color}20`,
+                                                        borderWidth: 1,
+                                                        borderColor: rarityConfig.color,
+                                                    }}
+                                                >
+                                                    {rarityConfig.icon && (
+                                                        React.createElement(rarityConfig.icon, {
+                                                            size: 10,
+                                                            color: rarityConfig.color,
+                                                            fill: rarityConfig.color,
+                                                        })
+                                                    )}
+                                                    <ThemedText
+                                                        style={{
+                                                            color: rarityConfig.color,
+                                                            fontSize: 8,
+                                                            fontWeight: "800",
+                                                            textTransform: "uppercase",
+                                                            letterSpacing: 0.5,
+                                                        }}
+                                                    >
+                                                        {rarityConfig.label.slice(0, 3)}
+                                                    </ThemedText>
+                                                </View>
+                                            </View>
+
+                                            {/* Rarity stars */}
+                                            <View className="absolute top-1.5 right-1.5 z-20 flex-row gap-0.5">
+                                                {Array.from({ length: rarityConfig.stars }).map((_, i) => (
+                                                    <Star
+                                                        key={i}
+                                                        size={8}
+                                                        color={rarityConfig.color}
+                                                        fill={rarityConfig.color}
+                                                    />
+                                                ))}
+                                            </View>
+
+                                            {/* Type badges */}
+                                            <View className="absolute top-10 left-2 right-2 flex-row gap-1 flex-wrap z-10">
+                                                {(pokemon.types || []).slice(0, 2).map((type: IPokemonType) => (
+                                                    <TypeBadge key={type.id} type={type.type_name} />
+                                                ))}
+                                            </View>
+
+                                            {/* Selected indicator */}
+                                            {isCurrentlySelected && (
+                                                <View className="absolute top-2 right-2 bg-green-500 rounded-full p-1.5 z-10" style={{ shadowColor: "#22c55e", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.8, shadowRadius: 4, elevation: 4 }}>
+                                                    <Check size={14} color="#ffffff" strokeWidth={3} />
+                                                </View>
+                                            )}
+
+                                            {/* Pokemon image */}
+                                            <View className="flex-1 items-center justify-center pt-6 pb-2">
+                                                <View className="bg-white/5 rounded-full p-3" style={{ shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 3 }}>
+                                                    <Image
+                                                        source={{ uri: pokemon.imageUrl }}
+                                                        style={{ width: 80, height: 80 }}
+                                                        resizeMode="contain"
+                                                    />
+                                                </View>
+                                            </View>
+
+                                            {/* Pokemon name and info */}
+                                            <View className="px-3 pb-3 pt-1">
+                                                <ThemedText
+                                                    numberOfLines={1}
+                                                    style={{
+                                                        color: "#ffffff",
+                                                        fontSize: 12,
+                                                        fontWeight: "800",
+                                                        textAlign: "center",
+                                                        textShadowColor: "rgba(0, 0, 0, 0.75)",
+                                                        textShadowOffset: { width: 0, height: 1 },
+                                                        textShadowRadius: 3,
+                                                        letterSpacing: 0.5,
+                                                    }}
+                                                >
+                                                    {getPokemonName(pokemon)}
+                                                </ThemedText>
+                                                {pokemon.pokedex_number && (
+                                                    <ThemedText
+                                                        style={{
+                                                            color: "#cbd5e1",
+                                                            fontSize: 10,
+                                                            fontWeight: "600",
+                                                            textAlign: "center",
+                                                            marginTop: 2,
+                                                            opacity: 0.8,
+                                                        }}
+                                                    >
+                                                        #{String(pokemon.pokedex_number).padStart(3, "0")}
+                                                    </ThemedText>
+                                                )}
+                                            </View>
+
+                                            {/* Disabled overlay */}
+                                            {(isSelected || !canPick) && (
+                                                <View className="absolute inset-0 bg-black/60 rounded-3xl items-center justify-center">
+                                                    {isSelected && (
+                                                        <View className="bg-red-500/80 px-3 py-1 rounded-full">
+                                                            <ThemedText style={{ color: "#ffffff", fontSize: 10, fontWeight: "700" }}>
+                                                                Đã chọn
+                                                            </ThemedText>
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            )}
+                                        </View>
+                                    </HapticPressable>
+                                );
+                            })}
+                        </View>
+                    )}
+                </ScrollView>
+            </ImageBackground>
+        </ThemedView>
+    );
+}

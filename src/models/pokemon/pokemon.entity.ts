@@ -83,3 +83,19 @@ export const EvolutionPokemonEntitySchema: z.ZodType<any> = z.lazy(() => z.objec
 
 export type IEvolutionPokemonEntityType = z.infer<typeof EvolutionPokemonEntitySchema>;
 //------------------------End------------------------//
+
+
+/**
+ * User Pokemon Round Entity Schema
+ */
+export const UserPokemonRoundEntitySchema = z.object({
+    id: z.number(),
+    imageUrl: z.string().url(),
+    nameJp: z.string(),
+    nameTranslations: TranslationSchema,
+    rarity: z.enum([PokemonRarity.COMMON, PokemonRarity.UNCOMMON, PokemonRarity.RARE, PokemonRarity.EPIC, PokemonRarity.LEGENDARY]),
+    canPick: z.boolean(),
+});
+
+export type IUserPokemonRoundEntityType = z.infer<typeof UserPokemonRoundEntitySchema>;
+//------------------------End------------------------//

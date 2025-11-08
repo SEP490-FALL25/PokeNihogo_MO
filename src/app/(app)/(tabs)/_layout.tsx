@@ -11,7 +11,7 @@ import { CopilotStep, walkthroughable } from "react-native-copilot";
 export default function TabLayout() {
   const { t } = useTranslation();
   const WTView = walkthroughable(View);
-  
+
   // State for main pokemon image
   const [mainPokemonImageUrl, setMainPokemonImageUrl] = useState<string | null>(
     null
