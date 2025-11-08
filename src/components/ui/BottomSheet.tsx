@@ -26,6 +26,9 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window')
 
 interface BottomSheetProps {
   children: React.ReactNode
+  open?: boolean // Controlled open state
+  onOpenChange?: (open: boolean) => void // Controlled onChange handler
+  closeOnBlur?: boolean // Auto close when screen loses focus
 }
 
 interface BottomSheetTriggerProps extends ViewProps {
@@ -59,17 +62,39 @@ interface BottomSheetCloseProps extends ViewProps {
   children: React.ReactNode
 }
 
-const BottomSheet = ({ children }: BottomSheetProps) => {
-  const [isOpen, setIsOpen] = React.useState(false)
+const BottomSheet = ({ 
+  children, 
+  open: controlledOpen, 
+  onOpenChange: controlledOnOpenChange,
+  closeOnBlur = true 
+}: BottomSheetProps) => {
+  // Use controlled state if provided, otherwise use internal state
+  const [internalOpen, setInternalOpen] = React.useState(false)
+  const isControlled = controlledOpen !== undefined
+  const isOpen = isControlled ? controlledOpen : internalOpen
 
-  const handleOpenChange = (open: boolean) => {
+  const handleOpenChange = React.useCallback((open: boolean) => {
     console.log('BottomSheet handleOpenChange:', open)
-    setIsOpen(open)
-  }
+    if (isControlled) {
+      controlledOnOpenChange?.(open)
+    } else {
+      setInternalOpen(open)
+    }
+  }, [isControlled, controlledOnOpenChange])
+
+  // Close BottomSheet when component unmounts (e.g., when navigating away)
+  React.useEffect(() => {
+    return () => {
+      // Cleanup: close sheet when component unmounts
+      if (isOpen) {
+        handleOpenChange(false)
+      }
+    }
+  }, [isOpen, handleOpenChange])
 
   React.useEffect(() => {
-    console.log('BottomSheet isOpen state:', isOpen)
-  }, [isOpen])
+    console.log('BottomSheet isOpen state:', isOpen, 'isControlled:', isControlled)
+  }, [isOpen, isControlled])
 
   return (
     <>
@@ -199,19 +224,44 @@ const BottomSheetContent = React.forwardRef<
 
     const scrollY = useSharedValue(0)
     const scrollViewRef = React.useRef<Animated.ScrollView>(null)
+    // Initialize isVisible based on isOpen state
+    const [isVisible, setIsVisible] = React.useState(isOpen)
+    const animationTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    // Initialize translateY position - start from bottom (off-screen)
+    React.useEffect(() => {
+      translateY.value = 0
+      backdropOpacityValue.value = 0
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []) // Only run once on mount
 
     useEffect(() => {
+      // Clear any pending timeouts
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current)
+        animationTimeoutRef.current = null
+      }
+
       if (isOpen) {
-        // Animate from bottom (off-screen, translateY = 0) to open position (translateY = -visibleHeight)
-        translateY.value = withSpring(openTranslateY, {
-          damping: 50,
-          stiffness: 300,
+        // Show Modal first, then animate
+        setIsVisible(true)
+        // Small delay to ensure Modal is mounted before animation
+        // This ensures smooth opening animation
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            // Animate from bottom (off-screen, translateY = 0) to open position (translateY = -visibleHeight)
+            translateY.value = withSpring(openTranslateY, {
+              damping: 50,
+              stiffness: 300,
+            })
+            backdropOpacityValue.value = withTiming(backdropOpacity, {
+              duration: 300,
+            })
+          })
         })
-        backdropOpacityValue.value = withTiming(backdropOpacity, {
-          duration: 300,
-        })
-      } else {
-        // Animate back to bottom (off-screen, translateY = 0)
+      } else if (isVisible) {
+        // Only animate if Modal is currently visible
+        // Animate back to bottom (off-screen, translateY = 0) before hiding
         translateY.value = withSpring(0, {
           damping: 50,
           stiffness: 300,
@@ -221,6 +271,21 @@ const BottomSheetContent = React.forwardRef<
         })
         // Reset scroll position when closing
         scrollY.value = 0
+        
+        // Hide Modal after animation completes (wait for spring animation + fade)
+        // Spring animation typically takes ~400-500ms, backdrop fade takes 300ms
+        animationTimeoutRef.current = setTimeout(() => {
+          setIsVisible(false)
+          animationTimeoutRef.current = null
+        }, 400) // Wait for animations to complete
+      }
+
+      // Cleanup function
+      return () => {
+        if (animationTimeoutRef.current) {
+          clearTimeout(animationTimeoutRef.current)
+          animationTimeoutRef.current = null
+        }
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, openTranslateY, backdropOpacity])
@@ -314,14 +379,15 @@ const BottomSheetContent = React.forwardRef<
 
     // Debug log
     React.useEffect(() => {
-      console.log('BottomSheetContent isOpen:', isOpen, 'openTranslateY:', openTranslateY, 'visibleHeight:', visibleHeight)
-    }, [isOpen, openTranslateY, visibleHeight])
+      console.log('BottomSheetContent isOpen:', isOpen, 'isVisible:', isVisible, 'openTranslateY:', openTranslateY, 'visibleHeight:', visibleHeight)
+    }, [isOpen, isVisible, openTranslateY, visibleHeight])
 
-    if (!isOpen) return null
+    // Don't render Modal if not visible (after close animation completes)
+    if (!isVisible && !isOpen) return null
 
     return (
       <Modal
-        visible={isOpen}
+        visible={isVisible || isOpen}
         transparent
         animationType="none"
         onRequestClose={closeSheet}

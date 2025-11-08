@@ -18,6 +18,7 @@ import {
   useUserProgress,
 } from "@hooks/useLessons";
 import { LessonProgress } from "@models/lesson/lesson.common";
+import { useIsFocused } from "@react-navigation/native";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
 import {
@@ -200,11 +201,20 @@ const CategoriesScreen = () => {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const isFocused = useIsFocused();
 
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
+
+  // Close BottomSheet when screen loses focus (e.g., when navigating away)
+  useEffect(() => {
+    if (!isFocused && isBottomSheetOpen) {
+      setIsBottomSheetOpen(false);
+    }
+  }, [isFocused, isBottomSheetOpen]);
 
   const { level: userLevel } = useUserStore();
 
@@ -425,7 +435,11 @@ const CategoriesScreen = () => {
 
         {/* Skill Categories - Trigger Button */}
         <View style={styles.categoriesSection}>
-          <BottomSheet>
+          <BottomSheet
+            open={isBottomSheetOpen}
+            onOpenChange={setIsBottomSheetOpen}
+            closeOnBlur={true}
+          >
             <BottomSheetTrigger>
               <View style={styles.categoriesHeader}>
                 <ThemedText type="subtitle" style={styles.categoriesTitle}>
