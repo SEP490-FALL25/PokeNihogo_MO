@@ -20,7 +20,7 @@ import { ThemedText } from "@components/ThemedText";
 import AudioPlayer from "@components/ui/AudioPlayer";
 import VoiceRecorder from "@components/ui/EnhancedAudioRecorder";
 import { useAuth } from "@hooks/useAuth";
-import userTestService from "@services/user-test";
+import { useTestFullUser } from "@hooks/useUserTest";
 
 type Message = {
   id: string;
@@ -198,51 +198,40 @@ export default function ConversationScreen() {
     } catch {}
   };
 
+  const { data: testData, isLoading: isLoadingTest } = useTestFullUser(
+    topicId ? String(topicId) : null
+  );
+
   useEffect(() => {
-    let mounted = true;
+    if (topicId && testData) {
+      const questions =
+        testData?.testSets?.[0]?.questions
+          ?.slice()
+          ?.sort(
+            (a: any, b: any) =>
+              (a?.questionOrder ?? 0) - (b?.questionOrder ?? 0)
+          ) ?? [];
+      setQueuedQuestions(questions);
+      setCountdown(3);
+      setIsLoading(false);
+    } else if (!topicId) {
+      setMessages([
+        {
+          id: `ai-${Date.now()}`,
+          role: "ai",
+          text: "Hãy nói 'こんにちは'.",
+          question: "Hãy nói",
+          pronunciation: "こんにちは",
+        },
+      ]);
+      setNextUserPrompt("「こんにちは」。");
+      setIsLoading(false);
+    }
+  }, [topicId, testData]);
 
-    (async () => {
-      try {
-        setIsLoading(true);
-        if (!mounted) return;
-
-        if (topicId) {
-          try {
-            const test = await userTestService.getTestFullUser(String(topicId));
-            if (!mounted) return;
-
-            const questions =
-              test?.testSets?.[0]?.questions
-                ?.slice()
-                ?.sort(
-                  (a: any, b: any) =>
-                    (a?.questionOrder ?? 0) - (b?.questionOrder ?? 0)
-                ) ?? [];
-            setQueuedQuestions(questions);
-            setCountdown(3);
-          } catch {}
-        } else {
-          setMessages([
-            {
-              id: `ai-${Date.now()}`,
-              role: "ai",
-              text: "Hãy nói 'こんにちは'.",
-              question: "Hãy nói",
-              pronunciation: "こんにちは",
-            },
-          ]);
-          setNextUserPrompt("「こんにちは」。");
-        }
-      } catch {
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    })();
-
-    return () => {
-      mounted = false;
-    };
-  }, [topicId]);
+  useEffect(() => {
+    setIsLoading(isLoadingTest);
+  }, [isLoadingTest]);
 
   const startSequence = useCallback(async () => {
     if (!queuedQuestions?.length) return;
