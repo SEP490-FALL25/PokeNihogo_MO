@@ -207,51 +207,26 @@ export default function PickPokemonScreen() {
 
         const pickDeadline = (() => {
             if (currentRound?.status === "SELECTING_POKEMON" || currentRound?.status === "PENDING") {
-                // Priority 1: If we know who's picking, use their endTimeSelected
-                if (currentPicker === "player") {
-                    const deadline = validateDeadline(currentPlayer?.endTimeSelected);
-                    if (deadline) return deadline;
-                }
-                if (currentPicker === "opponent") {
-                    const deadline = validateDeadline(currentOpponent?.endTimeSelected);
-                    if (deadline) return deadline;
-                }
 
-                // Priority 2: If picker is determined but no endTimeSelected, 
-                // find who hasn't picked and check if they have endTimeSelected
-                const playerNeedsToPick = !currentPlayer?.selectedUserPokemonId;
-                const opponentNeedsToPick = !currentOpponent?.selectedUserPokemonId;
+                // --- BẮT ĐẦU SỬA ---
+                // Logic mới:
+                // Chỉ cần tìm xem 1 trong 2 người, ai có deadline hợp lệ thì lấy
 
-                if (playerNeedsToPick) {
-                    const deadline = validateDeadline(currentPlayer?.endTimeSelected);
-                    if (deadline) return deadline;
-                }
-                if (opponentNeedsToPick) {
-                    const deadline = validateDeadline(currentOpponent?.endTimeSelected);
-                    if (deadline) return deadline;
-                }
+                // 1. Thử lấy deadline của 'currentPlayer' (người chơi trên máy này)
+                let deadline = validateDeadline(currentPlayer?.endTimeSelected);
+                if (deadline) return deadline;
 
-                // Priority 3: If we determined who should pick but they don't have endTimeSelected,
-                // try to use the other participant's endTimeSelected as a reference
-                // This handles the case: round 2 starts, opponent (orderSelected: 3) already picked,
-                // player (orderSelected: 4) needs to pick but endTimeSelected is null
-                if (isPlayerTurn && !currentPlayer?.endTimeSelected) {
-                    const deadline = validateDeadline(currentOpponent?.endTimeSelected);
-                    if (deadline) return deadline;
-                }
-                if (isOpponentTurn && !currentOpponent?.endTimeSelected) {
-                    const deadline = validateDeadline(currentPlayer?.endTimeSelected);
-                    if (deadline) return deadline;
-                }
+                // 2. Nếu không có, thử lấy deadline của 'currentOpponent' (đối thủ)
+                deadline = validateDeadline(currentOpponent?.endTimeSelected);
+                if (deadline) return deadline;
 
-                // Priority 4: Use endTimeRound as fallback (this is the round deadline)
-                // This handles cases where backend hasn't set endTimeSelected yet
+                // 3. (Dự phòng) Nếu cả 2 đều không có, thử lấy deadline của cả Round
                 const roundDeadline = validateDeadline(currentRound?.endTimeRound);
                 if (roundDeadline) return roundDeadline;
 
-                // Last resort: return null (no deadline available yet - will be set by socket)
-                // In this case, countdown won't show but user can still pick
+                // 4. Nếu không có gì cả, trả về null
                 return null;
+                // --- KẾT THÚC SỬA ---
             }
             return null;
         })();
