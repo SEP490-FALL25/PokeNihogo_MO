@@ -3,6 +3,13 @@ import LessonCategory from "@components/lesson/LessonCategory";
 import LessonMap from "@components/lesson/LessonMap";
 import { ThemedText } from "@components/ThemedText";
 import { Badge } from "@components/ui/Badge";
+import {
+  BottomSheet,
+  BottomSheetContent,
+  BottomSheetHeader,
+  BottomSheetTitle,
+  BottomSheetTrigger,
+} from "@components/ui/BottomSheet";
 import ErrorState from "@components/ui/ErrorState";
 import { Skeleton } from "@components/ui/Skeleton";
 import {
@@ -11,6 +18,7 @@ import {
   useUserProgress,
 } from "@hooks/useLessons";
 import { LessonProgress } from "@models/lesson/lesson.common";
+import { useIsFocused } from "@react-navigation/native";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
 import {
@@ -161,10 +169,9 @@ const JLPTLevelMap: React.FC<{
   }
 
   const DUO_IMAGE = [
-    require("@assets/animations/Animation - 1740640302159.json"),
-    require("@assets/animations/Day 18 - Dreaming Snorlax.json"),
     require("@assets/animations/hectordev4pokeball.json"),
-    require("@assets/animations/It's a Squirtle Christmas.json"),
+    require("@assets/animations/Day 18 - Dreaming Snorlax.json"),
+    require("@assets/animations/Animation - 1740640302159.json"),
     require("@assets/animations/Mystery Gift by Oscar Soronellas.json"),
   ];
 
@@ -194,11 +201,20 @@ const CategoriesScreen = () => {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const isFocused = useIsFocused();
 
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
+
+  // Close BottomSheet when screen loses focus (e.g., when navigating away)
+  useEffect(() => {
+    if (!isFocused && isBottomSheetOpen) {
+      setIsBottomSheetOpen(false);
+    }
+  }, [isFocused, isBottomSheetOpen]);
 
   const { level: userLevel } = useUserStore();
 
@@ -409,83 +425,110 @@ const CategoriesScreen = () => {
           </React.Fragment>
         ))}
 
-        {/* Skill Categories (Reading, Speaking, Listening) */}
-        <View style={styles.categoriesSection}>
-          <View style={styles.categoriesHeader}>
-            <ThemedText type="subtitle" style={styles.categoriesTitle}>
-              🚀 {t("lessons.skill_categories.title")}
-            </ThemedText>
-            <Badge variant="outline">
-              {skillCategories.length} {t("lessons.categories_count")}
-            </Badge>
-          </View>
-
-          <View style={styles.skillCategoriesContainer}>
-            {skillCategories.map((category, index) => (
-              <Animated.View
-                key={category.id}
-                style={{
-                  opacity: isLoaded ? fadeAnim : 0,
-                  transform: [
-                    {
-                      translateY: isLoaded ? slideAnim : 30,
-                    },
-                  ],
-                }}
-              >
-                <TouchableOpacity
-                  style={[
-                    styles.skillCategoryCard,
-                    { borderLeftColor: category.color },
-                  ]}
-                  onPress={() => handleSkillCategoryPress(category)}
-                  activeOpacity={0.8}
+<TouchableOpacity
+                  onPress={() => router.push("/(app)/bottom")}
                 >
-                  <View style={styles.skillCategoryHeader}>
-                    <View
-                      style={[
-                        styles.skillCategoryIcon,
-                        { backgroundColor: category.color },
-                      ]}
-                    >
-                      {renderSkillIcon(category.route)}
-                    </View>
-                    <View style={styles.skillCategoryInfo}>
-                      <ThemedText
-                        type="subtitle"
-                        style={styles.skillCategoryTitle}
-                      >
-                        {category.name}
-                      </ThemedText>
-                      <ThemedText style={styles.skillCategoryDescription}>
-                        {category.description}
-                      </ThemedText>
-                    </View>
-                    <View style={styles.skillCategoryArrow}>
-                      <ChevronRight size={20} color="#6b7280" />
-                    </View>
-                  </View>
+                  <ThemedText type="subtitle" style={styles.categoriesTitle}>
+                    bottom
+                  </ThemedText>
                 </TouchableOpacity>
-              </Animated.View>
-            ))}
-            <TouchableOpacity onPress={() => router.push(ROUTES.TABS.SPEAKING)}>
-              <ThemedText type="subtitle" style={styles.categoriesTitle}>
-                {t("lessons.view_all_categories")}
-              </ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => router.push(ROUTES.APP.AI_CONVERSATION)}
-            >
-              <ThemedText type="subtitle" style={styles.categoriesTitle}>
-                speak with ai
-              </ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push(ROUTES.APP.DEMO)}>
-              <ThemedText type="subtitle" style={styles.categoriesTitle}>
-                test ui
-              </ThemedText>
-            </TouchableOpacity>
-          </View>
+
+        {/* Skill Categories - Trigger Button */}
+        <View style={styles.categoriesSection}>
+          <BottomSheet
+            open={isBottomSheetOpen}
+            onOpenChange={setIsBottomSheetOpen}
+            closeOnBlur={true}
+          >
+            <BottomSheetTrigger>
+              <View style={styles.categoriesHeader}>
+                <ThemedText type="subtitle" style={styles.categoriesTitle}>
+                  🚀 {t("lessons.skill_categories.title")}
+                </ThemedText>
+                <Badge variant="outline">
+                  {skillCategories.length} {t("lessons.categories_count")}
+                </Badge>
+              </View>
+            </BottomSheetTrigger>
+
+            <BottomSheetContent snapPoints={[0.7]}>
+              <BottomSheetHeader>
+                <BottomSheetTitle>
+                  🚀 {t("lessons.skill_categories.title")}
+                </BottomSheetTitle>
+              </BottomSheetHeader>
+
+              <View style={styles.skillCategoriesContainer}>
+                {skillCategories.map((category, index) => (
+                  <Animated.View
+                    key={category.id}
+                    style={{
+                      opacity: isLoaded ? fadeAnim : 0,
+                      transform: [
+                        {
+                          translateY: isLoaded ? slideAnim : 30,
+                        },
+                      ],
+                    }}
+                  >
+                    <TouchableOpacity
+                      style={[
+                        styles.skillCategoryCard,
+                        { borderLeftColor: category.color },
+                      ]}
+                      onPress={() => handleSkillCategoryPress(category)}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.skillCategoryHeader}>
+                        <View
+                          style={[
+                            styles.skillCategoryIcon,
+                            { backgroundColor: category.color },
+                          ]}
+                        >
+                          {renderSkillIcon(category.route)}
+                        </View>
+                        <View style={styles.skillCategoryInfo}>
+                          <ThemedText
+                            type="subtitle"
+                            style={styles.skillCategoryTitle}
+                          >
+                            {category.name}
+                          </ThemedText>
+                          <ThemedText style={styles.skillCategoryDescription}>
+                            {category.description}
+                          </ThemedText>
+                        </View>
+                        <View style={styles.skillCategoryArrow}>
+                          <ChevronRight size={20} color="#6b7280" />
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  </Animated.View>
+                ))}
+                <TouchableOpacity
+                  onPress={() => router.push(ROUTES.TABS.SPEAKING)}
+                >
+                  <ThemedText type="subtitle" style={styles.categoriesTitle}>
+                    {t("lessons.view_all_categories")}
+                  </ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => router.push(ROUTES.APP.AI_CONVERSATION)}
+                >
+                  <ThemedText type="subtitle" style={styles.categoriesTitle}>
+                    speak with ai
+                  </ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push(ROUTES.APP.DEMO)}>
+                  <ThemedText type="subtitle" style={styles.categoriesTitle}>
+                    test ui
+                  </ThemedText>
+                </TouchableOpacity>
+                
+              </View>
+            </BottomSheetContent>
+          </BottomSheet>
         </View>
 
         {/* Bottom Spacing */}
