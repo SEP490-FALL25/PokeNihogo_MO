@@ -3,12 +3,18 @@ import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import { TestStatus } from "@constants/test.enum";
-import userTestService from "@services/user-test";
+import { useUserTests } from "@hooks/useUserTest";
 import { router } from "expo-router";
 import { HeadphonesIcon } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  Animated,
+  RefreshControl,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 type UserTestItem = {
   id: number;
@@ -71,35 +77,29 @@ const ListeningCard: React.FC<{
 
 export default function ListeningScreen() {
   const { t } = useTranslation();
-  const [items, setItems] = React.useState<UserTestItem[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(30)).current;
 
-  React.useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        setIsLoading(true);
-        const res = await userTestService.getMy({
-          type: TestStatus.LISTENING_TEST,
-          currentPage: 1,
-          pageSize: 10,
-        });
-        const data = (res as any)?.data?.data?.results ?? [];
-        if (mounted) setItems(data);
-      } catch (e: any) {
-        if (mounted) setError(e?.message || "Error");
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  const {
+    data: userTestsData,
+    isLoading,
+    error,
+    refetch,
+    isRefetching,
+  } = useUserTests({
+    type: TestStatus.LISTENING_TEST,
+    currentPage: 1,
+    pageSize: 10,
+  });
+
+  const items: UserTestItem[] =
+    (userTestsData as any)?.data?.data?.results ?? [];
+  const refreshing = isRefetching;
+
+  const handleRefresh = React.useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   React.useEffect(() => {
     const ready = !isLoading;
@@ -128,7 +128,11 @@ export default function ListeningScreen() {
   };
 
   return (
-    <HomeLayout>
+    <HomeLayout
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }
+    >
       <ThemedText type="title" style={styles.title}>
         🎧 {t("listening.title")}
       </ThemedText>
@@ -145,7 +149,7 @@ export default function ListeningScreen() {
         )}
         {!!error && (
           <ThemedText style={{ textAlign: "center", color: "#ef4444" }}>
-            {error}
+            {error instanceof Error ? error.message : "Error"}
           </ThemedText>
         )}
         {!isLoading &&

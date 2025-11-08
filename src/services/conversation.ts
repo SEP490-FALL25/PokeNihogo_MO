@@ -65,4 +65,40 @@ export async function submitUserSpeech(
   return data?.data ?? data;
 }
 
+export interface ConversationRoom {
+  conversationId: string;
+  title?: string;
+  lastMessage?: string;
+  lastMessageAt?: string;
+}
+
+export interface GetConversationRoomsResponse {
+  statusCode: number;
+  data: {
+    results: ConversationRoom[];
+    totalCount: number;
+    currentPage: number;
+    pageSize: number;
+  };
+  message?: string;
+}
+
+export async function getConversationRooms(params?: {
+  currentPage?: number;
+  pageSize?: number;
+}): Promise<GetConversationRoomsResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.currentPage) {
+    queryParams.append('currentPage', params.currentPage.toString());
+  }
+  if (params?.pageSize) {
+    queryParams.append('pageSize', params.pageSize.toString());
+  }
+  const queryString = queryParams.toString();
+  const { data } = await axiosPrivate.get(
+    `/ai-conversation-room${queryString ? `?${queryString}` : ''}`
+  );
+  return data;
+}
+
 

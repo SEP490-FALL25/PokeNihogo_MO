@@ -60,8 +60,9 @@ interface VoiceRecorderProps {
   onPlaybackStop?: () => void;
   maxDuration?: number; // in seconds
   disabled?: boolean;
-  exerciseTitle?: string;
+  exerciseTitle?: React.ReactNode;
   showPlayback?: boolean;
+  showWaveform?: boolean;
   customSavePath?: string; // Custom path for saving recordings
   // UI controls visibility
   showDeleteButton?: boolean;
@@ -85,6 +86,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   disabled = false,
   exerciseTitle,
   showPlayback = true,
+  showWaveform = true,
   customSavePath,
   showDeleteButton = true,
   showSaveButton = true,
@@ -336,6 +338,36 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     formatTime,
   ]);
 
+  // Delete recording function - moved before stopRecording to avoid dependency issues
+  const deleteRecording = useCallback(async () => {
+    // Delete file from device if it exists
+    if (recordingUri) {
+      await deleteFileFromDevice(recordingUri);
+    }
+
+    if (sound) {
+      await sound.unloadAsync();
+    }
+    setRecordingUri(null);
+    setSound(null);
+    setIsPlaying(false);
+    setPlaybackPosition(0);
+    setPlaybackDuration(0);
+    setRecordingDuration(0);
+    meteringHistoryRef.current = [];
+    playbackIndexRef.current = 0;
+    playbackProgressRef.current = 0;
+    lastMeteringLengthRef.current = 0;
+    lastScrollTimeRef.current = 0;
+    setMeteringValues([]);
+    waveAnimationsRef.current.clear();
+    lastNonSilentTimestampRef.current = null;
+    isRecordingRef.current = false;
+
+    // Reset scroll position
+    scrollViewRef.current?.scrollTo({ x: 0, animated: false });
+  }, [recordingUri, sound]);
+
   const startRecording = async () => {
     if (!hasPermission) {
       await requestMicrophonePermission();
@@ -493,6 +525,15 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         onRecordingComplete(uri, duration);
       }
 
+      // If showDeleteButton is false, automatically delete and reset after callback
+      // This is useful for streaming scenarios where we don't need to keep the recording
+      if (!showDeleteButton && uri) {
+        // Use setTimeout to ensure onRecordingComplete callback is processed first
+        setTimeout(() => {
+          deleteRecording();
+        }, 100);
+      }
+
       // Restore a safer default audio mode after recording
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
@@ -515,6 +556,8 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     onRecordingStop,
     onRecordingComplete,
     performScroll,
+    showDeleteButton,
+    deleteRecording,
   ]);
 
   // Update stopRecording ref
@@ -591,35 +634,6 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     }
   };
 
-  const deleteRecording = async () => {
-    // Delete file from device if it exists
-    if (recordingUri) {
-      await deleteFileFromDevice(recordingUri);
-    }
-
-    if (sound) {
-      await sound.unloadAsync();
-    }
-    setRecordingUri(null);
-    setSound(null);
-    setIsPlaying(false);
-    setPlaybackPosition(0);
-    setPlaybackDuration(0);
-    setRecordingDuration(0);
-    meteringHistoryRef.current = [];
-    playbackIndexRef.current = 0;
-    playbackProgressRef.current = 0;
-    lastMeteringLengthRef.current = 0;
-    lastScrollTimeRef.current = 0;
-    setMeteringValues([]);
-    waveAnimationsRef.current.clear();
-    lastNonSilentTimestampRef.current = null;
-    isRecordingRef.current = false;
-
-    // Reset scroll position
-    scrollViewRef.current?.scrollTo({ x: 0, animated: false });
-  };
-
   // Show permission request UI if no permission
   if (!hasPermission) {
     return (
@@ -682,12 +696,18 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         {renderFeedbackText()}
         
         {/* Exercise Title */}
-        {exerciseTitle && (
-          <Text style={styles.exerciseTitle}>{exerciseTitle}</Text>
-        )}
+        {exerciseTitle ? (
+          typeof exerciseTitle === "string" ? (
+            <Text style={styles.exerciseTitle}>{exerciseTitle}</Text>
+          ) : (
+            <View style={{ marginBottom: 8, alignItems: "center" }}>
+              {exerciseTitle}
+            </View>
+          )
+        ) : null}
 
-        {/* Wave Visualization - chỉ hiển thị khi đang recording hoặc có recording */}
-        {(isRecording || recordingUri) && (
+        {/* Wave Visualization - chỉ hiển thị khi được bật */}
+        {showWaveform && (isRecording || recordingUri) && (
           <View style={styles.waveContainer}>
             <ScrollView
               ref={scrollViewRef}

@@ -1,105 +1,312 @@
+import { Audio } from "expo-av";
+import { BlurView } from "expo-blur";
 import * as FileSystem from "expo-file-system";
-
-import { useEffect, useState } from "react";
-
+import { router, useLocalSearchParams } from "expo-router";
+import { ArrowLeftIcon } from "lucide-react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
+  Image,
   Platform,
   ScrollView,
   TouchableOpacity,
   View,
 } from "react-native";
-
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@components/ThemedText";
-
 import AudioPlayer from "@components/ui/AudioPlayer";
-
 import VoiceRecorder from "@components/ui/EnhancedAudioRecorder";
-
-import { startConversation } from "@services/conversation";
-import { router, useLocalSearchParams } from "expo-router";
-
-import { ArrowLeftIcon } from "lucide-react-native";
+import { useAuth } from "@hooks/useAuth";
+import { useTestFullUser } from "@hooks/useUserTest";
 
 type Message = {
   id: string;
-
   role: "ai" | "user";
-
   text: string;
-
+  question?: string;
+  pronunciation?: string;
   audioUrl?: string;
-
   feedback?: { words: { word: string; correct: boolean; score?: number }[] };
 };
 
 type FeedbackWord = { word: string; correct: boolean; score?: number };
 
+// Helper component for user avatar with error handling
+const UserAvatarWithFallback = ({
+  avatar,
+  name,
+}: {
+  avatar?: string;
+  name: string;
+}) => {
+  const [imageError, setImageError] = useState(false);
+
+  return (
+    <View
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        overflow: "hidden",
+        backgroundColor: !avatar || imageError ? "#007AFF" : "transparent",
+      }}
+    >
+      {!avatar || imageError ? (
+        <View
+          style={{
+            width: "100%",
+            height: "100%",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ThemedText
+            style={{
+              color: "#ffffff",
+              fontSize: 16,
+              fontWeight: "600",
+            }}
+          >
+            {name.charAt(0).toUpperCase()}
+          </ThemedText>
+        </View>
+      ) : (
+        <Image
+          source={{ uri: avatar }}
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
+          resizeMode="cover"
+          onError={() => setImageError(true)}
+        />
+      )}
+    </View>
+  );
+};
+
 export default function ConversationScreen() {
   const { topicId } = useLocalSearchParams<{ topicId?: string }>();
+  const { user } = useAuth();
 
   const [isLoading, setIsLoading] = useState(true);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [messages, setMessages] = useState<Message[]>([]);
-
   const [nextUserPrompt, setNextUserPrompt] = useState<string | undefined>();
-
-  // Feedback state for display in recorder
-
+  const [countdown, setCountdown] = useState<number>(0);
+  const [queuedQuestions, setQueuedQuestions] = useState<any[]>([]);
+  const [isSequencing, setIsSequencing] = useState(false);
+  const [awaitingUser, setAwaitingUser] = useState(false);
   const [feedbackText, setFeedbackText] = useState<string | undefined>();
+  const [feedbackWords, setFeedbackWords] = useState<FeedbackWord[]>([]);
 
-  const [feedbackWords, setFeedbackWords] = useState<
-    { word: string; correct: boolean; score?: number }[]
-  >([]);
+  const advanceWaitRef = useRef<(() => void) | null>(null);
+  const scaleAnim = useState(new Animated.Value(1))[0];
+  const opacityAnim = useState(new Animated.Value(1))[0];
+
+  const DELAY_BETWEEN_MESSAGES_MS = 4000;
+
+  const AnimatedDots = () => {
+    const dotAnimsRef = useState(() => [
+      new Animated.Value(0),
+      new Animated.Value(0),
+      new Animated.Value(0),
+    ])[0] as Animated.Value[];
+    const animationsRef = useState<Animated.CompositeAnimation[]>([])[0];
+
+    useEffect(() => {
+      animationsRef.forEach((a) => a.stop());
+      animationsRef.length = 0;
+
+      const createBounce = (anim: Animated.Value, delay: number) =>
+        Animated.loop(
+          Animated.sequence([
+            Animated.delay(delay),
+            Animated.timing(anim, {
+              toValue: 1,
+              duration: 350,
+              easing: Easing.inOut(Easing.sin),
+              useNativeDriver: true,
+            }),
+            Animated.timing(anim, {
+              toValue: 0,
+              duration: 350,
+              easing: Easing.inOut(Easing.sin),
+              useNativeDriver: true,
+            }),
+          ])
+        );
+
+      const loops = dotAnimsRef.map((a, idx) => createBounce(a, idx * 150));
+      loops.forEach((l) => l.start());
+      loops.forEach((l) => animationsRef.push(l));
+      return () => loops.forEach((l) => l.stop());
+    }, [dotAnimsRef, animationsRef]);
+
+    const renderDot = (anim: Animated.Value, key: string) => (
+      <Animated.View
+        key={key}
+        style={{
+          width: 10,
+          height: 10,
+          borderRadius: 5,
+          backgroundColor: "#007AFF",
+          marginHorizontal: 6,
+          opacity: anim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0.5, 1],
+          }),
+          transform: [
+            {
+              translateY: anim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, -6],
+              }),
+            },
+            {
+              scale: anim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.9, 1.1],
+              }),
+            },
+          ],
+        }}
+      />
+    );
+
+    return (
+      <View style={{ flexDirection: "row", alignItems: "center", height: 18 }}>
+        {dotAnimsRef.map((a, i) => renderDot(a, `dot-${i}`))}
+      </View>
+    );
+  };
+
+  const playAudio = async (audioUrl: string) => {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: audioUrl },
+        { shouldPlay: true }
+      );
+      sound.setOnPlaybackStatusUpdate((status: any) => {
+        if (status.isLoaded && status.didJustFinish) {
+          sound.unloadAsync();
+        }
+      });
+    } catch {}
+  };
+
+  const { data: testData, isLoading: isLoadingTest } = useTestFullUser(
+    topicId ? String(topicId) : null
+  );
 
   useEffect(() => {
-    let mounted = true;
+    if (topicId && testData) {
+      const questions =
+        testData?.testSets?.[0]?.questions
+          ?.slice()
+          ?.sort(
+            (a: any, b: any) =>
+              (a?.questionOrder ?? 0) - (b?.questionOrder ?? 0)
+          ) ?? [];
+      setQueuedQuestions(questions);
+      setCountdown(3);
+      setIsLoading(false);
+    } else if (!topicId) {
+      setMessages([
+        {
+          id: `ai-${Date.now()}`,
+          role: "ai",
+          text: "Hãy nói 'こんにちは'.",
+          question: "Hãy nói",
+          pronunciation: "こんにちは",
+        },
+      ]);
+      setNextUserPrompt("「こんにちは」。");
+      setIsLoading(false);
+    }
+  }, [topicId, testData]);
 
-    (async () => {
-      try {
-        setIsLoading(true);
-        if (!mounted) return;
+  useEffect(() => {
+    setIsLoading(isLoadingTest);
+  }, [isLoadingTest]);
 
-        // Call BE to start conversation using provided topicId
-        if (topicId) {
-          const data = await startConversation(String(topicId));
-          if (!mounted) return;
-          setMessages([
-            {
-              id: data.turnId || `ai-${Date.now()}`,
-              role: "ai",
-              text: data.aiMessage?.text || "",
-              audioUrl: data.aiMessage?.audioUrl,
-            },
-          ]);
-          setNextUserPrompt(data.nextUserPrompt);
-        } else {
-          // Fallback when no topicId is passed
-          setMessages([
-            {
-              id: `ai-${Date.now()}`,
-              role: "ai",
-              text: "Hãy nói 'こんにちは'.",
-            },
-          ]);
-          setNextUserPrompt("「こんにちは」。");
+  const startSequence = useCallback(async () => {
+    if (!queuedQuestions?.length) return;
+    setIsSequencing(true);
+    setMessages([]);
+    for (const q of queuedQuestions) {
+      const qb = q?.questionBank ?? {};
+      const isSystem = String(qb?.role || "B").toUpperCase() === "B";
+      const role: "ai" | "user" = isSystem ? "ai" : "user";
+      const text = qb?.pronunciation || qb?.question || "";
+      const audioUrl: string | undefined = qb?.audioUrl || undefined;
+      if (!text && !audioUrl) continue;
+
+      const msg: Message = {
+        id: String(q?.id ?? `${role}-${Date.now()}`),
+        role,
+        text,
+        question: qb?.question || undefined,
+        pronunciation: qb?.pronunciation || undefined,
+        audioUrl,
+      };
+      setMessages((prev) => [...prev, msg]);
+
+      if (isSystem) {
+        if (audioUrl) {
+          await playAudio(audioUrl);
         }
-      } catch {
-      } finally {
-        if (mounted) setIsLoading(false);
+        await new Promise((res) => setTimeout(res, DELAY_BETWEEN_MESSAGES_MS));
+      } else {
+        setNextUserPrompt(text);
+        setFeedbackText(text);
+        setFeedbackWords([]);
+        if (audioUrl) {
+          await playAudio(audioUrl);
+        }
+        setAwaitingUser(true);
+        await new Promise<void>((resolve) => {
+          advanceWaitRef.current = () => {
+            resolve();
+            advanceWaitRef.current = null;
+          };
+        });
+        setAwaitingUser(false);
+        await new Promise((res) => setTimeout(res, 500));
       }
-    })();
+    }
+    setIsSequencing(false);
+  }, [queuedQuestions, DELAY_BETWEEN_MESSAGES_MS]);
 
-    return () => {
-      mounted = false;
-    };
-  }, [topicId]);
-
-  // Send audio + referenceText to Gemini (client-side REST)
+  useEffect(() => {
+    if (countdown <= 0 || isSequencing) return;
+    scaleAnim.setValue(1.2);
+    opacityAnim.setValue(1);
+    Animated.parallel([
+      Animated.timing(scaleAnim, {
+        toValue: 0.9,
+        duration: 800,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0.8,
+        duration: 800,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    if (countdown === 1) {
+      setTimeout(() => {
+        startSequence();
+      }, 1000);
+    }
+    return () => clearTimeout(t);
+  }, [countdown, isSequencing, startSequence, scaleAnim, opacityAnim]);
 
   const sendToGemini = async (
     uri: string,
@@ -107,6 +314,7 @@ export default function ConversationScreen() {
   ): Promise<{
     feedbackText?: string;
     words?: FeedbackWord[];
+    recognizedText?: string;
     aiMessageText?: string;
     aiAudioBase64?: string;
     aiAudioMimeType?: string;
@@ -146,11 +354,16 @@ export default function ConversationScreen() {
       "gemini-1.5-pro",
     ];
 
+    const systemInstruction =
+      'Role: You are a STRICT Japanese Pronunciation Assessment AI. Compare the user\'s spoken audio against the provided reference text. If the spoken audio deviates or confidence is low, LOWER SCORES aggressively. Do NOT hallucinate.\n\nSteps:\n1) Transcribe the spoken audio to kana/romaji-like text: TranscribedText.\n2) Compute MatchScore in [0,1] between TranscribedText and ReferenceText.\n3) Score: Perfect match 90-100, minor deviations 60-80, clear mismatch/unintelligible 0-40. If MatchScore < 0.6 treat as mismatch and penalize.\n\nOutput (JSON only):\n{\n  "Overall": { "AccuracyScore": number, "FluencyScore": number, "PronScore": number },\n  "TranscribedText": string,\n  "MatchScore": number,\n  "Syllables": [ { "Syllable": string, "Romaji": string, "AccuracyScore": number, "ErrorType": "Substitution"|"Omission"|"Insertion"|"PitchAccentError"|"None", "ErrorDetail": string } ]\n}\n\nBe conservative: if confidence is low or speech differs, keep scores low and mark errors.';
+
+    const userPrompt = `Reference Text (Japanese): ${referenceText ?? ""}`;
+
     const baseBody = {
       system_instruction: {
         parts: [
           {
-            text: "Role: You are a specialized Japanese Pronunciation Assessment AI. Your task is to analyze the user's spoken Japanese audio against a provided reference text and generate a detailed evaluation in JSON format.\n\nInput:\n1. Reference Text (Japanese): The exact Japanese text the user is attempting to pronounce.\n2. User Audio: The audio file containing the user's spoken attempt.\n\nOutput Requirement: Generate a single JSON object structured similarly to the detailed pronunciation assessment examples, containing both overall scores and syllable-level analysis.\n\nAssessment Criteria:\n1. Fundamental Sound Accuracy (Sei-on/Basic Phonemes):\n- Evaluate the correctness of the 5 basic vowels (a, i, u, e, o).\n- Check for accurate pronunciation of challenging consonants for Vietnamese speakers: 「し」(shi), 「ち」(chi), 「つ」(tsu).\n- Assess the Japanese 'r' sound (/r/, often trilled or flapped).\n\n2. Pitch Accent and Intonation:\n- Pitch Accent: Determine if the word-level pitch pattern (high-low sequence) matches Tokyo dialect.\n- Sentence Intonation: Assess if sentence-level intonation is natural (question vs. statement).\n\n3. Special Sound Accuracy:\n- Sokuon (促音/Small Tsu): Detect correct brief stop.\n- Chouon (長音/Long Vowels): Verify correct duration (2 mora).\n- Syllabic Nasal (ん/N): Realization as [-n]/[-m]/[-ng] contextually.\n\n4. Fluency and Intelligibility:\n- FluencyScore: speed, rhythm, pausing.\n- Intelligibility: how easily a native would understand.\n\nJSON Output Structure:\n- Overall Scores: include AccuracyScore, FluencyScore, PronScore (overall).\n- Syllables: array per kana/mora with fields: Syllable, Romaji, AccuracyScore (0-100), ErrorType (Substitution|Omission|Insertion|PitchAccentError|None), ErrorDetail, and optional Offset/Duration (simulated).\n\nFinal Action: Analyze the provided user audio against the provided Japanese reference text based on the above criteria, calculate the overall percentage, and output the result in the specified JSON format.",
+            text: systemInstruction,
           },
         ],
       },
@@ -159,7 +372,7 @@ export default function ConversationScreen() {
           role: "user",
           parts: [
             {
-              text: `Reference Text (Japanese): ${referenceText ?? ""}`,
+              text: userPrompt,
             },
             {
               inline_data: { mime_type: mimeType, data: audioBase64 },
@@ -169,7 +382,7 @@ export default function ConversationScreen() {
       ],
       generationConfig: {
         response_mime_type: "application/json",
-        temperature: 0.2,
+        temperature: 0.3,
       },
     } as const;
 
@@ -191,7 +404,7 @@ export default function ConversationScreen() {
             res.status === 404 ||
             /NOT_FOUND|is not found|unsupported/i.test(errText)
           ) {
-            continue; // try next model
+            continue;
           }
           throw new Error(`Gemini error: ${res.status} ${errText}`);
         }
@@ -205,7 +418,6 @@ export default function ConversationScreen() {
           parsed = {};
         }
 
-        // Normalize to our expected structure (supports multiple shapes)
         let wordsOut: FeedbackWord[] | undefined;
         if (Array.isArray(parsed)) {
           wordsOut = parsed
@@ -250,6 +462,10 @@ export default function ConversationScreen() {
         return {
           feedbackText: parsed.ReferenceText || parsed.feedbackText,
           words: wordsOut,
+          recognizedText:
+            parsed.TranscribedText ||
+            parsed.transcribedText ||
+            parsed.recognizedText,
           aiMessageText: parsed.aiMessageText,
           aiAudioBase64: parsed.aiAudioBase64,
           aiAudioMimeType: parsed.aiAudioMimeType,
@@ -265,26 +481,18 @@ export default function ConversationScreen() {
     );
   };
 
-  // Normalize Japanese text for diff
-
   const normalizeJa = (s: string) =>
     (s || "")
       .replace(/[\s\u3000]/g, "")
       .replace(/[「」『』（）()、。．・…~〜!！?？:：;；，,\.\-—]/g, "");
 
-  // Levenshtein alignment for per-character correctness
-
   const buildFeedbackFromDiff = (
     targetRaw: string,
-
     spokenRaw: string
   ): FeedbackWord[] => {
     const target = normalizeJa(targetRaw).split("");
-
     const spoken = normalizeJa(spokenRaw).split("");
-
     const m = target.length;
-
     const n = spoken.length;
 
     const dp: number[][] = Array.from({ length: m + 1 }, () =>
@@ -292,28 +500,21 @@ export default function ConversationScreen() {
     );
 
     for (let i = 0; i <= m; i++) dp[i][0] = i;
-
     for (let j = 0; j <= n; j++) dp[0][j] = j;
 
     for (let i = 1; i <= m; i++) {
       for (let j = 1; j <= n; j++) {
         const cost = target[i - 1] === spoken[j - 1] ? 0 : 1;
-
         dp[i][j] = Math.min(
-          dp[i - 1][j] + 1, // deletion
-
-          dp[i][j - 1] + 1, // insertion
-
-          dp[i - 1][j - 1] + cost // substitution/match
+          dp[i - 1][j] + 1,
+          dp[i][j - 1] + 1,
+          dp[i - 1][j - 1] + cost
         );
       }
     }
 
-    // backtrace to align
-
     let i = m,
       j = n;
-
     const aligned: { t?: string; s?: string }[] = [];
 
     while (i > 0 || j > 0) {
@@ -324,38 +525,26 @@ export default function ConversationScreen() {
           dp[i - 1][j - 1] + (target[i - 1] === spoken[j - 1] ? 0 : 1)
       ) {
         aligned.push({ t: target[i - 1], s: spoken[j - 1] });
-
         i--;
-
         j--;
       } else if (i > 0 && dp[i][j] === dp[i - 1][j] + 1) {
         aligned.push({ t: target[i - 1], s: undefined });
-
         i--;
       } else {
         aligned.push({ t: undefined, s: spoken[j - 1] });
-
         j--;
       }
     }
 
     aligned.reverse();
 
-    // Build tokens for the TARGET sequence (the expected text) with correctness based on spoken text
-
     const tokens: FeedbackWord[] = [];
-
     for (const a of aligned) {
       if (a.t !== undefined) {
-        // For each character in target, check if it matches the corresponding spoken character
-
         const correct = a.s !== undefined && a.t === a.s;
-
         tokens.push({ word: a.t, correct, score: correct ? 100 : 0 });
       }
     }
-
-    // Fallback: if no target after normalization, return original targetRaw as incorrect
 
     if (!tokens.length && targetRaw) {
       return targetRaw
@@ -366,23 +555,99 @@ export default function ConversationScreen() {
     return tokens;
   };
 
-  const handleRecordingComplete = async (uri: string) => {
-    setIsSubmitting(true);
+  const isPredominantlyJapanese = (s: string, threshold = 0.6): boolean => {
+    if (!s) return false;
+    const jpRegex =
+      /[\u3040-\u309F\u30A0-\u30FF\u31F0-\u31FF\u4E00-\u9FFF\u3400-\u4DBF\u3005\u3007\u30FC]/g;
+    const allowedPunct =
+      /[\u3001\u3002\uFF0C\uFF0E\uFF1F\uFF01\u30FB\u300C\u300D\u300E\u300F\u301C\uFF5E\s]/g;
+    const total = s.replace(allowedPunct, "").length;
+    if (total === 0) return false;
+    const matches = s.match(jpRegex);
+    const count = matches ? matches.length : 0;
+    return count / total >= threshold;
+  };
 
+  const projectModelScoresToReference = (
+    referenceText: string,
+    recognizedText: string,
+    modelWords?: FeedbackWord[]
+  ): FeedbackWord[] => {
+    const alignedTokens = buildFeedbackFromDiff(referenceText, recognizedText);
+    if (!modelWords || !modelWords.length) {
+      return alignedTokens.map((t) => ({
+        word: t.word,
+        correct: t.correct,
+        score: t.correct ? 100 : 0,
+      }));
+    }
+
+    const queues = new Map<string, number[]>();
+    for (const w of modelWords) {
+      const ch = String(w.word ?? "");
+      const score = typeof w.score === "number" ? w.score : undefined;
+      if (!queues.has(ch)) queues.set(ch, []);
+      if (score !== undefined) queues.get(ch)!.push(score);
+    }
+
+    const projected: FeedbackWord[] = alignedTokens.map((t) => {
+      if (!t.correct) {
+        return { word: t.word, correct: false, score: 0 };
+      }
+      const list = queues.get(t.word);
+      const score = list && list.length ? list.shift() : 100;
+      const normalized =
+        score !== undefined
+          ? Math.max(0, Math.min(100, Math.round(score)))
+          : 100;
+      const isCorrect = normalized >= 85;
+      return { word: t.word, correct: isCorrect, score: normalized };
+    });
+
+    return projected;
+  };
+
+  const handleRecordingComplete = async (uri: string, durationSec: number) => {
     try {
-      const result = await sendToGemini(uri, nextUserPrompt);
-      console.log("result", result);
-      const displayText = result.feedbackText || nextUserPrompt || "";
+      const info = await FileSystem.getInfoAsync(uri);
+      const isLikelySilent =
+        !info.exists || (info.size ?? 0) < 2000 || (durationSec ?? 0) < 0.5;
 
-      const words =
-        result.words && Array.isArray(result.words) && result.words.length
-          ? result.words
-          : buildFeedbackFromDiff(displayText, "");
+      if (isLikelySilent) {
+        const displayText = nextUserPrompt || "";
+        const words = buildFeedbackFromDiff(displayText, "");
+        setFeedbackText(displayText);
+        setFeedbackWords(words);
+        return;
+      }
+
+      setIsSubmitting(true);
+
+      const result = await sendToGemini(uri, nextUserPrompt);
+      const displayText = result.feedbackText || nextUserPrompt || "";
+      const recognized = String((result as any).recognizedText || "");
+
+      if (recognized && !isPredominantlyJapanese(recognized)) {
+        setFeedbackText("Vui lòng nói tiếng Nhật");
+        setFeedbackWords(buildFeedbackFromDiff(displayText, ""));
+        return;
+      }
+
+      let words: FeedbackWord[];
+      if (result.words && Array.isArray(result.words) && result.words.length) {
+        words = projectModelScoresToReference(
+          displayText,
+          recognized,
+          result.words as any
+        );
+      } else if (recognized) {
+        words = buildFeedbackFromDiff(displayText, recognized);
+      } else {
+        words = buildFeedbackFromDiff(displayText, "");
+      }
 
       setFeedbackText(displayText);
       setFeedbackWords(words);
-
-      // Optionally append next AI message here
     } catch {
     } finally {
       setIsSubmitting(false);
@@ -394,18 +659,14 @@ export default function ConversationScreen() {
       <View
         style={{
           height: 52,
-
           alignItems: "center",
-
           flexDirection: "row",
-
           paddingHorizontal: 12,
         }}
       >
         <TouchableOpacity onPress={() => router.back()} style={{ padding: 8 }}>
           <ArrowLeftIcon size={20} color="#1f2937" />
         </TouchableOpacity>
-
         <ThemedText style={{ fontSize: 18, fontWeight: "700", marginLeft: 4 }}>
           Conversation
         </ThemedText>
@@ -419,70 +680,187 @@ export default function ConversationScreen() {
         </View>
       ) : (
         <>
+          {countdown > 0 ? (
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 10,
+              }}
+            >
+              <BlurView
+                tint="systemChromeMaterial"
+                intensity={50}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                }}
+              />
+              <View
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <View
+                  style={{
+                    width: 160,
+                    height: 160,
+                    borderRadius: 80,
+                    backgroundColor: "rgba(0,0,0,0.35)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Animated.Text
+                    style={{
+                      fontSize: 100,
+                      fontWeight: "800",
+                      color: "#ffffff",
+                      textShadowColor: "rgba(0,0,0,0.6)",
+                      textShadowOffset: { width: 0, height: 2 },
+                      textShadowRadius: 8,
+                      transform: [{ scale: scaleAnim }],
+                      opacity: opacityAnim,
+                    }}
+                  >
+                    {countdown}
+                  </Animated.Text>
+                </View>
+              </View>
+            </View>
+          ) : null}
           <ScrollView
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
           >
-            {/* Conversation bubbles - only show AI messages */}
-
-            {messages
-
-              .filter((m) => m.role === "ai")
-
-              .map((m) => (
+            {messages.map((m) => {
+              const isUser = m.role === "user";
+              const userAvatar = user?.avatar;
+              const userName = user?.name || "User";
+              
+              return (
                 <View
                   key={m.id}
                   style={{
                     marginTop: 12,
-
+                    flexDirection: "row",
                     alignItems: "flex-start",
+                    justifyContent: isUser ? "flex-end" : "flex-start",
+                    paddingHorizontal: 4,
                   }}
                 >
+                  {!isUser && (
+                    <View
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 18,
+                        marginRight: 8,
+                        overflow: "hidden",
+                        backgroundColor: "#f3f4f6",
+                      }}
+                    >
+                      <Image
+                        source={require("../../../assets/images/PokeNihongoLogo.png")}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                        }}
+                        resizeMode="cover"
+                      />
+                    </View>
+                  )}
                   <View
                     style={{
-                      backgroundColor: "#ffffff",
-
+                      backgroundColor: isUser ? "#007AFF" : "#ffffff",
                       borderRadius: 14,
-
                       paddingVertical: 10,
-
                       paddingHorizontal: 12,
-
-                      maxWidth: "85%",
-
-                      borderWidth: 1,
-
+                      maxWidth: "75%",
+                      borderWidth: isUser ? 0 : 1,
                       borderColor: "rgba(0,0,0,0.06)",
                     }}
                   >
-                    <ThemedText style={{ fontSize: 16 }}>{m.text}</ThemedText>
+                    {m.question || m.pronunciation ? (
+                      <View>
+                        {m.question ? (
+                          <ThemedText
+                            style={{
+                              fontSize: 16,
+                              color: isUser ? "#ffffff" : undefined,
+                            }}
+                          >
+                            {m.question}
+                          </ThemedText>
+                        ) : null}
+                        {m.pronunciation ? (
+                          <ThemedText
+                            style={{
+                              fontSize: 16,
+                              opacity: isUser ? 0.9 : 0.9,
+                              marginTop: 6,
+                              color: isUser ? "#ffffff" : undefined,
+                            }}
+                          >
+                            {m.pronunciation}
+                          </ThemedText>
+                        ) : null}
+                      </View>
+                    ) : m.text ? (
+                      <ThemedText
+                        style={{
+                          fontSize: 16,
+                          color: isUser ? "#ffffff" : undefined,
+                        }}
+                      >
+                        {m.text}
+                      </ThemedText>
+                    ) : null}
 
                     {m.audioUrl ? (
                       <View style={{ marginTop: 8 }}>
-                        <AudioPlayer audioUrl={m.audioUrl} />
+                        <AudioPlayer
+                          audioUrl={m.audioUrl}
+                          iconColor={isUser ? "#ffffff" : "#3b82f6"}
+                          buttonStyle={
+                            isUser
+                              ? {
+                                  borderColor: "rgba(255,255,255,0.3)",
+                                  backgroundColor: "rgba(255,255,255,0.2)",
+                                }
+                              : undefined
+                          }
+                        />
                       </View>
                     ) : null}
                   </View>
+                  {isUser && (
+                    <View style={{ marginLeft: 8 }}>
+                      <UserAvatarWithFallback avatar={userAvatar} name={userName} />
+                    </View>
+                  )}
                 </View>
-              ))}
+              );
+            })}
           </ScrollView>
-
-          {/* Recorder fixed at bottom */}
 
           <View>
             <VoiceRecorder
               onRecordingComplete={(uri: string, _duration: number) => {
-                handleRecordingComplete(uri);
+                handleRecordingComplete(uri, _duration);
               }}
               onRecordingStart={() => {
-                // Reset feedback when starting a new recording
-
                 setFeedbackText(undefined);
-
                 setFeedbackWords([]);
               }}
-              exerciseTitle={
-                isSubmitting ? "Đang gửi và chấm phát âm…" : "Nhấn để nói"
-              }
+              exerciseTitle={isSubmitting ? <AnimatedDots /> : "Nhấn để nói"}
               showPlayback={true}
               disabled={isSubmitting}
               maxDuration={10}
@@ -493,6 +871,25 @@ export default function ConversationScreen() {
               feedbackText={feedbackText || nextUserPrompt}
               feedbackWords={feedbackWords}
             />
+            {awaitingUser ? (
+              <View style={{ alignItems: "center", marginTop: 8 }}>
+                <TouchableOpacity
+                  onPress={() =>
+                    advanceWaitRef.current && advanceWaitRef.current()
+                  }
+                  style={{
+                    paddingVertical: 10,
+                    paddingHorizontal: 16,
+                    backgroundColor: "#3B82F6",
+                    borderRadius: 10,
+                  }}
+                >
+                  <ThemedText style={{ color: "#ffffff", fontWeight: "700" }}>
+                    Tiếp tục
+                  </ThemedText>
+                </TouchableOpacity>
+              </View>
+            ) : null}
           </View>
         </>
       )}

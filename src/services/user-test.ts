@@ -1,6 +1,7 @@
 import { axiosPrivate } from "@configs/axios";
 import { TestStatus } from "@constants/test.enum";
 import { IUpsertUserTestAnswerLogRequest } from "@models/user-test-answer-log/user-test-answer-log.request";
+import { TestDetail, TestFullUserResponseSchema } from "@models/user-test/test-full-user.response";
 
 type GetMyUserTestsParams = {
   currentPage?: number;
@@ -20,6 +21,19 @@ const userTestService = {
     if (params.type) search.append("type", String(params.type));
     const qs = search.toString();
     return axiosPrivate.get(`/user-test/my${qs ? `?${qs}` : ""}`);
+  },
+
+  // Lấy toàn bộ thông tin test + sets + questions cho user
+  getTestFullUser: async (testId: string | number): Promise<TestDetail> => {
+    const { data } = await axiosPrivate.get(`/test/${testId}/full-user`);
+    // Some APIs return envelope { statusCode, data, message }
+    const parsed = TestFullUserResponseSchema.safeParse(data);
+    if (parsed.success) return parsed.data.data;
+    // Fallback: if BE returns raw object
+    const fallback = TestFullUserResponseSchema.shape.data.safeParse(data?.data ?? data);
+    if (fallback.success) return fallback.data;
+    // If parsing fails, still return raw data to avoid breaking UI
+    return (data?.data ?? data) as TestDetail;
   },
 
   // Lấy bài test attempt (tự tạo attempt nếu cần) theo testId
