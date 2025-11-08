@@ -15,6 +15,7 @@ interface AudioPlayerProps {
   style?: any;
   buttonStyle?: any;
   disabled?: boolean;
+  iconColor?: string;
 }
 
 // ============================================================================
@@ -26,6 +27,7 @@ export default function AudioPlayer({
   style,
   buttonStyle,
   disabled = false,
+  iconColor = "#3b82f6",
 }: AudioPlayerProps) {
   // ============================================================================
   // STATE & REFS
@@ -191,8 +193,14 @@ export default function AudioPlayer({
             alignItems: "center",
             justifyContent: "center",
             borderWidth: 1,
-            borderColor: isPlaying ? "#3b82f6" : "#e5e7eb",
-            backgroundColor: isPlaying ? "rgba(59,130,246,0.1)" : "#ffffff",
+            borderColor: isPlaying
+              ? iconColor
+              : buttonStyle?.borderColor || "#e5e7eb",
+            backgroundColor: isPlaying
+              ? iconColor === "#ffffff"
+                ? "rgba(255,255,255,0.2)"
+                : "rgba(59,130,246,0.1)"
+              : buttonStyle?.backgroundColor || "#ffffff",
             opacity: isDisabled ? 0.5 : 1,
           },
           buttonStyle,
@@ -217,9 +225,9 @@ export default function AudioPlayer({
           }}
         >
           {isLoading ? (
-            <Loader2 size={18} color="#3b82f6" />
+            <Loader2 size={18} color={iconColor} />
           ) : (
-            <Volume2 size={18} color="#3b82f6" />
+            <Volume2 size={18} color={iconColor} />
           )}
         </Animated.View>
       </TouchableOpacity>

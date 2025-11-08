@@ -3,7 +3,7 @@ import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import { TestStatus } from "@constants/test.enum";
-import userTestService from "@services/user-test";
+import { useUserTests } from "@hooks/useUserTest";
 import { router } from "expo-router";
 import { HeadphonesIcon } from "lucide-react-native";
 import React from "react";
@@ -77,44 +77,29 @@ const ListeningCard: React.FC<{
 
 export default function ListeningScreen() {
   const { t } = useTranslation();
-  const [items, setItems] = React.useState<UserTestItem[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
   const [isLoaded, setIsLoaded] = React.useState(false);
-  const [refreshing, setRefreshing] = React.useState(false);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const slideAnim = React.useRef(new Animated.Value(30)).current;
 
-  const fetchData = React.useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const res = await userTestService.getMy({
-        type: TestStatus.LISTENING_TEST,
-        currentPage: 1,
-        pageSize: 10,
-      });
-      const data = (res as any)?.data?.data?.results ?? [];
-      setItems(data);
-    } catch (e: any) {
-      setError(e?.message || "Error");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const {
+    data: userTestsData,
+    isLoading,
+    error,
+    refetch,
+    isRefetching,
+  } = useUserTests({
+    type: TestStatus.LISTENING_TEST,
+    currentPage: 1,
+    pageSize: 10,
+  });
 
-  React.useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  const items: UserTestItem[] =
+    (userTestsData as any)?.data?.data?.results ?? [];
+  const refreshing = isRefetching;
 
   const handleRefresh = React.useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await fetchData();
-    } finally {
-      setRefreshing(false);
-    }
-  }, [fetchData]);
+    await refetch();
+  }, [refetch]);
 
   React.useEffect(() => {
     const ready = !isLoading;
@@ -164,7 +149,7 @@ export default function ListeningScreen() {
         )}
         {!!error && (
           <ThemedText style={{ textAlign: "center", color: "#ef4444" }}>
-            {error}
+            {error instanceof Error ? error.message : "Error"}
           </ThemedText>
         )}
         {!isLoading &&
