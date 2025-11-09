@@ -95,3 +95,39 @@ export type IReviewResultData = z.infer<typeof ReviewResultDataSchema>;
 export type IReviewResultAnswer = z.infer<typeof ReviewResultAnswerSchema>;
 export type IReviewResultQuestionBank = z.infer<typeof ReviewResultQuestionBankSchema>;
 
+/**
+ * Exercise History Response Schema
+ */
+export const ExerciseHistoryItemSchema = z.object({
+  id: z.number(),
+  exerciseAttemptId: z.number(),
+  exerciseName: z.string(),
+  exerciseType: z.string(), // skill type: reading, listening, speaking, etc.
+  levelJlpt: z.number(), // 5, 4, 3 for N5, N4, N3
+  totalQuestions: z.number(),
+  answeredCorrect: z.number(),
+  answeredInCorrect: z.number(),
+  score: z.number(), // percentage score
+  time: z.number(), // time spent in seconds
+  status: z.string(),
+  completedAt: z.string(),
+  lesson: z.object({
+    id: z.number(),
+    titleJp: z.string(),
+    levelJlpt: z.number(),
+  }).optional(),
+});
+
+export const ExerciseHistoryListResponseSchema = z.object({
+  statusCode: z.number(),
+  message: z.string(),
+  data: z.object({
+    results: z.array(ExerciseHistoryItemSchema),
+    totalCount: z.number(),
+    hasMore: z.boolean().optional(),
+  }).optional(),
+});
+
+export type IExerciseHistoryItem = z.infer<typeof ExerciseHistoryItemSchema>;
+export type IExerciseHistoryListResponse = z.infer<typeof ExerciseHistoryListResponseSchema>;
+

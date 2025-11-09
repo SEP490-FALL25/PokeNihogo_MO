@@ -530,6 +530,11 @@ const CategoriesScreen = () => {
                     test ui
                   </ThemedText>
                 </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push(ROUTES.ME.EXERCISE_HISTORY)}>
+                  <ThemedText type="subtitle" style={styles.categoriesTitle}>
+                    exercise history
+                  </ThemedText>
+                </TouchableOpacity>
                 
               </View>
             </BottomSheetContent>
