@@ -5,6 +5,10 @@ export const createMatchingSlice = (set: any) => ({
     isInQueue: false,
     setIsInQueue: (inQueue: boolean) => set({ isInQueue: inQueue }),
 
+    // Current active match ID (for battle screens)
+    currentMatchId: null as string | null,
+    setCurrentMatchId: (matchId: string | null) => set({ currentMatchId: matchId }),
+
     // Match found modal (reuse ModalBattleAccept)
     matchFoundModal: {
         show: false,

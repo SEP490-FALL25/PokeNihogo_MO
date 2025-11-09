@@ -14,6 +14,7 @@ import { IPokemonType } from "@models/pokemon/pokemon.common";
 import { ROUTES } from "@routes/routes";
 import { useAuthStore } from "@stores/auth/auth.config";
 import { useGlobalStore } from "@stores/global/global.config";
+import { useMatchingStore } from "@stores/matching/matching.config";
 import { useQueryClient } from "@tanstack/react-query"; // Thêm dòng này
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Check, Clock, Sparkles, Star, Timer, Zap } from "lucide-react-native";
@@ -542,6 +543,21 @@ export default function PickPokemonScreen() {
 
 
     /**
+     * Set current match ID in store for layout to join rooms
+     */
+    const setCurrentMatchId = useMatchingStore((s) => s.setCurrentMatchId);
+
+    useEffect(() => {
+        if (matchId) {
+            setCurrentMatchId(matchId);
+        }
+
+        return () => {
+            setCurrentMatchId(null);
+        };
+    }, [matchId, setCurrentMatchId]);
+
+    /**
      * Handle socket events for real-time updates
      */
     const accessToken = useAuthStore((s) => s.accessToken);
@@ -554,11 +570,7 @@ export default function PickPokemonScreen() {
 
         socket.on("select-pokemon", (payload: any) => {
             if (payload?.matchId && payload.matchId.toString() === matchId.toString()) {
-                console.log("Socket select-pokemon event:", payload);
-
-                // Update matchRound data from socket payload for real-time updates
                 if (payload?.data) {
-                    // Update cache directly with socket data for immediate UI update
                     queryClient.setQueryData(['list-match-round'], (oldData: any) => {
                         if (oldData?.data?.data) {
                             return {
@@ -583,8 +595,15 @@ export default function PickPokemonScreen() {
             }
         });
 
+        socket.on("round-starting", (payload) => {
+            console.log("Socket round-starting event:", payload);
+            queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
+            queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
+        });
+
         return () => {
             socket.off("select-pokemon");
+            socket.off("round-starting");
         };
     }, [accessToken, matchId, queryClient]);
     //------------------------End------------------------//
@@ -1000,16 +1019,6 @@ export default function PickPokemonScreen() {
                                 </ThemedText>
                             )}
                         </HapticPressable>
-                        {/* Debug info - remove in production */}
-                        {__DEV__ && (
-                            <ThemedText style={{ color: "#94a3b8", fontSize: 10, marginTop: 4, textAlign: "center" }}>
-                                Debug: isPlayerTurn={String(battleContext?.isPlayerTurn)},
-                                picker={battleContext?.currentPicker},
-                                deadline={battleContext?.pickDeadline ? "yes" : "no"},
-                                playerOrder={battleContext?.currentPlayer?.orderSelected},
-                                opponentOrder={battleContext?.currentOpponent?.orderSelected}
-                            </ThemedText>
-                        )}
                     </View>
                 )}
 

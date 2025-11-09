@@ -47,6 +47,10 @@ declare namespace ZUSTAND {
         isInQueue: boolean;
         setIsInQueue: (inQueue: boolean) => void;
 
+        // Current active match ID (for battle screens)
+        currentMatchId: string | null;
+        setCurrentMatchId: (matchId: string | null) => void;
+
         // Match found modal (reuse ModalBattleAccept)
         matchFoundModal: {
             show: boolean;
