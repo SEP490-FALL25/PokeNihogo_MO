@@ -350,6 +350,112 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
   );
 };
 
+// --- Grammar Card (Simple display for vertical list) ---
+const GrammarListCard = ({ item, index }: { item: any; index: number }) => {
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const { t } = useTranslation();
+
+  const handleBookmark = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setIsBookmarked(!isBookmarked);
+  };
+
+  return (
+    <ModernCard>
+      <View className="flex-row justify-between items-start">
+        <View className="flex-1 mr-3">
+          <ThemedText className="text-xl font-bold text-cyan-700 mb-2">
+            {item.title}
+          </ThemedText>
+          {item.description && (
+            <ThemedText className="text-base text-gray-700 mb-2">
+              {item.description}
+            </ThemedText>
+          )}
+          {item.usage && (
+            <View className="bg-cyan-50 p-3 rounded-xl mt-2">
+              <ThemedText className="text-sm text-cyan-800">
+                <ThemedText style={{ fontWeight: "bold" }}>
+                  {t("lessons.usage")}:
+                </ThemedText>{" "}
+                {item.usage}
+              </ThemedText>
+            </View>
+          )}
+        </View>
+        <TouchableOpacity
+          onPress={handleBookmark}
+          className="p-2"
+          activeOpacity={0.7}
+        >
+          <Bookmark
+            size={20}
+            color={isBookmarked ? "#FCD34D" : "#9CA3AF"}
+            fill={isBookmarked ? "#FCD34D" : "none"}
+          />
+        </TouchableOpacity>
+      </View>
+    </ModernCard>
+  );
+};
+
+// --- Kanji Card (Simple display for vertical list) ---
+const KanjiListCard = ({ item, index }: { item: any; index: number }) => {
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const { t } = useTranslation();
+
+  const meaning =
+    item.meaning?.split("##")[0] || item.meaning || t("lessons.no_meaning");
+
+  const handleBookmark = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setIsBookmarked(!isBookmarked);
+  };
+
+  return (
+    <ModernCard>
+      <View className="flex-row justify-between items-start">
+        <View className="flex-row items-center flex-1 mr-3">
+          <View className="bg-amber-100 rounded-2xl p-4 mr-3">
+            <ThemedText className="text-5xl font-bold text-amber-700">
+              {item.character}
+            </ThemedText>
+          </View>
+          <View className="flex-1">
+            <ThemedText className="text-lg font-bold text-amber-800 mb-1">
+              {meaning}
+            </ThemedText>
+            {(item.onReading || item.kunReading) && (
+              <ThemedText className="text-sm text-amber-600 mb-1">
+                {item.onReading} • {item.kunReading}
+              </ThemedText>
+            )}
+            {item.strokeCount && (
+              <View className="flex-row items-center mt-1">
+                <Sparkles size={14} color="#f59e0b" />
+                <ThemedText className="text-xs text-amber-600 ml-1">
+                  {item.strokeCount} {t("lessons.stroke")}
+                </ThemedText>
+              </View>
+            )}
+          </View>
+        </View>
+        <TouchableOpacity
+          onPress={handleBookmark}
+          className="p-2"
+          activeOpacity={0.7}
+        >
+          <Bookmark
+            size={20}
+            color={isBookmarked ? "#FCD34D" : "#9CA3AF"}
+            fill={isBookmarked ? "#FCD34D" : "none"}
+          />
+        </TouchableOpacity>
+      </View>
+    </ModernCard>
+  );
+};
+
 // --- Main Screen ---
 const VocabularyListScreen = () => {
   const { t } = useTranslation();
@@ -625,20 +731,23 @@ const VocabularyListScreen = () => {
             </View>
 
             {/* === CONTENT LIST === */}
-            {contentTypeValue === "vocabulary" && (
-              <>
-                {contentData.length === 0 ? (
-                  <View className="items-center justify-center py-20">
-                    <ThemedText className="text-gray-500 text-lg">
-                      {getEmptyMessage()}
-                    </ThemedText>
-                  </View>
-                ) : (
-                  contentData.map((item: any, i: number) => (
-                    <VocabularyCard key={i} item={item} index={i} />
-                  ))
-                )}
-              </>
+            {contentData.length === 0 ? (
+              <View className="items-center justify-center py-20">
+                <ThemedText className="text-gray-500 text-lg">
+                  {getEmptyMessage()}
+                </ThemedText>
+              </View>
+            ) : (
+              contentData.map((item: any, i: number) => {
+                if (contentTypeValue === "vocabulary") {
+                  return <VocabularyCard key={i} item={item} index={i} />;
+                } else if (contentTypeValue === "grammar") {
+                  return <GrammarListCard key={i} item={item} index={i} />;
+                } else if (contentTypeValue === "kanji") {
+                  return <KanjiListCard key={i} item={item} index={i} />;
+                }
+                return null;
+              })
             )}
           </View>
         </ScrollView>
