@@ -581,7 +581,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     const handleSubmitAnswer = async () => {
         if (selectedAnswer === null || !currentQuestion || !accessToken || !matchId || !questionStartTime) return;
 
-        setIsAnswerSubmitted(true);
+        setIsAnswerSubmitted(true); // <-- (1) Khóa UI
 
         // Get answer ID from answers array
         const answerId = currentQuestion.answers?.[selectedAnswer]?.id;
@@ -594,6 +594,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 selectedAnswer,
                 answers: currentQuestion.answers
             });
+            setIsAnswerSubmitted(false); // Mở khóa nếu có lỗi
             return;
         }
 
@@ -612,7 +613,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             // Check if response contains next question or indicates last question
             const responseData = response.data?.data || response.data;
 
-            // Update score if response contains result (for immediate feedback)
+            // (2) Hiển thị kết quả (đúng/sai) cho câu vừa trả lời
             if (responseData?.isCorrect !== undefined) {
                 if (responseData.isCorrect) {
                     setPlayerScore(prev => prev + 1);
@@ -620,86 +621,27 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 setShowResult(true);
             }
 
-            // Check if this is the last question - only wait for opponent on last question
-            const nextQuestionData = responseData?.nextQuestion || responseData?.data;
+            // (3) KIỂM TRA QUAN TRỌNG: API có báo đây là câu cuối không?
+            const isLast = isLastQuestion || // (Kiểm tra state từ round-started)
+                (totalQuestions && currentQuestionIndex >= totalQuestions) || // (Kiểm tra state)
+                responseData?.isLastQuestion === true; // (Kiểm tra phản hồi API)
 
-            if (nextQuestionData) {
-                // CÓ CÂU HỎI TIẾP THEO: Đây KHÔNG phải câu cuối
-                // (Toàn bộ logic trong khối `else` cũ của bạn)
-
-                // Handle new format: questionBank structure
-                const questionBank = nextQuestionData.questionBank || nextQuestionData;
-                const questionText = questionBank.questionJp || questionBank.question || nextQuestionData.question;
-
-                // Parse answers
-                const parseAnswerText = (answer: any) => {
-                    if (answer.answerJp) {
-                        const parts = answer.answerJp.split('+');
-                        const viPart = parts.find((p: string) => p.startsWith('vi:'));
-                        const enPart = parts.find((p: string) => p.startsWith('en:'));
-                        const jpPart = parts.find((p: string) => p.startsWith('jp:'));
-                        if (viPart) return viPart.replace('vi:', '');
-                        if (enPart) return enPart.replace('en:', '');
-                        if (jpPart) return jpPart.replace('jp:', '');
-                        return answer.answerJp;
-                    }
-                    return answer.answer || answer.text || answer;
-                };
-
-                const answers = questionBank.answers || nextQuestionData.answers || [];
-                const options = answers.map(parseAnswerText);
-                const correctAnswerIndex = answers.findIndex((ans: any) => ans.isCorrect === true);
-
-                const roundQuestionId = nextQuestionData.roundQuestionId || nextQuestionData.id;
-
-                setCurrentQuestion({
-                    id: questionBank.id || nextQuestionData.id,
-                    question: questionText,
-                    options: options,
-                    answers: answers,
-                    correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : undefined,
-                    endTimeQuestion: nextQuestionData.endTimeQuestion,
-                    timeLimitMs: nextQuestionData.timeLimitMs,
-                    questionType: questionBank.questionType || nextQuestionData.questionType,
-                    debuff: nextQuestionData.debuff,
-                    roundQuestionId: roundQuestionId,
-                    orderNumber: nextQuestionData.orderNumber,
-                });
-
-                if (nextQuestionData.endTimeQuestion) {
-                    const endTime = new Date(nextQuestionData.endTimeQuestion).getTime();
-                    const now = Date.now();
-                    const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
-                    setQuestionTimeRemaining(remaining);
-                }
-
-                setQuestionStartTime(Date.now());
-                setCurrentQuestionIndex(prev => prev + 1);
-                setSelectedAnswer(null);
-                setIsAnswerSubmitted(false);
-                setShowResult(false);
-                setIsWaitingForOpponent(false);
-
-                if (responseData.isLastQuestion !== undefined) {
-                    setIsLastQuestion(responseData.isLastQuestion);
-                }
-                if (responseData.totalQuestions) {
-                    setTotalQuestions(responseData.totalQuestions);
-                }
-
-            } else {
-                // KHÔNG CÓ CÂU HỎI TIẾP THEO: Đây CHẮC CHẮN là câu cuối
-                // (Toàn bộ logic trong khối `if (isLast)` cũ của bạn)
+            if (isLast) {
+                // (4a) ĐÂY LÀ CÂU CUỐI: Ẩn câu hỏi và vào trạng thái chờ
                 setIsWaitingForOpponent(true);
                 setCurrentQuestion(null);
+            } else {
+                // (4b) ĐÂY KHÔNG PHẢI CÂU CUỐI:
+                // Không làm gì cả.
+                // UI vẫn bị khóa (isAnswerSubmitted = true).
+                // Chúng ta chờ server đẩy câu hỏi mới qua socket 'next-question'.
+                // Sự kiện socket (dòng 424) sẽ tự động mở khóa UI.
             }
-
-            // --- KẾT THÚC THAY THẾ TẠI ĐÂY ---
 
         } catch (error: any) {
             console.error("Error submitting answer:", error.response?.data?.message || error.message);
+            // Nếu API lỗi, cho phép người dùng thử lại
             setIsAnswerSubmitted(false);
-            // Handle error - maybe show toast
         }
     };
 
