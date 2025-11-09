@@ -1,3 +1,4 @@
+import GlobalMatchingNotification from "@components/GlobalMatchingNotification";
 import LanguageProvider from "@components/LanguageProvider";
 import { ToastProvider, Toaster } from "@components/ui/Toast";
 import { useColorScheme } from "@hooks/useColorScheme";
@@ -53,6 +54,7 @@ export default function RootLayout() {
               </CopilotProvider>
               <StatusBar style="auto" />
               <Toaster />
+              <GlobalMatchingNotification />
             </ThemeProvider>
           </ToastProvider>
         </ReactQueryProvider>
