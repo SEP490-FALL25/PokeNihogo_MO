@@ -280,6 +280,16 @@ export default function PickPokemonScreen() {
     // Countdown for current picker
     const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
+    /**
+     * Round starting state
+     */
+    const [roundStartingData, setRoundStartingData] = useState<{
+        matchId: number;
+        roundNumber: string;
+        delaySeconds: number;
+        message: string;
+    } | null>(null);
+
     // Animation for pulse effect when it's player/opponent turn
     const playerPulseAnim = useRef(new Animated.Value(1)).current;
     const opponentPulseAnim = useRef(new Animated.Value(1)).current;
@@ -287,6 +297,11 @@ export default function PickPokemonScreen() {
     const opponentGlowAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
+        // If round is starting, don't use deadline countdown
+        if (roundStartingData) {
+            return;
+        }
+
         // Reset when round changes
         if (!battleContext?.pickDeadline || !battleContext?.currentRound) {
             setRemainingSeconds(null);
@@ -326,7 +341,7 @@ export default function PickPokemonScreen() {
         const interval = setInterval(compute, 1000);
 
         return () => clearInterval(interval);
-    }, [battleContext?.pickDeadline, battleContext?.currentRoundIndex, battleContext?.currentRound?.id]);
+    }, [battleContext?.pickDeadline, battleContext?.currentRoundIndex, battleContext?.currentRound?.id, roundStartingData]);
 
     // Pulse animation for player turn
     useEffect(() => {
@@ -595,8 +610,17 @@ export default function PickPokemonScreen() {
             }
         });
 
-        socket.on("round-starting", (payload) => {
-            console.log("Socket round-starting event:", payload);
+        socket.on("round-starting", (payload: any) => {
+            if (payload?.matchId && payload?.roundNumber && payload?.delaySeconds) {
+                setRoundStartingData({
+                    matchId: payload.matchId,
+                    roundNumber: payload.roundNumber,
+                    delaySeconds: payload.delaySeconds,
+                    message: payload.message || `Round ${payload.roundNumber} will start in ${payload.delaySeconds} seconds`,
+                });
+                setRemainingSeconds(payload.delaySeconds);
+            }
+
             queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
             queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
         });
@@ -606,6 +630,36 @@ export default function PickPokemonScreen() {
             socket.off("round-starting");
         };
     }, [accessToken, matchId, queryClient]);
+
+    /**
+     * Countdown timer for round starting - decrement remainingSeconds
+     */
+    useEffect(() => {
+        if (!roundStartingData || remainingSeconds === null || remainingSeconds <= 0) {
+            if (roundStartingData && remainingSeconds !== null && remainingSeconds <= 0) {
+                // Navigate to arena when countdown reaches 0
+                router.replace({
+                    pathname: ROUTES.APP.ARENA,
+                    params: {
+                        matchId: roundStartingData.matchId.toString(),
+                        roundNumber: roundStartingData.roundNumber,
+                    },
+                });
+            }
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setRemainingSeconds((prev) => {
+                if (prev === null || prev <= 1) {
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [remainingSeconds, roundStartingData, router]);
     //------------------------End------------------------//
 
     if (isLoadingMatchRound) {
@@ -656,6 +710,7 @@ export default function PickPokemonScreen() {
                             </ThemedText>
                         </View>
                     </View>
+
 
                     {/* Opponent vs Player */}
                     <View className="flex-row items-center justify-between">
