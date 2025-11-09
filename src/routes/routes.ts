@@ -13,6 +13,7 @@ enum ME {
   ACHIEVEMENTS = "/(app)/(me)/achievements",
   SETTINGS = "/(app)/(me)/settings",
   POKEMON_DETAIL = "/(app)/(me)/pokemon/[id]",
+  EXERCISE_HISTORY = "/(app)/(me)/exercise-history",
 }
 
 enum AUTH {
@@ -57,6 +58,7 @@ enum TABS {
 enum LESSON {
   LIST_WITH_ID = "/(app)/lessons-list",
   DETAIL = "/(app)/lesson-details",
+  CONTENT_LIST = "/(app)/content-list",
 }
 
 enum READING {

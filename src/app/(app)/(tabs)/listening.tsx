@@ -214,38 +214,6 @@ export default function ListeningScreen() {
           </ThemedText>
         </View>
       </ThemedView>
-
-      <ThemedView style={styles.controlsCard}>
-        <ThemedText type="subtitle" style={styles.controlsTitle}>
-          🎛️ {t("listening.controls_title")}
-        </ThemedText>
-        <View style={styles.controlsRow}>
-          <TouchableOpacity style={styles.controlButton}>
-            <IconSymbol
-              name={"backward.fill" as any}
-              size={24}
-              color="#6b7280"
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.controlButton}>
-            <IconSymbol
-              name={"play.circle.fill" as any}
-              size={48}
-              color="#3b82f6"
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.controlButton}>
-            <IconSymbol
-              name={"forward.fill" as any}
-              size={24}
-              color="#6b7280"
-            />
-          </TouchableOpacity>
-        </View>
-        <ThemedText style={styles.controlsHint}>
-          {t("listening.controls_hint")}
-        </ThemedText>
-      </ThemedView>
     </HomeLayout>
   );
 }

@@ -504,5 +504,31 @@
         }
       }
     }
+  },
+  "exercise_history": {
+    "title": "Lịch sử bài tập",
+    "empty_title": "Chưa có bài tập nào",
+    "empty_description": "Bạn chưa hoàn thành bài tập nào. Hãy bắt đầu học để xem lịch sử của bạn ở đây!",
+    "load_error": "Không thể tải lịch sử bài tập",
+    "retry": "Thử lại",
+    "correct": "đúng",
+    "completed": "Hoàn thành",
+    "unknown_exercise": "Bài tập không xác định",
+    "filters": {
+      "all_levels": "Tất cả cấp độ",
+      "all_types": "Tất cả loại"
+    },
+    "skill_types": {
+      "reading": "Đọc hiểu",
+      "listening": "Nghe hiểu",
+      "speaking": "Nói",
+      "vocabulary": "Từ vựng",
+      "grammar": "Ngữ pháp",
+      "kanji": "Kanji"
+    },
+    "just_now": "Vừa xong",
+    "minutes_ago": "{{minutes}} phút trước",
+    "hours_ago": "{{hours}} giờ trước",
+    "days_ago": "{{days}} ngày trước"
   }
 }

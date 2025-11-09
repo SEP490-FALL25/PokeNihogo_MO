@@ -504,5 +504,31 @@
         }
       }
     }
+  },
+  "exercise_history": {
+    "title": "Exercise History",
+    "empty_title": "No exercises yet",
+    "empty_description": "You haven't completed any exercises. Start learning to see your history here!",
+    "load_error": "Unable to load exercise history",
+    "retry": "Retry",
+    "correct": "correct",
+    "completed": "Completed",
+    "unknown_exercise": "Unknown exercise",
+    "filters": {
+      "all_levels": "All levels",
+      "all_types": "All types"
+    },
+    "skill_types": {
+      "reading": "Reading",
+      "listening": "Listening",
+      "speaking": "Speaking",
+      "vocabulary": "Vocabulary",
+      "grammar": "Grammar",
+      "kanji": "Kanji"
+    },
+    "just_now": "Just now",
+    "minutes_ago": "{{minutes}} min ago",
+    "hours_ago": "{{hours}} hr ago",
+    "days_ago": "{{days}} days ago"
   }
 }
