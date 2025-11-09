@@ -32,13 +32,13 @@ export default function CompactHeader({ user, onPress, style }: CompactHeaderPro
         style={styles.gradient}
       >
         {/* Level Badge */}
-        <LevelBadge level={user?.level.levelNumber} size="small" />
+        <LevelBadge level={user?.level?.levelNumber ?? 0} size="small" />
 
         {/* Progress Bar */}
         <View style={styles.progressContainer}>
           <ExpProgressBar
             currentExp={user?.exp}
-            expToNextLevel={user?.level.requiredExp}
+            expToNextLevel={user?.level?.requiredExp ?? 0}
             size="small"
           />
         </View>

@@ -1,6 +1,6 @@
 import { PlacementQuestion } from "@models/placement-test/placement-question.common";
 import { quizService } from "@services/quiz";
-import userAnswerLogService from "@services/user-answer-log";
+import userTestService from "@services/user-test";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 type Difficulty = "N5" | "N4" | "N3";
@@ -123,7 +123,7 @@ export function usePlacementTest(testId: number | string = 1) {
       const answerId = current.optionIds[idx];
       if (!answerId) return;
       try {
-        await userAnswerLogService.upsertAnswerLog({
+        await userTestService.upsertTestAnswerLog({
           userTestAttemptId: userTestAttemptId,
           questionBankId: current.questionBankId,
           answerId,
@@ -150,7 +150,7 @@ export function usePlacementTest(testId: number | string = 1) {
     try {
       setIsLoading(true);
       if (userTestAttemptId) {
-        const res = await userAnswerLogService.checkPlacementTest(userTestAttemptId);
+        const res = await userTestService.checkCompletion(userTestAttemptId);
         const levelN = (res.data as any)?.levelN;
         const recommended: Difficulty = levelN ? (`N${levelN}` as Difficulty) : computeRecommendation(questions, nextAnswers);
         return { finished: true as const, recommended };
