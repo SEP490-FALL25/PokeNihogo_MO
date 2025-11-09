@@ -14,6 +14,7 @@ import { IBattleMatchFound, IBattleMatchStatusUpdate } from "@models/battle/batt
 import { ROUTES } from "@routes/routes";
 import battleService from "@services/battle";
 import { useAuthStore } from "@stores/auth/auth.config";
+import { useMatchingStore } from "@stores/matching/matching.config";
 import { useRouter } from "expo-router";
 import { Award, Crown, History, Info, Target, Trophy } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -97,6 +98,7 @@ export default function BattleLobbyScreen() {
   const handleStartRanked = async () => {
     console.log("[QUEUE] Start button pressed");
     setInQueue(true);
+    setGlobalInQueue(true); // Update global store
     try {
       console.log("[QUEUE] Calling matchQueue()");
       await battleService.matchQueue();
@@ -119,6 +121,7 @@ export default function BattleLobbyScreen() {
       Alert.alert("Lỗi", "Không thể tìm trận đấu");
       console.log("[QUEUE] startQueue failed:", error?.response?.data?.message);
       setInQueue(false);
+      setGlobalInQueue(false); // Update global store
     }
   };
   //------------------------End------------------------//
@@ -167,6 +170,7 @@ export default function BattleLobbyScreen() {
 
   const handleCancelQueue = async () => {
     setInQueue(false);
+    setGlobalInQueue(false); // Update global store
     await battleService.cancelQueue();
   };
   //------------------------End------------------------//
@@ -174,9 +178,15 @@ export default function BattleLobbyScreen() {
 
   /**
    * Handle matching event
+   * Note: This screen also updates the global matching store so notifications appear on all tabs
    */
   const [statusMatch, setStatusMatch] = useState<"reject" | "accept" | null>(null);
   const accessToken = useAuthStore((s) => s.accessToken);
+  const {
+    setIsInQueue: setGlobalInQueue,
+    showMatchFoundModal: showGlobalMatchFound,
+    hideMatchFoundModal: hideGlobalMatchFound,
+  } = useMatchingStore();
 
   useEffect(() => {
     if (!accessToken) return;
@@ -190,9 +200,14 @@ export default function BattleLobbyScreen() {
       if (payload?.type === BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_FOUND) {
         const match = payload?.match;
 
-        if (match) {
+        if (match && 'opponent' in payload) {
+          // Update local state for modal
           setMatchedPlayer(payload);
           setShowAcceptModal(true);
+
+          // Also update global store for notification on other tabs
+          showGlobalMatchFound(payload as IBattleMatchFound, match.id.toString());
+          socket.emit("join-matching-room", { matchId: match.id });
         }
       }
 
@@ -203,6 +218,9 @@ export default function BattleLobbyScreen() {
           setStatusMatch(null);
           setMatchedPlayer(null);
           setInQueue(false);
+          setGlobalInQueue(false);
+          hideGlobalMatchFound();
+
           router.push({
             pathname: ROUTES.APP.PICK_POKEMON,
             params: {
@@ -215,6 +233,9 @@ export default function BattleLobbyScreen() {
           setStatusMatch(null);
           setMatchedPlayer(null);
           setInQueue(false);
+          setGlobalInQueue(false);
+          hideGlobalMatchFound();
+
           Alert.alert("Thông báo", payload.message || "Trận đấu đã bị hủy.");
         }
       }
@@ -222,6 +243,7 @@ export default function BattleLobbyScreen() {
       if (payload?.type === "MATCHMAKING_FAILED") {
         setInQueue(false);
         setStatusMatch(null);
+        setGlobalInQueue(false);
       }
     };
 
@@ -231,7 +253,7 @@ export default function BattleLobbyScreen() {
       socket.off("matching-event", onMatchingEvent);
       // disconnectSocket();
     };
-  }, [accessToken]);
+  }, [accessToken, router, setGlobalInQueue, showGlobalMatchFound, hideGlobalMatchFound]);
   //------------------------End------------------------//
 
 
@@ -640,7 +662,13 @@ export default function BattleLobbyScreen() {
       <ModalBattleAccept
         showAcceptModal={showAcceptModal}
         matchedPlayer={matchedPlayer as IBattleMatchFound}
-        setShowAcceptModal={setShowAcceptModal}
+        setShowAcceptModal={(show) => {
+          setShowAcceptModal(show);
+          if (!show) {
+            // Also hide global modal when closing local modal
+            hideGlobalMatchFound();
+          }
+        }}
         setMatchedPlayer={setMatchedPlayer}
         setInQueue={setInQueue}
         statusMatch={statusMatch}

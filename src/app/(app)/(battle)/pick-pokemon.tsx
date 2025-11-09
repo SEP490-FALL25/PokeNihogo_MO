@@ -16,7 +16,7 @@ import { useAuthStore } from "@stores/auth/auth.config";
 import { useGlobalStore } from "@stores/global/global.config";
 import { useQueryClient } from "@tanstack/react-query"; // Thêm dòng này
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Check, Clock, Sparkles, Star } from "lucide-react-native";
+import { Check, Clock, Sparkles, Star, Timer, Zap } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Animated, Image, ImageBackground, ScrollView, StyleSheet, View } from "react-native";
 
@@ -80,7 +80,7 @@ export default function PickPokemonScreen() {
 
 
     /**
-     * Get Battle Context
+     * Get Battle Context (ĐÃ SỬA LOGIC LẶP)
      */
     const battleContext = useMemo(() => {
         if (!matchRound) return null;
@@ -101,26 +101,18 @@ export default function PickPokemonScreen() {
         //#endregion
 
 
-        //#region Xác định round hiện tại
+        //#region Xác định round hiện tại (ĐÃ SỬA: Lặp từ đầu)
 
-        // Tìm vòng SELECTING_POKEMON *cuối cùng* (round đang active - thường là round mới nhất)
-        // Vì có thể có nhiều round cùng status, ta cần lấy round cuối cùng
-        let currentRoundIndex = -1;
-        for (let i = matchRound.rounds.length - 1; i >= 0; i--) {
-            if (matchRound.rounds[i].status === "SELECTING_POKEMON") {
-                currentRoundIndex = i;
-                break;
-            }
-        }
+        // Tìm vòng SELECTING_POKEMON *đầu tiên* (lặp từ 0 tăng lên)
+        let currentRoundIndex = matchRound.rounds.findIndex(
+            (r) => r.status === "SELECTING_POKEMON"
+        );
 
-        // Nếu không tìm thấy SELECTING_POKEMON, thì tìm vòng PENDING *cuối cùng*
+        // Nếu không tìm thấy, thì tìm vòng PENDING *đầu tiên* (lặp từ 0 tăng lên)
         if (currentRoundIndex === -1) {
-            for (let i = matchRound.rounds.length - 1; i >= 0; i--) {
-                if (matchRound.rounds[i].status === "PENDING") {
-                    currentRoundIndex = i;
-                    break;
-                }
-            }
+            currentRoundIndex = matchRound.rounds.findIndex(
+                (r) => r.status === "PENDING"
+            );
         }
         //#endregion
 
@@ -215,51 +207,26 @@ export default function PickPokemonScreen() {
 
         const pickDeadline = (() => {
             if (currentRound?.status === "SELECTING_POKEMON" || currentRound?.status === "PENDING") {
-                // Priority 1: If we know who's picking, use their endTimeSelected
-                if (currentPicker === "player") {
-                    const deadline = validateDeadline(currentPlayer?.endTimeSelected);
-                    if (deadline) return deadline;
-                }
-                if (currentPicker === "opponent") {
-                    const deadline = validateDeadline(currentOpponent?.endTimeSelected);
-                    if (deadline) return deadline;
-                }
 
-                // Priority 2: If picker is determined but no endTimeSelected, 
-                // find who hasn't picked and check if they have endTimeSelected
-                const playerNeedsToPick = !currentPlayer?.selectedUserPokemonId;
-                const opponentNeedsToPick = !currentOpponent?.selectedUserPokemonId;
+                // --- BẮT ĐẦU SỬA ---
+                // Logic mới:
+                // Chỉ cần tìm xem 1 trong 2 người, ai có deadline hợp lệ thì lấy
 
-                if (playerNeedsToPick) {
-                    const deadline = validateDeadline(currentPlayer?.endTimeSelected);
-                    if (deadline) return deadline;
-                }
-                if (opponentNeedsToPick) {
-                    const deadline = validateDeadline(currentOpponent?.endTimeSelected);
-                    if (deadline) return deadline;
-                }
+                // 1. Thử lấy deadline của 'currentPlayer' (người chơi trên máy này)
+                let deadline = validateDeadline(currentPlayer?.endTimeSelected);
+                if (deadline) return deadline;
 
-                // Priority 3: If we determined who should pick but they don't have endTimeSelected,
-                // try to use the other participant's endTimeSelected as a reference
-                // This handles the case: round 2 starts, opponent (orderSelected: 3) already picked,
-                // player (orderSelected: 4) needs to pick but endTimeSelected is null
-                if (isPlayerTurn && !currentPlayer?.endTimeSelected) {
-                    const deadline = validateDeadline(currentOpponent?.endTimeSelected);
-                    if (deadline) return deadline;
-                }
-                if (isOpponentTurn && !currentOpponent?.endTimeSelected) {
-                    const deadline = validateDeadline(currentPlayer?.endTimeSelected);
-                    if (deadline) return deadline;
-                }
+                // 2. Nếu không có, thử lấy deadline của 'currentOpponent' (đối thủ)
+                deadline = validateDeadline(currentOpponent?.endTimeSelected);
+                if (deadline) return deadline;
 
-                // Priority 4: Use endTimeRound as fallback (this is the round deadline)
-                // This handles cases where backend hasn't set endTimeSelected yet
+                // 3. (Dự phòng) Nếu cả 2 đều không có, thử lấy deadline của cả Round
                 const roundDeadline = validateDeadline(currentRound?.endTimeRound);
                 if (roundDeadline) return roundDeadline;
 
-                // Last resort: return null (no deadline available yet - will be set by socket)
-                // In this case, countdown won't show but user can still pick
+                // 4. Nếu không có gì cả, trả về null
                 return null;
+                // --- KẾT THÚC SỬA ---
             }
             return null;
         })();
@@ -309,39 +276,14 @@ export default function PickPokemonScreen() {
     }, [matchRound, currentUserId]);
     //---------------End---------------//
 
-
-    /**
-     * Countdown for current picker
-     */
+    // Countdown for current picker
     const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
-    /**
-     * Pulse animation for active turn indicator
-     */
-    const pulseAnim = useRef(new Animated.Value(1)).current;
-
-    useEffect(() => {
-        if (battleContext?.isPlayerTurn || battleContext?.isOpponentTurn) {
-            const pulse = Animated.loop(
-                Animated.sequence([
-                    Animated.timing(pulseAnim, {
-                        toValue: 1.05,
-                        duration: 1500,
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(pulseAnim, {
-                        toValue: 1,
-                        duration: 1500,
-                        useNativeDriver: true,
-                    }),
-                ])
-            );
-            pulse.start();
-            return () => pulse.stop();
-        } else {
-            pulseAnim.setValue(1);
-        }
-    }, [battleContext?.isPlayerTurn, battleContext?.isOpponentTurn, pulseAnim]);
+    // Animation for pulse effect when it's player/opponent turn
+    const playerPulseAnim = useRef(new Animated.Value(1)).current;
+    const opponentPulseAnim = useRef(new Animated.Value(1)).current;
+    const playerGlowAnim = useRef(new Animated.Value(0)).current;
+    const opponentGlowAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         // Reset when round changes
@@ -385,6 +327,85 @@ export default function PickPokemonScreen() {
         return () => clearInterval(interval);
     }, [battleContext?.pickDeadline, battleContext?.currentRoundIndex, battleContext?.currentRound?.id]);
 
+    // Pulse animation for player turn
+    useEffect(() => {
+        if (battleContext?.isPlayerTurn) {
+            // Pulse animation
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(playerPulseAnim, {
+                        toValue: 1.08,
+                        duration: 800,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(playerPulseAnim, {
+                        toValue: 1,
+                        duration: 800,
+                        useNativeDriver: true,
+                    }),
+                ])
+            ).start();
+
+            // Glow animation
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(playerGlowAnim, {
+                        toValue: 1,
+                        duration: 1000,
+                        useNativeDriver: false,
+                    }),
+                    Animated.timing(playerGlowAnim, {
+                        toValue: 0,
+                        duration: 1000,
+                        useNativeDriver: false,
+                    }),
+                ])
+            ).start();
+        } else {
+            playerPulseAnim.setValue(1);
+            playerGlowAnim.setValue(0);
+        }
+    }, [battleContext?.isPlayerTurn]);
+
+    // Pulse animation for opponent turn
+    useEffect(() => {
+        if (battleContext?.isOpponentTurn) {
+            // Pulse animation
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(opponentPulseAnim, {
+                        toValue: 1.08,
+                        duration: 800,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(opponentPulseAnim, {
+                        toValue: 1,
+                        duration: 800,
+                        useNativeDriver: true,
+                    }),
+                ])
+            ).start();
+
+            // Glow animation
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(opponentGlowAnim, {
+                        toValue: 1,
+                        duration: 1000,
+                        useNativeDriver: false,
+                    }),
+                    Animated.timing(opponentGlowAnim, {
+                        toValue: 0,
+                        duration: 1000,
+                        useNativeDriver: false,
+                    }),
+                ])
+            ).start();
+        } else {
+            opponentPulseAnim.setValue(1);
+            opponentGlowAnim.setValue(0);
+        }
+    }, [battleContext?.isOpponentTurn]);
 
     const formatTime = (seconds: number | null) => {
         if (seconds === null || seconds === undefined) return "--:--";
@@ -392,10 +413,6 @@ export default function PickPokemonScreen() {
         const secs = seconds % 60;
         return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
     };
-    //------------------------End------------------------//
-
-
-
 
     // Normalize round list from results array
     const roundList: any[] = useMemo(() => {
@@ -560,6 +577,7 @@ export default function PickPokemonScreen() {
                     });
                 }
 
+                // Also invalidate to ensure data consistency
                 queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
                 queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
             }
@@ -612,16 +630,10 @@ export default function PickPokemonScreen() {
                         <View className="flex-row items-center gap-2">
                             <Clock size={16} color="#22d3ee" />
                             <ThemedText style={{ color: "#cbd5e1", fontSize: 14 }}>
-                                Round {(() => {
-                                    if (battleContext?.currentRound?.roundNumber) {
-                                        const roundNum = battleContext.currentRound.roundNumber;
-                                        if (roundNum === "ONE") return "1";
-                                        if (roundNum === "TWO") return "2";
-                                        if (roundNum === "THREE") return "3";
-                                        return String(battleContext.currentRoundIndex + 1);
-                                    }
-                                    return String((battleContext?.currentRoundIndex ?? 0) + 1);
-                                })()}/3
+                                Round {battleContext?.currentRound ?
+                                    (battleContext.currentRound.roundNumber === "ONE" ? "1" :
+                                        battleContext.currentRound.roundNumber === "TWO" ? "2" : "3")
+                                    : (battleContext?.currentRoundIndex ?? 0) + 1}/3
                             </ThemedText>
                         </View>
                     </View>
@@ -629,99 +641,93 @@ export default function PickPokemonScreen() {
                     {/* Opponent vs Player */}
                     <View className="flex-row items-center justify-between">
                         {/* Opponent */}
-                        <Animated.View
-                            className="items-center flex-1 px-3 py-4 rounded-2xl"
-                            style={{
-                                transform: battleContext?.isOpponentTurn ? [{ scale: pulseAnim }] : [{ scale: 1 }],
-                                opacity: battleContext?.isOpponentTurn ? 1 : 0.7,
-                            }}
-                        >
-                            {battleContext?.isOpponentTurn ? (
-                                <TWLinearGradient
-                                    colors={["rgba(239, 68, 68, 0.08)", "rgba(239, 68, 68, 0.15)", "rgba(239, 68, 68, 0.08)"]}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
+                        <View className="items-center flex-1" style={{ position: "relative" }}>
+                            {/* Glow effect background when it's opponent turn */}
+                            {battleContext?.isOpponentTurn && (
+                                <Animated.View
                                     style={{
                                         position: "absolute",
-                                        left: 0,
-                                        right: 0,
-                                        top: 0,
-                                        bottom: 0,
-                                        borderRadius: 16,
-                                        borderWidth: 1.5,
-                                        borderColor: "rgba(239, 68, 68, 0.4)",
+                                        top: -8,
+                                        left: "50%",
+                                        marginLeft: -50,
+                                        width: 100,
+                                        height: 100,
+                                        borderRadius: 50,
+                                        backgroundColor: opponentGlowAnim.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: ["rgba(239, 68, 68, 0.2)", "rgba(239, 68, 68, 0.5)"],
+                                        }),
+                                        zIndex: 0,
                                     }}
                                 />
-                            ) : null}
-                            <View className="relative items-center">
-                                <View
-                                    className="rounded-full"
+                            )}
+
+                            {/* Animated border ring */}
+                            {battleContext?.isOpponentTurn && (
+                                <Animated.View
                                     style={{
-                                        padding: battleContext?.isOpponentTurn ? 2 : 0,
-                                        borderRadius: 999,
+                                        position: "absolute",
+                                        top: -4,
+                                        left: "50%",
+                                        marginLeft: -52,
+                                        width: 104,
+                                        height: 104,
+                                        borderRadius: 52,
+                                        borderWidth: 3,
+                                        borderColor: opponentGlowAnim.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: ["rgba(239, 68, 68, 0.6)", "rgba(239, 68, 68, 1)"],
+                                        }),
+                                        zIndex: 1,
                                     }}
-                                >
-                                    {battleContext?.isOpponentTurn ? (
-                                        <TWLinearGradient
-                                            colors={["rgba(239, 68, 68, 0.6)", "rgba(220, 38, 38, 0.8)", "rgba(239, 68, 68, 0.6)"]}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 1 }}
-                                            style={{
-                                                borderRadius: 999,
-                                                padding: 2,
-                                            }}
-                                        >
-                                            <View style={{ borderRadius: 999, backgroundColor: "transparent" }}>
-                                                <UserAvatar name={matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""} size="large" />
-                                            </View>
-                                        </TWLinearGradient>
-                                    ) : (
-                                        <UserAvatar name={matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""} size="large" />
-                                    )}
-                                </View>
-                                {battleContext?.isOpponentTurn && (
-                                    <View
-                                        style={{
-                                            position: "absolute",
-                                            bottom: -2,
-                                            left: "50%",
-                                            marginLeft: -8,
-                                            width: 16,
-                                            height: 3,
-                                            borderRadius: 2,
-                                            backgroundColor: "#ef4444",
-                                            shadowColor: "#ef4444",
-                                            shadowOffset: { width: 0, height: 0 },
-                                            shadowOpacity: 0.8,
-                                            shadowRadius: 4,
-                                            elevation: 4,
-                                        }}
-                                    />
-                                )}
-                            </View>
-                            <ThemedText style={{
-                                color: battleContext?.isOpponentTurn ? "#fca5a5" : "#9ca3af",
-                                fontSize: 14,
-                                fontWeight: battleContext?.isOpponentTurn ? "700" : "600",
-                                marginTop: 8,
-                                textShadowColor: battleContext?.isOpponentTurn ? "rgba(239, 68, 68, 0.5)" : "transparent",
-                                textShadowOffset: { width: 0, height: 1 },
-                                textShadowRadius: 4,
-                            }}>
+                                />
+                            )}
+
+                            {/* Avatar with pulse animation */}
+                            <Animated.View
+                                style={{
+                                    transform: [{ scale: battleContext?.isOpponentTurn ? opponentPulseAnim : 1 }],
+                                    zIndex: 2,
+                                }}
+                            >
+                                <UserAvatar name={matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""} size="large" />
+                            </Animated.View>
+
+                            <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8, zIndex: 2 }}>
                                 {matchRound?.match.participants.find((p) => p.user.name === opponentName)?.user.name ?? ""}
                             </ThemedText>
+
+                            {/* Enhanced badge when it's opponent turn */}
                             {battleContext?.isOpponentTurn && (
-                                <View className="mt-2 px-3 py-1 rounded-full" style={{
-                                    backgroundColor: "rgba(239, 68, 68, 0.2)",
-                                    borderWidth: 1,
-                                    borderColor: "rgba(239, 68, 68, 0.5)",
-                                }}>
-                                    <ThemedText style={{ color: "#fca5a5", fontSize: 11, fontWeight: "700" }}>
-                                        ĐANG PICK
+                                <Animated.View
+                                    style={{
+                                        marginTop: 12,
+                                        paddingHorizontal: 16,
+                                        paddingVertical: 8,
+                                        borderRadius: 999,
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        backgroundColor: opponentGlowAnim.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: ["rgba(239, 68, 68, 0.3)", "rgba(239, 68, 68, 0.5)"],
+                                        }),
+                                        borderWidth: 2,
+                                        borderColor: "#ef4444",
+                                        shadowColor: "#ef4444",
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.8,
+                                        shadowRadius: 8,
+                                        elevation: 8,
+                                        zIndex: 2,
+                                    }}
+                                >
+                                    <Timer size={14} color="#fca5a5" />
+                                    <ThemedText style={{ color: "#fca5a5", fontSize: 13, fontWeight: "800", letterSpacing: 0.5, marginLeft: 8 }}>
+                                        ĐANG CHỌN
                                     </ThemedText>
-                                </View>
+                                </Animated.View>
                             )}
-                        </Animated.View>
+                        </View>
 
                         {/* VS */}
                         <TWLinearGradient
@@ -747,99 +753,93 @@ export default function PickPokemonScreen() {
                         </TWLinearGradient>
 
                         {/* Player */}
-                        <Animated.View
-                            className="items-center flex-1 px-3 py-4 rounded-2xl"
-                            style={{
-                                transform: battleContext?.isPlayerTurn ? [{ scale: pulseAnim }] : [{ scale: 1 }],
-                                opacity: battleContext?.isPlayerTurn ? 1 : 0.7,
-                            }}
-                        >
-                            {battleContext?.isPlayerTurn ? (
-                                <TWLinearGradient
-                                    colors={["rgba(34, 197, 94, 0.08)", "rgba(34, 197, 94, 0.15)", "rgba(34, 197, 94, 0.08)"]}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
+                        <View className="items-center flex-1" style={{ position: "relative" }}>
+                            {/* Glow effect background when it's player turn */}
+                            {battleContext?.isPlayerTurn && (
+                                <Animated.View
                                     style={{
                                         position: "absolute",
-                                        left: 0,
-                                        right: 0,
-                                        top: 0,
-                                        bottom: 0,
-                                        borderRadius: 16,
-                                        borderWidth: 1.5,
-                                        borderColor: "rgba(34, 197, 94, 0.4)",
+                                        top: -8,
+                                        left: "50%",
+                                        marginLeft: -50,
+                                        width: 100,
+                                        height: 100,
+                                        borderRadius: 50,
+                                        backgroundColor: playerGlowAnim.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: ["rgba(34, 197, 94, 0.2)", "rgba(34, 197, 94, 0.5)"],
+                                        }),
+                                        zIndex: 0,
                                     }}
                                 />
-                            ) : null}
-                            <View className="relative items-center">
-                                <View
-                                    className="rounded-full"
+                            )}
+
+                            {/* Animated border ring */}
+                            {battleContext?.isPlayerTurn && (
+                                <Animated.View
                                     style={{
-                                        padding: battleContext?.isPlayerTurn ? 2 : 0,
-                                        borderRadius: 999,
+                                        position: "absolute",
+                                        top: -4,
+                                        left: "50%",
+                                        marginLeft: -52,
+                                        width: 104,
+                                        height: 104,
+                                        borderRadius: 52,
+                                        borderWidth: 3,
+                                        borderColor: playerGlowAnim.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: ["rgba(34, 197, 94, 0.6)", "rgba(34, 197, 94, 1)"],
+                                        }),
+                                        zIndex: 1,
                                     }}
-                                >
-                                    {battleContext?.isPlayerTurn ? (
-                                        <TWLinearGradient
-                                            colors={["rgba(34, 197, 94, 0.6)", "rgba(22, 163, 74, 0.8)", "rgba(34, 197, 94, 0.6)"]}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 1 }}
-                                            style={{
-                                                borderRadius: 999,
-                                                padding: 2,
-                                            }}
-                                        >
-                                            <View style={{ borderRadius: 999, backgroundColor: "transparent" }}>
-                                                <UserAvatar name={"Bạn"} size="large" />
-                                            </View>
-                                        </TWLinearGradient>
-                                    ) : (
-                                        <UserAvatar name={"Bạn"} size="large" />
-                                    )}
-                                </View>
-                                {battleContext?.isPlayerTurn && (
-                                    <View
-                                        style={{
-                                            position: "absolute",
-                                            bottom: -2,
-                                            left: "50%",
-                                            marginLeft: -8,
-                                            width: 16,
-                                            height: 3,
-                                            borderRadius: 2,
-                                            backgroundColor: "#22c55e",
-                                            shadowColor: "#22c55e",
-                                            shadowOffset: { width: 0, height: 0 },
-                                            shadowOpacity: 0.8,
-                                            shadowRadius: 4,
-                                            elevation: 4,
-                                        }}
-                                    />
-                                )}
-                            </View>
-                            <ThemedText style={{
-                                color: battleContext?.isPlayerTurn ? "#86efac" : "#9ca3af",
-                                fontSize: 14,
-                                fontWeight: battleContext?.isPlayerTurn ? "700" : "600",
-                                marginTop: 8,
-                                textShadowColor: battleContext?.isPlayerTurn ? "rgba(34, 197, 94, 0.5)" : "transparent",
-                                textShadowOffset: { width: 0, height: 1 },
-                                textShadowRadius: 4,
-                            }}>
+                                />
+                            )}
+
+                            {/* Avatar with pulse animation */}
+                            <Animated.View
+                                style={{
+                                    transform: [{ scale: battleContext?.isPlayerTurn ? playerPulseAnim : 1 }],
+                                    zIndex: 2,
+                                }}
+                            >
+                                <UserAvatar name={"Bạn"} size="large" />
+                            </Animated.View>
+
+                            <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8, zIndex: 2 }}>
                                 Bạn
                             </ThemedText>
+
+                            {/* Enhanced badge when it's player turn */}
                             {battleContext?.isPlayerTurn && (
-                                <View className="mt-2 px-3 py-1 rounded-full" style={{
-                                    backgroundColor: "rgba(34, 197, 94, 0.2)",
-                                    borderWidth: 1,
-                                    borderColor: "rgba(34, 197, 94, 0.5)",
-                                }}>
-                                    <ThemedText style={{ color: "#86efac", fontSize: 11, fontWeight: "700" }}>
+                                <Animated.View
+                                    style={{
+                                        marginTop: 12,
+                                        paddingHorizontal: 16,
+                                        paddingVertical: 8,
+                                        borderRadius: 999,
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        backgroundColor: playerGlowAnim.interpolate({
+                                            inputRange: [0, 1],
+                                            outputRange: ["rgba(34, 197, 94, 0.3)", "rgba(34, 197, 94, 0.5)"],
+                                        }),
+                                        borderWidth: 2,
+                                        borderColor: "#22c55e",
+                                        shadowColor: "#22c55e",
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.8,
+                                        shadowRadius: 8,
+                                        elevation: 8,
+                                        zIndex: 2,
+                                    }}
+                                >
+                                    <Zap size={14} color="#86efac" fill="#86efac" />
+                                    <ThemedText style={{ color: "#86efac", fontSize: 13, fontWeight: "800", letterSpacing: 0.5, marginLeft: 8 }}>
                                         CHỌN NGAY
                                     </ThemedText>
-                                </View>
+                                </Animated.View>
                             )}
-                        </Animated.View>
+                        </View>
                     </View>
                 </View>
 
@@ -1000,6 +1000,16 @@ export default function PickPokemonScreen() {
                                 </ThemedText>
                             )}
                         </HapticPressable>
+                        {/* Debug info - remove in production */}
+                        {__DEV__ && (
+                            <ThemedText style={{ color: "#94a3b8", fontSize: 10, marginTop: 4, textAlign: "center" }}>
+                                Debug: isPlayerTurn={String(battleContext?.isPlayerTurn)},
+                                picker={battleContext?.currentPicker},
+                                deadline={battleContext?.pickDeadline ? "yes" : "no"},
+                                playerOrder={battleContext?.currentPlayer?.orderSelected},
+                                opponentOrder={battleContext?.currentOpponent?.orderSelected}
+                            </ThemedText>
+                        )}
                     </View>
                 )}
 
