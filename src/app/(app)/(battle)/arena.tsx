@@ -522,7 +522,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         // Opponent completed
         socket.on("opponent-completed", (payload: any) => {
             console.log("Opponent completed:", payload);
-            setIsWaitingForOpponent(true);
+            // setIsWaitingForOpponent(true);
         });
 
         // Waiting for opponent
