@@ -2,93 +2,172 @@ import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { HapticPressable } from "@components/HapticPressable";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
+import { getSocket } from "@configs/socket";
+import useAuth from "@hooks/useAuth";
+import { useListMatchRound } from "@hooks/useBattle";
 import useOwnedPokemons from "@hooks/useOwnedPokemons";
+import { IBattleMatchRound, ISubmitAnswer } from "@models/battle/battle.response";
+import battleService from "@services/battle";
+import { useAuthStore } from "@stores/auth/auth.config";
+import { useMatchingStore } from "@stores/matching/matching.config";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Award, CheckCircle, Clock, Shield, XCircle, Zap } from "lucide-react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+    ActivityIndicator,
     Animated,
     Easing,
     Image,
     ImageBackground,
     StyleSheet,
-    View,
+    View
 } from "react-native";
 import { TYPE_MATCHUPS } from "../../../../mock-data/type-matchups";
 
 interface BattleArenaScreenProps { }
 
-// Mock quiz questions
-const mockQuestions = [
-    {
-        id: 1,
-        question: "What is the correct Japanese translation for 'cat'?",
-        options: ["ねこ", "いぬ", "とり", "うま"],
-        correctAnswer: 0,
-    },
-    {
-        id: 2,
-        question: "What is the correct Japanese translation for 'hello'?",
-        options: ["さようなら", "こんにちは", "ありがとう", "すみません"],
-        correctAnswer: 1,
-    },
-    {
-        id: 3,
-        question: "What is the correct Japanese translation for 'thank you'?",
-        options: ["すみません", "ありがとう", "どういたしまして", "いらっしゃいませ"],
-        correctAnswer: 1,
-    },
-    {
-        id: 4,
-        question: "What is the correct Japanese translation for 'water'?",
-        options: ["火", "水", "空気", "土"],
-        correctAnswer: 1,
-    },
-    {
-        id: 5,
-        question: "What is the correct Japanese translation for 'fire'?",
-        options: ["水", "火", "土", "風"],
-        correctAnswer: 1,
-    },
-];
-
 export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     const router = useRouter();
     const params = useLocalSearchParams();
     const matchId = params.matchId as string;
+    const roundNumber = params.roundNumber as string;
     const { ownedPokemons } = useOwnedPokemons();
+    const { user } = useAuth();
+    const currentUserId = user?.data?.id as number | undefined;
+    const accessToken = useAuthStore((s) => s.accessToken);
+    const setCurrentMatchId = useMatchingStore((s) => s.setCurrentMatchId);
 
-    const [selectedAnswer, setSelectedAnswer] = React.useState<number | null>(null);
-    const [isAnswerSubmitted, setIsAnswerSubmitted] = React.useState(false);
-    const [showResult, setShowResult] = React.useState(false);
-    const [battleComplete, setBattleComplete] = React.useState(false);
-    const [currentRound, setCurrentRound] = React.useState(1);
-    const [playerScore, setPlayerScore] = React.useState(0);
-    const [opponentScore, setOpponentScore] = React.useState(0);
-    const [currentTurn, setCurrentTurn] = React.useState(1);
-    const [playerPokemonIndex, setPlayerPokemonIndex] = React.useState(0);
-    const [opponentPokemonIndex, setOpponentPokemonIndex] = React.useState(0);
-    const [typeAdvantage, setTypeAdvantage] = React.useState<"player" | "opponent" | null>(null);
-    const [showFog, setShowFog] = React.useState(false);
-    const [showConfusion, setShowConfusion] = React.useState(false);
-    const shakeAnimation = React.useRef(new Animated.Value(0)).current;
+    // Get match round data
+    const { data: matchRound, isLoading: isLoadingMatchRound } = useListMatchRound() as {
+        data: IBattleMatchRound;
+        isLoading: boolean;
+    };
 
-    // Get current question (mock)
-    const currentQuestion = mockQuestions[currentRound - 1];
+    // Battle state
+    const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+    const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
+    const [showResult, setShowResult] = useState(false);
+    const [battleComplete, setBattleComplete] = useState(false);
+    const [currentRound, setCurrentRound] = useState(1);
+    const [playerScore, setPlayerScore] = useState(0);
+    const [opponentScore, setOpponentScore] = useState(0);
+    const [currentTurn, setCurrentTurn] = useState(1);
+    const [playerPokemonIndex, setPlayerPokemonIndex] = useState(0);
+    const [opponentPokemonIndex, setOpponentPokemonIndex] = useState(0);
+    const [typeAdvantage, setTypeAdvantage] = useState<"player" | "opponent" | null>(null);
+    const [showFog, setShowFog] = useState(false);
+    const [showConfusion, setShowConfusion] = useState(false);
+    const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
+    const [currentQuestion, setCurrentQuestion] = useState<any>(null);
+    const [roundStarted, setRoundStarted] = useState(false);
+    const [roundData, setRoundData] = useState<{
+        participant?: any;
+        opponent?: any;
+    } | null>(null);
+    const [questionTimeRemaining, setQuestionTimeRemaining] = useState<number | null>(null);
+    const [questionStartTime, setQuestionStartTime] = useState<number | null>(null);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
+    const [isLastQuestion, setIsLastQuestion] = useState(false);
+    const shakeAnimation = useRef(new Animated.Value(0)).current;
 
-    // Get player and opponent Pokemon IDs from draft
-    const playerPokemonIds = [1, 4, 7]; // Mock data - would come from battleService
-    const opponentPokemonIds = [7, 1, 4]; // Mock data - would come from battleService
+    // Set matchId in store for layout
+    useEffect(() => {
+        if (matchId) {
+            setCurrentMatchId(matchId);
+        }
+        return () => {
+            setCurrentMatchId(null);
+        };
+    }, [matchId, setCurrentMatchId]);
 
-    const playerPokemon = ownedPokemons?.find(p => p.pokemon.id === playerPokemonIds[playerPokemonIndex]);
-    const opponentPokemon = ownedPokemons?.find(p => p.pokemon.id === opponentPokemonIds[opponentPokemonIndex]);
+    // Get player and opponent Pokemon from round-started event or matchRound
+    const playerPokemon = useMemo(() => {
+        // Priority: roundData from socket > matchRound
+        if (roundData?.participant?.selectedUserPokemon?.pokemon) {
+            const pokemonData = roundData.participant.selectedUserPokemon.pokemon;
+            if (!pokemonData) return null;
+            // Find in ownedPokemons or create from data
+            const found = ownedPokemons?.find(p => p?.pokemon?.id === pokemonData.id);
+            if (found) return found;
+            // Create wrapper object if not found in ownedPokemons
+            return {
+                pokemon: pokemonData,
+            } as any;
+        }
+
+        if (!matchRound) return null;
+        const player = matchRound.match.participants.find((p) => {
+            if (currentUserId !== undefined) return p.user.id === currentUserId;
+            return p.user.name === "Bạn";
+        });
+        const round = matchRound.rounds.find((r) => {
+            const roundNum = roundNumber === "ONE" ? 0 : roundNumber === "TWO" ? 1 : 2;
+            return r.roundNumber === roundNumber || matchRound.rounds.indexOf(r) === roundNum;
+        });
+        if (!round) return null;
+        const participant = round.participants.find((rp) => rp.matchParticipantId === player?.id);
+        const pokemonId = participant?.selectedUserPokemon?.pokemon?.id || participant?.selectedUserPokemonId;
+        return ownedPokemons?.find(p => p?.pokemon?.id === pokemonId) || null;
+    }, [roundData, matchRound, currentUserId, roundNumber, ownedPokemons]);
+
+    const opponentPokemon = useMemo(() => {
+        // Priority: roundData from socket > matchRound
+        if (roundData?.opponent?.selectedUserPokemon?.pokemon) {
+            const pokemonData = roundData.opponent.selectedUserPokemon.pokemon;
+            if (!pokemonData) return null;
+            // Find in ownedPokemons or create from data
+            const found = ownedPokemons?.find(p => p?.pokemon?.id === pokemonData.id);
+            if (found) return found;
+            // Create wrapper object if not found in ownedPokemons
+            return {
+                pokemon: pokemonData,
+            } as any;
+        }
+
+        if (!matchRound) return null;
+        const opponent = matchRound.match.participants.find((p) => {
+            if (currentUserId !== undefined) return p.user.id !== currentUserId;
+            return p.user.name !== "Bạn";
+        });
+        const round = matchRound.rounds.find((r) => {
+            const roundNum = roundNumber === "ONE" ? 0 : roundNumber === "TWO" ? 1 : 2;
+            return r.roundNumber === roundNumber || matchRound.rounds.indexOf(r) === roundNum;
+        });
+        if (!round) return null;
+        const participant = round.participants.find((rp) => rp.matchParticipantId === opponent?.id);
+        const pokemonId = participant?.selectedUserPokemon?.pokemon?.id || participant?.selectedUserPokemonId;
+        return ownedPokemons?.find(p => p?.pokemon?.id === pokemonId) || null;
+    }, [roundData, matchRound, currentUserId, roundNumber, ownedPokemons]);
+
+    // Question countdown timer
+    useEffect(() => {
+        if (!currentQuestion?.endTimeQuestion || questionTimeRemaining === null || questionTimeRemaining <= 0) {
+            if (questionTimeRemaining === 0 && currentQuestion) {
+                // Time's up - auto submit if not already submitted
+                if (!isAnswerSubmitted && selectedAnswer !== null) {
+                    handleSubmitAnswer();
+                }
+            }
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            const endTime = new Date(currentQuestion.endTimeQuestion).getTime();
+            const now = Date.now();
+            const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
+            setQuestionTimeRemaining(remaining);
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [questionTimeRemaining, currentQuestion, isAnswerSubmitted, selectedAnswer]);
 
     // Check type advantage
     useEffect(() => {
-        if (!playerPokemon || !opponentPokemon) return;
+        if (!playerPokemon || !opponentPokemon || !playerPokemon.pokemon || !opponentPokemon.pokemon) return;
 
-        const playerType = playerPokemon.pokemon.types[0]?.type_name;
-        const opponentType = opponentPokemon.pokemon.types[0]?.type_name;
+        const playerType = playerPokemon.pokemon.types?.[0]?.type_name;
+        const opponentType = opponentPokemon.pokemon.types?.[0]?.type_name;
 
         if (!playerType || !opponentType) return;
 
@@ -123,15 +202,19 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
 
     // Handle answer selection
     const handleSelectAnswer = (answerIndex: number) => {
-        if (isAnswerSubmitted || !currentQuestion) return;
+        if (isAnswerSubmitted || !currentQuestion || isWaitingForOpponent) return;
 
         // If confused, randomly select a different answer sometimes
         let finalAnswer = answerIndex;
         if (typeAdvantage === "opponent" && Math.random() < 0.3) {
             // 30% chance to select wrong answer due to confusion
-            const wrongAnswers = currentQuestion.options
-                .map((_, idx) => idx)
-                .filter(idx => idx !== currentQuestion.correctAnswer && idx !== answerIndex);
+            const options = currentQuestion.options || currentQuestion.answers || [];
+            const wrongAnswers = options
+                .map((_: any, idx: number) => idx)
+                .filter((idx: number) => {
+                    const correctAnswer = currentQuestion.correctAnswer;
+                    return correctAnswer !== undefined && idx !== correctAnswer && idx !== answerIndex;
+                });
             if (wrongAnswers.length > 0) {
                 finalAnswer = wrongAnswers[Math.floor(Math.random() * wrongAnswers.length)];
             }
@@ -140,52 +223,510 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         setSelectedAnswer(finalAnswer);
     };
 
-    // Handle answer submission
-    const handleSubmitAnswer = async () => {
-        if (selectedAnswer === null || !currentQuestion) return;
+    // Socket events handler
+    useEffect(() => {
+        if (!accessToken || !matchId) return;
 
-        setIsAnswerSubmitted(true);
-        const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
-        setShowResult(true);
+        const socket = getSocket("matching", accessToken);
 
-        // Simulate opponent answer after 2 seconds
-        setTimeout(() => {
-            const opponentCorrect = Math.random() > 0.5;
-            setShowResult(false);
+        // Round started
+        socket.on("round-started", (payload: any) => {
+            console.log("Round started:", payload);
+            setRoundStarted(true);
 
-            // Update scores
-            if (isCorrect) {
-                setPlayerScore(prev => prev + 1);
-            }
-            if (opponentCorrect) {
-                setOpponentScore(prev => prev + 1);
+            // Store round data (participant and opponent Pokemon)
+            if (payload?.round) {
+                setRoundData({
+                    participant: payload.round.participant,
+                    opponent: payload.round.opponent,
+                });
             }
 
-            // Check if turn is complete
-            if (currentTurn >= 10) {
-                // Move to next round or complete battle
-                if (currentRound >= 3) {
-                    setBattleComplete(true);
-                    setTimeout(() => {
-                        router.replace("/(app)/(tabs)/battle");
-                    }, 3000);
-                } else {
-                    setCurrentRound(prev => prev + 1);
-                    setCurrentTurn(1);
-                    setPlayerPokemonIndex(prev => (prev + 1) % 3);
-                    setOpponentPokemonIndex(prev => (prev + 1) % 3);
+            // Set question from firstQuestion
+            if (payload?.firstQuestion) {
+                const questionData = payload.firstQuestion;
+
+                // Handle new format: questionBank structure (from API response)
+                const questionBank = questionData.questionBank || questionData;
+                const questionText = questionBank.questionJp || questionBank.question || questionData.question;
+
+                // Parse answers - new format has answerJp with "jp:xxx+vi:xxx+en:xxx" or direct answer
+                const parseAnswerText = (answer: any) => {
+                    if (answer.answerJp) {
+                        // Parse format: "jp:ともだち+vi:Bạn bè+en:Friend"
+                        const parts = answer.answerJp.split('+');
+                        const viPart = parts.find((p: string) => p.startsWith('vi:'));
+                        const enPart = parts.find((p: string) => p.startsWith('en:'));
+                        const jpPart = parts.find((p: string) => p.startsWith('jp:'));
+                        // Prefer Vietnamese, fallback to English, then Japanese
+                        if (viPart) return viPart.replace('vi:', '');
+                        if (enPart) return enPart.replace('en:', '');
+                        if (jpPart) return jpPart.replace('jp:', '');
+                        return answer.answerJp;
+                    }
+                    return answer.answer || answer.text || answer;
+                };
+
+                const answers = questionBank.answers || questionData.answers || [];
+                const options = answers.map(parseAnswerText);
+
+                // Find correct answer index
+                const correctAnswerIndex = answers.findIndex((ans: any) => ans.isCorrect === true);
+
+                console.log("questionData", questionData);
+                console.log("questionData.id (roundQuestionId):", questionData.id);
+                console.log("questionData.roundQuestionId:", questionData.roundQuestionId);
+                console.log("questionBank.id (questionBankId):", questionBank.id);
+
+                // roundQuestionId is questionData.id (the round question ID), NOT questionBank.id
+                // questionData.id = roundQuestionId (e.g., 1785)
+                // questionBank.id = questionBankId (e.g., 147)
+                const roundQuestionId = questionData.id || questionData.roundQuestionId;
+
+                if (!roundQuestionId) {
+                    console.error("roundQuestionId not found in questionData:", questionData);
                 }
-            } else {
-                setCurrentTurn(prev => prev + 1);
+
+                setCurrentQuestion({
+                    id: questionBank.id || questionData.id, // Use questionBank.id for question ID
+                    question: questionText,
+                    options: options,
+                    answers: answers, // Keep original format for submission
+                    correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : undefined,
+                    endTimeQuestion: questionData.endTimeQuestion,
+                    timeLimitMs: questionData.timeLimitMs,
+                    questionType: questionBank.questionType || questionData.questionType,
+                    debuff: questionData.debuff,
+                    roundQuestionId: roundQuestionId, // Use questionData.id (roundQuestionId), NOT questionBank.id
+                    orderNumber: questionData.orderNumber,
+                });
+
+                // Set countdown for question if endTimeQuestion exists
+                if (questionData.endTimeQuestion) {
+                    const endTime = new Date(questionData.endTimeQuestion).getTime();
+                    const now = Date.now();
+                    const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
+                    setQuestionTimeRemaining(remaining);
+                }
+
+                // Track question start time for timeAnswerMs calculation
+                setQuestionStartTime(Date.now());
+
+                // Reset question index and check if last question
+                // Note: Server should provide totalQuestions or isLastQuestion in payload
+                setCurrentQuestionIndex(prev => prev + 1);
+                if (payload?.isLastQuestion !== undefined) {
+                    setIsLastQuestion(payload.isLastQuestion);
+                }
+                if (payload?.totalQuestions) {
+                    setTotalQuestions(payload.totalQuestions);
+                }
             }
 
-            // Reset for next turn
-            setTimeout(() => {
+            setIsWaitingForOpponent(false);
+            setSelectedAnswer(null);
+            setIsAnswerSubmitted(false);
+            setShowResult(false);
+        });
+
+        // Question answered - received after submitting answer (may contain next question or status update)
+        socket.on("question-answered", (payload: any) => {
+            console.log("Question answered event:", payload);
+
+            // Handle if payload contains next question
+            if (payload?.question || payload?.nextQuestion || payload?.data?.questionBank) {
+                const questionData = payload?.question || payload?.nextQuestion || payload?.data;
+
+                // Handle new format: questionBank structure
+                const questionBank = questionData.questionBank || questionData;
+                const questionText = questionBank.questionJp || questionBank.question || questionData.question;
+
+                // Parse answers - new format has answerJp with "jp:xxx+vi:xxx+en:xxx" or direct answer
+                const parseAnswerText = (answer: any) => {
+                    if (answer.answerJp) {
+                        // Parse format: "jp:ともだち+vi:Bạn bè+en:Friend"
+                        const parts = answer.answerJp.split('+');
+                        const viPart = parts.find((p: string) => p.startsWith('vi:'));
+                        const enPart = parts.find((p: string) => p.startsWith('en:'));
+                        const jpPart = parts.find((p: string) => p.startsWith('jp:'));
+                        // Prefer Vietnamese, fallback to English, then Japanese
+                        if (viPart) return viPart.replace('vi:', '');
+                        if (enPart) return enPart.replace('en:', '');
+                        if (jpPart) return jpPart.replace('jp:', '');
+                        return answer.answerJp;
+                    }
+                    return answer.answer || answer.text || answer;
+                };
+
+                const answers = questionBank.answers || questionData.answers || [];
+                const options = answers.map(parseAnswerText);
+
+                // Find correct answer index
+                const correctAnswerIndex = answers.findIndex((ans: any) => ans.isCorrect === true);
+
+                // roundQuestionId is questionData.id (the round question ID), NOT questionBank.id
+                const roundQuestionId = questionData.id || questionData.roundQuestionId;
+
+                setCurrentQuestion({
+                    id: questionBank.id || questionData.id, // Use questionBank.id for question ID
+                    question: questionText,
+                    options: options,
+                    answers: answers, // Keep original format for submission
+                    correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : undefined,
+                    endTimeQuestion: questionData.endTimeQuestion,
+                    timeLimitMs: questionData.timeLimitMs,
+                    questionType: questionBank.questionType || questionData.questionType,
+                    debuff: questionData.debuff,
+                    roundQuestionId: roundQuestionId, // Use questionData.id (roundQuestionId), NOT questionBank.id
+                    orderNumber: questionData.orderNumber,
+                });
+
+                if (questionData.endTimeQuestion) {
+                    const endTime = new Date(questionData.endTimeQuestion).getTime();
+                    const now = Date.now();
+                    const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
+                    setQuestionTimeRemaining(remaining);
+                }
+
+                setQuestionStartTime(Date.now());
+                setCurrentQuestionIndex(prev => prev + 1);
+                setIsWaitingForOpponent(false);
                 setSelectedAnswer(null);
                 setIsAnswerSubmitted(false);
-            }, 1000);
-        }, 3000);
+                setShowResult(false);
+
+                if (payload?.isLastQuestion !== undefined) {
+                    setIsLastQuestion(payload.isLastQuestion);
+                }
+                if (payload?.totalQuestions) {
+                    setTotalQuestions(payload.totalQuestions);
+                }
+            }
+
+            // Handle status updates (e.g., opponent has answered)
+            if (payload?.status) {
+                console.log("Question answered status:", payload.status);
+                // Could update UI based on status
+            }
+        });
+
+        // Next question received (after submitting answer) - alternative event name
+        socket.on("next-question", (payload: any) => {
+            console.log("Next question received:", payload);
+            // Server sends next question after player answers (if not last question)
+            if (payload?.question || payload?.data?.questionBank) {
+                const questionData = payload?.question || payload?.data;
+
+                // Handle new format: questionBank structure
+                const questionBank = questionData.questionBank || questionData;
+                const questionText = questionBank.questionJp || questionBank.question || questionData.question;
+
+                // Parse answers
+                const parseAnswerText = (answer: any) => {
+                    if (answer.answerJp) {
+                        const parts = answer.answerJp.split('+');
+                        const viPart = parts.find((p: string) => p.startsWith('vi:'));
+                        const enPart = parts.find((p: string) => p.startsWith('en:'));
+                        const jpPart = parts.find((p: string) => p.startsWith('jp:'));
+                        if (viPart) return viPart.replace('vi:', '');
+                        if (enPart) return enPart.replace('en:', '');
+                        if (jpPart) return jpPart.replace('jp:', '');
+                        return answer.answerJp;
+                    }
+                    return answer.answer || answer.text || answer;
+                };
+
+                const answers = questionBank.answers || questionData.answers || [];
+                const options = answers.map(parseAnswerText);
+                const correctAnswerIndex = answers.findIndex((ans: any) => ans.isCorrect === true);
+
+                // roundQuestionId is questionData.id (the round question ID), NOT questionBank.id
+                const roundQuestionId = questionData.id || questionData.roundQuestionId;
+
+                setCurrentQuestion({
+                    id: questionBank.id || questionData.id, // Use questionBank.id for question ID
+                    question: questionText,
+                    options: options,
+                    answers: answers,
+                    correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : undefined,
+                    endTimeQuestion: questionData.endTimeQuestion,
+                    timeLimitMs: questionData.timeLimitMs,
+                    questionType: questionBank.questionType || questionData.questionType,
+                    debuff: questionData.debuff,
+                    roundQuestionId: roundQuestionId, // Use questionData.id (roundQuestionId), NOT questionBank.id
+                    orderNumber: questionData.orderNumber,
+                });
+
+                if (questionData.endTimeQuestion) {
+                    const endTime = new Date(questionData.endTimeQuestion).getTime();
+                    const now = Date.now();
+                    const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
+                    setQuestionTimeRemaining(remaining);
+                }
+
+                setQuestionStartTime(Date.now());
+                setCurrentQuestionIndex(prev => prev + 1);
+                setIsWaitingForOpponent(false);
+                setSelectedAnswer(null);
+                setIsAnswerSubmitted(false);
+                setShowResult(false);
+
+                if (payload?.isLastQuestion !== undefined) {
+                    setIsLastQuestion(payload.isLastQuestion);
+                }
+                if (payload?.totalQuestions) {
+                    setTotalQuestions(payload.totalQuestions);
+                }
+            }
+        });
+
+        // Question completed (last question - both players answered, waiting for summary)
+        socket.on("question-completed", (payload: any) => {
+            console.log("Question completed (last question):", payload);
+            setShowResult(true);
+            if (payload?.playerCorrect !== undefined) {
+                if (payload.playerCorrect) {
+                    setPlayerScore(prev => prev + 1);
+                }
+            }
+            if (payload?.opponentCorrect !== undefined) {
+                if (payload.opponentCorrect) {
+                    setOpponentScore(prev => prev + 1);
+                }
+            }
+            // Keep waiting for opponent on last question until round completes
+            setIsWaitingForOpponent(true);
+        });
+
+        // Opponent completed
+        socket.on("opponent-completed", (payload: any) => {
+            console.log("Opponent completed:", payload);
+            setIsWaitingForOpponent(true);
+        });
+
+        // Waiting for opponent
+        socket.on("waiting-for-opponent", (payload: any) => {
+            console.log("Waiting for opponent:", payload);
+            setIsWaitingForOpponent(true);
+        });
+
+        // Round completed
+        socket.on("round-completed", (payload: any) => {
+            console.log("Round completed:", payload);
+            setRoundStarted(false);
+            setCurrentQuestion(null);
+            setSelectedAnswer(null);
+            setIsAnswerSubmitted(false);
+            setShowResult(false);
+            setIsWaitingForOpponent(false);
+            setQuestionTimeRemaining(null);
+            setQuestionStartTime(null);
+            setRoundData(null);
+            setCurrentQuestionIndex(0);
+            setIsLastQuestion(false);
+            setTotalQuestions(null);
+            // Handle round completion logic - could navigate to next round or back to pick-pokemon
+        });
+
+        // Match completed
+        socket.on("match-completed", (payload: any) => {
+            console.log("Match completed:", payload);
+            setBattleComplete(true);
+            if (payload?.playerScore !== undefined) {
+                setPlayerScore(payload.playerScore);
+            }
+            if (payload?.opponentScore !== undefined) {
+                setOpponentScore(payload.opponentScore);
+            }
+        });
+
+        return () => {
+            socket.off("round-started");
+            socket.off("question-answered");
+            socket.off("next-question");
+            socket.off("question-completed");
+            socket.off("opponent-completed");
+            socket.off("waiting-for-opponent");
+            socket.off("round-completed");
+            socket.off("match-completed");
+        };
+    }, [accessToken, matchId]);
+
+    // Handle answer submission
+    const handleSubmitAnswer = async () => {
+        if (selectedAnswer === null || !currentQuestion || !accessToken || !matchId || !questionStartTime) return;
+
+        setIsAnswerSubmitted(true);
+
+        // Get answer ID from answers array
+        const answerId = currentQuestion.answers?.[selectedAnswer]?.id;
+        const roundQuestionId = currentQuestion.roundQuestionId;
+
+        console.log("=== Submit Answer Debug ===");
+        console.log("roundQuestionId from currentQuestion:", roundQuestionId);
+        console.log("answerId:", answerId);
+        console.log("selectedAnswer index:", selectedAnswer);
+        console.log("currentQuestion:", JSON.stringify(currentQuestion, null, 2));
+
+        if (!answerId || !roundQuestionId) {
+            console.error("Answer ID or roundQuestionId not found", {
+                answerId,
+                roundQuestionId,
+                selectedAnswer,
+                answers: currentQuestion.answers
+            });
+            return;
+        }
+
+        // Calculate timeAnswerMs (time spent in milliseconds)
+        const timeAnswerMs = Date.now() - questionStartTime;
+
+        try {
+            // Submit answer using API
+            const submitData: ISubmitAnswer = {
+                answerId: answerId,
+                timeAnswerMs: timeAnswerMs,
+            };
+
+            console.log("Calling submitAnswer with roundQuestionId:", roundQuestionId);
+            const response = await battleService.submitAnswer(roundQuestionId, submitData);
+            console.log("Answer submitted:", response.data);
+
+            // Check if response contains next question or indicates last question
+            const responseData = response.data?.data || response.data;
+
+            // Update score if response contains result (for immediate feedback)
+            if (responseData?.isCorrect !== undefined) {
+                if (responseData.isCorrect) {
+                    setPlayerScore(prev => prev + 1);
+                }
+                setShowResult(true);
+            }
+
+            // Check if this is the last question - only wait for opponent on last question
+            const isLast = isLastQuestion ||
+                (totalQuestions && currentQuestionIndex >= totalQuestions) ||
+                responseData?.isLastQuestion === true;
+
+            if (isLast) {
+                // Last question - wait for opponent and round summary
+                setIsWaitingForOpponent(true);
+                // Server will send question-completed event when both players finish
+                // Then round-completed event with final summary
+            } else {
+                // Not last question - server might send next question in response or via socket
+                if (responseData?.nextQuestion || responseData?.data) {
+                    // Next question in response - set it immediately (don't wait for opponent)
+                    const questionData = responseData.nextQuestion || responseData.data;
+
+                    // Handle new format: questionBank structure
+                    const questionBank = questionData.questionBank || questionData;
+                    const questionText = questionBank.questionJp || questionBank.question || questionData.question;
+
+                    // Parse answers
+                    const parseAnswerText = (answer: any) => {
+                        if (answer.answerJp) {
+                            const parts = answer.answerJp.split('+');
+                            const viPart = parts.find((p: string) => p.startsWith('vi:'));
+                            const enPart = parts.find((p: string) => p.startsWith('en:'));
+                            const jpPart = parts.find((p: string) => p.startsWith('jp:'));
+                            if (viPart) return viPart.replace('vi:', '');
+                            if (enPart) return enPart.replace('en:', '');
+                            if (jpPart) return jpPart.replace('jp:', '');
+                            return answer.answerJp;
+                        }
+                        return answer.answer || answer.text || answer;
+                    };
+
+                    const answers = questionBank.answers || questionData.answers || [];
+                    const options = answers.map(parseAnswerText);
+                    const correctAnswerIndex = answers.findIndex((ans: any) => ans.isCorrect === true);
+
+                    // IMPORTANT: roundQuestionId is questionData.id, NOT questionBank.id
+                    const roundQuestionId = questionData.id || questionData.roundQuestionId;
+
+                    console.log("Next question from response - roundQuestionId:", roundQuestionId);
+
+                    setCurrentQuestion({
+                        id: questionBank.id || questionData.id, // Use questionBank.id for question ID
+                        question: questionText,
+                        options: options,
+                        answers: answers,
+                        correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : undefined,
+                        endTimeQuestion: questionData.endTimeQuestion,
+                        timeLimitMs: questionData.timeLimitMs,
+                        questionType: questionBank.questionType || questionData.questionType,
+                        debuff: questionData.debuff,
+                        roundQuestionId: roundQuestionId, // Use questionData.id (roundQuestionId), NOT questionBank.id
+                        orderNumber: questionData.orderNumber,
+                    });
+
+                    if (questionData.endTimeQuestion) {
+                        const endTime = new Date(questionData.endTimeQuestion).getTime();
+                        const now = Date.now();
+                        const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
+                        setQuestionTimeRemaining(remaining);
+                    }
+
+                    setQuestionStartTime(Date.now());
+                    setCurrentQuestionIndex(prev => prev + 1);
+                    setSelectedAnswer(null);
+                    setIsAnswerSubmitted(false);
+                    setShowResult(false);
+                    setIsWaitingForOpponent(false);
+
+                    if (responseData.isLastQuestion !== undefined) {
+                        setIsLastQuestion(responseData.isLastQuestion);
+                    }
+                    if (responseData.totalQuestions) {
+                        setTotalQuestions(responseData.totalQuestions);
+                    }
+                } else {
+                    // Wait for next-question event from socket
+                    setIsWaitingForOpponent(false);
+                    // Keep current state until next question arrives via socket
+                }
+            }
+        } catch (error: any) {
+            console.error("Error submitting answer:", error.response?.data?.message || error.message);
+            setIsAnswerSubmitted(false);
+            // Handle error - maybe show toast
+        }
     };
+
+    // Convert roundNumber to number
+    const roundNumberDisplay = useMemo(() => {
+        if (roundNumber === "ONE") return 1;
+        if (roundNumber === "TWO") return 2;
+        if (roundNumber === "THREE") return 3;
+        return currentRound;
+    }, [roundNumber, currentRound]);
+
+    // Loading state
+    if (isLoadingMatchRound || !matchId) {
+        return (
+            <ThemedView style={styles.container}>
+                <ImageBackground
+                    source={require("../../../../assets/images/list_pokemon_bg.png")}
+                    style={styles.bg}
+                    imageStyle={styles.bgImage}
+                >
+                    <TWLinearGradient
+                        colors={["rgba(17,24,39,0.85)", "rgba(17,24,39,0.6)", "rgba(17,24,39,0.85)"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.overlay}
+                    />
+                    <View className="flex-1 items-center justify-center">
+                        <ActivityIndicator size="large" color="#22d3ee" />
+                        <ThemedText style={{ color: "#93c5fd", marginTop: 16, fontSize: 16 }}>
+                            Đang tải thông tin trận đấu...
+                        </ThemedText>
+                    </View>
+                </ImageBackground>
+            </ThemedView>
+        );
+    }
 
     // Victory/Loss screen
     if (battleComplete) {
@@ -261,14 +802,28 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                             </ThemedText>
                             <View className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/40">
                                 <ThemedText style={{ color: "#22d3ee", fontSize: 12, fontWeight: "700" }}>
-                                    ROUND {currentRound}/3
+                                    ROUND {roundNumberDisplay}/3
                                 </ThemedText>
                             </View>
                         </View>
                         <View className="flex-row items-center gap-2">
-                            <Clock size={16} color="#64748b" />
-                            <ThemedText style={{ color: "#94a3b8", fontSize: 14 }}>
-                                Turn {currentTurn}/10
+                            {isWaitingForOpponent && (
+                                <ActivityIndicator size="small" color="#64748b" />
+                            )}
+                            <Clock size={16} color={isWaitingForOpponent ? "#fbbf24" : questionTimeRemaining !== null && questionTimeRemaining < 10 ? "#ef4444" : "#64748b"} />
+                            <ThemedText style={{
+                                color: isWaitingForOpponent
+                                    ? "#fbbf24"
+                                    : questionTimeRemaining !== null && questionTimeRemaining < 10
+                                        ? "#ef4444"
+                                        : "#94a3b8",
+                                fontSize: 14
+                            }}>
+                                {isWaitingForOpponent
+                                    ? "Đợi đối thủ..."
+                                    : questionTimeRemaining !== null
+                                        ? `${Math.floor(questionTimeRemaining / 60)}:${String(questionTimeRemaining % 60).padStart(2, "0")}`
+                                        : `Turn ${currentTurn}`}
                             </ThemedText>
                         </View>
                     </View>
@@ -277,7 +832,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                     <View className="flex-row items-center justify-between">
                         {/* Opponent */}
                         <View className="items-center flex-1">
-                            {opponentPokemon && (
+                            {opponentPokemon?.pokemon?.imageUrl && (
                                 <Image
                                     source={{ uri: opponentPokemon.pokemon.imageUrl }}
                                     style={{ width: 80, height: 80 }}
@@ -306,7 +861,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
 
                         {/* Player */}
                         <View className="items-center flex-1">
-                            {playerPokemon && (
+                            {playerPokemon?.pokemon?.imageUrl && (
                                 <Image
                                     source={{ uri: playerPokemon.pokemon.imageUrl }}
                                     style={{ width: 80, height: 80 }}
@@ -362,8 +917,20 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                     </View>
                 )}
 
+                {/* Waiting for round to start */}
+                {!roundStarted && !currentQuestion && (
+                    <View className="px-5 mb-6">
+                        <View className="bg-black/40 rounded-2xl p-6 items-center justify-center">
+                            <ActivityIndicator size="large" color="#22d3ee" />
+                            <ThemedText style={{ color: "#cbd5e1", fontSize: 16, fontWeight: "600", marginTop: 16, textAlign: "center" }}>
+                                Đang chờ round bắt đầu...
+                            </ThemedText>
+                        </View>
+                    </View>
+                )}
+
                 {/* Question Card */}
-                {currentQuestion && (
+                {currentQuestion && roundStarted && (
                     <View className="px-5 mb-6">
                         <TWLinearGradient
                             colors={["rgba(255,255,255,0.1)", "rgba(255,255,255,0.05)"]}
@@ -376,27 +943,30 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                                     Câu hỏi
                                 </ThemedText>
                                 <ThemedText style={{ color: "#e5e7eb", fontSize: 18, fontWeight: "600", marginBottom: 16, lineHeight: 28 }}>
-                                    {currentQuestion.question}
+                                    {currentQuestion.question || currentQuestion.content || "Câu hỏi đang được tải..."}
                                 </ThemedText>
 
                                 {/* Answer Options */}
                                 <View className="gap-3">
-                                    {currentQuestion.options.map((option, idx) => {
+                                    {(currentQuestion.options || currentQuestion.answers || []).map((option: any, idx: number) => {
                                         const isSelected = selectedAnswer === idx;
-                                        const isCorrect = idx === currentQuestion.correctAnswer;
-                                        const isWrong = isSelected && !isCorrect;
-                                        const showFeedback = isAnswerSubmitted && (isCorrect || isWrong);
+                                        const isCorrect = showResult && currentQuestion.correctAnswer !== undefined
+                                            ? idx === currentQuestion.correctAnswer
+                                            : false;
+                                        const isWrong = isSelected && showResult && !isCorrect;
+                                        const showFeedback = showResult && (isCorrect || isWrong);
+                                        const optionText = typeof option === 'string' ? option : option.text || option.content || option;
 
                                         return (
                                             <Animated.View
                                                 key={idx}
-                                                style={typeAdvantage === "opponent" && !isAnswerSubmitted ? {
+                                                style={typeAdvantage === "opponent" && !isAnswerSubmitted && roundStarted ? {
                                                     transform: [{ translateX: shakeAnimation }]
                                                 } : {}}
                                             >
                                                 <HapticPressable
                                                     onPress={() => handleSelectAnswer(idx)}
-                                                    disabled={isAnswerSubmitted || selectedAnswer !== null}
+                                                    disabled={isAnswerSubmitted || selectedAnswer !== null || isWaitingForOpponent}
                                                     className={`rounded-2xl border-2 overflow-hidden ${showFeedback
                                                         ? isCorrect
                                                             ? "border-green-500 bg-green-500/20"
@@ -415,7 +985,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                                                                 flex: 1,
                                                             }}
                                                         >
-                                                            {option}
+                                                            {optionText}
                                                         </ThemedText>
                                                         {showFeedback && (
                                                             <View>
@@ -434,7 +1004,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                                 </View>
 
                                 {/* Submit Button */}
-                                {!isAnswerSubmitted && selectedAnswer !== null && (
+                                {!isAnswerSubmitted && selectedAnswer !== null && !isWaitingForOpponent && (
                                     <HapticPressable onPress={handleSubmitAnswer} className="mt-6 rounded-2xl overflow-hidden">
                                         <TWLinearGradient
                                             colors={["#22c55e", "#16a34a"]}
@@ -447,6 +1017,16 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                                             </ThemedText>
                                         </TWLinearGradient>
                                     </HapticPressable>
+                                )}
+
+                                {/* Waiting for opponent indicator */}
+                                {isWaitingForOpponent && (
+                                    <View className="mt-6 bg-yellow-500/20 border border-yellow-500/40 rounded-2xl p-4 items-center">
+                                        <ActivityIndicator size="small" color="#fbbf24" />
+                                        <ThemedText style={{ color: "#fbbf24", fontSize: 14, fontWeight: "600", marginTop: 8, textAlign: "center" }}>
+                                            Đang chờ đối thủ trả lời...
+                                        </ThemedText>
+                                    </View>
                                 )}
                             </View>
                         </TWLinearGradient>
