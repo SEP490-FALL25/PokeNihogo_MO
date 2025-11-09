@@ -1,11 +1,11 @@
 import {
   ICheckCompletionResponse,
-  ISubmitCompletionResponse,
   IExerciseHistoryListResponse,
+  ISubmitCompletionResponse,
 } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import userExerciseAttemptService from "@services/user-exercise-attempt";
 import { useGlobalStore } from "@stores/global/global.config";
-import { useMutation, useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 
 export const useUserExerciseAttempt = (lessonId: string) => {
   return useQuery({
@@ -140,8 +140,11 @@ export const useExerciseHistory = (params?: {
       }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
-      const response = lastPage.data as IExerciseHistoryListResponse["data"];
-      if (!response || !response.hasMore) return undefined;
+      // Axios wraps response in { data: ... }
+      // lastPage = { data: { statusCode, message, data: { results, totalCount, hasMore } } }
+      const response = lastPage.data as IExerciseHistoryListResponse;
+      const responseData = response?.data;
+      if (!responseData || !responseData.hasMore) return undefined;
       return (params?.limit ?? 20) * allPages.length;
     },
   });

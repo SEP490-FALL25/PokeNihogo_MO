@@ -14,26 +14,37 @@ const generateMockExerciseHistory = (): IExerciseHistoryItem[] => {
     'Bài tập đọc hiểu cơ bản',
     'Luyện nghe hội thoại hàng ngày',
     'Thực hành phát âm',
-    'Từ vựng N5 - Gia đình',
+    'Từ vựng N5 - Gia đình (có audio)',
     'Ngữ pháp - Thì quá khứ',
     'Kanji cơ bản - Số đếm',
     'Đọc hiểu văn bản ngắn',
     'Nghe hiểu tin tức',
     'Luyện nói giới thiệu bản thân',
-    'Từ vựng N4 - Công việc',
+    'Từ vựng N4 - Công việc (có audio)',
     'Ngữ pháp - Điều kiện',
     'Kanji trung cấp - Thời gian',
     'Đọc hiểu văn bản dài',
     'Nghe hiểu phỏng vấn',
     'Thuyết trình bằng tiếng Nhật',
+    'Từ vựng N5 - Màu sắc (có audio)',
+    'Từ vựng N5 - Đồ vật (có audio)',
+    'Từ vựng N4 - Thực phẩm (có audio)',
+    'Từ vựng N3 - Du lịch (có audio)',
+    'Từ vựng N5 - Số đếm (có audio)',
   ];
 
   const mockData: IExerciseHistoryItem[] = [];
   
-  // Generate 25 mock exercises
-  for (let i = 0; i < 25; i++) {
+  // Generate 30 mock exercises (increased to ensure more variety)
+  // Ensure at least 8 vocabulary exercises
+  const vocabularyIndices = [0, 5, 10, 15, 20, 25, 28, 29];
+  
+  for (let i = 0; i < 30; i++) {
     const level = levels[Math.floor(Math.random() * levels.length)];
-    const exerciseType = exerciseTypes[Math.floor(Math.random() * exerciseTypes.length)];
+    // Prefer vocabulary type for specific indices to ensure vocabulary exercises appear
+    const exerciseType = vocabularyIndices.includes(i) 
+      ? 'vocabulary' 
+      : exerciseTypes[Math.floor(Math.random() * exerciseTypes.length)];
     const exerciseName = exerciseNames[Math.floor(Math.random() * exerciseNames.length)];
     const totalQuestions = [10, 15, 20, 25][Math.floor(Math.random() * 4)];
     const answeredCorrect = Math.floor(Math.random() * (totalQuestions * 0.9)) + Math.floor(totalQuestions * 0.5);
@@ -124,7 +135,7 @@ const userExerciseAttemptService = {
       if (USE_MOCK_DATA) {
         // Generate mock data
         let mockData = generateMockExerciseHistory();
-
+        
         // Apply filters
         if (params?.levelJlpt) {
           mockData = mockData.filter(item => item.levelJlpt === params.levelJlpt);
@@ -147,14 +158,16 @@ const userExerciseAttemptService = {
         await new Promise(resolve => setTimeout(resolve, 500));
 
         // Return format matching axios response structure
-        // Axios will wrap this in { data: ... }, so we return the object directly
+        // Wrap in { data: ... } to match axios response format
         return {
-          statusCode: 200,
-          message: "Exercise history retrieved successfully",
           data: {
-            results: paginatedData,
-            totalCount,
-            hasMore,
+            statusCode: 200,
+            message: "Exercise history retrieved successfully",
+            data: {
+              results: paginatedData,
+              totalCount,
+              hasMore,
+            },
           },
         } as any;
       }

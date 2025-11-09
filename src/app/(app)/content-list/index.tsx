@@ -1,3 +1,4 @@
+import KanjiWriter from "@components/KanjiWriter";
 import { ThemedText } from "@components/ThemedText";
 import { useLesson } from "@hooks/useLessons";
 import { Audio } from "expo-av";
@@ -5,11 +6,11 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import {
-  Bookmark,
   ChevronLeft,
   Headphones,
   Pencil,
   Sparkles,
+  X,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,6 +18,7 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Modal,
   ScrollView,
   TouchableOpacity,
   View,
@@ -242,6 +244,13 @@ const ExpandableKanjiCard = ({
   const meaning =
     item.meaning?.split("##")[0] || item.meaning || t("lessons.no_meaning");
 
+  const handleWrite = () => {
+    if (onWrite) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      onWrite(item.character);
+    }
+  };
+
   return (
     <ModernCardExpandable style={{ marginHorizontal: 4 }}>
       <View className="flex-row items-center">
@@ -268,8 +277,9 @@ const ExpandableKanjiCard = ({
         </View>
         {onWrite && (
           <TouchableOpacity
-            onPress={() => onWrite(item.character)}
+            onPress={handleWrite}
             className="bg-amber-500 p-4 rounded-2xl shadow-md"
+            activeOpacity={0.8}
           >
             <Pencil size={22} color="white" />
           </TouchableOpacity>
@@ -279,18 +289,11 @@ const ExpandableKanjiCard = ({
   );
 };
 
-// --- Vocabulary Card (Simple display with bookmark and audio) ---
+// --- Vocabulary Card (Simple display with audio) ---
 const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
-  const [isBookmarked, setIsBookmarked] = useState(false);
-
   const meanings = (item.meanings || [])
     .map((m: any) => (typeof m === "string" ? m : m.meaning || m.text || ""))
     .filter(Boolean);
-
-  const handleBookmark = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setIsBookmarked(!isBookmarked);
-  };
 
   const handleAudio = () => {
     if (item.audioUrl) {
@@ -317,18 +320,7 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
             </ThemedText>
           )}
         </View>
-        <View className="flex-row items-center" style={{ gap: 8 }}>
-          <TouchableOpacity
-            onPress={handleBookmark}
-            className="p-2"
-            activeOpacity={0.7}
-          >
-            <Bookmark
-              size={20}
-              color={isBookmarked ? "#FCD34D" : "#9CA3AF"}
-              fill={isBookmarked ? "#FCD34D" : "none"}
-            />
-          </TouchableOpacity>
+        {item.audioUrl && (
           <TouchableOpacity
             onPress={handleAudio}
             className="bg-purple-100 p-2 rounded-full"
@@ -344,7 +336,7 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
               <Headphones size={12} color="#7C3AED" />
             </View>
           </TouchableOpacity>
-        </View>
+        )}
       </View>
     </ModernCard>
   );
@@ -352,105 +344,91 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
 
 // --- Grammar Card (Simple display for vertical list) ---
 const GrammarListCard = ({ item, index }: { item: any; index: number }) => {
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const { t } = useTranslation();
-
-  const handleBookmark = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setIsBookmarked(!isBookmarked);
-  };
 
   return (
     <ModernCard>
-      <View className="flex-row justify-between items-start">
-        <View className="flex-1 mr-3">
-          <ThemedText className="text-xl font-bold text-cyan-700 mb-2">
-            {item.title}
+      <View className="flex-1">
+        <ThemedText className="text-xl font-bold text-cyan-700 mb-2">
+          {item.title}
+        </ThemedText>
+        {item.description && (
+          <ThemedText className="text-base text-gray-700 mb-2">
+            {item.description}
           </ThemedText>
-          {item.description && (
-            <ThemedText className="text-base text-gray-700 mb-2">
-              {item.description}
+        )}
+        {item.usage && (
+          <View className="bg-cyan-50 p-3 rounded-xl mt-2">
+            <ThemedText className="text-sm text-cyan-800">
+              <ThemedText style={{ fontWeight: "bold" }}>
+                {t("lessons.usage")}:
+              </ThemedText>{" "}
+              {item.usage}
             </ThemedText>
-          )}
-          {item.usage && (
-            <View className="bg-cyan-50 p-3 rounded-xl mt-2">
-              <ThemedText className="text-sm text-cyan-800">
-                <ThemedText style={{ fontWeight: "bold" }}>
-                  {t("lessons.usage")}:
-                </ThemedText>{" "}
-                {item.usage}
-              </ThemedText>
-            </View>
-          )}
-        </View>
-        <TouchableOpacity
-          onPress={handleBookmark}
-          className="p-2"
-          activeOpacity={0.7}
-        >
-          <Bookmark
-            size={20}
-            color={isBookmarked ? "#FCD34D" : "#9CA3AF"}
-            fill={isBookmarked ? "#FCD34D" : "none"}
-          />
-        </TouchableOpacity>
+          </View>
+        )}
       </View>
     </ModernCard>
   );
 };
 
 // --- Kanji Card (Simple display for vertical list) ---
-const KanjiListCard = ({ item, index }: { item: any; index: number }) => {
-  const [isBookmarked, setIsBookmarked] = useState(false);
+const KanjiListCard = ({
+  item,
+  index,
+  onWrite,
+}: {
+  item: any;
+  index: number;
+  onWrite?: (char: string) => void;
+}) => {
   const { t } = useTranslation();
 
   const meaning =
     item.meaning?.split("##")[0] || item.meaning || t("lessons.no_meaning");
 
-  const handleBookmark = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setIsBookmarked(!isBookmarked);
+  const handleWrite = () => {
+    if (onWrite) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      onWrite(item.character);
+    }
   };
 
   return (
     <ModernCard>
-      <View className="flex-row justify-between items-start">
-        <View className="flex-row items-center flex-1 mr-3">
-          <View className="bg-amber-100 rounded-2xl p-4 mr-3">
-            <ThemedText className="text-5xl font-bold text-amber-700">
-              {item.character}
-            </ThemedText>
-          </View>
-          <View className="flex-1">
-            <ThemedText className="text-lg font-bold text-amber-800 mb-1">
-              {meaning}
-            </ThemedText>
-            {(item.onReading || item.kunReading) && (
-              <ThemedText className="text-sm text-amber-600 mb-1">
-                {item.onReading} • {item.kunReading}
-              </ThemedText>
-            )}
-            {item.strokeCount && (
-              <View className="flex-row items-center mt-1">
-                <Sparkles size={14} color="#f59e0b" />
-                <ThemedText className="text-xs text-amber-600 ml-1">
-                  {item.strokeCount} {t("lessons.stroke")}
-                </ThemedText>
-              </View>
-            )}
-          </View>
+      <View className="flex-row items-center">
+        <View className="bg-amber-100 rounded-2xl p-4 mr-3">
+          <ThemedText className="text-5xl font-bold text-amber-700">
+            {item.character}
+          </ThemedText>
         </View>
-        <TouchableOpacity
-          onPress={handleBookmark}
-          className="p-2"
-          activeOpacity={0.7}
-        >
-          <Bookmark
-            size={20}
-            color={isBookmarked ? "#FCD34D" : "#9CA3AF"}
-            fill={isBookmarked ? "#FCD34D" : "none"}
-          />
-        </TouchableOpacity>
+        <View className="flex-1">
+          <ThemedText className="text-lg font-bold text-amber-800 mb-1">
+            {meaning}
+          </ThemedText>
+          {(item.onReading || item.kunReading) && (
+            <ThemedText className="text-sm text-amber-600 mb-1">
+              {item.onReading} • {item.kunReading}
+            </ThemedText>
+          )}
+          {item.strokeCount && (
+            <View className="flex-row items-center mt-1">
+              <Sparkles size={14} color="#f59e0b" />
+              <ThemedText className="text-xs text-amber-600 ml-1">
+                {item.strokeCount} {t("lessons.stroke")}
+              </ThemedText>
+            </View>
+          )}
+        </View>
+        {onWrite && (
+          <TouchableOpacity
+            onPress={handleWrite}
+            className="bg-amber-500 p-3 rounded-xl shadow-md ml-2"
+            activeOpacity={0.8}
+          >
+            <Pencil size={18} color="white" />
+          </TouchableOpacity>
+        )}
       </View>
     </ModernCard>
   );
@@ -466,6 +444,10 @@ const VocabularyListScreen = () => {
   }>();
   const { data: lessonData, isLoading } = useLesson(id || "");
   const lesson: any = lessonData?.data || {};
+
+  // State for Kanji Writer Modal
+  const [showKanjiWriterModal, setShowKanjiWriterModal] = useState(false);
+  const [selectedKanji, setSelectedKanji] = useState<string>("");
 
   // Determine content type: vocabulary (default), grammar, or kanji
   const contentTypeValue = contentType || "vocabulary";
@@ -539,6 +521,17 @@ const VocabularyListScreen = () => {
     }
   };
 
+  // Handle Kanji writing
+  const handleWriteKanji = (character: string) => {
+    setSelectedKanji(character);
+    setShowKanjiWriterModal(true);
+  };
+
+  const handleCloseKanjiWriter = () => {
+    setShowKanjiWriterModal(false);
+    setSelectedKanji("");
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-white">
@@ -585,7 +578,11 @@ const VocabularyListScreen = () => {
                     {contentTypeValue === "grammar" ? (
                       <ExpandableGrammarCard item={item} index={i} />
                     ) : contentTypeValue === "kanji" ? (
-                      <ExpandableKanjiCard item={item} index={i} />
+                      <ExpandableKanjiCard
+                        item={item}
+                        index={i}
+                        onWrite={handleWriteKanji}
+                      />
                     ) : (
                       <ExpandableVocabularyCard item={item} index={i} />
                     )}
@@ -744,13 +741,78 @@ const VocabularyListScreen = () => {
                 } else if (contentTypeValue === "grammar") {
                   return <GrammarListCard key={i} item={item} index={i} />;
                 } else if (contentTypeValue === "kanji") {
-                  return <KanjiListCard key={i} item={item} index={i} />;
+                  return (
+                    <KanjiListCard
+                      key={i}
+                      item={item}
+                      index={i}
+                      onWrite={handleWriteKanji}
+                    />
+                  );
                 }
                 return null;
               })
             )}
           </View>
         </ScrollView>
+
+        {/* Kanji Writer Modal */}
+        <Modal
+          visible={showKanjiWriterModal}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={handleCloseKanjiWriter}
+        >
+          <SafeAreaView className="flex-1 bg-white">
+            <View className="flex-1">
+              {/* Modal Header */}
+              <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-200">
+                <ThemedText className="text-xl font-bold text-gray-800">
+                  {t("lessons.practice_writing") || "Luyện viết Kanji"}
+                </ThemedText>
+                <TouchableOpacity
+                  onPress={handleCloseKanjiWriter}
+                  className="p-2 rounded-full bg-gray-100"
+                  activeOpacity={0.7}
+                >
+                  <X size={24} color="#6b7280" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Kanji Writer Content */}
+              <ScrollView
+                className="flex-1"
+                contentContainerStyle={{ padding: 24 }}
+                showsVerticalScrollIndicator={false}
+              >
+                {selectedKanji && (
+                  <KanjiWriter
+                    character={selectedKanji}
+                    mode="practice"
+                    onComplete={(totalMistakes) => {
+                      console.log(
+                        `Completed writing ${selectedKanji} with ${totalMistakes} mistakes`
+                      );
+                      Haptics.notificationAsync(
+                        Haptics.NotificationFeedbackType.Success
+                      );
+                    }}
+                    onCorrectStroke={() => {
+                      Haptics.impactAsync(
+                        Haptics.ImpactFeedbackStyle.Light
+                      );
+                    }}
+                    onMistake={() => {
+                      Haptics.notificationAsync(
+                        Haptics.NotificationFeedbackType.Error
+                      );
+                    }}
+                  />
+                )}
+              </ScrollView>
+            </View>
+          </SafeAreaView>
+        </Modal>
       </LinearGradient>
     </SafeAreaView>
   );

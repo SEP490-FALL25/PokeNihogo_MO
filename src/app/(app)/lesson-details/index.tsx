@@ -70,7 +70,7 @@ const VocabularyCard = ({
   const handlePress = () => {
     Haptics.selectionAsync();
     router.push({
-      pathname: ROUTES.LESSON.VOCABULARY_LIST,
+      pathname: ROUTES.LESSON.CONTENT_LIST,
       params: {
         id: lessonId,
         activityType: "learn",
@@ -105,7 +105,7 @@ const GrammarCard = ({
   const handlePress = () => {
     Haptics.selectionAsync();
     router.push({
-      pathname: ROUTES.LESSON.VOCABULARY_LIST,
+      pathname: ROUTES.LESSON.CONTENT_LIST,
       params: {
         id: lessonId,
         contentType: "grammar",
@@ -142,7 +142,7 @@ const KanjiCard = ({
   const handlePress = () => {
     Haptics.selectionAsync();
     router.push({
-      pathname: ROUTES.LESSON.VOCABULARY_LIST,
+      pathname: ROUTES.LESSON.CONTENT_LIST,
       params: {
         id: lessonId,
         contentType: "kanji",
