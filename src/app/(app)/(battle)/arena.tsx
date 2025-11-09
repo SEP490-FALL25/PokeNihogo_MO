@@ -529,6 +529,10 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         socket.on("waiting-for-opponent", (payload: any) => {
             console.log("Waiting for opponent:", payload);
             setIsWaitingForOpponent(true);
+
+            if (currentQuestion) {
+                setCurrentQuestion(null);
+            }
         });
 
         // Round completed
@@ -624,6 +628,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             if (isLast) {
                 // Last question - wait for opponent and round summary
                 setIsWaitingForOpponent(true);
+                setCurrentQuestion(null);
                 // Server will send question-completed event when both players finish
                 // Then round-completed event with final summary
             } else {
@@ -1043,6 +1048,17 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                                 )}
                             </View>
                         </TWLinearGradient>
+                    </View>
+                )}
+
+                {!currentQuestion && isWaitingForOpponent && (
+                    <View className="px-5 mb-6">
+                        <View className="bg-black/40 rounded-2xl p-6 items-center justify-center">
+                            <ActivityIndicator size="large" color="#fbbf24" />
+                            <ThemedText style={{ color: "#fbbf24", fontSize: 16, fontWeight: "600", marginTop: 16, textAlign: "center" }}>
+                                Đang chờ đối thủ hoàn thành...
+                            </ThemedText>
+                        </View>
                     </View>
                 )}
             </ImageBackground>
