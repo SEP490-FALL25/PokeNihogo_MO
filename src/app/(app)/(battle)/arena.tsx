@@ -48,7 +48,13 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
     const [showResult, setShowResult] = useState(false);
     const [battleComplete, setBattleComplete] = useState(false);
-    const [currentRound, setCurrentRound] = useState(1);
+    const [currentRound, setCurrentRound] = useState(() => {
+        const initialRound = params.roundNumber as string;
+        if (initialRound === "ONE") return 1;
+        if (initialRound === "TWO") return 2;
+        if (initialRound === "THREE") return 3;
+        return 1;
+    });
     const [playerScore, setPlayerScore] = useState(0);
     const [opponentScore, setOpponentScore] = useState(0);
     const [currentTurn, setCurrentTurn] = useState(1);
@@ -233,6 +239,14 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         socket.on("round-started", (payload: any) => {
             console.log("Round started:", payload);
             setRoundStarted(true);
+
+            // --- THÊM ĐOẠN NÀY ---
+            if (payload?.round?.roundNumber) {
+                const roundNumStr = payload.round.roundNumber; // "ONE", "TWO", etc.
+                if (roundNumStr === "ONE") setCurrentRound(1);
+                else if (roundNumStr === "TWO") setCurrentRound(2);
+                else if (roundNumStr === "THREE") setCurrentRound(3);
+            }
 
             // Store round data (participant and opponent Pokemon)
             if (payload?.round) {
@@ -645,14 +659,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         }
     };
 
-    // Convert roundNumber to number
-    const roundNumberDisplay = useMemo(() => {
-        if (roundNumber === "ONE") return 1;
-        if (roundNumber === "TWO") return 2;
-        if (roundNumber === "THREE") return 3;
-        return currentRound;
-    }, [roundNumber, currentRound]);
-
     // Loading state
     if (isLoadingMatchRound || !matchId) {
         return (
@@ -753,7 +759,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                             </ThemedText>
                             <View className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/40">
                                 <ThemedText style={{ color: "#22d3ee", fontSize: 12, fontWeight: "700" }}>
-                                    ROUND {roundNumberDisplay}/3
+                                    ROUND {currentRound}/3
                                 </ThemedText>
                             </View>
                         </View>
