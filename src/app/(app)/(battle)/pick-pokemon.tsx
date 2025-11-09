@@ -14,6 +14,7 @@ import { IPokemonType } from "@models/pokemon/pokemon.common";
 import { ROUTES } from "@routes/routes";
 import { useAuthStore } from "@stores/auth/auth.config";
 import { useGlobalStore } from "@stores/global/global.config";
+import { useMatchingStore } from "@stores/matching/matching.config";
 import { useQueryClient } from "@tanstack/react-query"; // Thêm dòng này
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Check, Clock, Sparkles, Star, Timer, Zap } from "lucide-react-native";
@@ -279,6 +280,16 @@ export default function PickPokemonScreen() {
     // Countdown for current picker
     const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
 
+    /**
+     * Round starting state
+     */
+    const [roundStartingData, setRoundStartingData] = useState<{
+        matchId: number;
+        roundNumber: string;
+        delaySeconds: number;
+        message: string;
+    } | null>(null);
+
     // Animation for pulse effect when it's player/opponent turn
     const playerPulseAnim = useRef(new Animated.Value(1)).current;
     const opponentPulseAnim = useRef(new Animated.Value(1)).current;
@@ -286,6 +297,11 @@ export default function PickPokemonScreen() {
     const opponentGlowAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
+        // If round is starting, don't use deadline countdown
+        if (roundStartingData) {
+            return;
+        }
+
         // Reset when round changes
         if (!battleContext?.pickDeadline || !battleContext?.currentRound) {
             setRemainingSeconds(null);
@@ -325,7 +341,7 @@ export default function PickPokemonScreen() {
         const interval = setInterval(compute, 1000);
 
         return () => clearInterval(interval);
-    }, [battleContext?.pickDeadline, battleContext?.currentRoundIndex, battleContext?.currentRound?.id]);
+    }, [battleContext?.pickDeadline, battleContext?.currentRoundIndex, battleContext?.currentRound?.id, roundStartingData]);
 
     // Pulse animation for player turn
     useEffect(() => {
@@ -542,6 +558,21 @@ export default function PickPokemonScreen() {
 
 
     /**
+     * Set current match ID in store for layout to join rooms
+     */
+    const setCurrentMatchId = useMatchingStore((s) => s.setCurrentMatchId);
+
+    useEffect(() => {
+        if (matchId) {
+            setCurrentMatchId(matchId);
+        }
+
+        return () => {
+            setCurrentMatchId(null);
+        };
+    }, [matchId, setCurrentMatchId]);
+
+    /**
      * Handle socket events for real-time updates
      */
     const accessToken = useAuthStore((s) => s.accessToken);
@@ -554,11 +585,7 @@ export default function PickPokemonScreen() {
 
         socket.on("select-pokemon", (payload: any) => {
             if (payload?.matchId && payload.matchId.toString() === matchId.toString()) {
-                console.log("Socket select-pokemon event:", payload);
-
-                // Update matchRound data from socket payload for real-time updates
                 if (payload?.data) {
-                    // Update cache directly with socket data for immediate UI update
                     queryClient.setQueryData(['list-match-round'], (oldData: any) => {
                         if (oldData?.data?.data) {
                             return {
@@ -583,10 +610,56 @@ export default function PickPokemonScreen() {
             }
         });
 
+        socket.on("round-starting", (payload: any) => {
+            if (payload?.matchId && payload?.roundNumber && payload?.delaySeconds) {
+                setRoundStartingData({
+                    matchId: payload.matchId,
+                    roundNumber: payload.roundNumber,
+                    delaySeconds: payload.delaySeconds,
+                    message: payload.message || `Round ${payload.roundNumber} will start in ${payload.delaySeconds} seconds`,
+                });
+                setRemainingSeconds(payload.delaySeconds);
+            }
+
+            queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
+            queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
+        });
+
         return () => {
             socket.off("select-pokemon");
+            socket.off("round-starting");
         };
     }, [accessToken, matchId, queryClient]);
+
+    /**
+     * Countdown timer for round starting - decrement remainingSeconds
+     */
+    useEffect(() => {
+        if (!roundStartingData || remainingSeconds === null || remainingSeconds <= 0) {
+            if (roundStartingData && remainingSeconds !== null && remainingSeconds <= 0) {
+                // Navigate to arena when countdown reaches 0
+                router.replace({
+                    pathname: ROUTES.APP.ARENA,
+                    params: {
+                        matchId: roundStartingData.matchId.toString(),
+                        roundNumber: roundStartingData.roundNumber,
+                    },
+                });
+            }
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setRemainingSeconds((prev) => {
+                if (prev === null || prev <= 1) {
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [remainingSeconds, roundStartingData, router]);
     //------------------------End------------------------//
 
     if (isLoadingMatchRound) {
@@ -637,6 +710,7 @@ export default function PickPokemonScreen() {
                             </ThemedText>
                         </View>
                     </View>
+
 
                     {/* Opponent vs Player */}
                     <View className="flex-row items-center justify-between">
@@ -1000,16 +1074,6 @@ export default function PickPokemonScreen() {
                                 </ThemedText>
                             )}
                         </HapticPressable>
-                        {/* Debug info - remove in production */}
-                        {__DEV__ && (
-                            <ThemedText style={{ color: "#94a3b8", fontSize: 10, marginTop: 4, textAlign: "center" }}>
-                                Debug: isPlayerTurn={String(battleContext?.isPlayerTurn)},
-                                picker={battleContext?.currentPicker},
-                                deadline={battleContext?.pickDeadline ? "yes" : "no"},
-                                playerOrder={battleContext?.currentPlayer?.orderSelected},
-                                opponentOrder={battleContext?.currentOpponent?.orderSelected}
-                            </ThemedText>
-                        )}
                     </View>
                 )}
 

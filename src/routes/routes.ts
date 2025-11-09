@@ -2,6 +2,7 @@ enum APP {
   GACHA = "/(app)/gacha",
   CONVERSATION = "/(app)/conversation",
   PICK_POKEMON = "/(app)/(battle)/pick-pokemon",
+  ARENA = "/(app)/(battle)/arena",
   DEMO = "/(app)/lesson-demo",
   AI_CONVERSATION = "/(app)/ai-conversation",
 }
