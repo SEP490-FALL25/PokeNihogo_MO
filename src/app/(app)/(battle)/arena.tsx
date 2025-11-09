@@ -279,11 +279,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 // Find correct answer index
                 const correctAnswerIndex = answers.findIndex((ans: any) => ans.isCorrect === true);
 
-                console.log("=== Round Started - First Question ===");
-                console.log("questionData.id (questionBankId):", questionData.id);
-                console.log("questionData.roundQuestionId (roundQuestionId):", questionData.roundQuestionId);
-                console.log("questionBank?.id:", questionBank?.id);
-
                 // CRITICAL: In socket events, roundQuestionId is in questionData.roundQuestionId field
                 // NOT in questionData.id (which is questionBankId)
                 const roundQuestionId = questionData.roundQuestionId || questionData.id;
@@ -343,7 +338,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             // Handle answer result if present
             if (payload?.answerResult) {
                 const result = payload.answerResult;
-                console.log("Answer result:", result);
 
                 // Update score if correct
                 if (result.isCorrect) {
@@ -589,12 +583,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         const answerId = currentQuestion.answers?.[selectedAnswer]?.id;
         const roundQuestionId = currentQuestion.roundQuestionId;
 
-        console.log("=== Submit Answer Debug ===");
-        console.log("roundQuestionId from currentQuestion:", roundQuestionId);
-        console.log("answerId:", answerId);
-        console.log("selectedAnswer index:", selectedAnswer);
-        console.log("currentQuestion:", JSON.stringify(currentQuestion, null, 2));
-
         if (!answerId || !roundQuestionId) {
             console.error("Answer ID or roundQuestionId not found", {
                 answerId,
@@ -615,9 +603,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 timeAnswerMs: timeAnswerMs,
             };
 
-            console.log("Calling submitAnswer with roundQuestionId:", roundQuestionId);
             const response = await battleService.submitAnswer(roundQuestionId, submitData);
-            console.log("Answer submitted:", response.data);
 
             // Check if response contains next question or indicates last question
             const responseData = response.data?.data || response.data;
@@ -673,8 +659,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                     // For socket events, questionData.roundQuestionId is the roundQuestionId
                     // Prioritize roundQuestionId field if it exists (socket events)
                     const roundQuestionId = questionData.roundQuestionId || questionData.id;
-
-                    console.log("Next question from response - roundQuestionId:", roundQuestionId);
 
                     setCurrentQuestion({
                         id: questionBank.id || questionData.id, // Use questionBank.id for question ID

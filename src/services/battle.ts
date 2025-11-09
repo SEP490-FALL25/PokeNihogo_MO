@@ -27,8 +27,6 @@ const battleService = {
     },
 
     submitAnswer: async (roundQuestionId: number, data: ISubmitAnswer) => {
-        console.log("roundQuestionId", roundQuestionId);
-
         return axiosPrivate.put(`/round-question/answer/${roundQuestionId}`, data);
     },
 };

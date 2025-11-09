@@ -100,22 +100,10 @@ export default function BattleLobbyScreen() {
     setInQueue(true);
     setGlobalInQueue(true); // Update global store
     try {
-      console.log("[QUEUE] Calling matchQueue()");
       await battleService.matchQueue();
-      console.log("[QUEUE] startQueue success");
-      // Emit join-searching-room when user starts queueing
-      console.log("[SOCKET] Socket:", socketRef.current);
       if (socketRef.current) {
-        console.log("[SOCKET] Emitting join-searching-room, socketId:", socketRef.current.id);
-        try {
-          socketRef.current.emit("join-searching-room", {}, (ack: any) => {
-            console.log("[SOCKET][ACK] join-searching-room:", ack);
-          });
-        } catch (e) {
-          console.log("[SOCKET][ERROR] emit join-searching-room failed:", e);
-        }
-      } else {
-        console.log("[SOCKET] socket not ready to emit join-searching-room");
+        socketRef.current.emit("join-searching-room", {}, (ack: any) => {
+        });
       }
     } catch (error: any) {
       Alert.alert("Lỗi", "Không thể tìm trận đấu");
