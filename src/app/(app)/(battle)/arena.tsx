@@ -246,11 +246,18 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             if (payload?.firstQuestion) {
                 const questionData = payload.firstQuestion;
 
-                // Handle new format: questionBank structure (from API response)
-                const questionBank = questionData.questionBank || questionData;
-                const questionText = questionBank.questionJp || questionBank.question || questionData.question;
+                // In socket events (round-started), firstQuestion has this structure:
+                // - questionData.id = questionBankId (e.g., 146) - NOT roundQuestionId
+                // - questionData.roundQuestionId = roundQuestionId (e.g., 2215) - THE CORRECT ONE
+                // - questionData.question = question text
+                // - questionData.answers = array of answers
 
-                // Parse answers - new format has answerJp with "jp:xxx+vi:xxx+en:xxx" or direct answer
+                // Handle both formats: direct answers or questionBank structure
+                const questionBank = questionData.questionBank;
+                const questionText = questionBank?.questionJp || questionData.question;
+                const answers = questionBank?.answers || questionData.answers || [];
+
+                // Parse answers - check if answerJp format or direct answer format
                 const parseAnswerText = (answer: any) => {
                     if (answer.answerJp) {
                         // Parse format: "jp:ともだち+vi:Bạn bè+en:Friend"
@@ -267,37 +274,37 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                     return answer.answer || answer.text || answer;
                 };
 
-                const answers = questionBank.answers || questionData.answers || [];
                 const options = answers.map(parseAnswerText);
 
                 // Find correct answer index
                 const correctAnswerIndex = answers.findIndex((ans: any) => ans.isCorrect === true);
 
-                console.log("questionData", questionData);
-                console.log("questionData.id (roundQuestionId):", questionData.id);
-                console.log("questionData.roundQuestionId:", questionData.roundQuestionId);
-                console.log("questionBank.id (questionBankId):", questionBank.id);
+                console.log("=== Round Started - First Question ===");
+                console.log("questionData.id (questionBankId):", questionData.id);
+                console.log("questionData.roundQuestionId (roundQuestionId):", questionData.roundQuestionId);
+                console.log("questionBank?.id:", questionBank?.id);
 
-                // roundQuestionId is questionData.id (the round question ID), NOT questionBank.id
-                // questionData.id = roundQuestionId (e.g., 1785)
-                // questionBank.id = questionBankId (e.g., 147)
-                const roundQuestionId = questionData.id || questionData.roundQuestionId;
+                // CRITICAL: In socket events, roundQuestionId is in questionData.roundQuestionId field
+                // NOT in questionData.id (which is questionBankId)
+                const roundQuestionId = questionData.roundQuestionId || questionData.id;
+
+                console.log("Final roundQuestionId to use:", roundQuestionId);
 
                 if (!roundQuestionId) {
-                    console.error("roundQuestionId not found in questionData:", questionData);
+                    console.error("ERROR: roundQuestionId not found in questionData:", questionData);
                 }
 
                 setCurrentQuestion({
-                    id: questionBank.id || questionData.id, // Use questionBank.id for question ID
+                    id: questionData.id || questionBank?.id, // questionBankId for reference
                     question: questionText,
                     options: options,
                     answers: answers, // Keep original format for submission
                     correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : undefined,
                     endTimeQuestion: questionData.endTimeQuestion,
                     timeLimitMs: questionData.timeLimitMs,
-                    questionType: questionBank.questionType || questionData.questionType,
+                    questionType: questionBank?.questionType || questionData.questionType,
                     debuff: questionData.debuff,
-                    roundQuestionId: roundQuestionId, // Use questionData.id (roundQuestionId), NOT questionBank.id
+                    roundQuestionId: roundQuestionId, // Use questionData.roundQuestionId (socket events)
                     orderNumber: questionData.orderNumber,
                 });
 
@@ -333,9 +340,25 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         socket.on("question-answered", (payload: any) => {
             console.log("Question answered event:", payload);
 
-            // Handle if payload contains next question
-            if (payload?.question || payload?.nextQuestion || payload?.data?.questionBank) {
-                const questionData = payload?.question || payload?.nextQuestion || payload?.data;
+            // Handle answer result if present
+            if (payload?.answerResult) {
+                const result = payload.answerResult;
+                console.log("Answer result:", result);
+
+                // Update score if correct
+                if (result.isCorrect) {
+                    setPlayerScore(prev => prev + 1);
+                }
+
+                // Show result briefly (optional - can remove if not needed)
+                // setShowResult(true);
+            }
+
+            // Handle next question - check nested structure first (nextQuestion.nextQuestion)
+            const nextQuestionData = payload?.nextQuestion?.nextQuestion || payload?.nextQuestion || payload?.question || payload?.data?.questionBank || payload?.data;
+
+            if (nextQuestionData) {
+                const questionData = nextQuestionData;
 
                 // Handle new format: questionBank structure
                 const questionBank = questionData.questionBank || questionData;
@@ -364,20 +387,19 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 // Find correct answer index
                 const correctAnswerIndex = answers.findIndex((ans: any) => ans.isCorrect === true);
 
-                // roundQuestionId is questionData.id (the round question ID), NOT questionBank.id
-                const roundQuestionId = questionData.id || questionData.roundQuestionId;
+                const roundQuestionId = questionData.roundQuestionId || questionData.id;
 
                 setCurrentQuestion({
-                    id: questionBank.id || questionData.id, // Use questionBank.id for question ID
+                    id: questionBank.id || questionData.id,
                     question: questionText,
                     options: options,
-                    answers: answers, // Keep original format for submission
+                    answers: answers,
                     correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : undefined,
                     endTimeQuestion: questionData.endTimeQuestion,
                     timeLimitMs: questionData.timeLimitMs,
                     questionType: questionBank.questionType || questionData.questionType,
                     debuff: questionData.debuff,
-                    roundQuestionId: roundQuestionId, // Use questionData.id (roundQuestionId), NOT questionBank.id
+                    roundQuestionId: roundQuestionId,
                     orderNumber: questionData.orderNumber,
                 });
 
@@ -390,6 +412,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
 
                 setQuestionStartTime(Date.now());
                 setCurrentQuestionIndex(prev => prev + 1);
+
                 setIsWaitingForOpponent(false);
                 setSelectedAnswer(null);
                 setIsAnswerSubmitted(false);
@@ -401,6 +424,10 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 if (payload?.totalQuestions) {
                     setTotalQuestions(payload.totalQuestions);
                 }
+            } else {
+                setIsWaitingForOpponent(false);
+                setSelectedAnswer(null);
+                setIsAnswerSubmitted(false);
             }
 
             // Handle status updates (e.g., opponent has answered)
@@ -440,8 +467,8 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 const options = answers.map(parseAnswerText);
                 const correctAnswerIndex = answers.findIndex((ans: any) => ans.isCorrect === true);
 
-                // roundQuestionId is questionData.id (the round question ID), NOT questionBank.id
-                const roundQuestionId = questionData.id || questionData.roundQuestionId;
+                // IMPORTANT: Prioritize roundQuestionId field (socket events) over id field
+                const roundQuestionId = questionData.roundQuestionId || questionData.id;
 
                 setCurrentQuestion({
                     id: questionBank.id || questionData.id, // Use questionBank.id for question ID
@@ -453,7 +480,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                     timeLimitMs: questionData.timeLimitMs,
                     questionType: questionBank.questionType || questionData.questionType,
                     debuff: questionData.debuff,
-                    roundQuestionId: roundQuestionId, // Use questionData.id (roundQuestionId), NOT questionBank.id
+                    roundQuestionId: roundQuestionId, // Prioritize roundQuestionId field (socket events)
                     orderNumber: questionData.orderNumber,
                 });
 
@@ -642,8 +669,10 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                     const options = answers.map(parseAnswerText);
                     const correctAnswerIndex = answers.findIndex((ans: any) => ans.isCorrect === true);
 
-                    // IMPORTANT: roundQuestionId is questionData.id, NOT questionBank.id
-                    const roundQuestionId = questionData.id || questionData.roundQuestionId;
+                    // IMPORTANT: For API responses, questionData.id is the roundQuestionId
+                    // For socket events, questionData.roundQuestionId is the roundQuestionId
+                    // Prioritize roundQuestionId field if it exists (socket events)
+                    const roundQuestionId = questionData.roundQuestionId || questionData.id;
 
                     console.log("Next question from response - roundQuestionId:", roundQuestionId);
 
@@ -966,7 +995,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                                             >
                                                 <HapticPressable
                                                     onPress={() => handleSelectAnswer(idx)}
-                                                    disabled={isAnswerSubmitted || selectedAnswer !== null || isWaitingForOpponent}
+                                                    disabled={isAnswerSubmitted || isWaitingForOpponent}
                                                     className={`rounded-2xl border-2 overflow-hidden ${showFeedback
                                                         ? isCorrect
                                                             ? "border-green-500 bg-green-500/20"
