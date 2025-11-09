@@ -14,6 +14,16 @@ const userService = {
         // This request will also include Accept-Language header
         const response = await axiosPrivate.put('/user/settings', settings);
         return response.data;
+    },
+
+    // Update user JLPT level
+    updateLevelJLPT: async (level: 'N5' | 'N4' | 'N3') => {
+        // Convert level string to number: N5 -> 5, N4 -> 4, N3 -> 3
+        const levelNumber = parseInt(level.replace('N', ''));
+        const response = await axiosPrivate.put('/user/levelJLPT', {
+            levelJLPT: levelNumber
+        });
+        return response.data;
     }
 }
 

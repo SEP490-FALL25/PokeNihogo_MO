@@ -21,6 +21,7 @@ import { LessonProgress } from "@models/lesson/lesson.common";
 import { useIsFocused } from "@react-navigation/native";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   getJLPTLevelColor,
   getSkillCategoryColor,
@@ -217,12 +218,14 @@ const CategoriesScreen = () => {
   }, [isFocused, isBottomSheetOpen]);
 
   const { level: userLevel } = useUserStore();
+  const queryClient = useQueryClient();
 
-  const { data: progressData, isLoading: progressLoading } = useUserProgress();
+  const { data: progressData, isLoading: progressLoading, refetch: refetchProgress } = useUserProgress();
   const {
     data: lessonCategoriesData,
     isLoading: lessonCategoriesLoading,
     error: lessonCategoriesError,
+    refetch: refetchCategories,
   } = useLessonCategories();
   // Optimized animation effect when data loads
   useEffect(() => {
@@ -261,10 +264,20 @@ const CategoriesScreen = () => {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
+      // Refetch all data queries
+      await Promise.all([
+        refetchProgress(),
+        refetchCategories(),
+        // Invalidate and refetch all infinite queries for JLPT levels
+        queryClient.invalidateQueries({ queryKey: ["user-lessons-infinite"] }),
+        queryClient.invalidateQueries({ queryKey: ["userProgress"] }),
+      ]);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [refetchProgress, refetchCategories, queryClient]);
 
   const handleLessonPress = useCallback((lesson: LessonProgress) => {
     // Navigate to lesson detail or start lesson
@@ -424,14 +437,6 @@ const CategoriesScreen = () => {
             />
           </React.Fragment>
         ))}
-
-<TouchableOpacity
-                  onPress={() => router.push("/(app)/bottom")}
-                >
-                  <ThemedText type="subtitle" style={styles.categoriesTitle}>
-                    bottom
-                  </ThemedText>
-                </TouchableOpacity>
 
         {/* Skill Categories - Trigger Button */}
         <View style={styles.categoriesSection}>
