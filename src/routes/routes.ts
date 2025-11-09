@@ -58,6 +58,7 @@ enum TABS {
 enum LESSON {
   LIST_WITH_ID = "/(app)/lessons-list",
   DETAIL = "/(app)/lesson-details",
+  VOCABULARY_LIST = "/(app)/vocabulary-list",
 }
 
 enum READING {

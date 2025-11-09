@@ -1,28 +1,18 @@
-import KanjiWriter from "@components/KanjiWriter";
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
 import { useLesson } from "@hooks/useLessons";
 import { useUserExerciseAttempt } from "@hooks/useUserExerciseAttempt";
 import { ROUTES } from "@routes/routes";
-import { Audio } from "expo-av";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  ChevronLeft,
-  Headphones,
-  Pencil,
-  Sparkles,
-  X,
-} from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import { ChevronLeft, Sparkles } from "lucide-react-native";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
   Animated,
   Dimensions,
-  Easing,
-  Modal,
   ScrollView,
   TouchableOpacity,
   View,
@@ -52,25 +42,6 @@ const ModernCard = ({ children, style }: any) => (
 
 // --- Floating Progress Ring (removed unused) ---
 
-// Helper: Play audio from URL
-const playAudio = async (url: string) => {
-  try {
-    const { sound } = await Audio.Sound.createAsync(
-      { uri: url },
-      { shouldPlay: true }
-    );
-    // Optionally unload sound when finished
-    sound.setOnPlaybackStatusUpdate((status) => {
-      if (status.isLoaded && status.didJustFinish) {
-        sound.unloadAsync();
-      }
-    });
-  } catch (e) {
-    // Optionally you can alert or log error
-    console.warn("Audio playback error", e);
-  }
-};
-
 function getButtonColor(status?: string) {
   if (status === "COMPLETED") return "bg-emerald-600";
   if (status === "IN_PROGRESS") return "bg-amber-500";
@@ -86,178 +57,112 @@ function getTextColor(status?: string) {
   return "text-slate-700";
 }
 
-// --- Vocabulary Card (Swipeable + Audio + Meaning Toggle) ---
-const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
-  const { t } = useTranslation();
-  const [showMeaning, setShowMeaning] = useState(false);
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  const meanings = (item.meanings || [])
-    .map((m: any) => (typeof m === "string" ? m : m.meaning || m.text || ""))
-    .filter(Boolean);
-
+// --- Vocabulary Card (Simple display, navigate to vocabulary list) ---
+const VocabularyCard = ({
+  item,
+  index,
+  lessonId,
+}: {
+  item: any;
+  index: number;
+  lessonId: string;
+}) => {
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scaleAnim, {
-      toValue: 0.95,
-      useNativeDriver: true,
-    }).start(() => {
-      Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
-      setShowMeaning(!showMeaning);
+    Haptics.selectionAsync();
+    router.push({
+      pathname: ROUTES.LESSON.VOCABULARY_LIST,
+      params: {
+        id: lessonId,
+        activityType: "learn",
+      },
     });
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-      <ModernCard style={{ marginHorizontal: 4 }}>
-        <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-          <View className="flex-row justify-between items-start mb-3">
-            <View>
-              <ThemedText className="text-3xl font-bold text-indigo-600">
-                {item.wordJp}
-              </ThemedText>
-              <ThemedText className="text-lg text-indigo-400 mt-1 font-medium">
-                {item.reading}
-              </ThemedText>
-            </View>
-            <TouchableOpacity
-              onPress={() => item.audioUrl && playAudio(item.audioUrl)}
-              className="bg-indigo-100 p-3 rounded-2xl"
-            >
-              <Headphones size={22} color="#4f46e5" />
-            </TouchableOpacity>
-          </View>
-
-          {showMeaning && (
-            <Animated.View className="mt-3 space-y-1">
-              {meanings.map((m: string, i: number) => (
-                <View key={i} className="flex-row items-center">
-                  <View className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-2" />
-                  <ThemedText className="text-gray-700 flex-1">{m}</ThemedText>
-                </View>
-              ))}
-            </Animated.View>
-          )}
-
-          <View className="mt-4 items-center">
-            <ThemedText className="text-xs text-gray-400">
-              {showMeaning
-                ? t("lessons.hide_meaning")
-                : t("lessons.press_to_see_meaning")}
-            </ThemedText>
-          </View>
-        </TouchableOpacity>
-      </ModernCard>
-    </Animated.View>
-  );
-};
-
-// --- Grammar Card (Collapsible + Example Highlight) ---
-const GrammarCard = ({ item }: { item: any }) => {
-  const { t } = useTranslation();
-  const [expanded, setExpanded] = useState(false);
-  const heightAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(heightAnim, {
-      toValue: expanded ? 1 : 0,
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: false,
-    }).start();
-  }, [expanded, heightAnim]);
-
-  const height = heightAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 200],
-  });
-
-  return (
-    <ModernCard>
-      <TouchableOpacity
-        onPress={() => setExpanded(!expanded)}
-        className="flex-row justify-between items-center"
-      >
-        <ThemedText className="text-lg font-bold text-cyan-700 flex-1 pr-4">
-          {item.title}
-        </ThemedText>
-        <Animated.View
-          style={{
-            transform: [{ rotate: expanded ? "180deg" : "0deg" }],
-          }}
-        >
-          <ChevronLeft
-            size={20}
-            color="#0891b2"
-            style={{ transform: [{ rotate: "270deg" }] }}
-          />
-        </Animated.View>
-      </TouchableOpacity>
-
-      <Animated.View style={{ height, overflow: "hidden" }}>
-        <View className="mt-4 space-y-3">
-          <ThemedText className="text-gray-600 leading-6">
-            {item.description}
+    <ModernCard style={{ marginHorizontal: 4 }}>
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+        <View className="items-center justify-center">
+          <ThemedText className="text-3xl font-bold text-indigo-600 text-center">
+            {item.wordJp}
           </ThemedText>
-          {item.usage && (
-            <View className="bg-cyan-50 p-4 rounded-2xl">
-              <ThemedText className="text-sm text-cyan-800">
-                <ThemedText style={{ fontWeight: "bold" }}>
-                  {t("lessons.usage")}:
-                </ThemedText>{" "}
-                {item.usage}
-              </ThemedText>
-            </View>
-          )}
+          <ThemedText className="text-lg text-indigo-400 mt-1 font-medium text-center">
+            {item.reading}
+          </ThemedText>
         </View>
-      </Animated.View>
+      </TouchableOpacity>
     </ModernCard>
   );
 };
 
-// --- Kanji Card (Big Char + Stroke Count + Write Button) ---
-const KanjiCard = ({
+// --- Grammar Card (Simple display, navigate to vocabulary list) ---
+const GrammarCard = ({
   item,
-  onWrite,
+  lessonId,
 }: {
   item: any;
-  onWrite: (c: string) => void;
+  lessonId: string;
+}) => {
+  const handlePress = () => {
+    Haptics.selectionAsync();
+    router.push({
+      pathname: ROUTES.LESSON.VOCABULARY_LIST,
+      params: {
+        id: lessonId,
+        contentType: "grammar",
+        activityType: "learn",
+      },
+    });
+  };
+
+  return (
+    <ModernCard style={{ marginHorizontal: 4 }}>
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+        <View className="items-center justify-center">
+          <ThemedText className="text-xl font-bold text-cyan-700 text-center">
+            {item.title}
+          </ThemedText>
+        </View>
+      </TouchableOpacity>
+    </ModernCard>
+  );
+};
+
+// --- Kanji Card (Simple display, navigate to vocabulary list) ---
+const KanjiCard = ({
+  item,
+  lessonId,
+}: {
+  item: any;
+  lessonId: string;
 }) => {
   const { t } = useTranslation();
   const meaning =
     item.meaning?.split("##")[0] || item.meaning || t("lessons.no_meaning");
 
+  const handlePress = () => {
+    Haptics.selectionAsync();
+    router.push({
+      pathname: ROUTES.LESSON.VOCABULARY_LIST,
+      params: {
+        id: lessonId,
+        contentType: "kanji",
+        activityType: "learn",
+      },
+    });
+  };
+
   return (
-    <ModernCard>
-      <View className="flex-row items-center">
-        <View className="bg-amber-100 rounded-3xl p-6 mr-4">
-          <ThemedText className="text-6xl font-bold text-amber-700">
+    <ModernCard style={{ marginHorizontal: 4 }}>
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+        <View className="items-center justify-center">
+          <ThemedText className="text-6xl font-bold text-amber-700 text-center mb-2">
             {item.character}
           </ThemedText>
-        </View>
-        <View className="flex-1">
-          <ThemedText className="text-lg font-bold text-amber-800">
+          <ThemedText className="text-lg font-medium text-amber-800 text-center">
             {meaning}
           </ThemedText>
-          {(item.onReading || item.kunReading) && (
-            <ThemedText className="text-sm text-amber-600 mt-1">
-              {item.onReading} • {item.kunReading}
-            </ThemedText>
-          )}
-          <View className="flex-row items-center mt-2">
-            <Sparkles size={14} color="#f59e0b" />
-            <ThemedText className="text-xs text-amber-600 ml-1">
-              {item.strokeCount} {t("lessons.stroke")}
-            </ThemedText>
-          </View>
         </View>
-        <TouchableOpacity
-          onPress={() => onWrite(item.character)}
-          className="bg-amber-500 p-4 rounded-2xl shadow-md"
-        >
-          <Pencil size={22} color="white" />
-        </TouchableOpacity>
-      </View>
+      </TouchableOpacity>
     </ModernCard>
   );
 };
@@ -300,19 +205,10 @@ const LessonDetailScreen = () => {
     return map;
   }, [latestExerciseAttempt]);
 
-  const [selectedKanji, setSelectedKanji] = useState<string | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-
   // Try multiple property names in case of mock/real difference, fallback to []
   const voca: any[] = lesson.voca || lesson.vocabulary || [];
   const grammar: any[] = lesson.grama || lesson.grammar || [];
   const kanji: any[] = lesson.kanji || [];
-
-  const openWriter = (char: string) => {
-    setSelectedKanji(char);
-    setModalVisible(true);
-    Haptics.selectionAsync();
-  };
 
   const startExercise = async (category: ExerciseCategory) => {
     try {
@@ -418,13 +314,17 @@ const LessonDetailScreen = () => {
               >
                 {voca.map((item: any, i: number) => (
                   <View key={i} style={{ width: width - 80 }}>
-                    <VocabularyCard item={item} index={i} />
+                    <VocabularyCard
+                      item={item}
+                      index={i}
+                      lessonId={id || ""}
+                    />
                   </View>
                 ))}
               </ScrollView>
             </View>
 
-            {/* === NGỮ PHÁP === */}
+            {/* === NGỮ PHÁP - HORIZONTAL SCROLL === */}
             <View className="mb-8">
               <View className="flex-row justify-between items-center mb-4">
                 <ThemedText className="text-2xl font-bold text-cyan-700">
@@ -441,14 +341,20 @@ const LessonDetailScreen = () => {
                   </ThemedText>
                 </TouchableOpacity>
               </View>
-              {grammar.slice(0, 3).map((item: any, i: number) => (
-                <View key={i} className="mb-4">
-                  <GrammarCard item={item} />
-                </View>
-              ))}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="flex-row rounded-3xl"
+              >
+                {grammar.map((item: any, i: number) => (
+                  <View key={i} style={{ width: width - 80 }}>
+                    <GrammarCard item={item} lessonId={id || ""} />
+                  </View>
+                ))}
+              </ScrollView>
             </View>
 
-            {/* === KANJI === */}
+            {/* === KANJI - HORIZONTAL SCROLL === */}
             <View className="mb-10">
               <View className="flex-row justify-between items-center mb-4">
                 <ThemedText className="text-2xl font-bold text-amber-700">
@@ -465,19 +371,21 @@ const LessonDetailScreen = () => {
                   </ThemedText>
                 </TouchableOpacity>
               </View>
-              {kanji.map((item: any, i: number) => (
-                <View key={i} className="mb-4">
-                  <KanjiCard item={item} onWrite={openWriter} />
-                </View>
-              ))}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="flex-row rounded-3xl"
+              >
+                {kanji.map((item: any, i: number) => (
+                  <View key={i} style={{ width: width - 80 }}>
+                    <KanjiCard item={item} lessonId={id || ""} />
+                  </View>
+                ))}
+              </ScrollView>
             </View>
 
             {/* === FINAL TEST BUTTON === */}
-            <BounceButton
-              variant="solid"
-              size="full"
-              onPress={() => setModalVisible(true)}
-            >
+            <BounceButton variant="solid" size="full" onPress={() => {}}>
               <ThemedText className="text-white text-lg font-bold flex-row items-center">
                 <Sparkles size={20} color="white" className="mr-2" />
                 {t("common.start")}
@@ -485,34 +393,6 @@ const LessonDetailScreen = () => {
             </BounceButton>
           </View>
         </ScrollView>
-
-        {/* === KANJI WRITER MODAL === */}
-
-        <Modal visible={modalVisible} animationType="slide">
-          <View className="flex-1 mt-36 bg-gradient-to-b from-amber-50 to-white p-6">
-            <View className="flex-row justify-end items-center mb-6">
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <X size={28} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-            <KanjiWriter
-              character={selectedKanji!}
-              mode="practice"
-              onComplete={(mistakes) => {
-                Alert.alert(
-                  t("common.complete"),
-                  `${t("common.finish")}: ${mistakes}`,
-                  [
-                    {
-                      text: t("common.close"),
-                      onPress: () => setModalVisible(false),
-                    },
-                  ]
-                );
-              }}
-            />
-          </View>
-        </Modal>
       </LinearGradient>
     </SafeAreaView>
   );
