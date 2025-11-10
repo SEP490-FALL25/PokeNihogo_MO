@@ -48,6 +48,12 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
     const [showResult, setShowResult] = useState(false);
     const [battleComplete, setBattleComplete] = useState(false);
+    const [matchSummary, setMatchSummary] = useState<{
+        winnerId: number | null;
+        winnerName: string;
+        eloGained: number;
+        eloLost: number;
+    } | null>(null);
     const [currentRound, setCurrentRound] = useState(() => {
         const initialRound = params.roundNumber as string;
         if (initialRound === "ONE") return 1;
@@ -570,6 +576,20 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         // Match completed
         socket.on("match-completed", (payload: any) => {
             console.log("Match completed:", payload);
+            const winnerId = payload?.match?.winnerId ?? null;
+            const winnerName =
+                payload?.match?.winner?.name ||
+                payload?.match?.winner?.email ||
+                payload?.match?.winner?.nameJp ||
+                "Người chiến thắng";
+            const eloGained = payload?.match?.eloGained ?? 0;
+            const eloLost = payload?.match?.eloLost ?? 0;
+            setMatchSummary({
+                winnerId,
+                winnerName,
+                eloGained,
+                eloLost,
+            });
             setBattleComplete(true);
             if (payload?.playerScore !== undefined) {
                 setPlayerScore(payload.playerScore);
@@ -687,7 +707,16 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
 
     // Victory/Loss screen
     if (battleComplete) {
-        const playerWon = playerScore > opponentScore;
+        const playerWon = matchSummary && currentUserId !== undefined && matchSummary.winnerId !== null
+            ? matchSummary.winnerId === currentUserId
+            : playerScore > opponentScore;
+        const winnerName = matchSummary?.winnerName || (playerWon ? "Bạn" : "Đối thủ");
+        const eloChange = matchSummary
+            ? playerWon
+                ? matchSummary.eloGained
+                : -matchSummary.eloLost
+            : 0;
+        const eloChangeText = `${eloChange >= 0 ? "+" : ""}${eloChange} ELO`;
 
         return (
             <ThemedView style={styles.container}>
@@ -721,12 +750,15 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                             <ThemedText style={{ color: playerWon ? "#22c55e" : "#ef4444", fontSize: 32, fontWeight: "900", marginBottom: 8 }}>
                                 {playerWon ? "THẮNG" : "THUA"}
                             </ThemedText>
+                            <ThemedText style={{ color: "#fbbf24", fontSize: 20, fontWeight: "700", textAlign: "center", marginBottom: 12 }}>
+                                Chúc mừng {winnerName}!
+                            </ThemedText>
                             <ThemedText style={{ color: "#cbd5e1", fontSize: 18, textAlign: "center", marginBottom: 24 }}>
                                 {playerScore} - {opponentScore}
                             </ThemedText>
                             <View className="px-6 py-3 rounded-2xl border border-white/20 bg-white/10">
                                 <ThemedText style={{ color: "#93c5fd", fontSize: 16 }}>
-                                    {playerWon ? "+25 MMR" : "-18 MMR"}
+                                    {eloChangeText}
                                 </ThemedText>
                             </View>
                         </Animated.View>
@@ -887,7 +919,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 )}
 
                 {/* Question Card */}
-                {currentQuestion && roundStarted && (
+                {!isWaitingForOpponent && currentQuestion && roundStarted && (
                     <View className="px-5 mb-6">
                         <TWLinearGradient
                             colors={["rgba(255,255,255,0.1)", "rgba(255,255,255,0.05)"]}
@@ -975,22 +1007,12 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                                         </TWLinearGradient>
                                     </HapticPressable>
                                 )}
-
-                                {/* Waiting for opponent indicator */}
-                                {isWaitingForOpponent && (
-                                    <View className="mt-6 bg-yellow-500/20 border border-yellow-500/40 rounded-2xl p-4 items-center">
-                                        <ActivityIndicator size="small" color="#fbbf24" />
-                                        <ThemedText style={{ color: "#fbbf24", fontSize: 14, fontWeight: "600", marginTop: 8, textAlign: "center" }}>
-                                            Đang chờ đối thủ trả lời...
-                                        </ThemedText>
-                                    </View>
-                                )}
                             </View>
                         </TWLinearGradient>
                     </View>
                 )}
 
-                {!currentQuestion && isWaitingForOpponent && (
+                {isWaitingForOpponent && (
                     <View className="px-5 mb-6">
                         <View className="bg-black/40 rounded-2xl p-6 items-center justify-center">
                             <ActivityIndicator size="large" color="#fbbf24" />
