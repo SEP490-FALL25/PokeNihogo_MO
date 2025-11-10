@@ -94,8 +94,18 @@ const VocabularyFlashcardScreen = () => {
 
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gesture) =>
-        Math.abs(gesture.dx) > 10 || Math.abs(gesture.dy) > 10,
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        const absDx = Math.abs(gesture.dx);
+        const absDy = Math.abs(gesture.dy);
+        // Chỉ kích hoạt pan cho thao tác vuốt ngang rõ rệt
+        return absDx > absDy && absDx > 10;
+      },
+      onMoveShouldSetPanResponderCapture: (_, gesture) => {
+        const absDx = Math.abs(gesture.dx);
+        const absDy = Math.abs(gesture.dy);
+        return absDx > absDy && absDx > 10;
+      },
       onPanResponderMove: Animated.event(
         [null, { dx: translateX, dy: translateY }],
         { useNativeDriver: false }
@@ -232,11 +242,9 @@ const VocabularyFlashcardScreen = () => {
           .filter(Boolean)
       : [];
 
-    const kanjiExplanationList = isKanji
-      ? (card.explanationMeaning && typeof card.explanationMeaning === "string"
-          ? card.explanationMeaning.split("##").filter(Boolean)
-          : [])
-      : [];
+    const kanjiExplanation = isKanji
+      ? (typeof card?.explanationMeaning === "string" ? card.explanationMeaning : "")
+      : "";
 
     const offset = stackIndex * cardSpacing;
     const scale = isActive ? 1 : Math.max(0.96, 1 - stackIndex * 0.03);
@@ -293,7 +301,7 @@ const VocabularyFlashcardScreen = () => {
     const cardBaseStyle = {
       paddingVertical: 48,
       paddingHorizontal: 24,
-      minHeight: 340,
+      minHeight: 420,
       borderRadius: 28,
     };
 
@@ -355,7 +363,10 @@ const VocabularyFlashcardScreen = () => {
         }}
         pointerEvents={isActive ? "auto" : "none"}
       >
-        <TouchableWithoutFeedback onPress={isActive ? toggleCardSide : undefined}>
+        <TouchableWithoutFeedback
+          onPress={isActive && cardIsFrontSide ? toggleCardSide : undefined}
+          disabled={!isActive || !cardIsFrontSide}
+        >
           <View style={{ position: "relative", width: "100%" }}>
             {/* Front Card */}
             <Animated.View
@@ -418,7 +429,67 @@ const VocabularyFlashcardScreen = () => {
                 style={[cardBaseStyle, cardShadowStyle, { backgroundColor: backgroundColorValue }, backCardStyle]}
                 pointerEvents={cardIsFrontSide ? "none" : "auto"}
               >
+                {/* Vùng chạm ẩn để lật lại (4 viền, không làm xấu UI, không che nội dung) */}
+                <TouchableWithoutFeedback onPress={toggleCardSide}>
+                  <View
+                    pointerEvents="auto"
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: 56,
+                      zIndex: 10,
+                    }}
+                  />
+                </TouchableWithoutFeedback>
+                <TouchableWithoutFeedback onPress={toggleCardSide}>
+                  <View
+                    pointerEvents="auto"
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 56,
+                      zIndex: 10,
+                    }}
+                  />
+                </TouchableWithoutFeedback>
+                <TouchableWithoutFeedback onPress={toggleCardSide}>
+                  <View
+                    pointerEvents="auto"
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      bottom: 0,
+                      left: 0,
+                      width: 40,
+                      zIndex: 10,
+                    }}
+                  />
+                </TouchableWithoutFeedback>
+                <TouchableWithoutFeedback onPress={toggleCardSide}>
+                  <View
+                    pointerEvents="auto"
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      bottom: 0,
+                      right: 0,
+                      width: 40,
+                      zIndex: 10,
+                    }}
+                  />
+                </TouchableWithoutFeedback>
                 <ScrollView
+                  nestedScrollEnabled
+                  keyboardShouldPersistTaps="always"
+                  scrollEventThrottle={16}
+                  onStartShouldSetResponder={() => true}
+                  onMoveShouldSetResponder={() => true}
+                  onStartShouldSetResponderCapture={() => true}
+                  onMoveShouldSetResponderCapture={() => true}
                   contentContainerStyle={{
                     paddingVertical: 12,
                     flexGrow: 1,
@@ -440,18 +511,15 @@ const VocabularyFlashcardScreen = () => {
                           </ThemedText>
                         </View>
                       ) : null}
-                      {kanjiExplanationList.length > 0 ? (
-                        kanjiExplanationList.map((meaningLine: string, idx: number) => (
-                          <View
-                            key={idx}
-                            className="py-2 px-3 mb-2 rounded-2xl bg-amber-50 border border-amber-100"
-                            style={{ width: width - 160 }}
-                          >
-                            <ThemedText className="text-lg text-amber-700 text-center">
-                              {meaningLine.trim()}
-                            </ThemedText>
-                          </View>
-                        ))
+                      {kanjiExplanation ? (
+                        <View
+                          className="py-2 px-3 rounded-2xl bg-amber-50 border border-amber-100"
+                          style={{ width: width - 160 }}
+                        >
+                          <ThemedText className="text-lg text-amber-700 text-center">
+                            {kanjiExplanation}
+                          </ThemedText>
+                        </View>
                       ) : (
                         <ThemedText className="text-base text-amber-600 text-center" style={{ width: width - 160 }}>
                           Không có phần giải thích
@@ -580,7 +648,7 @@ const VocabularyFlashcardScreen = () => {
             <View
               style={{
                 width: width - 80,
-                height: 400,
+                height: 480,
                 position: "relative",
               }}
             >
