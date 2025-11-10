@@ -59,7 +59,7 @@ const ModernCardExpandable = ({ children, style }: any) => (
         shadowOpacity: 0.08,
         shadowRadius: 20,
         elevation: 10,
-        minHeight: 200,
+        minHeight: 220,
       },
       style,
     ]}
@@ -217,12 +217,12 @@ const ExpandableVocabularyCard = ({
           ]}
           pointerEvents={isFlipped ? "none" : "auto"}
         >
-          <ModernCardExpandable style={{ padding: 20 }}>
+          <ModernCardExpandable style={{ paddingTop: 24, paddingBottom: 24, paddingHorizontal: 20 }}>
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-              <View style={{ minHeight: 140, justifyContent: "center", paddingVertical: 8 }}>
+              <View style={{ minHeight: 150, justifyContent: "center", paddingVertical: 12 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                   <View style={{ flex: 1, alignItems: "center", paddingRight: 8, minWidth: 0 }}>
-                    <ThemedText style={{ fontSize: 30, fontWeight: "bold", color: "#4f46e5", textAlign: "center", flexShrink: 1 }}>
+                    <ThemedText style={{ fontSize: 30, fontWeight: "bold", color: "#4f46e5", textAlign: "center", flexShrink: 1, lineHeight: 38 }}>
                       {item.wordJp}
                     </ThemedText>
                     <ThemedText style={{ fontSize: 24, color: "#818cf8", marginTop: 6, fontWeight: "500", textAlign: "center", flexShrink: 1 }}>
@@ -354,12 +354,12 @@ const ExpandableGrammarCard = ({
           ]}
           pointerEvents={isFlipped ? "none" : "auto"}
         >
-          <ModernCardExpandable style={{ padding: 20 }}>
+          <ModernCardExpandable style={{ paddingTop: 28, paddingBottom: 28, paddingHorizontal: 20 }}>
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
               <View
-                style={{ minHeight: 140, justifyContent: "center", alignItems: "center", paddingVertical: 8 }}
+                style={{ minHeight: 160, justifyContent: "center", alignItems: "center", paddingVertical: 16, paddingHorizontal: 12 }}
               >
-                <ThemedText style={{ fontSize: 36, fontWeight: "bold", color: "#0891b2", textAlign: "center", flexShrink: 1, paddingHorizontal: 8 }}>
+                <ThemedText style={{ fontSize: 32, fontWeight: "bold", color: "#0891b2", textAlign: "center", flexShrink: 1, lineHeight: 42 }}>
                   {item.title}
                 </ThemedText>
               </View>
@@ -486,13 +486,13 @@ const ExpandableKanjiCard = ({
           ]}
           pointerEvents={isFlipped ? "none" : "auto"}
         >
-          <ModernCardExpandable style={{ padding: 20 }}>
+          <ModernCardExpandable style={{ paddingTop: 24, paddingBottom: 24, paddingHorizontal: 20 }}>
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
               <View
-                style={{ minHeight: 140, justifyContent: "center", alignItems: "center", paddingVertical: 8 }}
+                style={{ minHeight: 150, justifyContent: "center", alignItems: "center", paddingVertical: 12 }}
               >
                 <View className="bg-amber-100 rounded-3xl p-8">
-                  <ThemedText style={{ fontSize: 60, fontWeight: "bold", color: "#b45309" }}>
+                  <ThemedText style={{ fontSize: 56, fontWeight: "bold", color: "#b45309", lineHeight: 66 }}>
                     {item.character}
                   </ThemedText>
                 </View>
