@@ -3,6 +3,7 @@ import { ThemedText } from "@components/ThemedText";
 import { useLesson } from "@hooks/useLessons";
 import { Audio } from "expo-av";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Speech from "expo-speech";
@@ -20,6 +21,7 @@ import {
   Dimensions,
   Easing,
   Modal,
+  Platform,
   ScrollView,
   TouchableOpacity,
   View,
@@ -48,14 +50,16 @@ const playAudio = async (url: string) => {
 // --- Modern Card Component (for expandable vocabulary) ---
 const ModernCardExpandable = ({ children, style }: any) => (
   <Animated.View
-    className="bg-white rounded-3xl p-6 shadow-xl mb-4"
+    className="bg-white rounded-3xl shadow-xl mb-4"
     style={[
       {
+        padding: 20,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.08,
         shadowRadius: 20,
         elevation: 10,
+        minHeight: 160,
       },
       style,
     ]}
@@ -66,23 +70,37 @@ const ModernCardExpandable = ({ children, style }: any) => (
 
 // --- Modern Card Component (for list vocabulary) ---
 const ModernCard = ({ children, style }: any) => (
-  <Animated.View
-    className="bg-white rounded-2xl p-4 shadow-lg mb-3"
-    style={[
-      {
-        borderWidth: 2,
-        borderColor: "#FCD34D",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        elevation: 5,
-      },
-      style,
-    ]}
-  >
-    {children}
-  </Animated.View>
+  <View style={{ marginBottom: 12, padding: 2 }}>
+    <Animated.View
+      className="bg-white shadow-lg"
+      style={[
+        {
+          borderRadius: 14,
+          backgroundColor: "#FCD34D",
+          padding: 2,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.05,
+          shadowRadius: 10,
+          elevation: 5,
+        },
+      ]}
+    >
+      <View
+        style={{
+          borderRadius: 12,
+          backgroundColor: "#ffffff",
+          paddingTop: Platform.OS === "android" ? 30 : 26,
+          paddingBottom: 20,
+          paddingLeft: 16,
+          paddingRight: 16,
+          minHeight: 165,
+        }}
+      >
+        {children}
+      </View>
+    </Animated.View>
+  </View>
 );
 
 // --- Expandable Vocabulary Card (Flip Card) ---
@@ -106,7 +124,7 @@ const ExpandableVocabularyCard = ({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const toValue = isFlipped ? 0 : 1;
     setIsFlipped(!isFlipped);
-    
+
     Animated.spring(flipAnim, {
       toValue,
       tension: 65,
@@ -118,7 +136,7 @@ const ExpandableVocabularyCard = ({
   const handleAudio = (e: any) => {
     e.stopPropagation();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
+
     // Ưu tiên dùng audioUrl từ BE
     if (item.audioUrl) {
       playAudio(item.audioUrl);
@@ -187,7 +205,7 @@ const ExpandableVocabularyCard = ({
 
   return (
     <View style={{ width: "100%" }}>
-      <View style={{ position: "relative", width: "100%", minHeight: 160 }}>
+      <View style={{ position: "relative", width: "100%", minHeight: 180 }}>
         {/* Front Side */}
         <Animated.View
           style={[
@@ -199,21 +217,22 @@ const ExpandableVocabularyCard = ({
           ]}
           pointerEvents={isFlipped ? "none" : "auto"}
         >
-          <ModernCardExpandable style={{ padding: 16 }}>
+          <ModernCardExpandable style={{ padding: 20 }}>
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-              <View style={{ minHeight: 120 }} className="justify-center">
-                <View className="flex-row justify-between items-center">
-                  <View className="flex-1 items-center">
-                    <ThemedText className="text-3xl font-bold text-indigo-600 text-center">
+              <View style={{ minHeight: 140, justifyContent: "center", paddingVertical: 8 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                  <View style={{ flex: 1, alignItems: "center", paddingRight: 8, minWidth: 0 }}>
+                    <ThemedText style={{ fontSize: 30, fontWeight: "bold", color: "#4f46e5", textAlign: "center", flexShrink: 1 }}>
                       {item.wordJp}
                     </ThemedText>
-                    <ThemedText className="text-lg text-indigo-400 mt-1 font-medium text-center">
+                    <ThemedText style={{ fontSize: 24, color: "#818cf8", marginTop: 6, fontWeight: "500", textAlign: "center", flexShrink: 1 }}>
                       {item.reading}
                     </ThemedText>
                   </View>
                   <TouchableOpacity
                     onPress={handleAudio}
                     className="bg-indigo-100 p-3 rounded-2xl"
+                    style={{ flexShrink: 0 }}
                   >
                     <Headphones size={22} color="#4f46e5" />
                   </TouchableOpacity>
@@ -234,20 +253,25 @@ const ExpandableVocabularyCard = ({
           ]}
           pointerEvents={isFlipped ? "auto" : "none"}
         >
-          <ModernCardExpandable style={{ padding: 16 }}>
+          <ModernCardExpandable style={{ padding: 20 }}>
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-              <View style={{ minHeight: 130 }} className="justify-center items-center">
-                <View className="w-full space-y-2 px-4">
+              <View
+                style={{ minHeight: 140, justifyContent: "center", alignItems: "center", paddingVertical: 8 }}
+              >
+                <View style={{ width: "100%", paddingHorizontal: 16 }}>
                   {meanings.length > 0 ? (
                     meanings.map((m: string, i: number) => (
-                      <View key={i} className="flex-row items-center justify-center">
-                        <ThemedText className="text-base text-gray-800 font-medium text-center flex-1">
+                      <View
+                        key={i}
+                        style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: i < meanings.length - 1 ? 8 : 0 }}
+                      >
+                        <ThemedText style={{ fontSize: 18, color: "#1f2937", fontWeight: "500", textAlign: "center", flex: 1, flexShrink: 1 }}>
                           {m}
                         </ThemedText>
                       </View>
                     ))
                   ) : (
-                    <ThemedText className="text-base text-gray-500 text-center">
+                    <ThemedText style={{ fontSize: 18, color: "#6b7280", textAlign: "center" }}>
                       {t("lessons.no_meaning") || "Không có nghĩa"}
                     </ThemedText>
                   )}
@@ -261,7 +285,7 @@ const ExpandableVocabularyCard = ({
   );
 };
 
-// --- Expandable Grammar Card ---
+// --- Expandable Grammar Card (Flip Card) ---
 const ExpandableGrammarCard = ({
   item,
   index,
@@ -270,67 +294,125 @@ const ExpandableGrammarCard = ({
   index: number;
 }) => {
   const { t } = useTranslation();
-  const [expanded, setExpanded] = useState(false);
-  const heightAnim = useRef(new Animated.Value(0)).current;
+  const [isFlipped, setIsFlipped] = useState(false);
+  const flipAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.timing(heightAnim, {
-      toValue: expanded ? 1 : 0,
-      duration: 300,
-      easing: Easing.out(Easing.ease),
-      useNativeDriver: false,
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const toValue = isFlipped ? 0 : 1;
+    setIsFlipped(!isFlipped);
+
+    Animated.spring(flipAnim, {
+      toValue,
+      tension: 65,
+      friction: 8,
+      useNativeDriver: true,
     }).start();
-  }, [expanded, heightAnim]);
+  };
 
-  const height = heightAnim.interpolate({
+  const frontInterpolate = flipAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 200],
+    outputRange: ["0deg", "180deg"],
   });
 
-  return (
-    <ModernCardExpandable>
-      <TouchableOpacity
-        onPress={() => setExpanded(!expanded)}
-        className="flex-row justify-between items-center"
-      >
-        <ThemedText className="text-lg font-bold text-cyan-700 flex-1 pr-4">
-          {item.title}
-        </ThemedText>
-        <Animated.View
-          style={{
-            transform: [{ rotate: expanded ? "180deg" : "0deg" }],
-          }}
-        >
-          <ChevronLeft
-            size={20}
-            color="#0891b2"
-            style={{ transform: [{ rotate: "270deg" }] }}
-          />
-        </Animated.View>
-      </TouchableOpacity>
+  const backInterpolate = flipAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["180deg", "360deg"],
+  });
 
-      <Animated.View style={{ height, overflow: "hidden" }}>
-        <View className="mt-4 space-y-3">
-          <ThemedText className="text-gray-600 leading-6">
-            {item.description}
-          </ThemedText>
-          {item.usage && (
-            <View className="bg-cyan-50 p-4 rounded-2xl">
-              <ThemedText className="text-sm text-cyan-800">
-                <ThemedText style={{ fontWeight: "bold" }}>
-                  {t("lessons.usage")}:
-                </ThemedText>{" "}
-                {item.usage}
-              </ThemedText>
-            </View>
-          )}
-        </View>
-      </Animated.View>
-    </ModernCardExpandable>
+  const frontOpacity = flipAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [1, 0, 0],
+  });
+
+  const backOpacity = flipAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, 0, 1],
+  });
+
+  const frontAnimatedStyle = {
+    transform: [{ rotateY: frontInterpolate }],
+    opacity: frontOpacity,
+  };
+
+  const backAnimatedStyle = {
+    transform: [{ rotateY: backInterpolate }],
+    opacity: backOpacity,
+  };
+
+  return (
+    <View style={{ width: "100%" }}>
+      <View style={{ position: "relative", width: "100%", minHeight: 180 }}>
+        {/* Front Side */}
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              width: "100%",
+            },
+            frontAnimatedStyle,
+          ]}
+          pointerEvents={isFlipped ? "none" : "auto"}
+        >
+          <ModernCardExpandable style={{ padding: 20 }}>
+            <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+              <View
+                style={{ minHeight: 140, justifyContent: "center", alignItems: "center", paddingVertical: 8 }}
+              >
+                <ThemedText style={{ fontSize: 36, fontWeight: "bold", color: "#0891b2", textAlign: "center", flexShrink: 1, paddingHorizontal: 8 }}>
+                  {item.title}
+                </ThemedText>
+              </View>
+            </TouchableOpacity>
+          </ModernCardExpandable>
+        </Animated.View>
+
+        {/* Back Side */}
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              width: "100%",
+            },
+            backAnimatedStyle,
+          ]}
+          pointerEvents={isFlipped ? "auto" : "none"}
+        >
+          <ModernCardExpandable style={{ padding: 20 }}>
+            <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+              <View style={{ minHeight: 140, justifyContent: "center", paddingVertical: 8 }}>
+                <View style={{ width: "100%", paddingHorizontal: 16 }}>
+                  {item.description && (
+                    <ThemedText style={{ fontSize: 18, color: "#1f2937", fontWeight: "500", textAlign: "center", lineHeight: 28, marginBottom: 12, flexShrink: 1 }}>
+                      {item.description}
+                    </ThemedText>
+                  )}
+                  {item.usage && (
+                    <View className="bg-cyan-50 p-4 rounded-2xl mt-2">
+                      <ThemedText style={{ fontSize: 16, color: "#155e75", textAlign: "center", flexShrink: 1 }}>
+                        <ThemedText style={{ fontWeight: "bold" }}>
+                          {t("lessons.usage")}:
+                        </ThemedText>{" "}
+                        {item.usage}
+                      </ThemedText>
+                    </View>
+                  )}
+                  {!item.description && !item.usage && (
+                    <ThemedText style={{ fontSize: 18, color: "#6b7280", textAlign: "center" }}>
+                      {t("lessons.no_description") || "Không có mô tả"}
+                    </ThemedText>
+                  )}
+                </View>
+              </View>
+            </TouchableOpacity>
+          </ModernCardExpandable>
+        </Animated.View>
+      </View>
+    </View>
   );
 };
 
-// --- Expandable Kanji Card ---
+// --- Expandable Kanji Card (Flip Card) ---
 const ExpandableKanjiCard = ({
   item,
   index,
@@ -341,51 +423,109 @@ const ExpandableKanjiCard = ({
   onWrite?: (char: string) => void;
 }) => {
   const { t } = useTranslation();
+  const [isFlipped, setIsFlipped] = useState(false);
+  const flipAnim = useRef(new Animated.Value(0)).current;
+
   const meaning =
     item.meaning?.split("##")[0] || item.meaning || t("lessons.no_meaning");
 
-  const handleWrite = () => {
-    if (onWrite) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      onWrite(item.character);
-    }
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const toValue = isFlipped ? 0 : 1;
+    setIsFlipped(!isFlipped);
+
+    Animated.spring(flipAnim, {
+      toValue,
+      tension: 65,
+      friction: 8,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const frontInterpolate = flipAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
+  });
+
+  const backInterpolate = flipAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["180deg", "360deg"],
+  });
+
+  const frontOpacity = flipAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [1, 0, 0],
+  });
+
+  const backOpacity = flipAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, 0, 1],
+  });
+
+  const frontAnimatedStyle = {
+    transform: [{ rotateY: frontInterpolate }],
+    opacity: frontOpacity,
+  };
+
+  const backAnimatedStyle = {
+    transform: [{ rotateY: backInterpolate }],
+    opacity: backOpacity,
   };
 
   return (
-    <ModernCardExpandable>
-      <View className="flex-row items-center">
-        <View className="bg-amber-100 rounded-3xl p-6 mr-4">
-          <ThemedText className="text-6xl font-bold text-amber-700">
-            {item.character}
-          </ThemedText>
-        </View>
-        <View className="flex-1">
-          <ThemedText className="text-lg font-bold text-amber-800">
-            {meaning}
-          </ThemedText>
-          {(item.onReading || item.kunReading) && (
-            <ThemedText className="text-sm text-amber-600 mt-1">
-              {item.onReading} • {item.kunReading}
-            </ThemedText>
-          )}
-          <View className="flex-row items-center mt-2">
-            <Sparkles size={14} color="#f59e0b" />
-            <ThemedText className="text-xs text-amber-600 ml-1">
-              {item.strokeCount} {t("lessons.stroke")}
-            </ThemedText>
-          </View>
-        </View>
-        {onWrite && (
-          <TouchableOpacity
-            onPress={handleWrite}
-            className="bg-amber-500 p-4 rounded-2xl shadow-md"
-            activeOpacity={0.8}
-          >
-            <Pencil size={22} color="white" />
-          </TouchableOpacity>
-        )}
+    <View style={{ width: "100%" }}>
+      <View style={{ position: "relative", width: "100%", minHeight: 180 }}>
+        {/* Front Side */}
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              width: "100%",
+            },
+            frontAnimatedStyle,
+          ]}
+          pointerEvents={isFlipped ? "none" : "auto"}
+        >
+          <ModernCardExpandable style={{ padding: 20 }}>
+            <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+              <View
+                style={{ minHeight: 140, justifyContent: "center", alignItems: "center", paddingVertical: 8 }}
+              >
+                <View className="bg-amber-100 rounded-3xl p-8">
+                  <ThemedText style={{ fontSize: 60, fontWeight: "bold", color: "#b45309" }}>
+                    {item.character}
+                  </ThemedText>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </ModernCardExpandable>
+        </Animated.View>
+
+        {/* Back Side */}
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              width: "100%",
+            },
+            backAnimatedStyle,
+          ]}
+          pointerEvents={isFlipped ? "auto" : "none"}
+        >
+          <ModernCardExpandable style={{ padding: 20 }}>
+            <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+              <View style={{ minHeight: 140, justifyContent: "center", alignItems: "center", paddingVertical: 8 }}>
+                <View style={{ width: "100%", paddingHorizontal: 16 }}>
+                  <ThemedText style={{ fontSize: 24, fontWeight: "bold", color: "#92400e", textAlign: "center", flexShrink: 1 }}>
+                    {meaning}
+                  </ThemedText>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </ModernCardExpandable>
+        </Animated.View>
       </View>
-    </ModernCardExpandable>
+    </View>
   );
 };
 
@@ -398,7 +538,7 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
 
   const handleAudio = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
+
     // Ưu tiên dùng audioUrl từ BE
     if (item.audioUrl) {
       playAudio(item.audioUrl);
@@ -437,18 +577,27 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
 
   return (
     <ModernCard>
-      <View className="flex-row justify-between items-start">
-        <View className="flex-1 mr-3">
-          <ThemedText className="text-2xl font-bold text-gray-900 mb-1">
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <View style={{ flex: 1, marginRight: 12, minWidth: 0 }}>
+          <ThemedText 
+            style={{ 
+              fontSize: 30, 
+              fontWeight: "bold", 
+              color: "#111827", 
+              lineHeight: Platform.OS === "android" ? 60 : 58,
+              marginBottom: 8,
+              marginTop: Platform.OS === "android" ? 4 : 2,
+            }}
+          >
             {item.wordJp}
           </ThemedText>
           {item.reading && (
-            <ThemedText className="text-base text-gray-600 mb-2">
+            <ThemedText style={{ fontSize: 18, color: "#4b5563", marginBottom: 8, lineHeight: 24, marginTop: 4 }}>
               {item.reading}
             </ThemedText>
           )}
           {meanings.length > 0 && (
-            <ThemedText className="text-base text-gray-700">
+            <ThemedText style={{ fontSize: 18, color: "#374151", lineHeight: 24 }}>
               {meanings[0]}
             </ThemedText>
           )}
@@ -457,6 +606,7 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
           onPress={handleAudio}
           className="bg-indigo-100 p-3 rounded-2xl"
           activeOpacity={0.7}
+          style={{ marginLeft: 8, flexShrink: 0, alignSelf: "flex-start", marginTop: 4 }}
         >
           <Headphones size={22} color="#4f46e5" />
         </TouchableOpacity>
@@ -471,18 +621,18 @@ const GrammarListCard = ({ item, index }: { item: any; index: number }) => {
 
   return (
     <ModernCard>
-      <View className="flex-1">
-        <ThemedText className="text-xl font-bold text-cyan-700 mb-2">
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <ThemedText style={{ fontSize: 24, fontWeight: "bold", color: "#0891b2", marginBottom: 8, flexShrink: 1 }}>
           {item.title}
         </ThemedText>
         {item.description && (
-          <ThemedText className="text-base text-gray-700 mb-2">
+          <ThemedText style={{ fontSize: 18, color: "#374151", marginBottom: 8, flexShrink: 1 }}>
             {item.description}
           </ThemedText>
         )}
         {item.usage && (
           <View className="bg-cyan-50 p-3 rounded-xl mt-2">
-            <ThemedText className="text-sm text-cyan-800">
+            <ThemedText style={{ fontSize: 16, color: "#155e75", flexShrink: 1 }}>
               <ThemedText style={{ fontWeight: "bold" }}>
                 {t("lessons.usage")}:
               </ThemedText>{" "}
@@ -500,60 +650,73 @@ const KanjiListCard = ({
   item,
   index,
   onWrite,
+  onPress,
 }: {
   item: any;
   index: number;
   onWrite?: (char: string) => void;
+  onPress?: () => void;
 }) => {
   const { t } = useTranslation();
 
   const meaning =
     item.meaning?.split("##")[0] || item.meaning || t("lessons.no_meaning");
 
-  const handleWrite = () => {
+  const handleWrite = (e: any) => {
+    e.stopPropagation();
     if (onWrite) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       onWrite(item.character);
     }
   };
 
+  const handleCardPress = () => {
+    if (onPress) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      onPress();
+    }
+  };
+
   return (
-    <ModernCard>
-      <View className="flex-row items-center">
-        <View className="bg-amber-100 rounded-2xl p-4 mr-3">
-          <ThemedText className="text-5xl font-bold text-amber-700">
-            {item.character}
-          </ThemedText>
-        </View>
-        <View className="flex-1">
-          <ThemedText className="text-lg font-bold text-amber-800 mb-1">
-            {meaning}
-          </ThemedText>
-          {(item.onReading || item.kunReading) && (
-            <ThemedText className="text-sm text-amber-600 mb-1">
-              {item.onReading} • {item.kunReading}
+    <TouchableOpacity onPress={handleCardPress} activeOpacity={0.7}>
+      <ModernCard>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View className="bg-amber-100 rounded-2xl p-4 mr-3" style={{ flexShrink: 0 }}>
+            <ThemedText style={{ fontSize: 60, fontWeight: "bold", color: "#b45309" }}>
+              {item.character}
             </ThemedText>
-          )}
-          {item.strokeCount && (
-            <View className="flex-row items-center mt-1">
-              <Sparkles size={14} color="#f59e0b" />
-              <ThemedText className="text-xs text-amber-600 ml-1">
-                {item.strokeCount} {t("lessons.stroke")}
+          </View>
+          <View style={{ flex: 1, minWidth: 0, marginRight: 8 }}>
+            <ThemedText style={{ fontSize: 20, fontWeight: "bold", color: "#92400e", marginBottom: 4, flexShrink: 1 }}>
+              {meaning}
+            </ThemedText>
+            {(item.onReading || item.kunReading) && (
+              <ThemedText style={{ fontSize: 16, color: "#d97706", marginBottom: 4, flexShrink: 1 }}>
+                {item.onReading} • {item.kunReading}
               </ThemedText>
-            </View>
+            )}
+            {item.strokeCount && (
+              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}>
+                <Sparkles size={14} color="#f59e0b" />
+                <ThemedText style={{ fontSize: 14, color: "#d97706", marginLeft: 4, flexShrink: 1 }}>
+                  {item.strokeCount} {t("lessons.stroke")}
+                </ThemedText>
+              </View>
+            )}
+          </View>
+          {onWrite && (
+            <TouchableOpacity
+              onPress={handleWrite}
+              className="bg-amber-500 p-3 rounded-xl shadow-md"
+              activeOpacity={0.8}
+              style={{ flexShrink: 0, marginLeft: 8 }}
+            >
+              <Pencil size={18} color="white" />
+            </TouchableOpacity>
           )}
         </View>
-        {onWrite && (
-          <TouchableOpacity
-            onPress={handleWrite}
-            className="bg-amber-500 p-3 rounded-xl shadow-md ml-2"
-            activeOpacity={0.8}
-          >
-            <Pencil size={18} color="white" />
-          </TouchableOpacity>
-        )}
-      </View>
-    </ModernCard>
+      </ModernCard>
+    </TouchableOpacity>
   );
 };
 
@@ -572,8 +735,18 @@ const VocabularyListScreen = () => {
   const [showKanjiWriterModal, setShowKanjiWriterModal] = useState(false);
   const [selectedKanji, setSelectedKanji] = useState<string>("");
 
+  // State for Kanji Explanation Modal
+  const [showKanjiExplanationModal, setShowKanjiExplanationModal] =
+    useState(false);
+  const [selectedKanjiItem, setSelectedKanjiItem] = useState<any>(null);
+
   // Ref for horizontal scroll view
   const horizontalScrollRef = useRef<ScrollView>(null);
+
+  // State for progress tracking
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [progressContainerWidth, setProgressContainerWidth] = useState(0);
+  const progressAnim = useRef(new Animated.Value(0)).current;
 
   // Determine content type: vocabulary (default), grammar, or kanji
   const contentTypeValue = contentType || "vocabulary";
@@ -602,7 +775,7 @@ const VocabularyListScreen = () => {
   const screenCenterOffset = (width - cardWidth) / 2;
   const parentPadding = 24;
   const horizontalPadding = screenCenterOffset - parentPadding;
-  
+
   // Calculate snap offsets - each card snaps to its position
   // Offset accounts for card width and spacing between cards
   const snapOffsets = contentData.map((_, index) => {
@@ -616,24 +789,24 @@ const VocabularyListScreen = () => {
       contentTypeValue === "grammar"
         ? "Ngữ pháp"
         : contentTypeValue === "kanji"
-        ? "Kanji"
-        : "Từ vựng";
+          ? "Kanji"
+          : "Từ vựng";
 
     switch (activityType) {
       case "learn":
         return contentTypeValue === "grammar"
           ? "Học ngữ pháp"
           : contentTypeValue === "kanji"
-          ? "Học Kanji"
-          : "Học từ mới";
+            ? "Học Kanji"
+            : "Học từ mới";
       case "match":
         return "Trò chơi ghép thẻ";
       case "test":
         return contentTypeValue === "grammar"
           ? "Kiểm tra ngữ pháp"
           : contentTypeValue === "kanji"
-          ? "Kiểm tra Kanji"
-          : "Kiểm tra từ mới";
+            ? "Kiểm tra Kanji"
+            : "Kiểm tra từ mới";
       case "reflex":
         return "Luyện phản xạ";
       default:
@@ -676,6 +849,82 @@ const VocabularyListScreen = () => {
     setSelectedKanji("");
   };
 
+  // Handle Kanji explanation
+  const handleShowKanjiExplanation = (item: any) => {
+    setSelectedKanjiItem(item);
+    setShowKanjiExplanationModal(true);
+  };
+
+  const handleCloseKanjiExplanation = () => {
+    setShowKanjiExplanationModal(false);
+    setSelectedKanjiItem(null);
+  };
+
+  // Reset progress when content data changes
+  useEffect(() => {
+    setCurrentCardIndex(0);
+    progressAnim.setValue(0);
+  }, [contentTypeValue, contentData.length, progressAnim]);
+
+  // Handle scroll to update current card index
+  const handleScroll = (event: any) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    // Find the closest snap offset
+    let closestIndex = 0;
+    let minDistance = Infinity;
+
+    snapOffsets.forEach((offset, index) => {
+      const distance = Math.abs(scrollPosition - offset);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = index;
+      }
+    });
+
+    setCurrentCardIndex(closestIndex);
+  };
+
+  // Handle scroll end to update current index after snap
+  const handleScrollEnd = (event: any) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    let closestIndex = 0;
+    let minDistance = Infinity;
+
+    snapOffsets.forEach((offset, index) => {
+      const distance = Math.abs(scrollPosition - offset);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = index;
+      }
+    });
+
+    setCurrentCardIndex(closestIndex);
+  };
+
+  // Animate progress bar width when the active card changes
+  useEffect(() => {
+    if (progressContainerWidth === 0 || contentData.length === 0) {
+      progressAnim.setValue(0);
+      return;
+    }
+
+    const totalItems = contentData.length;
+    const targetWidth =
+      ((currentCardIndex + 1) / totalItems) * progressContainerWidth;
+
+    Animated.timing(progressAnim, {
+      toValue: targetWidth,
+      duration: 280,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: false,
+    }).start();
+  }, [
+    currentCardIndex,
+    contentData.length,
+    progressContainerWidth,
+    progressAnim,
+  ]);
+
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-white">
@@ -701,7 +950,7 @@ const VocabularyListScreen = () => {
             <ChevronLeft size={24} color="#6b7280" />
           </TouchableOpacity>
           <View style={{ flex: 1, alignItems: "center" }}>
-            <ThemedText className="text-xl font-bold text-gray-800">
+            <ThemedText style={{ fontSize: 20, fontWeight: "bold", color: "#1f2937" }}>
               {getActivityTitle()}
             </ThemedText>
           </View>
@@ -711,7 +960,7 @@ const VocabularyListScreen = () => {
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="p-6 pb-32">
             {/* === EXPANDABLE CONTENT CARDS (Horizontal Scroll) === */}
-            <View className="mb-8">
+            <View className="mb-4">
               <ScrollView
                 ref={horizontalScrollRef}
                 horizontal
@@ -724,11 +973,14 @@ const VocabularyListScreen = () => {
                   paddingRight: horizontalPadding,
                 }}
                 pagingEnabled={false}
+                onScroll={handleScroll}
+                onMomentumScrollEnd={handleScrollEnd}
+                scrollEventThrottle={16}
               >
                 {contentData.map((item: any, i: number) => (
-                  <View 
-                    key={i} 
-                    style={{ 
+                  <View
+                    key={i}
+                    style={{
                       width: cardWidth,
                       marginRight: i < contentData.length - 1 ? cardSpacing : 0,
                     }}
@@ -747,11 +999,55 @@ const VocabularyListScreen = () => {
                   </View>
                 ))}
               </ScrollView>
+
+              {/* Progress Bar */}
+              {contentData.length > 0 && (
+                <View
+                  className="items-center justify-center mt-6 mb-4"
+                  style={{ paddingHorizontal: 24 }}
+                >
+                  <View
+                    style={{
+                      width: "100%",
+                      maxWidth: width - 48,
+                      height: 4,
+                      borderRadius: 999,
+                      backgroundColor: "rgba(126, 214, 255, 0.35)",
+                      overflow: "hidden",
+                    }}
+                    onLayout={(event) => {
+                      const newWidth = event.nativeEvent.layout.width;
+                      if (newWidth !== progressContainerWidth) {
+                        setProgressContainerWidth(newWidth);
+                      }
+                    }}
+                  >
+                    <Animated.View
+                      style={{
+                        height: "100%",
+                        width: progressAnim,
+                        borderRadius: 999,
+                        overflow: "hidden",
+                      }}
+                    >
+                      <LinearGradient
+                        colors={["#3ce7ff", "#1fa5ff"]}
+                        start={{ x: 0, y: 0.5 }}
+                        end={{ x: 1, y: 0.5 }}
+                        style={{ flex: 1 }}
+                      />
+                    </Animated.View>
+                  </View>
+                </View>
+              )}
             </View>
 
             {/* === ACTIVITY BLOCKS === */}
             <View className="mb-6">
-              <View className="flex-row flex-wrap justify-between" style={{ gap: 12 }}>
+              <View
+                className="flex-row flex-wrap justify-between"
+                style={{ gap: 12 }}
+              >
                 {/* Học từ mới - Top Left */}
                 <TouchableOpacity
                   onPress={() => {
@@ -779,40 +1075,11 @@ const VocabularyListScreen = () => {
                         backgroundColor: "#BAE6FD",
                       }}
                     >
-                      <ThemedText className="text-4xl">🏴‍☠️</ThemedText>
+                      <ThemedText style={{ fontSize: 36 }}>🏴‍☠️</ThemedText>
                     </View>
                   </View>
-                  <ThemedText className="text-center text-base font-bold text-blue-800">
+                  <ThemedText style={{ textAlign: "center", fontSize: 16, fontWeight: "bold", color: "#1e40af" }}>
                     Học từ mới
-                  </ThemedText>
-                </TouchableOpacity>
-
-                {/* Trò chơi ghép thẻ - Top Right */}
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    router.setParams({ activityType: "match" });
-                  }}
-                  className="rounded-3xl p-6 shadow-lg"
-                  style={{
-                    width: (width - 48 - 12) / 2,
-                    backgroundColor: "#D1FAE5",
-                  }}
-                >
-                  <View className="items-center mb-3">
-                    <View
-                      className="rounded-full items-center justify-center"
-                      style={{
-                        width: 80,
-                        height: 80,
-                        backgroundColor: "#A7F3D0",
-                      }}
-                    >
-                      <ThemedText className="text-4xl">🧳</ThemedText>
-                    </View>
-                  </View>
-                  <ThemedText className="text-center text-base font-bold text-green-800">
-                    Trò chơi ghép thẻ
                   </ThemedText>
                 </TouchableOpacity>
 
@@ -837,40 +1104,11 @@ const VocabularyListScreen = () => {
                         backgroundColor: "#FDE68A",
                       }}
                     >
-                      <ThemedText className="text-4xl">🥷</ThemedText>
+                      <ThemedText style={{ fontSize: 36 }}>🥷</ThemedText>
                     </View>
                   </View>
-                  <ThemedText className="text-center text-base font-bold text-amber-800">
+                  <ThemedText style={{ textAlign: "center", fontSize: 16, fontWeight: "bold", color: "#92400e" }}>
                     Kiểm tra từ mới
-                  </ThemedText>
-                </TouchableOpacity>
-
-                {/* Luyện phản xạ - Bottom Right */}
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    router.setParams({ activityType: "reflex" });
-                  }}
-                  className="rounded-3xl p-6 shadow-lg"
-                  style={{
-                    width: (width - 48 - 12) / 2,
-                    backgroundColor: "#FCE7F3",
-                  }}
-                >
-                  <View className="items-center mb-3">
-                    <View
-                      className="rounded-full items-center justify-center"
-                      style={{
-                        width: 80,
-                        height: 80,
-                        backgroundColor: "#FBCFE8",
-                      }}
-                    >
-                      <ThemedText className="text-4xl">⚡</ThemedText>
-                    </View>
-                  </View>
-                  <ThemedText className="text-center text-base font-bold text-pink-800">
-                    Luyện phản xạ
                   </ThemedText>
                 </TouchableOpacity>
               </View>
@@ -884,7 +1122,7 @@ const VocabularyListScreen = () => {
                   backgroundColor: "#FCD34D",
                 }}
               >
-                <ThemedText className="text-lg font-bold text-white">
+                <ThemedText style={{ fontSize: 18, fontWeight: "bold", color: "#ffffff" }}>
                   {getBannerText()}
                 </ThemedText>
               </View>
@@ -893,7 +1131,7 @@ const VocabularyListScreen = () => {
             {/* === CONTENT LIST === */}
             {contentData.length === 0 ? (
               <View className="items-center justify-center py-20">
-                <ThemedText className="text-gray-500 text-lg">
+                <ThemedText style={{ color: "#6b7280", fontSize: 18 }}>
                   {getEmptyMessage()}
                 </ThemedText>
               </View>
@@ -910,6 +1148,7 @@ const VocabularyListScreen = () => {
                       item={item}
                       index={i}
                       onWrite={handleWriteKanji}
+                      onPress={() => handleShowKanjiExplanation(item)}
                     />
                   );
                 }
@@ -930,7 +1169,7 @@ const VocabularyListScreen = () => {
             <View className="flex-1">
               {/* Modal Header */}
               <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-200">
-                <ThemedText className="text-xl font-bold text-gray-800">
+                <ThemedText style={{ fontSize: 20, fontWeight: "bold", color: "#1f2937" }}>
                   {t("lessons.practice_writing") || "Luyện viết Kanji"}
                 </ThemedText>
                 <TouchableOpacity
@@ -961,9 +1200,7 @@ const VocabularyListScreen = () => {
                       );
                     }}
                     onCorrectStroke={() => {
-                      Haptics.impactAsync(
-                        Haptics.ImpactFeedbackStyle.Light
-                      );
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     }}
                     onMistake={() => {
                       Haptics.notificationAsync(
@@ -976,10 +1213,171 @@ const VocabularyListScreen = () => {
             </View>
           </SafeAreaView>
         </Modal>
+
+        {/* Kanji Explanation Modal */}
+        <Modal
+          visible={showKanjiExplanationModal}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={handleCloseKanjiExplanation}
+        >
+          <SafeAreaView className="flex-1 bg-gray-50">
+            <View className="flex-1">
+              {/* Modal Header */}
+              <View
+                className="bg-white border-b border-gray-100 px-6 py-5 flex-row items-center justify-between"
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 4,
+                  elevation: 3,
+                }}
+              >
+                <ThemedText style={{ fontSize: 24, fontWeight: "bold", color: "#111827" }}>
+                  {t("lessons.kanji_explanation") || "Giải thích Kanji"}
+                </ThemedText>
+                <TouchableOpacity
+                  onPress={handleCloseKanjiExplanation}
+                  className="p-2 rounded-full bg-gray-100 active:bg-gray-200"
+                  activeOpacity={0.7}
+                >
+                  <X size={22} color="#6b7280" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Kanji Explanation Content */}
+              <ScrollView
+                className="flex-1"
+                contentContainerStyle={{
+                  padding: 20,
+                  paddingBottom: 40,
+                }}
+                showsVerticalScrollIndicator={false}
+              >
+                {selectedKanjiItem && (
+                  <View className="space-y-6">
+                    {/* Kanji Character */}
+                    <View className="items-center justify-center py-6">
+                      <LinearGradient
+                        colors={["#FEF3C7", "#FDE68A"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{
+                          borderRadius: 24,
+                          padding: 48,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          shadowColor: "#f59e0b",
+                          shadowOffset: { width: 0, height: 8 },
+                          shadowOpacity: 0.2,
+                          shadowRadius: 20,
+                          elevation: 8,
+                          minWidth: 180,
+                          minHeight: 180,
+                        }}
+                      >
+                        <ThemedText
+                          style={{ fontSize: 96, fontWeight: "bold", color: "#b45309" }}
+                        >
+                          {selectedKanjiItem.character}
+                        </ThemedText>
+                      </LinearGradient>
+                    </View>
+
+                    {/* Kanji Image */}
+                    {(selectedKanjiItem.imageUrl ||
+                      selectedKanjiItem.image ||
+                      selectedKanjiItem.imgUrl) && (
+                      <View className="items-center justify-center">
+                        <View
+                          style={{
+                            borderRadius: 20,
+                            overflow: "hidden",
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.1,
+                            shadowRadius: 12,
+                            elevation: 6,
+                            backgroundColor: "#fff",
+                            padding: 8,
+                          }}
+                        >
+                          <Image
+                            source={{
+                              uri:
+                                selectedKanjiItem.imageUrl ||
+                                selectedKanjiItem.image ||
+                                selectedKanjiItem.imgUrl ||
+                                "",
+                            }}
+                            style={{
+                              width: width - 80,
+                              height: (width - 80) * 0.6,
+                              borderRadius: 16,
+                            }}
+                            contentFit="cover"
+                            transition={200}
+                          />
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Explanation Meaning */}
+                    {selectedKanjiItem.explanationMeaning &&
+                      (() => {
+                        const sections = selectedKanjiItem.explanationMeaning
+                          .split("##")
+                          .map((s: string) => s.trim())
+                          .filter((s: string) => s.length > 0);
+                        return (
+                          <View
+                            className="bg-white rounded-3xl"
+                            style={{
+                              shadowColor: "#000",
+                              shadowOffset: { width: 0, height: 4 },
+                              shadowOpacity: 0.08,
+                              shadowRadius: 12,
+                              elevation: 5,
+                              overflow: "hidden",
+                            }}
+                          >
+                            <View style={{ padding: 24 }}>
+                              {sections.map(
+                                (section: string, index: number) => (
+                                  <View
+                                    key={index}
+                                    style={{
+                                      marginBottom:
+                                        index < sections.length - 1 ? 20 : 0,
+                                    }}
+                                  >
+                                    <ThemedText
+                                      style={{
+                                        color: "#1f2937",
+                                        fontSize: 16,
+                                        lineHeight: 28,
+                                        letterSpacing: 0.2,
+                                      }}
+                                    >
+                                      {section}
+                                    </ThemedText>
+                                  </View>
+                                )
+                              )}
+                            </View>
+                          </View>
+                        );
+                      })()}
+                  </View>
+                )}
+              </ScrollView>
+            </View>
+          </SafeAreaView>
+        </Modal>
       </LinearGradient>
     </SafeAreaView>
   );
 };
 
 export default VocabularyListScreen;
-
