@@ -9,9 +9,9 @@ import { router, useLocalSearchParams } from "expo-router";
 import * as Speech from "expo-speech";
 import {
   ChevronLeft,
-  Headphones,
   Pencil,
   Sparkles,
+  Volume2,
   X,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
@@ -60,6 +60,8 @@ const ModernCardExpandable = ({ children, style }: any) => (
         shadowRadius: 20,
         elevation: 10,
         minHeight: 220,
+        borderWidth: 4,
+        borderColor: "#FCD34D",
       },
       style,
     ]}
@@ -70,7 +72,7 @@ const ModernCardExpandable = ({ children, style }: any) => (
 
 // --- Modern Card Component (for list vocabulary) ---
 const ModernCard = ({ children, style }: any) => (
-  <View style={{ marginBottom: 12, padding: 2 }}>
+  <View style={{ marginBottom: 8, padding: 2 }}>
     <Animated.View
       className="bg-white shadow-lg"
       style={[
@@ -90,11 +92,11 @@ const ModernCard = ({ children, style }: any) => (
         style={{
           borderRadius: 12,
           backgroundColor: "#ffffff",
-          paddingTop: Platform.OS === "android" ? 30 : 26,
-          paddingBottom: 20,
+          paddingTop: Platform.OS === "android" ? 18 : 16,
+          paddingBottom: 16,
           paddingLeft: 16,
           paddingRight: 16,
-          minHeight: 165,
+          minHeight: 120,
         }}
       >
         {children}
@@ -217,27 +219,30 @@ const ExpandableVocabularyCard = ({
           ]}
           pointerEvents={isFlipped ? "none" : "auto"}
         >
-          <ModernCardExpandable style={{ paddingTop: 24, paddingBottom: 24, paddingHorizontal: 20 }}>
+          <ModernCardExpandable style={{ paddingTop: 24, paddingBottom: 24, paddingHorizontal: 20, position: 'relative' }}>
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-              <View style={{ minHeight: 150, justifyContent: "center", paddingVertical: 12 }}>
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                  <View style={{ flex: 1, alignItems: "center", paddingRight: 8, minWidth: 0 }}>
-                    <ThemedText style={{ fontSize: 30, fontWeight: "bold", color: "#4f46e5", textAlign: "center", flexShrink: 1, lineHeight: 38 }}>
-                      {item.wordJp}
-                    </ThemedText>
-                    <ThemedText style={{ fontSize: 24, color: "#818cf8", marginTop: 6, fontWeight: "500", textAlign: "center", flexShrink: 1 }}>
-                      {item.reading}
-                    </ThemedText>
-                  </View>
-                  <TouchableOpacity
-                    onPress={handleAudio}
-                    className="bg-indigo-100 p-3 rounded-2xl"
-                    style={{ flexShrink: 0 }}
-                  >
-                    <Headphones size={22} color="#4f46e5" />
-                  </TouchableOpacity>
+              <View style={{ minHeight: 150, justifyContent: "center", alignItems: "center", paddingVertical: 12, width: '100%' }}>
+                <View style={{ alignItems: "center", width: '100%' }}>
+                  <ThemedText style={{ fontSize: 30, fontWeight: "bold", color: "#4f46e5", textAlign: "center", flexShrink: 1, lineHeight: 38 }}>
+                    {item.wordJp}
+                  </ThemedText>
+                  <ThemedText style={{ fontSize: 24, color: "#818cf8", marginTop: 6, fontWeight: "500", textAlign: "center", flexShrink: 1 }}>
+                    {item.reading}
+                  </ThemedText>
                 </View>
               </View>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={handleAudio}
+              className="bg-indigo-100 p-2 rounded-xl"
+              style={{ 
+                position: 'absolute',
+                bottom: 16,
+                right: 16,
+              }}
+            >
+              <Volume2 size={16} color="#4f46e5" />
             </TouchableOpacity>
           </ModernCardExpandable>
         </Animated.View>
@@ -577,38 +582,39 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
 
   return (
     <ModernCard>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", minHeight: 80 }}>
         <View style={{ flex: 1, marginRight: 12, minWidth: 0 }}>
-          <ThemedText 
-            style={{ 
-              fontSize: 30, 
-              fontWeight: "bold", 
-              color: "#111827", 
-              lineHeight: Platform.OS === "android" ? 60 : 58,
-              marginBottom: 8,
-              marginTop: Platform.OS === "android" ? 4 : 2,
-            }}
-          >
-            {item.wordJp}
-          </ThemedText>
-          {item.reading && (
-            <ThemedText style={{ fontSize: 18, color: "#4b5563", marginBottom: 8, lineHeight: 24, marginTop: 4 }}>
-              {item.reading}
+          <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", marginBottom: 6 }}>
+            <ThemedText 
+              style={{ 
+                fontSize: 26, 
+                fontWeight: "bold", 
+                color: "#111827", 
+                lineHeight: Platform.OS === "android" ? 52 : 50,
+                marginTop: Platform.OS === "android" ? 2 : 0,
+              }}
+            >
+              {item.wordJp}
             </ThemedText>
-          )}
+            {item.reading && (
+              <ThemedText style={{ fontSize: 16, color: "#4b5563", marginLeft: 10, lineHeight: 22, marginTop: Platform.OS === "android" ? 2 : 0 }}>
+                ({item.reading})
+              </ThemedText>
+            )}
+          </View>
           {meanings.length > 0 && (
-            <ThemedText style={{ fontSize: 18, color: "#374151", lineHeight: 24 }}>
+            <ThemedText style={{ fontSize: 16, color: "#374151", lineHeight: 22 }}>
               {meanings[0]}
             </ThemedText>
           )}
         </View>
         <TouchableOpacity
           onPress={handleAudio}
-          className="bg-indigo-100 p-3 rounded-2xl"
+          className="bg-indigo-100 rounded-2xl"
           activeOpacity={0.7}
-          style={{ marginLeft: 8, flexShrink: 0, alignSelf: "flex-start", marginTop: 4 }}
+          style={{ marginLeft: 8, flexShrink: 0, alignSelf: "flex-start", marginTop: 2, padding: 12 }}
         >
-          <Headphones size={22} color="#4f46e5" />
+          <Volume2 size={20} color="#4f46e5" />
         </TouchableOpacity>
       </View>
     </ModernCard>
@@ -680,25 +686,25 @@ const KanjiListCard = ({
   return (
     <TouchableOpacity onPress={handleCardPress} activeOpacity={0.7}>
       <ModernCard>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View className="bg-amber-100 rounded-2xl p-4 mr-3" style={{ flexShrink: 0 }}>
-            <ThemedText style={{ fontSize: 60, fontWeight: "bold", color: "#b45309" }}>
+        <View style={{ flexDirection: "row", alignItems: "center", minHeight: 90 }}>
+          <View className="bg-amber-100 rounded-2xl mr-3" style={{ flexShrink: 0, paddingVertical: 12, paddingHorizontal: 16 }}>
+            <ThemedText style={{ fontSize: 52, fontWeight: "bold", color: "#b45309", lineHeight: 62 }}>
               {item.character}
             </ThemedText>
           </View>
-          <View style={{ flex: 1, minWidth: 0, marginRight: 8 }}>
-            <ThemedText style={{ fontSize: 20, fontWeight: "bold", color: "#92400e", marginBottom: 4, flexShrink: 1 }}>
+          <View style={{ flex: 1, minWidth: 0, marginRight: 8, paddingVertical: 4 }}>
+            <ThemedText style={{ fontSize: 18, fontWeight: "bold", color: "#92400e", marginBottom: 6, flexShrink: 1, lineHeight: 24 }}>
               {meaning}
             </ThemedText>
             {(item.onReading || item.kunReading) && (
-              <ThemedText style={{ fontSize: 16, color: "#d97706", marginBottom: 4, flexShrink: 1 }}>
+              <ThemedText style={{ fontSize: 14, color: "#d97706", marginBottom: 4, flexShrink: 1, lineHeight: 20 }}>
                 {item.onReading} • {item.kunReading}
               </ThemedText>
             )}
             {item.strokeCount && (
-              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}>
-                <Sparkles size={14} color="#f59e0b" />
-                <ThemedText style={{ fontSize: 14, color: "#d97706", marginLeft: 4, flexShrink: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 2 }}>
+                <Sparkles size={12} color="#f59e0b" />
+                <ThemedText style={{ fontSize: 13, color: "#d97706", marginLeft: 4, flexShrink: 1, lineHeight: 18 }}>
                   {item.strokeCount} {t("lessons.stroke")}
                 </ThemedText>
               </View>
@@ -707,11 +713,11 @@ const KanjiListCard = ({
           {onWrite && (
             <TouchableOpacity
               onPress={handleWrite}
-              className="bg-amber-500 p-3 rounded-xl shadow-md"
+              className="bg-amber-500 rounded-xl shadow-md"
               activeOpacity={0.8}
-              style={{ flexShrink: 0, marginLeft: 8 }}
+              style={{ flexShrink: 0, marginLeft: 8, padding: 12 }}
             >
-              <Pencil size={18} color="white" />
+              <Pencil size={20} color="white" />
             </TouchableOpacity>
           )}
         </View>
