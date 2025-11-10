@@ -1,10 +1,11 @@
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
+import useAuth from "@hooks/useAuth";
+import { useMatchingStore } from "@stores/matching/matching.config";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useMemo } from "react";
 import { Image, ImageBackground, StyleSheet, View } from "react-native";
-import { useMatchingStore } from "@stores/matching/matching.config";
 
 export default function BattleResultScreen() {
     const router = useRouter();
@@ -12,38 +13,96 @@ export default function BattleResultScreen() {
     const matchIdParam = params.matchId as string | undefined;
     const lastResult = useMatchingStore((s) => (s as any).lastMatchResult);
     const clearLast = useMatchingStore((s) => (s as any).clearLastMatchResult);
+    const { user } = useAuth();
+    const currentUserId = user?.data?.id as number | undefined;
 
-    const { player, opponent, playerTotal, opponentTotal, winnerId, playerName, opponentName } = useMemo(() => {
-        const res: any = {
-            player: null,
-            opponent: null,
-            playerTotal: 0,
-            opponentTotal: 0,
+    const {
+        me,
+        foe,
+        meTotal,
+        foeTotal,
+        meName,
+        foeName,
+        meAvatarUrl,
+        foeAvatarUrl,
+        winnerId,
+        eloDeltaText,
+        eloDeltaPositive,
+        roundDetails,
+    } = useMemo(() => {
+        const result: any = {
+            me: null,
+            foe: null,
+            meTotal: 0,
+            foeTotal: 0,
+            meName: "Bạn",
+            foeName: "Đối thủ",
+            meAvatarUrl: null,
+            foeAvatarUrl: null,
             winnerId: lastResult?.match?.winnerId ?? null,
-            playerName: "Bạn",
-            opponentName: "Đối thủ",
+            eloDeltaText: "",
+            eloDeltaPositive: true,
+            roundDetails: [] as Array<{ label: string; me: number; foe: number; winnerUserId?: number | null }>,
         };
-        if (!lastResult?.match || !lastResult?.rounds) return res;
+        if (!lastResult?.match || !lastResult?.rounds) return result;
 
-        // Identify users from participants (top-level participants in match)
         const participants = lastResult.match.participants || [];
-        // Try to detect current user by comparing matchIdParam with store currentMatchId is not enough; fallback order of participants
-        const [p1, p2] = participants;
-        res.player = p1;
-        res.opponent = p2;
-        res.playerName = p1?.user?.name || p1?.user?.email || "Người chơi 1";
-        res.opponentName = p2?.user?.name || p2?.user?.email || "Người chơi 2";
+        const meP = participants.find((p: any) => p.userId === currentUserId) || participants[0];
+        const foeP = participants.find((p: any) => p.userId !== meP?.userId) || participants[1];
+        result.me = meP;
+        result.foe = foeP;
+        result.meName = meP?.user?.name || meP?.user?.email || "Bạn";
+        result.foeName = foeP?.user?.name || foeP?.user?.email || "Đối thủ";
 
-        // Sum points from rounds.participants where matchParticipantId matches p1.id or p2.id
-        for (const r of lastResult.rounds) {
+        // Pick last selected pokémon avatars if available in last round snapshot-like data (if provided)
+        // Otherwise show nothing; UI still works
+        try {
+            // try to find most recent selectedUserPokemon per side
+            const allRoundParticipants = (lastResult.rounds || []).flatMap((r: any) => r.participants || []);
+            const meRps = allRoundParticipants.filter((rp: any) => rp.matchParticipantId === meP?.id);
+            const foeRps = allRoundParticipants.filter((rp: any) => rp.matchParticipantId === foeP?.id);
+            const meLast = meRps[meRps.length - 1];
+            const foeLast = foeRps[foeRps.length - 1];
+            result.meAvatarUrl = meLast?.selectedUserPokemon?.pokemon?.imageUrl || null;
+            result.foeAvatarUrl = foeLast?.selectedUserPokemon?.pokemon?.imageUrl || null;
+        } catch { /* noop */ }
+
+        // Sum points for each side
+        const roundOrder = (rn: string) => rn === "ONE" ? 1 : rn === "TWO" ? 2 : rn === "THREE" ? 3 : 999;
+        const roundsSorted = [...(lastResult.rounds || [])].sort((a: any, b: any) => roundOrder(a.roundNumber) - roundOrder(b.roundNumber));
+        for (const r of roundsSorted) {
+            let mePts = 0;
+            let foePts = 0;
             for (const rp of r.participants || []) {
-                if (rp.matchParticipantId === p1?.id) res.playerTotal += rp.points || 0;
-                if (rp.matchParticipantId === p2?.id) res.opponentTotal += rp.points || 0;
+                if (rp.matchParticipantId === meP?.id) {
+                    const pts = rp.points || 0;
+                    result.meTotal += pts;
+                    mePts += pts;
+                }
+                if (rp.matchParticipantId === foeP?.id) {
+                    const pts = rp.points || 0;
+                    result.foeTotal += pts;
+                    foePts += pts;
+                }
             }
+            result.roundDetails.push({
+                label: r.roundNumber === "ONE" ? "Round 1" : r.roundNumber === "TWO" ? "Round 2" : r.roundNumber === "THREE" ? "Round 3" : r.roundNumber || "Round",
+                me: mePts,
+                foe: foePts,
+                winnerUserId: r.roundWinner?.userId ?? null,
+            });
         }
 
-        return res;
-    }, [lastResult, matchIdParam]);
+        // Compute own ELO delta: show ONLY my ELO change
+        const gained = lastResult?.match?.eloGained ?? 0;
+        const lost = lastResult?.match?.eloLost ?? 0;
+        const iWon = result.winnerId !== null && meP?.userId === result.winnerId;
+        const delta = iWon ? gained : -lost;
+        result.eloDeltaText = `${delta >= 0 ? "+" : ""}${delta} ELO`;
+        result.eloDeltaPositive = delta >= 0;
+
+        return result;
+    }, [lastResult, currentUserId, matchIdParam]);
 
     const handleBack = () => {
         try { clearLast(); } catch { }
@@ -65,8 +124,8 @@ export default function BattleResultScreen() {
                 />
 
                 <View className="px-5 pt-16 pb-6">
-                    <View className="items-center mb-4">
-                        <ThemedText style={{ color: "#fbbf24", fontSize: 20, fontWeight: "800" }}>
+                    <View className="items-center mb-5">
+                        <ThemedText style={{ color: "#fbbf24", fontSize: 22, fontWeight: "900" }}>
                             KẾT QUẢ TRẬN ĐẤU
                         </ThemedText>
                         <ThemedText style={{ color: "#94a3b8", fontSize: 12, marginTop: 4 }}>
@@ -74,74 +133,143 @@ export default function BattleResultScreen() {
                         </ThemedText>
                     </View>
 
-                    <View className="bg-black/40 rounded-2xl p-6">
-                        {/* Opponent block */}
-                        <View className="flex-row items-center justify-between mb-4">
-                            <View className="flex-row items-center">
-                                {lastResult?.opponent?.selectedUserPokemon?.pokemon?.imageUrl ? (
-                                    <Image
-                                        source={{ uri: lastResult.opponent.selectedUserPokemon.pokemon.imageUrl }}
-                                        style={{ width: 48, height: 48 }}
-                                        resizeMode="contain"
-                                    />
-                                ) : null}
-                                <View className="ml-3">
-                                    <ThemedText style={{ color: "#e5e7eb", fontWeight: "700", fontSize: 16 }}>
-                                        {opponentName}
-                                    </ThemedText>
-                                    <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>
-                                        Tổng điểm
-                                    </ThemedText>
-                                </View>
-                            </View>
-                            <ThemedText style={{ color: "#ef4444", fontSize: 24, fontWeight: "900" }}>
-                                {opponentTotal}
-                            </ThemedText>
-                        </View>
-
-                        <View style={{ height: 1, backgroundColor: "rgba(255,255,255,0.08)", marginVertical: 8 }} />
-
-                        {/* Player block */}
-                        <View className="flex-row items-center justify-between mt-2">
-                            <View className="flex-row items-center">
-                                {lastResult?.participant?.selectedUserPokemon?.pokemon?.imageUrl ? (
-                                    <Image
-                                        source={{ uri: lastResult.participant.selectedUserPokemon.pokemon.imageUrl }}
-                                        style={{ width: 48, height: 48 }}
-                                        resizeMode="contain"
-                                    />
-                                ) : null}
-                                <View className="ml-3">
-                                    <ThemedText style={{ color: "#e5e7eb", fontWeight: "700", fontSize: 16 }}>
-                                        {playerName}
-                                    </ThemedText>
-                                    <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>
-                                        Tổng điểm
-                                    </ThemedText>
-                                </View>
-                            </View>
-                            <ThemedText style={{ color: "#22c55e", fontSize: 24, fontWeight: "900" }}>
-                                {playerTotal}
-                            </ThemedText>
-                        </View>
-
-                        <View className="items-center mt-6">
+                    {/* Two columns style like MOBA result */}
+                    <View className="flex-row gap-4">
+                        {/* Left: Opponent */}
+                        <View className="flex-1">
                             <TWLinearGradient
-                                colors={winnerId && lastResult?.match?.participants?.find((p: any) => p.userId === winnerId) ? ["#22c55e", "#16a34a"] : ["#64748b", "#475569"]}
+                                colors={["#ef4444", "#b91c1c"]}
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 1, y: 1 }}
-                                style={{ paddingVertical: 12, paddingHorizontal: 24, borderRadius: 999 }}
+                                style={{ padding: 2, borderRadius: 16 }}
                             >
-                                <ThemedText style={{ color: "#ffffff", fontWeight: "800" }}>
-                                    {winnerId ? "Kết thúc trận đấu" : "Tổng kết"}
-                                </ThemedText>
+                                <View className="bg-black/50 rounded-xl p-4">
+                                    <View className="flex-row items-center">
+                                        {foeAvatarUrl ? (
+                                            <Image source={{ uri: foeAvatarUrl }} style={{ width: 52, height: 52 }} resizeMode="contain" />
+                                        ) : (
+                                            <View style={{ width: 52, height: 52 }} />
+                                        )}
+                                        <View className="ml-3">
+                                            <ThemedText style={{ color: "#e5e7eb", fontWeight: "800", fontSize: 16 }}>
+                                                {foeName}
+                                            </ThemedText>
+                                            <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>
+                                                Tổng điểm
+                                            </ThemedText>
+                                        </View>
+                                    </View>
+                                    <View className="items-end mt-3">
+                                        <ThemedText style={{ color: "#ef9a9a", fontSize: 24, fontWeight: "900" }}>
+                                            {foeTotal}
+                                        </ThemedText>
+                                    </View>
+                                </View>
                             </TWLinearGradient>
+                        </View>
 
-                            <View className="mt-3">
-                                <ThemedText onPress={handleBack} style={{ color: "#93c5fd", fontSize: 14, textDecorationLine: "underline" }}>
-                                    Về trang chính
-                                </ThemedText>
-                            </View>
+                        {/* Right: Me */}
+                        <View className="flex-1">
+                            <TWLinearGradient
+                                colors={["#22c55e", "#16a34a"]}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={{ padding: 2, borderRadius: 16 }}
+                            >
+                                <View className="bg-black/50 rounded-xl p-4">
+                                    <View className="flex-row items-center">
+                                        {meAvatarUrl ? (
+                                            <Image source={{ uri: meAvatarUrl }} style={{ width: 52, height: 52 }} resizeMode="contain" />
+                                        ) : (
+                                            <View style={{ width: 52, height: 52 }} />
+                                        )}
+                                        <View className="ml-3">
+                                            <ThemedText style={{ color: "#e5e7eb", fontWeight: "800", fontSize: 16 }}>
+                                                {meName}
+                                            </ThemedText>
+                                            <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>
+                                                Tổng điểm
+                                            </ThemedText>
+                                        </View>
+                                    </View>
+                                    <View className="items-end mt-2">
+                                        <ThemedText style={{ color: "#86efac", fontSize: 24, fontWeight: "900" }}>
+                                            {meTotal}
+                                        </ThemedText>
+                                    </View>
+                                    {/* Show ONLY my ELO change */}
+                                    <View className="mt-2 items-end">
+                                        <View className={`px-3 py-1 rounded-full ${eloDeltaPositive ? "bg-green-500/20 border border-green-500/40" : "bg-red-500/20 border border-red-500/40"}`}>
+                                            <ThemedText style={{ color: eloDeltaPositive ? "#86efac" : "#fca5a5", fontWeight: "800" }}>
+                                                {eloDeltaText}
+                                            </ThemedText>
+                                        </View>
+                                    </View>
+                                </View>
+                            </TWLinearGradient>
+                        </View>
+                    </View>
+
+                    {/* Per-round breakdown */}
+                    <View className="mt-6 bg-black/40 rounded-2xl p-6">
+                        <ThemedText style={{ color: "#e5e7eb", fontWeight: "800", fontSize: 16, marginBottom: 8 }}>
+                            Chi tiết từng round
+                        </ThemedText>
+                        {roundDetails.map((rd, idx) => {
+                            const meWin = rd.winnerUserId !== undefined && rd.winnerUserId !== null && me?.userId === rd.winnerUserId;
+                            const foeWin = rd.winnerUserId !== undefined && rd.winnerUserId !== null && foe?.userId === rd.winnerUserId;
+                            return (
+                                <View key={idx} className="mb-3">
+                                    <View className="flex-row items-center justify-between">
+                                        <ThemedText style={{ color: "#94a3b8", fontSize: 12, fontWeight: "700" }}>
+                                            {rd.label}
+                                        </ThemedText>
+                                        <View className="flex-row items-center gap-3">
+                                            <ThemedText style={{ color: meWin ? "#86efac" : "#e5e7eb", fontWeight: "800" }}>
+                                                {meName}: {rd.me}
+                                            </ThemedText>
+                                            <ThemedText style={{ color: "#64748b" }}>|</ThemedText>
+                                            <ThemedText style={{ color: foeWin ? "#fca5a5" : "#e5e7eb", fontWeight: "800" }}>
+                                                {foeName}: {rd.foe}
+                                            </ThemedText>
+                                        </View>
+                                    </View>
+                                    {/* Small dual progress bar to visualize round points */}
+                                    <View style={{ height: 8 }} className="mt-2 rounded-full overflow-hidden bg-white/10">
+                                        {(() => {
+                                            const total = Math.max(1, rd.me + rd.foe);
+                                            const mePct = Math.round((rd.me / total) * 100);
+                                            const foePct = 100 - mePct;
+                                            return (
+                                                <View style={{ flexDirection: "row", width: "100%", height: "100%" }}>
+                                                    <View style={{ width: `${mePct}%`, backgroundColor: "#22c55e" }} />
+                                                    <View style={{ width: `${foePct}%`, backgroundColor: "#ef4444" }} />
+                                                </View>
+                                            );
+                                        })()}
+                                    </View>
+                                </View>
+                            );
+                        })}
+                    </View>
+
+                    {/* Footer actions */}
+                    <View className="items-center mt-8">
+                        <TWLinearGradient
+                            colors={winnerId ? ["#06b6d4", "#3b82f6"] : ["#64748b", "#475569"]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={{ paddingVertical: 12, paddingHorizontal: 24, borderRadius: 999 }}
+                        >
+                            <ThemedText style={{ color: "#ffffff", fontWeight: "800" }}>
+                                {winnerId ? "Kết thúc trận đấu" : "Tổng kết"}
+                            </ThemedText>
+                        </TWLinearGradient>
+
+                        <View className="mt-3">
+                            <ThemedText onPress={handleBack} style={{ color: "#93c5fd", fontSize: 14, textDecorationLine: "underline" }}>
+                                Về trang chính
+                            </ThemedText>
                         </View>
                     </View>
                 </View>

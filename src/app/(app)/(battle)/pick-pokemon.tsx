@@ -109,16 +109,25 @@ export default function PickPokemonScreen() {
             (r) => r.status === "SELECTING_POKEMON"
         );
 
-        // Nếu không tìm thấy, thì tìm vòng PENDING *đầu tiên* (lặp từ 0 tăng lên)
+        // Nếu không tìm thấy (ví dụ: tất cả đều PENDING hoặc COMPLETED)
         if (currentRoundIndex === -1) {
-            currentRoundIndex = matchRound.rounds.findIndex(
+            // Tìm vòng PENDING *cuối cùng* (newest) bằng cách dùng findLastIndex
+            // Cần import 'lodash' hoặc dùng polyfill cho findLastIndex nếu cần
+            // Cách đơn giản không cần import:
+            const reversedRounds = [...matchRound.rounds].reverse();
+            const lastPendingReversedIndex = reversedRounds.findIndex(
                 (r) => r.status === "PENDING"
             );
+
+            if (lastPendingReversedIndex !== -1) {
+                // Chuyển đổi index ngược về index gốc
+                currentRoundIndex = matchRound.rounds.length - 1 - lastPendingReversedIndex;
+            }
         }
         //#endregion
 
 
-        const safeCurrentRoundIndex = currentRoundIndex === -1 ? 0 : currentRoundIndex;
+        const safeCurrentRoundIndex = currentRoundIndex === -1 ? 0 : currentRoundIndex; // Giữ nguyên fallback an toàn
 
         // Determine turn based on orderSelected and whether already selected
         const currentRound = matchRound.rounds[safeCurrentRoundIndex];
@@ -202,17 +211,32 @@ export default function PickPokemonScreen() {
 
         const pickDeadline = (() => {
             if (currentRound?.status === "SELECTING_POKEMON" || currentRound?.status === "PENDING") {
-                let deadline = validateDeadline(currentPlayer?.endTimeSelected);
-                if (deadline) return deadline;
+                let activeDeadline: string | null = null;
 
-                deadline = validateDeadline(currentOpponent?.endTimeSelected);
-                if (deadline) return deadline;
+                // Ưu tiên 1: Lấy deadline của người đang pick
+                if (currentPicker === "player") {
+                    activeDeadline = validateDeadline(currentPlayer?.endTimeSelected);
+                } else if (currentPicker === "opponent") {
+                    activeDeadline = validateDeadline(currentOpponent?.endTimeSelected);
+                }
 
+                // Nếu có deadline của người đang pick, trả về nó
+                if (activeDeadline) return activeDeadline;
+
+                // Ưu tiên 2: Nếu không ai đang pick (ví dụ cả hai đã pick, chờ round)
+                // Lấy deadline của round (nếu có)
                 const roundDeadline = validateDeadline(currentRound?.endTimeRound);
                 if (roundDeadline) return roundDeadline;
 
-                return null;
+                // Fallback: Nếu vẫn không có, thử lấy deadline (chưa hết hạn) của bất kỳ ai
+                let fallbackDeadline = validateDeadline(currentPlayer?.endTimeSelected);
+                if (fallbackDeadline) return fallbackDeadline;
+
+                fallbackDeadline = validateDeadline(currentOpponent?.endTimeSelected);
+                if (fallbackDeadline) return fallbackDeadline;
             }
+
+            // Không tìm thấy deadline nào hợp lệ
             return null;
         })();
 
@@ -568,6 +592,7 @@ export default function PickPokemonScreen() {
         const socket = getSocket("matching", accessToken);
 
         socket.on("select-pokemon", (payload: any) => {
+            console.log("select-pokemon", payload);
             if (payload?.matchId && payload.matchId.toString() === matchId.toString()) {
                 if (payload?.data) {
                     queryClient.setQueryData(['list-match-round'], (oldData: any) => {
