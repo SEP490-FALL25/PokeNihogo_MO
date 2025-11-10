@@ -1115,46 +1115,120 @@ const VocabularyListScreen = () => {
             </View>
 
             {/* === BANNER === */}
-            <View className="mb-6">
+            <View className="mb-2" style={{ zIndex: 10, width: '85%', alignSelf: 'center' }}>
+              {/* Lớp ngoài */}
               <View
-                className="rounded-2xl py-4 px-6 items-center"
-                style={{
-                  backgroundColor: "#FCD34D",
-                }}
               >
-                <ThemedText style={{ fontSize: 18, fontWeight: "bold", color: "#ffffff" }}>
-                  {getBannerText()}
-                </ThemedText>
+                {/* Ốc vít bên trái */}
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: 30,
+                    top: '70%',
+                    transform: [{ translateY: -20 }],
+                    width: 20,
+                    height: 20,
+                    borderRadius: 20,
+                    backgroundColor: '#F5E6B3',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 22,
+                      height: 4,
+                      backgroundColor: '#FCD34D',
+                      transform: [{ rotate: '45deg' }],
+                    }}
+                  />
+                </View>
+                
+                {/* Ốc vít bên phải */}
+                <View
+                  style={{
+                    position: 'absolute',
+                    right: 30,
+                    top: '70%',
+                    transform: [{ translateY: -20 }],
+                    width: 20,
+                    height: 20,
+                    borderRadius: 20,
+                    backgroundColor: '#F5E6B3',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex:10
+                  }}
+                >
+               <View
+                    style={{
+                      width: 22,
+                      height: 4,
+                      backgroundColor: '#FCD34D',
+                      transform: [{ rotate: '45deg' }],
+                    }}
+                  />
+                </View>
+
+                {/* Lớp trong */}
+                <View
+                  style={{
+                    borderTopLeftRadius: 24,
+                    borderTopRightRadius: 24,
+                    borderBottomLeftRadius: 6,
+                    borderBottomRightRadius: 6,
+                    backgroundColor: "#FCD34D",
+                    paddingVertical: 13,
+                    paddingHorizontal: 24,
+                    alignItems: "center",
+                  }}
+                >
+                  <ThemedText style={{ fontSize: 18, fontWeight: "bold", color: "#ffffff" }}>
+                    {getBannerText()}
+                  </ThemedText>
+                </View>
               </View>
             </View>
 
             {/* === CONTENT LIST === */}
-            {contentData.length === 0 ? (
-              <View className="items-center justify-center py-20">
-                <ThemedText style={{ color: "#6b7280", fontSize: 18 }}>
-                  {getEmptyMessage()}
-                </ThemedText>
-              </View>
-            ) : (
-              contentData.map((item: any, i: number) => {
-                if (contentTypeValue === "vocabulary") {
-                  return <VocabularyCard key={i} item={item} index={i} />;
-                } else if (contentTypeValue === "grammar") {
-                  return <GrammarListCard key={i} item={item} index={i} />;
-                } else if (contentTypeValue === "kanji") {
-                  return (
-                    <KanjiListCard
-                      key={i}
-                      item={item}
-                      index={i}
-                      onWrite={handleWriteKanji}
-                      onPress={() => handleShowKanjiExplanation(item)}
-                    />
-                  );
-                }
-                return null;
-              })
-            )}
+            <View
+              className="rounded-3xl p-4"
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.3)",
+                borderWidth: 4,
+                borderColor: "rgba(255, 255, 255, 0.5)",
+                marginTop: -30,
+                paddingTop: 40,
+              }}
+            >
+              {contentData.length === 0 ? (
+                <View className="items-center justify-center py-20">
+                  <ThemedText style={{ color: "#6b7280", fontSize: 18 }}>
+                    {getEmptyMessage()}
+                  </ThemedText>
+                </View>
+              ) : (
+                contentData.map((item: any, i: number) => {
+                  if (contentTypeValue === "vocabulary") {
+                    return <VocabularyCard key={i} item={item} index={i} />;
+                  } else if (contentTypeValue === "grammar") {
+                    return <GrammarListCard key={i} item={item} index={i} />;
+                  } else if (contentTypeValue === "kanji") {
+                    return (
+                      <KanjiListCard
+                        key={i}
+                        item={item}
+                        index={i}
+                        onWrite={handleWriteKanji}
+                        onPress={() => handleShowKanjiExplanation(item)}
+                      />
+                    );
+                  }
+                  return null;
+                })
+              )}
+            </View>
           </View>
         </ScrollView>
 
