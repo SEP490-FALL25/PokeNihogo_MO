@@ -59,7 +59,7 @@ const ModernCardExpandable = ({ children, style }: any) => (
         shadowOpacity: 0.08,
         shadowRadius: 20,
         elevation: 10,
-        minHeight: 160,
+        minHeight: 200,
       },
       style,
     ]}
@@ -205,7 +205,7 @@ const ExpandableVocabularyCard = ({
 
   return (
     <View style={{ width: "100%" }}>
-      <View style={{ position: "relative", width: "100%", minHeight: 180 }}>
+      <View style={{ position: "relative", width: "100%", minHeight: 220 }}>
         {/* Front Side */}
         <Animated.View
           style={[
@@ -256,22 +256,22 @@ const ExpandableVocabularyCard = ({
           <ModernCardExpandable style={{ padding: 20 }}>
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
               <View
-                style={{ minHeight: 140, justifyContent: "center", alignItems: "center", paddingVertical: 8 }}
+                style={{ minHeight: 180, justifyContent: "center", alignItems: "center", paddingVertical: 16 }}
               >
                 <View style={{ width: "100%", paddingHorizontal: 16 }}>
                   {meanings.length > 0 ? (
                     meanings.map((m: string, i: number) => (
                       <View
                         key={i}
-                        style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: i < meanings.length - 1 ? 8 : 0 }}
+                        style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: i < meanings.length - 1 ? 16 : 0 }}
                       >
-                        <ThemedText style={{ fontSize: 18, color: "#1f2937", fontWeight: "500", textAlign: "center", flex: 1, flexShrink: 1 }}>
+                        <ThemedText style={{ fontSize: 30, color: "#1f2937", fontWeight: "600", textAlign: "center", flex: 1, flexShrink: 1, lineHeight: 44 }}>
                           {m}
                         </ThemedText>
                       </View>
                     ))
                   ) : (
-                    <ThemedText style={{ fontSize: 18, color: "#6b7280", textAlign: "center" }}>
+                    <ThemedText style={{ fontSize: 30, color: "#6b7280", textAlign: "center", lineHeight: 44 }}>
                       {t("lessons.no_meaning") || "Không có nghĩa"}
                     </ThemedText>
                   )}
@@ -342,7 +342,7 @@ const ExpandableGrammarCard = ({
 
   return (
     <View style={{ width: "100%" }}>
-      <View style={{ position: "relative", width: "100%", minHeight: 180 }}>
+      <View style={{ position: "relative", width: "100%", minHeight: 220 }}>
         {/* Front Side */}
         <Animated.View
           style={[
@@ -380,16 +380,16 @@ const ExpandableGrammarCard = ({
         >
           <ModernCardExpandable style={{ padding: 20 }}>
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-              <View style={{ minHeight: 140, justifyContent: "center", paddingVertical: 8 }}>
+              <View style={{ minHeight: 180, justifyContent: "center", paddingVertical: 16 }}>
                 <View style={{ width: "100%", paddingHorizontal: 16 }}>
                   {item.description && (
-                    <ThemedText style={{ fontSize: 18, color: "#1f2937", fontWeight: "500", textAlign: "center", lineHeight: 28, marginBottom: 12, flexShrink: 1 }}>
+                    <ThemedText style={{ fontSize: 28, color: "#1f2937", fontWeight: "600", textAlign: "center", lineHeight: 42, marginBottom: 20, flexShrink: 1 }}>
                       {item.description}
                     </ThemedText>
                   )}
                   {item.usage && (
-                    <View className="bg-cyan-50 p-4 rounded-2xl mt-2">
-                      <ThemedText style={{ fontSize: 16, color: "#155e75", textAlign: "center", flexShrink: 1 }}>
+                    <View className="bg-cyan-50 p-6 rounded-2xl mt-4">
+                      <ThemedText style={{ fontSize: 24, color: "#155e75", textAlign: "center", flexShrink: 1, lineHeight: 36 }}>
                         <ThemedText style={{ fontWeight: "bold" }}>
                           {t("lessons.usage")}:
                         </ThemedText>{" "}
@@ -398,7 +398,7 @@ const ExpandableGrammarCard = ({
                     </View>
                   )}
                   {!item.description && !item.usage && (
-                    <ThemedText style={{ fontSize: 18, color: "#6b7280", textAlign: "center" }}>
+                    <ThemedText style={{ fontSize: 28, color: "#6b7280", textAlign: "center", lineHeight: 42 }}>
                       {t("lessons.no_description") || "Không có mô tả"}
                     </ThemedText>
                   )}
@@ -474,7 +474,7 @@ const ExpandableKanjiCard = ({
 
   return (
     <View style={{ width: "100%" }}>
-      <View style={{ position: "relative", width: "100%", minHeight: 180 }}>
+      <View style={{ position: "relative", width: "100%", minHeight: 220 }}>
         {/* Front Side */}
         <Animated.View
           style={[
@@ -514,9 +514,9 @@ const ExpandableKanjiCard = ({
         >
           <ModernCardExpandable style={{ padding: 20 }}>
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-              <View style={{ minHeight: 140, justifyContent: "center", alignItems: "center", paddingVertical: 8 }}>
+              <View style={{ minHeight: 180, justifyContent: "center", alignItems: "center", paddingVertical: 16 }}>
                 <View style={{ width: "100%", paddingHorizontal: 16 }}>
-                  <ThemedText style={{ fontSize: 24, fontWeight: "bold", color: "#92400e", textAlign: "center", flexShrink: 1 }}>
+                  <ThemedText style={{ fontSize: 40, fontWeight: "bold", color: "#92400e", textAlign: "center", flexShrink: 1, lineHeight: 52 }}>
                     {meaning}
                   </ThemedText>
                 </View>
