@@ -39,6 +39,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     const currentUserId = user?.data?.id as number | undefined;
     const accessToken = useAuthStore((s) => s.accessToken);
     const setCurrentMatchId = useMatchingStore((s) => s.setCurrentMatchId);
+    const setLastMatchResult = useMatchingStore((s) => s.setLastMatchResult);
 
     // Get match round data
     const { data: matchRound, isLoading: isLoadingMatchRound } = useListMatchRound() as {
@@ -643,12 +644,27 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 eloGained,
                 eloLost,
             });
+            // Save result payload to store and navigate to result screen
+            try {
+                setLastMatchResult(payload);
+            } catch (e) {
+                console.warn("Failed to set last match result", e);
+            }
             setBattleComplete(true);
             if (payload?.playerScore !== undefined) {
                 setPlayerScore(payload.playerScore);
             }
             if (payload?.opponentScore !== undefined) {
                 setOpponentScore(payload.opponentScore);
+            }
+            // Navigate to result route
+            try {
+                router.replace({
+                    pathname: "/(app)/(battle)/result",
+                    params: { matchId: String(payload?.matchId || payload?.match?.id || matchId) },
+                } as any);
+            } catch (e) {
+                console.warn("Navigation to result screen failed", e);
             }
         });
 
