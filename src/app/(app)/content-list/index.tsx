@@ -5,6 +5,7 @@ import { Audio } from "expo-av";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
+import * as Speech from "expo-speech";
 import {
   ChevronLeft,
   Headphones,
@@ -84,7 +85,7 @@ const ModernCard = ({ children, style }: any) => (
   </Animated.View>
 );
 
-// --- Expandable Vocabulary Card (from lesson-details) ---
+// --- Expandable Vocabulary Card (Flip Card) ---
 const ExpandableVocabularyCard = ({
   item,
   index,
@@ -93,8 +94,9 @@ const ExpandableVocabularyCard = ({
   index: number;
 }) => {
   const { t } = useTranslation();
-  const [showMeaning, setShowMeaning] = useState(false);
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const flipAnim = useRef(new Animated.Value(0)).current;
 
   const meanings = (item.meanings || [])
     .map((m: any) => (typeof m === "string" ? m : m.meaning || m.text || ""))
@@ -102,62 +104,160 @@ const ExpandableVocabularyCard = ({
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scaleAnim, {
-      toValue: 0.95,
+    const toValue = isFlipped ? 0 : 1;
+    setIsFlipped(!isFlipped);
+    
+    Animated.spring(flipAnim, {
+      toValue,
+      tension: 65,
+      friction: 8,
       useNativeDriver: true,
-    }).start(() => {
-      Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
-      setShowMeaning(!showMeaning);
-    });
+    }).start();
+  };
+
+  const handleAudio = (e: any) => {
+    e.stopPropagation();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    // Ưu tiên dùng audioUrl từ BE
+    if (item.audioUrl) {
+      playAudio(item.audioUrl);
+    } else {
+      // Nếu không có audioUrl thì dùng text-to-speech
+      const textToSpeak = item.wordJp || item.reading || "";
+      if (textToSpeak) {
+        if (isSpeaking) {
+          Speech.stop();
+          setIsSpeaking(false);
+        } else {
+          setIsSpeaking(true);
+          Speech.speak(textToSpeak, {
+            language: "ja-JP",
+            onDone: () => {
+              setIsSpeaking(false);
+            },
+            onStopped: () => {
+              setIsSpeaking(false);
+            },
+            onError: () => {
+              setIsSpeaking(false);
+            },
+          });
+        }
+      }
+    }
+  };
+
+  // Cleanup speech when component unmounts
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
+
+  const frontInterpolate = flipAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
+  });
+
+  const backInterpolate = flipAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["180deg", "360deg"],
+  });
+
+  const frontOpacity = flipAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [1, 0, 0],
+  });
+
+  const backOpacity = flipAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, 0, 1],
+  });
+
+  const frontAnimatedStyle = {
+    transform: [{ rotateY: frontInterpolate }],
+    opacity: frontOpacity,
+  };
+
+  const backAnimatedStyle = {
+    transform: [{ rotateY: backInterpolate }],
+    opacity: backOpacity,
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-      <ModernCardExpandable style={{ marginHorizontal: 4 }}>
-        <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-          <View className="flex-row justify-between items-start mb-3">
-            <View>
-              <ThemedText className="text-3xl font-bold text-indigo-600">
-                {item.wordJp}
-              </ThemedText>
-              <ThemedText className="text-lg text-indigo-400 mt-1 font-medium">
-                {item.reading}
-              </ThemedText>
-            </View>
-            <TouchableOpacity
-              onPress={(e) => {
-                e.stopPropagation();
-                if (item.audioUrl) {
-                  playAudio(item.audioUrl);
-                }
-              }}
-              className="bg-indigo-100 p-3 rounded-2xl"
-            >
-              <Headphones size={22} color="#4f46e5" />
-            </TouchableOpacity>
-          </View>
-
-          {showMeaning && (
-            <Animated.View className="mt-3 space-y-1">
-              {meanings.map((m: string, i: number) => (
-                <View key={i} className="flex-row items-center">
-                  <View className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-2" />
-                  <ThemedText className="text-gray-700 flex-1">{m}</ThemedText>
+    <View style={{ width: "100%" }}>
+      <View style={{ position: "relative", width: "100%", minHeight: 160 }}>
+        {/* Front Side */}
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              width: "100%",
+            },
+            frontAnimatedStyle,
+          ]}
+          pointerEvents={isFlipped ? "none" : "auto"}
+        >
+          <ModernCardExpandable style={{ padding: 16 }}>
+            <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+              <View style={{ minHeight: 120 }} className="justify-center">
+                <View className="flex-row justify-between items-center">
+                  <View className="flex-1 items-center">
+                    <ThemedText className="text-3xl font-bold text-indigo-600 text-center">
+                      {item.wordJp}
+                    </ThemedText>
+                    <ThemedText className="text-lg text-indigo-400 mt-1 font-medium text-center">
+                      {item.reading}
+                    </ThemedText>
+                  </View>
+                  <TouchableOpacity
+                    onPress={handleAudio}
+                    className="bg-indigo-100 p-3 rounded-2xl"
+                  >
+                    <Headphones size={22} color="#4f46e5" />
+                  </TouchableOpacity>
                 </View>
-              ))}
-            </Animated.View>
-          )}
+              </View>
+            </TouchableOpacity>
+          </ModernCardExpandable>
+        </Animated.View>
 
-          <View className="mt-4 items-center">
-            <ThemedText className="text-xs text-gray-400">
-              {showMeaning
-                ? t("lessons.hide_meaning")
-                : t("lessons.press_to_see_meaning")}
-            </ThemedText>
-          </View>
-        </TouchableOpacity>
-      </ModernCardExpandable>
-    </Animated.View>
+        {/* Back Side */}
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              width: "100%",
+            },
+            backAnimatedStyle,
+          ]}
+          pointerEvents={isFlipped ? "auto" : "none"}
+        >
+          <ModernCardExpandable style={{ padding: 16 }}>
+            <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+              <View style={{ minHeight: 130 }} className="justify-center items-center">
+                <View className="w-full space-y-2 px-4">
+                  {meanings.length > 0 ? (
+                    meanings.map((m: string, i: number) => (
+                      <View key={i} className="flex-row items-center justify-center">
+                        <ThemedText className="text-base text-gray-800 font-medium text-center flex-1">
+                          {m}
+                        </ThemedText>
+                      </View>
+                    ))
+                  ) : (
+                    <ThemedText className="text-base text-gray-500 text-center">
+                      {t("lessons.no_meaning") || "Không có nghĩa"}
+                    </ThemedText>
+                  )}
+                </View>
+              </View>
+            </TouchableOpacity>
+          </ModernCardExpandable>
+        </Animated.View>
+      </View>
+    </View>
   );
 };
 
@@ -188,7 +288,7 @@ const ExpandableGrammarCard = ({
   });
 
   return (
-    <ModernCardExpandable style={{ marginHorizontal: 4 }}>
+    <ModernCardExpandable>
       <TouchableOpacity
         onPress={() => setExpanded(!expanded)}
         className="flex-row justify-between items-center"
@@ -252,7 +352,7 @@ const ExpandableKanjiCard = ({
   };
 
   return (
-    <ModernCardExpandable style={{ marginHorizontal: 4 }}>
+    <ModernCardExpandable>
       <View className="flex-row items-center">
         <View className="bg-amber-100 rounded-3xl p-6 mr-4">
           <ThemedText className="text-6xl font-bold text-amber-700">
@@ -294,13 +394,46 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
   const meanings = (item.meanings || [])
     .map((m: any) => (typeof m === "string" ? m : m.meaning || m.text || ""))
     .filter(Boolean);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const handleAudio = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    // Ưu tiên dùng audioUrl từ BE
     if (item.audioUrl) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       playAudio(item.audioUrl);
+    } else {
+      // Nếu không có audioUrl thì dùng text-to-speech
+      const textToSpeak = item.wordJp || item.reading || "";
+      if (textToSpeak) {
+        if (isSpeaking) {
+          Speech.stop();
+          setIsSpeaking(false);
+        } else {
+          setIsSpeaking(true);
+          Speech.speak(textToSpeak, {
+            language: "ja-JP",
+            onDone: () => {
+              setIsSpeaking(false);
+            },
+            onStopped: () => {
+              setIsSpeaking(false);
+            },
+            onError: () => {
+              setIsSpeaking(false);
+            },
+          });
+        }
+      }
     }
   };
+
+  // Cleanup speech when component unmounts
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
 
   return (
     <ModernCard>
@@ -320,23 +453,13 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
             </ThemedText>
           )}
         </View>
-        {item.audioUrl && (
-          <TouchableOpacity
-            onPress={handleAudio}
-            className="bg-purple-100 p-2 rounded-full"
-            activeOpacity={0.7}
-          >
-            <View className="items-center justify-center">
-              <ThemedText className="text-xs text-purple-700 font-bold mb-0.5">
-                Riki
-              </ThemedText>
-              <ThemedText className="text-xs text-purple-700 font-bold mb-0.5">
-                AI
-              </ThemedText>
-              <Headphones size={12} color="#7C3AED" />
-            </View>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          onPress={handleAudio}
+          className="bg-indigo-100 p-3 rounded-2xl"
+          activeOpacity={0.7}
+        >
+          <Headphones size={22} color="#4f46e5" />
+        </TouchableOpacity>
       </View>
     </ModernCard>
   );
@@ -449,6 +572,9 @@ const VocabularyListScreen = () => {
   const [showKanjiWriterModal, setShowKanjiWriterModal] = useState(false);
   const [selectedKanji, setSelectedKanji] = useState<string>("");
 
+  // Ref for horizontal scroll view
+  const horizontalScrollRef = useRef<ScrollView>(null);
+
   // Determine content type: vocabulary (default), grammar, or kanji
   const contentTypeValue = contentType || "vocabulary";
 
@@ -465,6 +591,24 @@ const VocabularyListScreen = () => {
   };
 
   const contentData: any[] = getContentData();
+
+  // Calculate card width and padding for centering
+  const cardSpacing = 22; // Spacing between cards
+  const cardWidth = width - 80;
+  // Parent View has p-6 (24px padding each side)
+  // To center card on screen: card should be at (width - cardWidth) / 2 from screen left
+  // ScrollView content starts at parent padding (24px), so we need to adjust
+  // Padding in ScrollView = (screen center position) - (parent padding)
+  const screenCenterOffset = (width - cardWidth) / 2;
+  const parentPadding = 24;
+  const horizontalPadding = screenCenterOffset - parentPadding;
+  
+  // Calculate snap offsets - each card snaps to its position
+  // Offset accounts for card width and spacing between cards
+  const snapOffsets = contentData.map((_, index) => {
+    // Each card is spaced by cardWidth + cardSpacing (except spacing after last card)
+    return index * (cardWidth + cardSpacing);
+  });
 
   // Get activity type title
   const getActivityTitle = () => {
@@ -569,12 +713,26 @@ const VocabularyListScreen = () => {
             {/* === EXPANDABLE CONTENT CARDS (Horizontal Scroll) === */}
             <View className="mb-8">
               <ScrollView
+                ref={horizontalScrollRef}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 className="flex-row rounded-3xl"
+                {...(snapOffsets.length > 0 && { snapToOffsets: snapOffsets })}
+                decelerationRate="fast"
+                contentContainerStyle={{
+                  paddingLeft: horizontalPadding,
+                  paddingRight: horizontalPadding,
+                }}
+                pagingEnabled={false}
               >
                 {contentData.map((item: any, i: number) => (
-                  <View key={i} style={{ width: width - 80 }}>
+                  <View 
+                    key={i} 
+                    style={{ 
+                      width: cardWidth,
+                      marginRight: i < contentData.length - 1 ? cardSpacing : 0,
+                    }}
+                  >
                     {contentTypeValue === "grammar" ? (
                       <ExpandableGrammarCard item={item} index={i} />
                     ) : contentTypeValue === "kanji" ? (
@@ -598,8 +756,13 @@ const VocabularyListScreen = () => {
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.selectionAsync();
-                    // Navigate to same screen with different activity type
-                    router.setParams({ activityType: "learn" });
+                    router.push({
+                      pathname: "/(app)/content-list/flashcard",
+                      params: {
+                        id,
+                        contentType: contentTypeValue,
+                      },
+                    });
                   }}
                   className="rounded-3xl p-6 shadow-lg"
                   style={{
