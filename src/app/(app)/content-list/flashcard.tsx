@@ -466,7 +466,9 @@ const VocabularyFlashcardScreen = () => {
               }}
             >
               {/* Stack các card phía sau */}
-              {previewIndices.map((cardIndex) => renderCard(cardIndex, 0, false))}
+              {previewIndices.map((cardIndex, arrayIndex) =>
+                renderCard(cardIndex, arrayIndex + 1, false)
+              )}
 
               {/* Card hiện tại (có thể tương tác) */}
               <Animated.View
