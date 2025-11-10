@@ -30,6 +30,9 @@ const VocabularyFlashcardScreen = () => {
   const { data: lessonData } = useLesson(id || "");
 
   const contentTypeValue = (contentType as string) || "vocabulary";
+  const isVocabulary = contentTypeValue === "vocabulary";
+  const isGrammar = contentTypeValue === "grammar";
+  const isKanji = contentTypeValue === "kanji";
 
   const deck = useMemo(() => {
     const lesson: any = lessonData?.data || {};
@@ -193,10 +196,15 @@ const VocabularyFlashcardScreen = () => {
   const reviewedCount = Math.min(currentIndex, totalCount);
 
   const progress = totalCount === 0 ? 0 : (reviewedCount / totalCount) * 100;
-  const progressLabel = useMemo(
-    () => `${reviewedCount}/${totalCount} thẻ đã xem`,
-    [reviewedCount, totalCount]
-  );
+  const progressLabel = useMemo(() => {
+    const labelMap: Record<string, string> = {
+      vocabulary: "thẻ từ vựng đã xem",
+      grammar: "thẻ ngữ pháp đã xem",
+      kanji: "thẻ Kanji đã xem",
+    };
+
+    return `${reviewedCount}/${totalCount} ${labelMap[contentTypeValue] || "thẻ đã xem"}`;
+  }, [reviewedCount, totalCount, contentTypeValue]);
 
   const previewIndices = useMemo(() => {
     const remaining = totalCount - currentIndex - 1;
@@ -217,6 +225,18 @@ const VocabularyFlashcardScreen = () => {
   ) => {
     const card: any = deck[cardIndex];
     if (!card) return null;
+
+    const meanings = isVocabulary
+      ? (card.meanings || [])
+          .map((m: any) => (typeof m === "string" ? m : m.meaning || m.text || ""))
+          .filter(Boolean)
+      : [];
+
+    const kanjiExplanationList = isKanji
+      ? (card.explanationMeaning && typeof card.explanationMeaning === "string"
+          ? card.explanationMeaning.split("##").filter(Boolean)
+          : [])
+      : [];
 
     const offset = stackIndex * cardSpacing;
     const scale = isActive ? 1 : Math.max(0.96, 1 - stackIndex * 0.03);
@@ -342,22 +362,54 @@ const VocabularyFlashcardScreen = () => {
               style={[cardBaseStyle, cardShadowStyle, { backgroundColor: backgroundColorValue }, frontCardStyle]}
               pointerEvents={cardIsFrontSide ? "auto" : "none"}
             >
-              <View
-                style={{
-                  flex: 1,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <ThemedText className="text-5xl font-bold text-sky-700 text-center">
-                  {card?.wordJp || card?.character || ""}
-                </ThemedText>
-                {(card?.reading || card?.kana) && (
-                  <ThemedText className="text-xl text-sky-500 mt-4 text-center">
-                    {card?.reading || card?.kana}
+              {isKanji ? (
+                <View
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <ThemedText className="text-6xl font-bold text-amber-700 text-center">
+                    {card?.character || ""}
                   </ThemedText>
-                )}
-              </View>
+                </View>
+              ) : isGrammar ? (
+                <View
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingHorizontal: 8,
+                  }}
+                >
+                  <ThemedText className="text-3xl font-bold text-cyan-700 text-center">
+                    {card?.title || ""}
+                  </ThemedText>
+                  {card?.structure && (
+                    <ThemedText className="text-base text-cyan-500 mt-3 text-center">
+                      {card.structure}
+                    </ThemedText>
+                  )}
+                </View>
+              ) : (
+                <View
+                  style={{
+                    flex: 1,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <ThemedText className="text-5xl font-bold text-sky-700 text-center">
+                    {card?.wordJp || ""}
+                  </ThemedText>
+                  {(card?.reading || card?.kana) && (
+                    <ThemedText className="text-xl text-sky-500 mt-4 text-center">
+                      {card?.reading || card?.kana}
+                    </ThemedText>
+                  )}
+                </View>
+              )}
             </Animated.View>
 
             {/* Back Card - chỉ hiển thị cho card active */}
@@ -372,26 +424,93 @@ const VocabularyFlashcardScreen = () => {
                     flexGrow: 1,
                     justifyContent: "center",
                     alignItems: "center",
+                    paddingHorizontal: 12,
                   }}
                   showsVerticalScrollIndicator={false}
                 >
-                  {Array.isArray(card?.meanings) && card.meanings.length > 0 ? (
-                    card.meanings.map((meaning: any, idx: number) => (
+                  {isKanji ? (
+                    <View className="w-full items-center">
+                      {card?.meaning ? (
+                        <View
+                          className="py-3 px-4 mb-3 rounded-2xl bg-amber-50 border border-amber-100"
+                          style={{ width: width - 160 }}
+                        >
+                          <ThemedText className="text-lg text-amber-800 text-center">
+                            {card.meaning}
+                          </ThemedText>
+                        </View>
+                      ) : null}
+                      {kanjiExplanationList.length > 0 ? (
+                        kanjiExplanationList.map((meaningLine: string, idx: number) => (
+                          <View
+                            key={idx}
+                            className="py-2 px-3 mb-2 rounded-2xl bg-amber-50 border border-amber-100"
+                            style={{ width: width - 160 }}
+                          >
+                            <ThemedText className="text-lg text-amber-700 text-center">
+                              {meaningLine.trim()}
+                            </ThemedText>
+                          </View>
+                        ))
+                      ) : (
+                        <ThemedText className="text-base text-amber-600 text-center" style={{ width: width - 160 }}>
+                          Không có phần giải thích
+                        </ThemedText>
+                      )}
+                      {(card?.onReading || card?.kunReading) && (
+                        <View className="mt-3" style={{ width: width - 160 }}>
+                          <ThemedText className="text-sm text-amber-600 text-center">
+                            Âm On: {card?.onReading || "-"}
+                          </ThemedText>
+                          <ThemedText className="text-sm text-amber-600 text-center mt-1">
+                            Âm Kun: {card?.kunReading || "-"}
+                          </ThemedText>
+                        </View>
+                      )}
+                    </View>
+                  ) : isGrammar ? (
+                    <View className="w-full">
+                      {card?.description && (
+                        <View
+                          className="py-3 px-4 rounded-2xl bg-cyan-50 border border-cyan-100 mb-3"
+                          style={{ width: width - 160, alignSelf: "center" }}
+                        >
+                          <ThemedText className="text-base text-cyan-800 text-center">
+                            {card.description}
+                          </ThemedText>
+                        </View>
+                      )}
+                      {card?.usage && (
+                        <View
+                          className="py-3 px-4 rounded-2xl bg-white border border-cyan-100"
+                          style={{ width: width - 160, alignSelf: "center" }}
+                        >
+                          <ThemedText className="text-sm text-cyan-700 text-center">
+                            <ThemedText style={{ fontWeight: "bold" }}>Cách dùng:</ThemedText> {card.usage}
+                          </ThemedText>
+                        </View>
+                      )}
+                      {!card?.description && !card?.usage && (
+                        <ThemedText className="text-base text-cyan-600 text-center" style={{ width: width - 160 }}>
+                          Chưa có mô tả chi tiết
+                        </ThemedText>
+                      )}
+                    </View>
+                  ) : meanings.length > 0 ? (
+                    meanings.map((meaning: string, idx: number) => (
                       <View
                         key={idx}
                         className="py-2 px-3 mb-2 rounded-2xl bg-sky-50 border border-sky-100"
                         style={{ width: width - 160 }}
                       >
                         <ThemedText className="text-lg text-sky-700 text-center">
-                          {typeof meaning === "string"
-                            ? meaning
-                            : meaning?.meaning || meaning?.text || ""}
+                          {meaning}
                         </ThemedText>
                       </View>
                     ))
                   ) : (
                     <ThemedText className="text-lg text-sky-700 text-center" style={{ width: width - 160 }}>
-                      {card?.meaning || card?.description || "Không có nghĩa"}
+                      Không có nghĩa
                     </ThemedText>
                   )}
                 </ScrollView>
