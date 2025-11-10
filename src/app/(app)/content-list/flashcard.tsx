@@ -6,14 +6,14 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { ChevronLeft, Repeat, Settings2 } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    Easing,
-    Modal,
-    ScrollView,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Animated,
+  Dimensions,
+  Easing,
+  Modal,
+  ScrollView,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { PanGestureHandler, TapGestureHandler } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -289,9 +289,10 @@ const VocabularyFlashcardScreen = () => {
         };
 
     const cardBaseStyle = {
-      paddingVertical: 48,
-      paddingHorizontal: 24,
-      minHeight: 420,
+      paddingTop: 64,
+      paddingBottom: 64,
+      paddingHorizontal: 28,
+      minHeight: 540,
       borderRadius: 28,
     };
 
@@ -364,54 +365,58 @@ const VocabularyFlashcardScreen = () => {
               style={[cardBaseStyle, cardShadowStyle, { backgroundColor: backgroundColorValue }, frontCardStyle]}
               pointerEvents={cardIsFrontSide ? "auto" : "none"}
             >
-              {isKanji ? (
-                <View
-                  style={{
-                    flex: 1,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <ThemedText className="text-6xl font-bold text-amber-700 text-center">
-                    {card?.character || ""}
-                  </ThemedText>
-                </View>
-              ) : isGrammar ? (
-                <View
-                  style={{
-                    flex: 1,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    paddingHorizontal: 8,
-                  }}
-                >
-                  <ThemedText className="text-3xl font-bold text-cyan-700 text-center">
-                    {card?.title || ""}
-                  </ThemedText>
-                  {card?.structure && (
-                    <ThemedText className="text-base text-cyan-500 mt-3 text-center">
-                      {card.structure}
+              <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 4, paddingBottom: 4 }}>
+                {isKanji ? (
+                  <View
+                    style={{
+                      width: "100%",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      paddingHorizontal: 12,
+                    }}
+                  >
+                    <ThemedText style={{ fontSize: 52, fontWeight: "bold", color: "#b45309", textAlign: "center", lineHeight: 62 }}>
+                      {card?.character || ""}
                     </ThemedText>
-                  )}
-                </View>
-              ) : (
-                <View
-                  style={{
-                    flex: 1,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <ThemedText className="text-5xl font-bold text-sky-700 text-center">
-                    {card?.wordJp || ""}
-                  </ThemedText>
-                  {(card?.reading || card?.kana) && (
-                    <ThemedText className="text-xl text-sky-500 mt-4 text-center">
-                      {card?.reading || card?.kana}
+                  </View>
+                ) : isGrammar ? (
+                  <View
+                    style={{
+                      width: "100%",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      paddingHorizontal: 12,
+                    }}
+                  >
+                    <ThemedText style={{ fontSize: 30, fontWeight: "bold", color: "#0e7490", textAlign: "center", lineHeight: 38 }}>
+                      {card?.title || ""}
                     </ThemedText>
-                  )}
-                </View>
-              )}
+                    {card?.structure && (
+                      <ThemedText style={{ fontSize: 17, color: "#06b6d4", marginTop: 10, textAlign: "center" }}>
+                        {card.structure}
+                      </ThemedText>
+                    )}
+                  </View>
+                ) : (
+                  <View
+                    style={{
+                      width: "100%",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      paddingHorizontal: 12,
+                    }}
+                  >
+                    <ThemedText style={{ fontSize: 44, fontWeight: "bold", color: "#0369a1", textAlign: "center", lineHeight: 52 }}>
+                      {card?.wordJp || ""}
+                    </ThemedText>
+                    {(card?.reading || card?.kana) && (
+                      <ThemedText style={{ fontSize: 20, color: "#0ea5e9", marginTop: 12, textAlign: "center" }}>
+                        {card?.reading || card?.kana}
+                      </ThemedText>
+                    )}
+                  </View>
+                )}
+              </View>
             </Animated.View>
 
             {/* Back Card - chỉ hiển thị cho card active */}
@@ -430,11 +435,11 @@ const VocabularyFlashcardScreen = () => {
                   onStartShouldSetResponderCapture={() => true}
                   onMoveShouldSetResponderCapture={() => true}
                   contentContainerStyle={{
-                    paddingVertical: 12,
+                    paddingVertical: 24,
                     flexGrow: 1,
                     justifyContent: "center",
                     alignItems: "center",
-                    paddingHorizontal: 12,
+                    paddingHorizontal: 20,
                   }}
                   showsVerticalScrollIndicator={false}
                 >
@@ -442,34 +447,34 @@ const VocabularyFlashcardScreen = () => {
                     <View className="w-full items-center">
                       {card?.meaning ? (
                         <View
-                          className="py-3 px-4 mb-3 rounded-2xl bg-amber-50 border border-amber-100"
+                          className="py-5 px-6 mb-5 rounded-2xl bg-amber-50 border border-amber-100"
                           style={{ width: width - 160 }}
                         >
-                          <ThemedText className="text-lg text-amber-800 text-center">
+                          <ThemedText style={{ fontSize: 36, fontWeight: "600", color: "#92400e", textAlign: "center", lineHeight: 48 }}>
                             {card.meaning}
                           </ThemedText>
                         </View>
                       ) : null}
                       {kanjiExplanation ? (
                         <View
-                          className="py-2 px-3 rounded-2xl bg-amber-50 border border-amber-100"
+                          className="py-5 px-6 rounded-2xl bg-amber-50 border border-amber-100"
                           style={{ width: width - 160 }}
                         >
-                          <ThemedText className="text-lg text-amber-700 text-center">
+                          <ThemedText style={{ fontSize: 28, color: "#b45309", textAlign: "center", lineHeight: 42 }}>
                             {kanjiExplanation}
                           </ThemedText>
                         </View>
                       ) : (
-                        <ThemedText className="text-base text-amber-600 text-center" style={{ width: width - 160 }}>
+                        <ThemedText style={{ fontSize: 24, color: "#d97706", textAlign: "center", width: width - 160, lineHeight: 36 }}>
                           Không có phần giải thích
                         </ThemedText>
                       )}
                       {(card?.onReading || card?.kunReading) && (
-                        <View className="mt-3" style={{ width: width - 160 }}>
-                          <ThemedText className="text-sm text-amber-600 text-center">
+                        <View className="mt-4" style={{ width: width - 160 }}>
+                          <ThemedText style={{ fontSize: 20, color: "#d97706", textAlign: "center", lineHeight: 28 }}>
                             Âm On: {card?.onReading || "-"}
                           </ThemedText>
-                          <ThemedText className="text-sm text-amber-600 text-center mt-1">
+                          <ThemedText style={{ fontSize: 20, color: "#d97706", textAlign: "center", marginTop: 8, lineHeight: 28 }}>
                             Âm Kun: {card?.kunReading || "-"}
                           </ThemedText>
                         </View>
@@ -479,26 +484,26 @@ const VocabularyFlashcardScreen = () => {
                     <View className="w-full">
                       {card?.description && (
                         <View
-                          className="py-3 px-4 rounded-2xl bg-cyan-50 border border-cyan-100 mb-3"
+                          className="py-5 px-6 rounded-2xl bg-cyan-50 border border-cyan-100 mb-5"
                           style={{ width: width - 160, alignSelf: "center" }}
                         >
-                          <ThemedText className="text-base text-cyan-800 text-center">
+                          <ThemedText style={{ fontSize: 32, fontWeight: "600", color: "#155e75", textAlign: "center", lineHeight: 46 }}>
                             {card.description}
                           </ThemedText>
                         </View>
                       )}
                       {card?.usage && (
                         <View
-                          className="py-3 px-4 rounded-2xl bg-white border border-cyan-100"
+                          className="py-5 px-6 rounded-2xl bg-white border border-cyan-100"
                           style={{ width: width - 160, alignSelf: "center" }}
                         >
-                          <ThemedText className="text-sm text-cyan-700 text-center">
+                          <ThemedText style={{ fontSize: 26, color: "#0e7490", textAlign: "center", lineHeight: 38 }}>
                             <ThemedText style={{ fontWeight: "bold" }}>Cách dùng:</ThemedText> {card.usage}
                           </ThemedText>
                         </View>
                       )}
                       {!card?.description && !card?.usage && (
-                        <ThemedText className="text-base text-cyan-600 text-center" style={{ width: width - 160 }}>
+                        <ThemedText style={{ fontSize: 26, color: "#0891b2", textAlign: "center", width: width - 160, lineHeight: 38 }}>
                           Chưa có mô tả chi tiết
                         </ThemedText>
                       )}
@@ -507,16 +512,16 @@ const VocabularyFlashcardScreen = () => {
                     meanings.map((meaning: string, idx: number) => (
                       <View
                         key={idx}
-                        className="py-2 px-3 mb-2 rounded-2xl bg-sky-50 border border-sky-100"
+                        className="py-5 px-6 mb-4 rounded-2xl bg-sky-50 border border-sky-100"
                         style={{ width: width - 160 }}
                       >
-                        <ThemedText className="text-lg text-sky-700 text-center">
+                        <ThemedText style={{ fontSize: 36, fontWeight: "600", color: "#0369a1", textAlign: "center", lineHeight: 48 }}>
                           {meaning}
                         </ThemedText>
                       </View>
                     ))
                   ) : (
-                    <ThemedText className="text-lg text-sky-700 text-center" style={{ width: width - 160 }}>
+                    <ThemedText style={{ fontSize: 32, color: "#0369a1", textAlign: "center", width: width - 160, lineHeight: 46 }}>
                       Không có nghĩa
                     </ThemedText>
                   )}
@@ -539,7 +544,7 @@ const VocabularyFlashcardScreen = () => {
           <TouchableOpacity onPress={() => router.back()} className="p-2">
             <ChevronLeft size={24} color="#1f2937" />
           </TouchableOpacity>
-          <ThemedText className="text-lg font-bold text-gray-800">
+          <ThemedText style={{ fontSize: 18, fontWeight: "bold", color: "#1f2937" }}>
             Học với Flashcard
           </ThemedText>
           <View className="flex-row items-center gap-2">
@@ -556,7 +561,7 @@ const VocabularyFlashcardScreen = () => {
         </View>
 
         <View className="px-6">
-          <ThemedText className="text-sm text-gray-600 mb-1 text-center">
+          <ThemedText style={{ fontSize: 14, color: "#4b5563", marginBottom: 4, textAlign: "center" }}>
             {progressLabel}
           </ThemedText>
           <View className="w-full h-2 rounded-full bg-white/50 overflow-hidden">
@@ -570,16 +575,16 @@ const VocabularyFlashcardScreen = () => {
         <View className="flex-1 justify-center items-center px-6">
           {totalCount === 0 ? (
             <View className="bg-white/70 rounded-3xl p-8 items-center">
-              <ThemedText className="text-lg text-gray-600 text-center">
+              <ThemedText style={{ fontSize: 18, color: "#4b5563", textAlign: "center" }}>
                 Không có dữ liệu để hiển thị
               </ThemedText>
             </View>
           ) : reviewedCount >= totalCount ? (
             <View className="bg-white/80 rounded-3xl p-8 items-center">
-              <ThemedText className="text-2xl font-bold text-sky-600 text-center mb-2">
+              <ThemedText style={{ fontSize: 24, fontWeight: "bold", color: "#0284c7", textAlign: "center", marginBottom: 8 }}>
                 Hoàn thành!
               </ThemedText>
-              <ThemedText className="text-base text-gray-600 text-center">
+              <ThemedText style={{ fontSize: 16, color: "#4b5563", textAlign: "center" }}>
                 Bạn có thể xem lại bằng cách nhấn biểu tượng làm mới.
               </ThemedText>
             </View>
@@ -587,7 +592,7 @@ const VocabularyFlashcardScreen = () => {
             <View
               style={{
                 width: width - 80,
-                height: 480,
+                height: 580,
                 position: "relative",
               }}
             >
@@ -628,18 +633,18 @@ const VocabularyFlashcardScreen = () => {
         <View className="px-8 pb-10">
           <View className="flex-row justify-between">
             <View className="flex-1 mr-3 rounded-3xl bg-rose-500/90 py-4 items-center shadow-lg">
-              <ThemedText className="text-white text-sm uppercase tracking-wide">
+              <ThemedText style={{ color: "#ffffff", fontSize: 14, textTransform: "uppercase", letterSpacing: 0.5 }}>
                 Chưa thuộc
               </ThemedText>
-              <ThemedText className="text-2xl text-white font-bold mt-1">
+              <ThemedText style={{ fontSize: 24, color: "#ffffff", fontWeight: "bold", marginTop: 4 }}>
                 {unknownCount}
               </ThemedText>
             </View>
             <View className="flex-1 ml-3 rounded-3xl bg-sky-500/90 py-4 items-center shadow-lg">
-              <ThemedText className="text-white text-sm uppercase tracking-wide">
+              <ThemedText style={{ color: "#ffffff", fontSize: 14, textTransform: "uppercase", letterSpacing: 0.5 }}>
                 Đã thuộc
               </ThemedText>
-              <ThemedText className="text-2xl text-white font-bold mt-1">
+              <ThemedText style={{ fontSize: 24, color: "#ffffff", fontWeight: "bold", marginTop: 4 }}>
                 {knownCount}
               </ThemedText>
             </View>
@@ -651,7 +656,7 @@ const VocabularyFlashcardScreen = () => {
             <View className="flex-1 bg-black/40 justify-center items-center px-6">
               <TouchableWithoutFeedback>
                 <View className="w-full max-w-md rounded-3xl bg-white p-6">
-                  <ThemedText className="text-lg font-bold text-gray-800 mb-4 text-center">
+                  <ThemedText style={{ fontSize: 18, fontWeight: "bold", color: "#1f2937", marginBottom: 16, textAlign: "center" }}>
                     Tùy chỉnh hiển thị thẻ
                   </ThemedText>
                   <View className="space-y-4">
@@ -662,10 +667,10 @@ const VocabularyFlashcardScreen = () => {
                         setShowOptions(false);
                       }}
                     >
-                      <ThemedText className="text-base font-semibold text-gray-800">
+                      <ThemedText style={{ fontSize: 16, fontWeight: "600", color: "#1f2937" }}>
                         Hiển thị hở
                       </ThemedText>
-                      <ThemedText className="text-sm text-gray-500 mt-1">
+                      <ThemedText style={{ fontSize: 14, color: "#6b7280", marginTop: 4 }}>
                         Các thẻ phía sau lệch nhẹ để thấy còn bao nhiêu thẻ.
                       </ThemedText>
                     </TouchableOpacity>
@@ -677,10 +682,10 @@ const VocabularyFlashcardScreen = () => {
                         setShowOptions(false);
                       }}
                     >
-                      <ThemedText className="text-base font-semibold text-gray-800">
+                      <ThemedText style={{ fontSize: 16, fontWeight: "600", color: "#1f2937" }}>
                         Chồng lên nhau
                       </ThemedText>
-                      <ThemedText className="text-sm text-gray-500 mt-1">
+                      <ThemedText style={{ fontSize: 14, color: "#6b7280", marginTop: 4 }}>
                         Các thẻ phía sau trùng nhau để tập trung vào thẻ hiện tại.
                       </ThemedText>
                     </TouchableOpacity>
@@ -690,7 +695,7 @@ const VocabularyFlashcardScreen = () => {
                     className="mt-6 py-3 rounded-2xl bg-gray-100"
                     onPress={() => setShowOptions(false)}
                   >
-                    <ThemedText className="text-center text-gray-700 font-medium">
+                    <ThemedText style={{ textAlign: "center", color: "#374151", fontWeight: "500" }}>
                       Đóng
                     </ThemedText>
                   </TouchableOpacity>
