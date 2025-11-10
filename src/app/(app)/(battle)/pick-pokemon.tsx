@@ -595,25 +595,15 @@ export default function PickPokemonScreen() {
             console.log("select-pokemon", payload);
             if (payload?.matchId && payload.matchId.toString() === matchId.toString()) {
                 if (payload?.data) {
+                    // SỬA LẠI NHƯ SAU:
                     queryClient.setQueryData(['list-match-round'], (oldData: any) => {
-                        if (oldData?.data?.data) {
-                            return {
-                                ...oldData,
-                                data: {
-                                    ...oldData.data,
-                                    data: payload.data,
-                                },
-                            };
-                        }
-                        return {
-                            data: {
-                                data: payload.data,
-                            },
-                        };
+                        // payload.data chính là object IBattleMatchRound mới
+                        // Chỉ cần return nó để thay thế hoàn toàn cache cũ.
+                        return payload.data;
                     });
                 }
 
-                // Also invalidate to ensure data consistency
+                // Vẫn giữ lại invalidate để đảm bảo dữ liệu cuối cùng là chính xác từ server
                 queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
                 queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
             }
