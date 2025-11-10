@@ -84,7 +84,7 @@ const ModernCard = ({ children, style }: any) => (
   </Animated.View>
 );
 
-// --- Expandable Vocabulary Card (from lesson-details) ---
+// --- Expandable Vocabulary Card (Flip Card) ---
 const ExpandableVocabularyCard = ({
   item,
   index,
@@ -93,8 +93,8 @@ const ExpandableVocabularyCard = ({
   index: number;
 }) => {
   const { t } = useTranslation();
-  const [showMeaning, setShowMeaning] = useState(false);
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const [isFlipped, setIsFlipped] = useState(false);
+  const flipAnim = useRef(new Animated.Value(0)).current;
 
   const meanings = (item.meanings || [])
     .map((m: any) => (typeof m === "string" ? m : m.meaning || m.text || ""))
@@ -102,62 +102,136 @@ const ExpandableVocabularyCard = ({
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Animated.spring(scaleAnim, {
-      toValue: 0.95,
+    const toValue = isFlipped ? 0 : 1;
+    setIsFlipped(!isFlipped);
+    
+    Animated.spring(flipAnim, {
+      toValue,
+      tension: 65,
+      friction: 8,
       useNativeDriver: true,
-    }).start(() => {
-      Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true }).start();
-      setShowMeaning(!showMeaning);
-    });
+    }).start();
+  };
+
+  const frontInterpolate = flipAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "180deg"],
+  });
+
+  const backInterpolate = flipAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["180deg", "360deg"],
+  });
+
+  const frontOpacity = flipAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [1, 0, 0],
+  });
+
+  const backOpacity = flipAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, 0, 1],
+  });
+
+  const frontAnimatedStyle = {
+    transform: [{ rotateY: frontInterpolate }],
+    opacity: frontOpacity,
+  };
+
+  const backAnimatedStyle = {
+    transform: [{ rotateY: backInterpolate }],
+    opacity: backOpacity,
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-      <ModernCardExpandable style={{ marginHorizontal: 4 }}>
-        <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-          <View className="flex-row justify-between items-start mb-3">
-            <View>
-              <ThemedText className="text-3xl font-bold text-indigo-600">
-                {item.wordJp}
-              </ThemedText>
-              <ThemedText className="text-lg text-indigo-400 mt-1 font-medium">
-                {item.reading}
-              </ThemedText>
-            </View>
-            <TouchableOpacity
-              onPress={(e) => {
-                e.stopPropagation();
-                if (item.audioUrl) {
-                  playAudio(item.audioUrl);
-                }
-              }}
-              className="bg-indigo-100 p-3 rounded-2xl"
-            >
-              <Headphones size={22} color="#4f46e5" />
-            </TouchableOpacity>
-          </View>
-
-          {showMeaning && (
-            <Animated.View className="mt-3 space-y-1">
-              {meanings.map((m: string, i: number) => (
-                <View key={i} className="flex-row items-center">
-                  <View className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-2" />
-                  <ThemedText className="text-gray-700 flex-1">{m}</ThemedText>
+    <View style={{ marginHorizontal: 4 }}>
+      <View style={{ position: "relative", width: "100%", minHeight: 160 }}>
+        {/* Front Side */}
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              width: "100%",
+            },
+            frontAnimatedStyle,
+          ]}
+          pointerEvents={isFlipped ? "none" : "auto"}
+        >
+          <ModernCardExpandable style={{ padding: 16 }}>
+            <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+              <View style={{ minHeight: 120 }}>
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1">
+                    <ThemedText className="text-3xl font-bold text-indigo-600">
+                      {item.wordJp}
+                    </ThemedText>
+                    <ThemedText className="text-lg text-indigo-400 mt-1 font-medium">
+                      {item.reading}
+                    </ThemedText>
+                  </View>
+                  <TouchableOpacity
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      if (item.audioUrl) {
+                        playAudio(item.audioUrl);
+                      }
+                    }}
+                    className="bg-indigo-100 p-3 rounded-2xl"
+                  >
+                    <Headphones size={22} color="#4f46e5" />
+                  </TouchableOpacity>
                 </View>
-              ))}
-            </Animated.View>
-          )}
+                <View className="mt-3 items-center">
+                  <ThemedText className="text-xs text-gray-400">
+                    {t("lessons.press_to_see_meaning") || "Nhấn để xem nghĩa"}
+                  </ThemedText>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </ModernCardExpandable>
+        </Animated.View>
 
-          <View className="mt-4 items-center">
-            <ThemedText className="text-xs text-gray-400">
-              {showMeaning
-                ? t("lessons.hide_meaning")
-                : t("lessons.press_to_see_meaning")}
-            </ThemedText>
-          </View>
-        </TouchableOpacity>
-      </ModernCardExpandable>
-    </Animated.View>
+        {/* Back Side */}
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              width: "100%",
+            },
+            backAnimatedStyle,
+          ]}
+          pointerEvents={isFlipped ? "auto" : "none"}
+        >
+          <ModernCardExpandable style={{ padding: 16 }}>
+            <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+              <View style={{ minHeight: 120 }} className="justify-center">
+                <View className="w-full space-y-2">
+                  {meanings.length > 0 ? (
+                    meanings.map((m: string, i: number) => (
+                      <View key={i} className="flex-row items-start">
+                        <View className="w-2 h-2 bg-emerald-500 rounded-full mr-3 mt-2" />
+                        <ThemedText className="text-base text-gray-800 flex-1 font-medium">
+                          {m}
+                        </ThemedText>
+                      </View>
+                    ))
+                  ) : (
+                    <ThemedText className="text-base text-gray-500 text-center">
+                      {t("lessons.no_meaning") || "Không có nghĩa"}
+                    </ThemedText>
+                  )}
+                </View>
+                <View className="mt-3 items-center">
+                  <ThemedText className="text-xs text-gray-400">
+                    {t("lessons.hide_meaning") || "Nhấn để ẩn nghĩa"}
+                  </ThemedText>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </ModernCardExpandable>
+        </Animated.View>
+      </View>
+    </View>
   );
 };
 
