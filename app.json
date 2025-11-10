@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Poke Nihongo",
-    "slug": "Poke Nihongo",
+    "slug": "Poke_Nihongo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/PokeNihongoLogo.png",
@@ -12,8 +12,10 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "Ứng dụng cần quyền truy cập microphone để ghi âm và luyện tập phát âm tiếng Nhật."
-      }
+        "NSMicrophoneUsageDescription": "Ứng dụng cần quyền truy cập microphone để ghi âm và luyện tập phát âm tiếng Nhật.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.adminnn1.PokeNihongo"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,8 +24,10 @@
       "edgeToEdgeEnabled": true,
       "permissions": [
         "android.permission.RECORD_AUDIO",
-        "android.permission.MICROPHONE"
-      ]
+        "android.permission.MICROPHONE",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.adminnn1.PokeNihongo"
     },
     "web": {
       "bundler": "metro",
@@ -52,6 +56,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d29e30b6-1973-4331-8867-15226eb6a68a"
+      }
     }
   }
 }
