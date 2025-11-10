@@ -10,12 +10,12 @@ import {
     Dimensions,
     Easing,
     Modal,
-    PanResponder,
     ScrollView,
     TouchableOpacity,
     TouchableWithoutFeedback,
     View,
 } from "react-native";
+import { PanGestureHandler, TapGestureHandler } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
@@ -77,6 +77,7 @@ const VocabularyFlashcardScreen = () => {
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
   const cardOpacity = useRef(new Animated.Value(1)).current;
+  const backScrollRef = useRef(null);
 
   useEffect(() => {
     translateX.setValue(0);
@@ -92,48 +93,37 @@ const VocabularyFlashcardScreen = () => {
     outputRange: ["-18deg", "0deg", "18deg"],
   });
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (_, gesture) => {
-        const absDx = Math.abs(gesture.dx);
-        const absDy = Math.abs(gesture.dy);
-        // Chỉ kích hoạt pan cho thao tác vuốt ngang rõ rệt
-        return absDx > absDy && absDx > 10;
-      },
-      onMoveShouldSetPanResponderCapture: (_, gesture) => {
-        const absDx = Math.abs(gesture.dx);
-        const absDy = Math.abs(gesture.dy);
-        return absDx > absDy && absDx > 10;
-      },
-      onPanResponderMove: Animated.event(
-        [null, { dx: translateX, dy: translateY }],
-        { useNativeDriver: false }
-      ),
-      onPanResponderRelease: (_, gesture) => {
-        const { dx } = gesture;
-
-        if (dx > SWIPE_THRESHOLD) {
-          handleSwipe("known");
-        } else if (dx < -SWIPE_THRESHOLD) {
-          handleSwipe("unknown");
-        } else {
-          Animated.spring(translateX, {
-            toValue: 0,
-            useNativeDriver: true,
-            tension: 150,
-            friction: 12,
-          }).start();
-          Animated.spring(translateY, {
-            toValue: 0,
-            useNativeDriver: true,
-            tension: 150,
-            friction: 12,
-          }).start();
-        }
-      },
-    })
+  // Gesture handlers (RNGH)
+  const onPanGestureEvent = useRef(
+    Animated.event(
+      [{ nativeEvent: { translationX: translateX, translationY: translateY } }],
+      { useNativeDriver: true }
+    )
   ).current;
+
+  const onPanEnded = useCallback((event: any) => {
+    const dx = event?.nativeEvent?.translationX ?? 0;
+    if (dx > SWIPE_THRESHOLD) {
+      handleSwipe("known");
+      return;
+    }
+    if (dx < -SWIPE_THRESHOLD) {
+      handleSwipe("unknown");
+      return;
+    }
+    Animated.spring(translateX, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 150,
+      friction: 12,
+    }).start();
+    Animated.spring(translateY, {
+      toValue: 0,
+      useNativeDriver: true,
+      tension: 150,
+      friction: 12,
+    }).start();
+  }, [translateX, translateY]);
 
   const handleSwipe = (result: "known" | "unknown") => {
     const direction = result === "known" ? 1 : -1;
@@ -363,9 +353,10 @@ const VocabularyFlashcardScreen = () => {
         }}
         pointerEvents={isActive ? "auto" : "none"}
       >
-        <TouchableWithoutFeedback
-          onPress={isActive && cardIsFrontSide ? toggleCardSide : undefined}
-          disabled={!isActive || !cardIsFrontSide}
+        <TapGestureHandler
+          enabled={isActive}
+          onActivated={toggleCardSide}
+          waitFor={isActive && !cardIsFrontSide ? backScrollRef as any : undefined}
         >
           <View style={{ position: "relative", width: "100%" }}>
             {/* Front Card */}
@@ -429,60 +420,8 @@ const VocabularyFlashcardScreen = () => {
                 style={[cardBaseStyle, cardShadowStyle, { backgroundColor: backgroundColorValue }, backCardStyle]}
                 pointerEvents={cardIsFrontSide ? "none" : "auto"}
               >
-                {/* Vùng chạm ẩn để lật lại (4 viền, không làm xấu UI, không che nội dung) */}
-                <TouchableWithoutFeedback onPress={toggleCardSide}>
-                  <View
-                    pointerEvents="auto"
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: 56,
-                      zIndex: 10,
-                    }}
-                  />
-                </TouchableWithoutFeedback>
-                <TouchableWithoutFeedback onPress={toggleCardSide}>
-                  <View
-                    pointerEvents="auto"
-                    style={{
-                      position: "absolute",
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      height: 56,
-                      zIndex: 10,
-                    }}
-                  />
-                </TouchableWithoutFeedback>
-                <TouchableWithoutFeedback onPress={toggleCardSide}>
-                  <View
-                    pointerEvents="auto"
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      bottom: 0,
-                      left: 0,
-                      width: 40,
-                      zIndex: 10,
-                    }}
-                  />
-                </TouchableWithoutFeedback>
-                <TouchableWithoutFeedback onPress={toggleCardSide}>
-                  <View
-                    pointerEvents="auto"
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      bottom: 0,
-                      right: 0,
-                      width: 40,
-                      zIndex: 10,
-                    }}
-                  />
-                </TouchableWithoutFeedback>
                 <ScrollView
+                  ref={backScrollRef as any}
                   nestedScrollEnabled
                   keyboardShouldPersistTaps="always"
                   scrollEventThrottle={16}
@@ -585,7 +524,7 @@ const VocabularyFlashcardScreen = () => {
               </Animated.View>
             )}
           </View>
-        </TouchableWithoutFeedback>
+        </TapGestureHandler>
       </Animated.View>
     );
   };
@@ -658,23 +597,30 @@ const VocabularyFlashcardScreen = () => {
               )}
 
               {/* Card hiện tại (có thể tương tác) */}
-              <Animated.View
-                style={{
-                  position: "absolute",
-                  width: "100%",
-                  transform: [
-                    { perspective: 1000 },
-                    { translateX },
-                    { translateY },
-                    { rotate },
-                  ],
-                  opacity: cardOpacity,
-                  zIndex: totalCount + 10,
-                }}
-                {...panResponder.panHandlers}
+              <PanGestureHandler
+                enabled={reviewedCount < totalCount}
+                activeOffsetX={[-12, 12]}
+                failOffsetY={[-10, 10]}
+                onGestureEvent={onPanGestureEvent}
+                onEnded={onPanEnded}
               >
-                {renderCard(currentIndex, 0, true)}
-              </Animated.View>
+                <Animated.View
+                  style={{
+                    position: "absolute",
+                    width: "100%",
+                    transform: [
+                      { perspective: 1000 },
+                      { translateX },
+                      { translateY },
+                      { rotate },
+                    ],
+                    opacity: cardOpacity,
+                    zIndex: totalCount + 10,
+                  }}
+                >
+                  {renderCard(currentIndex, 0, true)}
+                </Animated.View>
+              </PanGestureHandler>
             </View>
           )}
         </View>
