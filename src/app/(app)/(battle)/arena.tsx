@@ -24,6 +24,9 @@ import {
 } from "react-native";
 import { TYPE_MATCHUPS } from "../../../../mock-data/type-matchups";
 
+const BASE_POINT_PER_QUESTION = 100;
+const MIN_POINT_PER_QUESTION = 50;
+
 interface BattleArenaScreenProps { }
 
 export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
@@ -82,6 +85,12 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
     const [isLastQuestion, setIsLastQuestion] = useState(false);
     const shakeAnimation = useRef(new Animated.Value(0)).current;
+    const [currentQuestionPoints, setCurrentQuestionPoints] = useState(BASE_POINT_PER_QUESTION);
+    const pointProgress = useRef(new Animated.Value(1)).current;
+    const pointProgressWidth = pointProgress.interpolate({
+        inputRange: [0, 1],
+        outputRange: ["0%", "100%"],
+    });
 
     // Set matchId in store for layout
     useEffect(() => {
@@ -174,6 +183,38 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         return () => clearTimeout(timer);
     }, [questionTimeRemaining, currentQuestion, isAnswerSubmitted, selectedAnswer]);
 
+    // Compute points from elapsed time
+    const calculatePointsFromMs = (elapsedMs: number) => {
+        const elapsedSeconds = Math.max(0, elapsedMs / 1000);
+        const raw = BASE_POINT_PER_QUESTION * (1 - elapsedSeconds / 60);
+        return Math.max(MIN_POINT_PER_QUESTION, Math.round(raw));
+    };
+
+    // Live points bar update (smooth) while answering
+    useEffect(() => {
+        if (!questionStartTime || !currentQuestion || isAnswerSubmitted || isWaitingForOpponent) return;
+        let rafId: number;
+        let lastUpdate = 0;
+
+        const tick = (t: number) => {
+            if (!questionStartTime || !currentQuestion || isAnswerSubmitted || isWaitingForOpponent) return;
+            // throttle ~60fps but compute only every ~100ms for stability
+            if (!lastUpdate || t - lastUpdate >= 100) {
+                lastUpdate = t;
+                const elapsed = Date.now() - questionStartTime;
+                const pts = calculatePointsFromMs(elapsed);
+                setCurrentQuestionPoints(pts);
+                const ratio = (pts - MIN_POINT_PER_QUESTION) / (BASE_POINT_PER_QUESTION - MIN_POINT_PER_QUESTION);
+                pointProgress.setValue(Math.max(0, Math.min(1, ratio)));
+            }
+            rafId = requestAnimationFrame(tick);
+        };
+        rafId = requestAnimationFrame(tick);
+        return () => {
+            if (rafId) cancelAnimationFrame(rafId);
+        };
+    }, [questionStartTime, currentQuestion, isAnswerSubmitted, isWaitingForOpponent, pointProgress]);
+
     // Check type advantage
     useEffect(() => {
         if (!playerPokemon || !opponentPokemon || !playerPokemon.pokemon || !opponentPokemon.pokemon) return;
@@ -196,21 +237,23 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             setTimeout(() => setShowConfusion(false), 2000);
 
             // Start shake animation
-            const shakeLoop = Animated.loop(
-                Animated.sequence([
-                    Animated.timing(shakeAnimation, { toValue: 10, duration: 50, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-                    Animated.timing(shakeAnimation, { toValue: -10, duration: 50, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-                    Animated.timing(shakeAnimation, { toValue: 10, duration: 50, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-                    Animated.timing(shakeAnimation, { toValue: 0, duration: 50, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-                ]),
-                { iterations: 20 }
-            );
-            shakeLoop.start();
-            setTimeout(() => shakeLoop.stop(), 2000);
+            if (!isAnswerSubmitted && roundStarted && !isWaitingForOpponent) {
+                const shakeLoop = Animated.loop(
+                    Animated.sequence([
+                        Animated.timing(shakeAnimation, { toValue: 10, duration: 50, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+                        Animated.timing(shakeAnimation, { toValue: -10, duration: 50, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+                        Animated.timing(shakeAnimation, { toValue: 10, duration: 50, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+                        Animated.timing(shakeAnimation, { toValue: 0, duration: 50, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+                    ]),
+                    { iterations: 20 }
+                );
+                shakeLoop.start();
+                setTimeout(() => shakeLoop.stop(), 2000);
+            }
         } else {
             setTypeAdvantage(null);
         }
-    }, [playerPokemon, opponentPokemon, shakeAnimation]);
+    }, [playerPokemon, opponentPokemon, shakeAnimation, isAnswerSubmitted, roundStarted, isWaitingForOpponent]);
 
     // Handle answer selection
     const handleSelectAnswer = (answerIndex: number) => {
@@ -309,6 +352,11 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                     console.error("ERROR: roundQuestionId not found in questionData:", questionData);
                 }
 
+                // Reset points bar instantly for new question
+                pointProgress.stopAnimation && pointProgress.stopAnimation();
+                pointProgress.setValue(1);
+                setCurrentQuestionPoints(BASE_POINT_PER_QUESTION);
+
                 setCurrentQuestion({
                     id: questionData.id || questionBank?.id, // questionBankId for reference
                     question: questionText,
@@ -402,6 +450,11 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 const correctAnswerIndex = answers.findIndex((ans: any) => ans.isCorrect === true);
 
                 const roundQuestionId = questionData.roundQuestionId || questionData.id;
+
+                // Reset points bar instantly for next question
+                pointProgress.stopAnimation && pointProgress.stopAnimation();
+                pointProgress.setValue(1);
+                setCurrentQuestionPoints(BASE_POINT_PER_QUESTION);
 
                 setCurrentQuestion({
                     id: questionBank.id || questionData.id,
@@ -934,6 +987,30 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                                 <ThemedText style={{ color: "#e5e7eb", fontSize: 18, fontWeight: "600", marginBottom: 16, lineHeight: 28 }}>
                                     {currentQuestion.question || currentQuestion.content || "Câu hỏi đang được tải..."}
                                 </ThemedText>
+
+                                {/* Points progress bar (Kahoot-style) */}
+                                <View className="mb-6">
+                                    <View className="flex-row items-center justify-between mb-2">
+                                        <ThemedText style={{ color: "#cbd5e1", fontSize: 14, fontWeight: "600" }}>
+                                            Điểm lượt này
+                                        </ThemedText>
+                                        <ThemedText style={{ color: "#fbbf24", fontSize: 16, fontWeight: "700" }}>
+                                            {currentQuestionPoints}
+                                        </ThemedText>
+                                    </View>
+                                    <View style={{ height: 10, borderRadius: 999, backgroundColor: "rgba(148, 163, 184, 0.2)", overflow: "hidden" }}>
+                                        <Animated.View
+                                            style={{
+                                                height: "100%",
+                                                width: pointProgressWidth,
+                                                backgroundColor: "#38bdf8",
+                                            }}
+                                        />
+                                    </View>
+                                    <ThemedText style={{ color: "#64748b", fontSize: 10, marginTop: 4 }}>
+                                        Bắt đầu 100 điểm, tối thiểu 50 điểm theo thời gian trả lời.
+                                    </ThemedText>
+                                </View>
 
                                 {/* Answer Options */}
                                 <View className="gap-3">
