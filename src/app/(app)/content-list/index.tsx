@@ -7,13 +7,7 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Speech from "expo-speech";
-import {
-  ChevronLeft,
-  Pencil,
-  Sparkles,
-  Volume2,
-  X,
-} from "lucide-react-native";
+import { ChevronLeft, Pencil, Sparkles, Volume2, X } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -219,25 +213,58 @@ const ExpandableVocabularyCard = ({
           ]}
           pointerEvents={isFlipped ? "none" : "auto"}
         >
-          <ModernCardExpandable style={{ paddingTop: 24, paddingBottom: 24, paddingHorizontal: 20, position: 'relative' }}>
+          <ModernCardExpandable
+            style={{
+              paddingTop: 24,
+              paddingBottom: 24,
+              paddingHorizontal: 20,
+              position: "relative",
+            }}
+          >
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-              <View style={{ minHeight: 150, justifyContent: "center", alignItems: "center", paddingVertical: 12, width: '100%' }}>
-                <View style={{ alignItems: "center", width: '100%' }}>
-                  <ThemedText style={{ fontSize: 30, fontWeight: "bold", color: "#4f46e5", textAlign: "center", flexShrink: 1, lineHeight: 38 }}>
+              <View
+                style={{
+                  minHeight: 150,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  paddingVertical: 12,
+                  width: "100%",
+                }}
+              >
+                <View style={{ alignItems: "center", width: "100%" }}>
+                  <ThemedText
+                    style={{
+                      fontSize: 30,
+                      fontWeight: "bold",
+                      color: "#4f46e5",
+                      textAlign: "center",
+                      flexShrink: 1,
+                      lineHeight: 38,
+                    }}
+                  >
                     {item.wordJp}
                   </ThemedText>
-                  <ThemedText style={{ fontSize: 24, color: "#818cf8", marginTop: 6, fontWeight: "500", textAlign: "center", flexShrink: 1 }}>
+                  <ThemedText
+                    style={{
+                      fontSize: 24,
+                      color: "#818cf8",
+                      marginTop: 6,
+                      fontWeight: "500",
+                      textAlign: "center",
+                      flexShrink: 1,
+                    }}
+                  >
                     {item.reading}
                   </ThemedText>
                 </View>
               </View>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               onPress={handleAudio}
               className="bg-indigo-100 p-2 rounded-xl"
-              style={{ 
-                position: 'absolute',
+              style={{
+                position: "absolute",
                 bottom: 16,
                 right: 16,
               }}
@@ -261,22 +288,49 @@ const ExpandableVocabularyCard = ({
           <ModernCardExpandable style={{ padding: 20 }}>
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
               <View
-                style={{ minHeight: 180, justifyContent: "center", alignItems: "center", paddingVertical: 16 }}
+                style={{
+                  minHeight: 180,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  paddingVertical: 16,
+                }}
               >
                 <View style={{ width: "100%", paddingHorizontal: 16 }}>
                   {meanings.length > 0 ? (
                     meanings.map((m: string, i: number) => (
                       <View
                         key={i}
-                        style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: i < meanings.length - 1 ? 16 : 0 }}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginBottom: i < meanings.length - 1 ? 16 : 0,
+                        }}
                       >
-                        <ThemedText style={{ fontSize: 30, color: "#1f2937", fontWeight: "600", textAlign: "center", flex: 1, flexShrink: 1, lineHeight: 44 }}>
+                        <ThemedText
+                          style={{
+                            fontSize: 30,
+                            color: "#1f2937",
+                            fontWeight: "600",
+                            textAlign: "center",
+                            flex: 1,
+                            flexShrink: 1,
+                            lineHeight: 44,
+                          }}
+                        >
                           {m}
                         </ThemedText>
                       </View>
                     ))
                   ) : (
-                    <ThemedText style={{ fontSize: 30, color: "#6b7280", textAlign: "center", lineHeight: 44 }}>
+                    <ThemedText
+                      style={{
+                        fontSize: 30,
+                        color: "#6b7280",
+                        textAlign: "center",
+                        lineHeight: 44,
+                      }}
+                    >
                       {t("lessons.no_meaning") || "Không có nghĩa"}
                     </ThemedText>
                   )}
@@ -359,12 +413,29 @@ const ExpandableGrammarCard = ({
           ]}
           pointerEvents={isFlipped ? "none" : "auto"}
         >
-          <ModernCardExpandable style={{ paddingTop: 28, paddingBottom: 28, paddingHorizontal: 20 }}>
+          <ModernCardExpandable
+            style={{ paddingTop: 28, paddingBottom: 28, paddingHorizontal: 20 }}
+          >
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
               <View
-                style={{ minHeight: 160, justifyContent: "center", alignItems: "center", paddingVertical: 16, paddingHorizontal: 12 }}
+                style={{
+                  minHeight: 160,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  paddingVertical: 16,
+                  paddingHorizontal: 12,
+                }}
               >
-                <ThemedText style={{ fontSize: 32, fontWeight: "bold", color: "#0891b2", textAlign: "center", flexShrink: 1, lineHeight: 42 }}>
+                <ThemedText
+                  style={{
+                    fontSize: 32,
+                    fontWeight: "bold",
+                    color: "#0891b2",
+                    textAlign: "center",
+                    flexShrink: 1,
+                    lineHeight: 42,
+                  }}
+                >
                   {item.title}
                 </ThemedText>
               </View>
@@ -385,16 +456,40 @@ const ExpandableGrammarCard = ({
         >
           <ModernCardExpandable style={{ padding: 20 }}>
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-              <View style={{ minHeight: 180, justifyContent: "center", paddingVertical: 16 }}>
+              <View
+                style={{
+                  minHeight: 180,
+                  justifyContent: "center",
+                  paddingVertical: 16,
+                }}
+              >
                 <View style={{ width: "100%", paddingHorizontal: 16 }}>
                   {item.description && (
-                    <ThemedText style={{ fontSize: 28, color: "#1f2937", fontWeight: "600", textAlign: "center", lineHeight: 42, marginBottom: 20, flexShrink: 1 }}>
+                    <ThemedText
+                      style={{
+                        fontSize: 28,
+                        color: "#1f2937",
+                        fontWeight: "600",
+                        textAlign: "center",
+                        lineHeight: 42,
+                        marginBottom: 20,
+                        flexShrink: 1,
+                      }}
+                    >
                       {item.description}
                     </ThemedText>
                   )}
                   {item.usage && (
                     <View className="bg-cyan-50 p-6 rounded-2xl mt-4">
-                      <ThemedText style={{ fontSize: 24, color: "#155e75", textAlign: "center", flexShrink: 1, lineHeight: 36 }}>
+                      <ThemedText
+                        style={{
+                          fontSize: 24,
+                          color: "#155e75",
+                          textAlign: "center",
+                          flexShrink: 1,
+                          lineHeight: 36,
+                        }}
+                      >
                         <ThemedText style={{ fontWeight: "bold" }}>
                           {t("lessons.usage")}:
                         </ThemedText>{" "}
@@ -403,7 +498,14 @@ const ExpandableGrammarCard = ({
                     </View>
                   )}
                   {!item.description && !item.usage && (
-                    <ThemedText style={{ fontSize: 28, color: "#6b7280", textAlign: "center", lineHeight: 42 }}>
+                    <ThemedText
+                      style={{
+                        fontSize: 28,
+                        color: "#6b7280",
+                        textAlign: "center",
+                        lineHeight: 42,
+                      }}
+                    >
                       {t("lessons.no_description") || "Không có mô tả"}
                     </ThemedText>
                   )}
@@ -491,13 +593,27 @@ const ExpandableKanjiCard = ({
           ]}
           pointerEvents={isFlipped ? "none" : "auto"}
         >
-          <ModernCardExpandable style={{ paddingTop: 24, paddingBottom: 24, paddingHorizontal: 20 }}>
+          <ModernCardExpandable
+            style={{ paddingTop: 24, paddingBottom: 24, paddingHorizontal: 20 }}
+          >
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
               <View
-                style={{ minHeight: 150, justifyContent: "center", alignItems: "center", paddingVertical: 12 }}
+                style={{
+                  minHeight: 150,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  paddingVertical: 12,
+                }}
               >
                 <View className="bg-amber-100 rounded-3xl p-8">
-                  <ThemedText style={{ fontSize: 56, fontWeight: "bold", color: "#b45309", lineHeight: 66 }}>
+                  <ThemedText
+                    style={{
+                      fontSize: 56,
+                      fontWeight: "bold",
+                      color: "#b45309",
+                      lineHeight: 66,
+                    }}
+                  >
                     {item.character}
                   </ThemedText>
                 </View>
@@ -519,9 +635,25 @@ const ExpandableKanjiCard = ({
         >
           <ModernCardExpandable style={{ padding: 20 }}>
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-              <View style={{ minHeight: 180, justifyContent: "center", alignItems: "center", paddingVertical: 16 }}>
+              <View
+                style={{
+                  minHeight: 180,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  paddingVertical: 16,
+                }}
+              >
                 <View style={{ width: "100%", paddingHorizontal: 16 }}>
-                  <ThemedText style={{ fontSize: 40, fontWeight: "bold", color: "#92400e", textAlign: "center", flexShrink: 1, lineHeight: 52 }}>
+                  <ThemedText
+                    style={{
+                      fontSize: 40,
+                      fontWeight: "bold",
+                      color: "#92400e",
+                      textAlign: "center",
+                      flexShrink: 1,
+                      lineHeight: 52,
+                    }}
+                  >
                     {meaning}
                   </ThemedText>
                 </View>
@@ -582,14 +714,28 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
 
   return (
     <ModernCard>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", minHeight: 80 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          minHeight: 80,
+        }}
+      >
         <View style={{ flex: 1, marginRight: 12, minWidth: 0 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", marginBottom: 6 }}>
-            <ThemedText 
-              style={{ 
-                fontSize: 26, 
-                fontWeight: "bold", 
-                color: "#111827", 
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              flexWrap: "wrap",
+              marginBottom: 6,
+            }}
+          >
+            <ThemedText
+              style={{
+                fontSize: 26,
+                fontWeight: "bold",
+                color: "#111827",
                 lineHeight: Platform.OS === "android" ? 52 : 50,
                 marginTop: Platform.OS === "android" ? 2 : 0,
               }}
@@ -597,13 +743,23 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
               {item.wordJp}
             </ThemedText>
             {item.reading && (
-              <ThemedText style={{ fontSize: 16, color: "#4b5563", marginLeft: 10, lineHeight: 22, marginTop: Platform.OS === "android" ? 2 : 0 }}>
+              <ThemedText
+                style={{
+                  fontSize: 16,
+                  color: "#4b5563",
+                  marginLeft: 10,
+                  lineHeight: 22,
+                  marginTop: Platform.OS === "android" ? 2 : 0,
+                }}
+              >
                 ({item.reading})
               </ThemedText>
             )}
           </View>
           {meanings.length > 0 && (
-            <ThemedText style={{ fontSize: 16, color: "#374151", lineHeight: 22 }}>
+            <ThemedText
+              style={{ fontSize: 16, color: "#374151", lineHeight: 22 }}
+            >
               {meanings[0]}
             </ThemedText>
           )}
@@ -612,7 +768,13 @@ const VocabularyCard = ({ item, index }: { item: any; index: number }) => {
           onPress={handleAudio}
           className="bg-indigo-100 rounded-2xl"
           activeOpacity={0.7}
-          style={{ marginLeft: 8, flexShrink: 0, alignSelf: "flex-start", marginTop: 2, padding: 12 }}
+          style={{
+            marginLeft: 8,
+            flexShrink: 0,
+            alignSelf: "flex-start",
+            marginTop: 2,
+            padding: 12,
+          }}
         >
           <Volume2 size={20} color="#4f46e5" />
         </TouchableOpacity>
@@ -628,17 +790,34 @@ const GrammarListCard = ({ item, index }: { item: any; index: number }) => {
   return (
     <ModernCard>
       <View style={{ flex: 1, minWidth: 0 }}>
-        <ThemedText style={{ fontSize: 24, fontWeight: "bold", color: "#0891b2", marginBottom: 8, flexShrink: 1 }}>
+        <ThemedText
+          style={{
+            fontSize: 24,
+            fontWeight: "bold",
+            color: "#0891b2",
+            marginBottom: 8,
+            flexShrink: 1,
+          }}
+        >
           {item.title}
         </ThemedText>
         {item.description && (
-          <ThemedText style={{ fontSize: 18, color: "#374151", marginBottom: 8, flexShrink: 1 }}>
+          <ThemedText
+            style={{
+              fontSize: 18,
+              color: "#374151",
+              marginBottom: 8,
+              flexShrink: 1,
+            }}
+          >
             {item.description}
           </ThemedText>
         )}
         {item.usage && (
           <View className="bg-cyan-50 p-3 rounded-xl mt-2">
-            <ThemedText style={{ fontSize: 16, color: "#155e75", flexShrink: 1 }}>
+            <ThemedText
+              style={{ fontSize: 16, color: "#155e75", flexShrink: 1 }}
+            >
               <ThemedText style={{ fontWeight: "bold" }}>
                 {t("lessons.usage")}:
               </ThemedText>{" "}
@@ -686,25 +865,74 @@ const KanjiListCard = ({
   return (
     <TouchableOpacity onPress={handleCardPress} activeOpacity={0.7}>
       <ModernCard>
-        <View style={{ flexDirection: "row", alignItems: "center", minHeight: 90 }}>
-          <View className="bg-amber-100 rounded-2xl mr-3" style={{ flexShrink: 0, paddingVertical: 12, paddingHorizontal: 16 }}>
-            <ThemedText style={{ fontSize: 52, fontWeight: "bold", color: "#b45309", lineHeight: 62 }}>
+        <View
+          style={{ flexDirection: "row", alignItems: "center", minHeight: 90 }}
+        >
+          <View
+            className="bg-amber-100 rounded-2xl mr-3"
+            style={{
+              flexShrink: 0,
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+            }}
+          >
+            <ThemedText
+              style={{
+                fontSize: 52,
+                fontWeight: "bold",
+                color: "#b45309",
+                lineHeight: 62,
+              }}
+            >
               {item.character}
             </ThemedText>
           </View>
-          <View style={{ flex: 1, minWidth: 0, marginRight: 8, paddingVertical: 4 }}>
-            <ThemedText style={{ fontSize: 18, fontWeight: "bold", color: "#92400e", marginBottom: 6, flexShrink: 1, lineHeight: 24 }}>
+          <View
+            style={{ flex: 1, minWidth: 0, marginRight: 8, paddingVertical: 4 }}
+          >
+            <ThemedText
+              style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                color: "#92400e",
+                marginBottom: 6,
+                flexShrink: 1,
+                lineHeight: 24,
+              }}
+            >
               {meaning}
             </ThemedText>
             {(item.onReading || item.kunReading) && (
-              <ThemedText style={{ fontSize: 14, color: "#d97706", marginBottom: 4, flexShrink: 1, lineHeight: 20 }}>
+              <ThemedText
+                style={{
+                  fontSize: 14,
+                  color: "#d97706",
+                  marginBottom: 4,
+                  flexShrink: 1,
+                  lineHeight: 20,
+                }}
+              >
                 {item.onReading} • {item.kunReading}
               </ThemedText>
             )}
             {item.strokeCount && (
-              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 2 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  marginTop: 2,
+                }}
+              >
                 <Sparkles size={12} color="#f59e0b" />
-                <ThemedText style={{ fontSize: 13, color: "#d97706", marginLeft: 4, flexShrink: 1, lineHeight: 18 }}>
+                <ThemedText
+                  style={{
+                    fontSize: 13,
+                    color: "#d97706",
+                    marginLeft: 4,
+                    flexShrink: 1,
+                    lineHeight: 18,
+                  }}
+                >
                   {item.strokeCount} {t("lessons.stroke")}
                 </ThemedText>
               </View>
@@ -956,7 +1184,9 @@ const VocabularyListScreen = () => {
             <ChevronLeft size={24} color="#6b7280" />
           </TouchableOpacity>
           <View style={{ flex: 1, alignItems: "center" }}>
-            <ThemedText style={{ fontSize: 20, fontWeight: "bold", color: "#1f2937" }}>
+            <ThemedText
+              style={{ fontSize: 20, fontWeight: "bold", color: "#1f2937" }}
+            >
               {getActivityTitle()}
             </ThemedText>
           </View>
@@ -1084,7 +1314,14 @@ const VocabularyListScreen = () => {
                       <ThemedText style={{ fontSize: 36 }}>🏴‍☠️</ThemedText>
                     </View>
                   </View>
-                  <ThemedText style={{ textAlign: "center", fontSize: 16, fontWeight: "bold", color: "#1e40af" }}>
+                  <ThemedText
+                    style={{
+                      textAlign: "center",
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      color: "#1e40af",
+                    }}
+                  >
                     Học từ mới
                   </ThemedText>
                 </TouchableOpacity>
@@ -1113,7 +1350,14 @@ const VocabularyListScreen = () => {
                       <ThemedText style={{ fontSize: 36 }}>🥷</ThemedText>
                     </View>
                   </View>
-                  <ThemedText style={{ textAlign: "center", fontSize: 16, fontWeight: "bold", color: "#92400e" }}>
+                  <ThemedText
+                    style={{
+                      textAlign: "center",
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      color: "#92400e",
+                    }}
+                  >
                     Kiểm tra từ mới
                   </ThemedText>
                 </TouchableOpacity>
@@ -1121,23 +1365,25 @@ const VocabularyListScreen = () => {
             </View>
 
             {/* === BANNER === */}
-            <View className="mb-2" style={{ zIndex: 10, width: '85%', alignSelf: 'center' }}>
+            <View
+              className="mb-2"
+              style={{ zIndex: 10, width: "85%", alignSelf: "center" }}
+            >
               {/* Lớp ngoài */}
-              <View
-              >
+              <View>
                 {/* Ốc vít bên trái */}
                 <View
                   style={{
-                    position: 'absolute',
+                    position: "absolute",
                     left: 30,
-                    top: '70%',
+                    top: "70%",
                     transform: [{ translateY: -20 }],
                     width: 20,
                     height: 20,
                     borderRadius: 20,
-                    backgroundColor: '#F5E6B3',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    backgroundColor: "#F5E6B3",
+                    alignItems: "center",
+                    justifyContent: "center",
                     zIndex: 10,
                   }}
                 >
@@ -1145,34 +1391,34 @@ const VocabularyListScreen = () => {
                     style={{
                       width: 22,
                       height: 4,
-                      backgroundColor: '#FCD34D',
-                      transform: [{ rotate: '45deg' }],
+                      backgroundColor: "#FCD34D",
+                      transform: [{ rotate: "45deg" }],
                     }}
                   />
                 </View>
-                
+
                 {/* Ốc vít bên phải */}
                 <View
                   style={{
-                    position: 'absolute',
+                    position: "absolute",
                     right: 30,
-                    top: '70%',
+                    top: "70%",
                     transform: [{ translateY: -20 }],
                     width: 20,
                     height: 20,
                     borderRadius: 20,
-                    backgroundColor: '#F5E6B3',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex:10
+                    backgroundColor: "#F5E6B3",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 10,
                   }}
                 >
-               <View
+                  <View
                     style={{
                       width: 22,
                       height: 4,
-                      backgroundColor: '#FCD34D',
-                      transform: [{ rotate: '45deg' }],
+                      backgroundColor: "#FCD34D",
+                      transform: [{ rotate: "45deg" }],
                     }}
                   />
                 </View>
@@ -1190,7 +1436,13 @@ const VocabularyListScreen = () => {
                     alignItems: "center",
                   }}
                 >
-                  <ThemedText style={{ fontSize: 18, fontWeight: "bold", color: "#ffffff" }}>
+                  <ThemedText
+                    style={{
+                      fontSize: 18,
+                      fontWeight: "bold",
+                      color: "#ffffff",
+                    }}
+                  >
                     {getBannerText()}
                   </ThemedText>
                 </View>
@@ -1249,7 +1501,9 @@ const VocabularyListScreen = () => {
             <View className="flex-1">
               {/* Modal Header */}
               <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-200">
-                <ThemedText style={{ fontSize: 20, fontWeight: "bold", color: "#1f2937" }}>
+                <ThemedText
+                  style={{ fontSize: 20, fontWeight: "bold", color: "#1f2937" }}
+                >
                   {t("lessons.practice_writing") || "Luyện viết Kanji"}
                 </ThemedText>
                 <TouchableOpacity
@@ -1301,30 +1555,54 @@ const VocabularyListScreen = () => {
           presentationStyle="pageSheet"
           onRequestClose={handleCloseKanjiExplanation}
         >
-          <SafeAreaView className="flex-1 bg-gray-50">
+          <SafeAreaView
+            className="flex-1"
+            style={{ backgroundColor: "#f8fafc" }}
+          >
             <View className="flex-1">
-              {/* Modal Header */}
-              <View
-                className="bg-white border-b border-gray-100 px-6 py-5 flex-row items-center justify-between"
+              {/* Modal Header with Gradient */}
+              <LinearGradient
+                colors={["#fbbf24", "#f59e0b", "#d97706"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
                 style={{
+                  paddingHorizontal: 20,
+                  paddingVertical: 16,
                   shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.05,
-                  shadowRadius: 4,
-                  elevation: 3,
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 8,
+                  elevation: 5,
                 }}
               >
-                <ThemedText style={{ fontSize: 24, fontWeight: "bold", color: "#111827" }}>
-                  {t("lessons.kanji_explanation") || "Giải thích Kanji"}
-                </ThemedText>
-                <TouchableOpacity
-                  onPress={handleCloseKanjiExplanation}
-                  className="p-2 rounded-full bg-gray-100 active:bg-gray-200"
-                  activeOpacity={0.7}
-                >
-                  <X size={22} color="#6b7280" />
-                </TouchableOpacity>
-              </View>
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-row items-center flex-1">
+                    <ThemedText
+                      style={{
+                        fontSize: 22,
+                        fontWeight: "bold",
+                        color: "#ffffff",
+                        textShadowColor: "rgba(0, 0, 0, 0.15)",
+                        textShadowOffset: { width: 0, height: 1 },
+                        textShadowRadius: 3,
+                      }}
+                    >
+                      {t("lessons.kanji_explanation") || "Giải thích Kanji"}
+                    </ThemedText>
+                  </View>
+                  <TouchableOpacity
+                    onPress={handleCloseKanjiExplanation}
+                    className="rounded-full"
+                    activeOpacity={0.7}
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.25)",
+                      padding: 8,
+                    }}
+                  >
+                    <X size={24} color="#ffffff" />
+                  </TouchableOpacity>
+                </View>
+              </LinearGradient>
 
               {/* Kanji Explanation Content */}
               <ScrollView
@@ -1336,70 +1614,250 @@ const VocabularyListScreen = () => {
                 showsVerticalScrollIndicator={false}
               >
                 {selectedKanjiItem && (
-                  <View className="space-y-6">
-                    {/* Kanji Character */}
-                    <View className="items-center justify-center py-6">
-                      <LinearGradient
-                        colors={["#FEF3C7", "#FDE68A"]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={{
-                          borderRadius: 24,
-                          padding: 48,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          shadowColor: "#f59e0b",
-                          shadowOffset: { width: 0, height: 8 },
-                          shadowOpacity: 0.2,
-                          shadowRadius: 20,
-                          elevation: 8,
-                          minWidth: 180,
-                          minHeight: 180,
-                        }}
-                      >
-                        <ThemedText
-                          style={{ fontSize: 96, fontWeight: "bold", color: "#b45309" }}
+                  <View style={{ gap: 20 }}>
+                    {/* Kanji Character Card */}
+                    <View
+                      style={{
+                        backgroundColor: "#ffffff",
+                        borderRadius: 28,
+                        padding: 24,
+                        shadowColor: "#f59e0b",
+                        shadowOffset: { width: 0, height: 8 },
+                        shadowOpacity: 0.15,
+                        shadowRadius: 20,
+                        elevation: 8,
+                        borderWidth: 3,
+                        borderColor: "#fcd34d",
+                      }}
+                    >
+                      <View className="items-center justify-center mb-6">
+                        <LinearGradient
+                          colors={["#fef3c7", "#fde68a", "#fcd34d"]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={{
+                            borderRadius: 24,
+                            paddingVertical: 30,
+                            paddingHorizontal: 40,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            shadowColor: "#f59e0b",
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.2,
+                            shadowRadius: 12,
+                            elevation: 6,
+                            borderWidth: 2,
+                            borderColor: "#fbbf24",
+                          }}
                         >
-                          {selectedKanjiItem.character}
-                        </ThemedText>
-                      </LinearGradient>
+                          <ThemedText
+                            style={{
+                              fontSize: 120,
+                              fontWeight: "bold",
+                              color: "#92400e",
+                              lineHeight: 120,
+                              textShadowColor: "rgba(146, 64, 14, 0.1)",
+                              textShadowOffset: { width: 2, height: 2 },
+                              textShadowRadius: 4,
+                            }}
+                          >
+                            {selectedKanjiItem.character}
+                          </ThemedText>
+                        </LinearGradient>
+                      </View>
+
+                      {/* Kanji Info Grid */}
+                      <View style={{ gap: 12 }}>
+                        {/* Meaning */}
+                        {selectedKanjiItem.meaning && (
+                          <View
+                            style={{
+                              backgroundColor: "#fef3c7",
+                              borderRadius: 16,
+                              padding: 16,
+                              borderLeftWidth: 4,
+                              borderLeftColor: "#f59e0b",
+                            }}
+                          >
+                            <ThemedText
+                              style={{
+                                fontSize: 14,
+                                fontWeight: "600",
+                                color: "#d97706",
+                                marginBottom: 6,
+                                textTransform: "uppercase",
+                                letterSpacing: 0.5,
+                              }}
+                            >
+                              Nghĩa
+                            </ThemedText>
+                            <ThemedText
+                              style={{
+                                fontSize: 20,
+                                fontWeight: "bold",
+                                color: "#92400e",
+                                lineHeight: 28,
+                              }}
+                            >
+                              {selectedKanjiItem.meaning.split("##")[0]}
+                            </ThemedText>
+                          </View>
+                        )}
+
+                        {/* Readings */}
+                        {(selectedKanjiItem.onReading ||
+                          selectedKanjiItem.kunReading) && (
+                          <View style={{ flexDirection: "row", gap: 12 }}>
+                            {selectedKanjiItem.onReading && (
+                              <View
+                                style={{
+                                  flex: 1,
+                                  backgroundColor: "#dbeafe",
+                                  borderRadius: 16,
+                                  padding: 14,
+                                  borderWidth: 2,
+                                  borderColor: "#93c5fd",
+                                }}
+                              >
+                                <ThemedText
+                                  style={{
+                                    fontSize: 12,
+                                    fontWeight: "600",
+                                    color: "#1e40af",
+                                    marginBottom: 4,
+                                  }}
+                                >
+                                  Âm Onyomi
+                                </ThemedText>
+                                <ThemedText
+                                  style={{
+                                    fontSize: 18,
+                                    fontWeight: "bold",
+                                    color: "#1e3a8a",
+                                  }}
+                                >
+                                  {selectedKanjiItem.onReading}
+                                </ThemedText>
+                              </View>
+                            )}
+                            {selectedKanjiItem.kunReading && (
+                              <View
+                                style={{
+                                  flex: 1,
+                                  backgroundColor: "#fce7f3",
+                                  borderRadius: 16,
+                                  padding: 14,
+                                  borderWidth: 2,
+                                  borderColor: "#fbcfe8",
+                                }}
+                              >
+                                <ThemedText
+                                  style={{
+                                    fontSize: 12,
+                                    fontWeight: "600",
+                                    color: "#be185d",
+                                    marginBottom: 4,
+                                  }}
+                                >
+                                  Âm Kunyomi
+                                </ThemedText>
+                                <ThemedText
+                                  style={{
+                                    fontSize: 18,
+                                    fontWeight: "bold",
+                                    color: "#831843",
+                                  }}
+                                >
+                                  {selectedKanjiItem.kunReading}
+                                </ThemedText>
+                              </View>
+                            )}
+                          </View>
+                        )}
+
+                        {/* Stroke Count */}
+                        {selectedKanjiItem.strokeCount && (
+                          <View
+                            style={{
+                              backgroundColor: "#dcfce7",
+                              borderRadius: 16,
+                              padding: 14,
+                              flexDirection: "row",
+                              alignItems: "center",
+                              borderWidth: 2,
+                              borderColor: "#86efac",
+                            }}
+                          >
+                            <View
+                              style={{
+                                backgroundColor: "#22c55e",
+                                borderRadius: 12,
+                                padding: 8,
+                                marginRight: 12,
+                              }}
+                            >
+                              <Pencil size={18} color="#ffffff" />
+                            </View>
+                            <View>
+                              <ThemedText
+                                style={{
+                                  fontSize: 12,
+                                  fontWeight: "600",
+                                  color: "#15803d",
+                                  marginBottom: 2,
+                                }}
+                              >
+                                Số nét
+                              </ThemedText>
+                              <ThemedText
+                                style={{
+                                  fontSize: 20,
+                                  fontWeight: "bold",
+                                  color: "#166534",
+                                }}
+                              >
+                                {selectedKanjiItem.strokeCount} nét
+                              </ThemedText>
+                            </View>
+                          </View>
+                        )}
+                      </View>
                     </View>
 
                     {/* Kanji Image */}
                     {(selectedKanjiItem.imageUrl ||
                       selectedKanjiItem.image ||
                       selectedKanjiItem.imgUrl) && (
-                      <View className="items-center justify-center">
-                        <View
-                          style={{
-                            borderRadius: 20,
-                            overflow: "hidden",
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.1,
-                            shadowRadius: 12,
-                            elevation: 6,
-                            backgroundColor: "#fff",
-                            padding: 8,
+                      <View
+                        style={{
+                          backgroundColor: "#ffffff",
+                          borderRadius: 24,
+                          padding: 12,
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 4 },
+                          shadowOpacity: 0.1,
+                          shadowRadius: 16,
+                          elevation: 6,
+                          borderWidth: 3,
+                          borderColor: "#e5e7eb",
+                        }}
+                      >
+                        <Image
+                          source={{
+                            uri:
+                              selectedKanjiItem.imageUrl ||
+                              selectedKanjiItem.image ||
+                              selectedKanjiItem.imgUrl ||
+                              "",
                           }}
-                        >
-                          <Image
-                            source={{
-                              uri:
-                                selectedKanjiItem.imageUrl ||
-                                selectedKanjiItem.image ||
-                                selectedKanjiItem.imgUrl ||
-                                "",
-                            }}
-                            style={{
-                              width: width - 80,
-                              height: (width - 80) * 0.6,
-                              borderRadius: 16,
-                            }}
-                            contentFit="cover"
-                            transition={200}
-                          />
-                        </View>
+                          style={{
+                            width: "100%",
+                            height: (width - 76) * 0.65,
+                            borderRadius: 16,
+                          }}
+                          contentFit="cover"
+                          transition={300}
+                        />
                       </View>
                     )}
 
@@ -1412,31 +1870,58 @@ const VocabularyListScreen = () => {
                           .filter((s: string) => s.length > 0);
                         return (
                           <View
-                            className="bg-white rounded-3xl"
                             style={{
+                              backgroundColor: "#ffffff",
+                              borderRadius: 24,
                               shadowColor: "#000",
                               shadowOffset: { width: 0, height: 4 },
                               shadowOpacity: 0.08,
-                              shadowRadius: 12,
+                              shadowRadius: 16,
                               elevation: 5,
                               overflow: "hidden",
+                              borderWidth: 3,
+                              borderColor: "#e0e7ff",
                             }}
                           >
-                            <View style={{ padding: 24 }}>
+                            <LinearGradient
+                              colors={["#818cf8", "#6366f1"]}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 0 }}
+                              style={{
+                                paddingVertical: 14,
+                                paddingHorizontal: 20,
+                              }}
+                            >
+                              <ThemedText
+                                style={{
+                                  fontSize: 16,
+                                  fontWeight: "bold",
+                                  color: "#ffffff",
+                                  textTransform: "uppercase",
+                                  letterSpacing: 0.5,
+                                }}
+                              >
+                                📖 Giải thích chi tiết
+                              </ThemedText>
+                            </LinearGradient>
+                            <View style={{ padding: 20 }}>
                               {sections.map(
                                 (section: string, index: number) => (
                                   <View
                                     key={index}
                                     style={{
                                       marginBottom:
-                                        index < sections.length - 1 ? 20 : 0,
+                                        index < sections.length - 1 ? 16 : 0,
+                                      paddingLeft: 12,
+                                      borderLeftWidth: 3,
+                                      borderLeftColor: "#c7d2fe",
                                     }}
                                   >
                                     <ThemedText
                                       style={{
-                                        color: "#1f2937",
+                                        color: "#374151",
                                         fontSize: 16,
-                                        lineHeight: 28,
+                                        lineHeight: 26,
                                         letterSpacing: 0.2,
                                       }}
                                     >
