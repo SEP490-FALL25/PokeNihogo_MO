@@ -45,7 +45,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     const queryClient = useQueryClient();
 
     // Get match round data
-    const { data: matchRound, isLoading: isLoadingMatchRound } = useListMatchRound() as {
+    const { data: matchRound, isLoading: isLoadingMatchRound } = useListMatchRound(matchId) as {
         data: IBattleMatchRound;
         isLoading: boolean;
     };

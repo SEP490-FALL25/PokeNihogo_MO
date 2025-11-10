@@ -54,7 +54,7 @@ export default function PickPokemonScreen() {
      * Get List Match Round
      */
     const language = useGlobalStore((s) => s.language);
-    const { data: matchRound, isLoading: isLoadingMatchRound } = useListMatchRound() as { data: IBattleMatchRound; isLoading: boolean };
+    const { data: matchRound, isLoading: isLoadingMatchRound } = useListMatchRound(matchId) as { data: IBattleMatchRound; isLoading: boolean };
 
     //---------------End---------------//
 

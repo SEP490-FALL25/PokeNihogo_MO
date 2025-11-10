@@ -180,6 +180,13 @@ export default function BattleLobbyScreen() {
   const setLastMatchResult = useMatchingStore((s) => (s as any).setLastMatchResult);
   const queryClient = useQueryClient();
 
+  // Reset match-related state when component mounts (e.g., returning from result screen)
+  useEffect(() => {
+    setStatusMatch(null);
+    setShowAcceptModal(false);
+    setMatchedPlayer(null);
+  }, []);
+
   useEffect(() => {
     if (!accessToken) return;
 
@@ -193,6 +200,9 @@ export default function BattleLobbyScreen() {
         const match = payload?.match;
 
         if (match && 'opponent' in payload) {
+          // Reset status match to allow accepting new match
+          setStatusMatch(null);
+
           // Update local state for modal
           setMatchedPlayer(payload);
           setShowAcceptModal(true);
