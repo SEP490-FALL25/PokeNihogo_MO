@@ -29,6 +29,7 @@ export default function BattleResultScreen() {
         eloDeltaText,
         eloDeltaPositive,
         roundDetails,
+        pointDiff,
     } = useMemo(() => {
         const result: any = {
             me: null,
@@ -43,12 +44,16 @@ export default function BattleResultScreen() {
             eloDeltaText: "",
             eloDeltaPositive: true,
             roundDetails: [] as Array<{ label: string; me: number; foe: number; winnerUserId?: number | null }>,
+            pointDiff: 0,
         };
-        if (!lastResult?.match || !lastResult?.rounds) return result;
+        if (!lastResult?.match) return result;
 
         const participants = lastResult.match.participants || [];
+        const rounds = lastResult.match.rounds || lastResult.rounds || []; // Support both structures
+
+        // Find participants by userId (payload has participants[].userId directly)
         const meP = participants.find((p: any) => p.userId === currentUserId) || participants[0];
-        const foeP = participants.find((p: any) => p.userId !== meP?.userId) || participants[1];
+        const foeP = participants.find((p: any) => p.userId !== currentUserId && p.userId !== meP?.userId) || participants[1];
         result.me = meP;
         result.foe = foeP;
         result.meName = meP?.user?.name || meP?.user?.email || "Bạn";
@@ -58,7 +63,7 @@ export default function BattleResultScreen() {
         // Otherwise show nothing; UI still works
         try {
             // try to find most recent selectedUserPokemon per side
-            const allRoundParticipants = (lastResult.rounds || []).flatMap((r: any) => r.participants || []);
+            const allRoundParticipants = rounds.flatMap((r: any) => r.participants || []);
             const meRps = allRoundParticipants.filter((rp: any) => rp.matchParticipantId === meP?.id);
             const foeRps = allRoundParticipants.filter((rp: any) => rp.matchParticipantId === foeP?.id);
             const meLast = meRps[meRps.length - 1];
@@ -67,31 +72,48 @@ export default function BattleResultScreen() {
             result.foeAvatarUrl = foeLast?.selectedUserPokemon?.pokemon?.imageUrl || null;
         } catch { /* noop */ }
 
-        // Sum points for each side
+        // Sum points for each side from rounds[].participants[].points
         const roundOrder = (rn: string) => rn === "ONE" ? 1 : rn === "TWO" ? 2 : rn === "THREE" ? 3 : 999;
-        const roundsSorted = [...(lastResult.rounds || [])].sort((a: any, b: any) => roundOrder(a.roundNumber) - roundOrder(b.roundNumber));
+        const roundsSorted = [...rounds].sort((a: any, b: any) => roundOrder(a.roundNumber) - roundOrder(b.roundNumber));
+
+        // Reset totals before summing
+        result.meTotal = 0;
+        result.foeTotal = 0;
+
         for (const r of roundsSorted) {
             let mePts = 0;
             let foePts = 0;
+            // Iterate through round participants and sum points by matchParticipantId
             for (const rp of r.participants || []) {
+                const pts = typeof rp.points === "number" ? rp.points : 0;
                 if (rp.matchParticipantId === meP?.id) {
-                    const pts = rp.points || 0;
                     result.meTotal += pts;
                     mePts += pts;
-                }
-                if (rp.matchParticipantId === foeP?.id) {
-                    const pts = rp.points || 0;
+                } else if (rp.matchParticipantId === foeP?.id) {
                     result.foeTotal += pts;
                     foePts += pts;
                 }
+            }
+            // Get winner userId from roundWinner
+            // Support multiple structures: roundWinner.userId, roundWinner.user.id, or roundWinnerId
+            let roundWinnerUserId: number | null = null;
+            if (r.roundWinner) {
+                roundWinnerUserId = r.roundWinner.userId ?? r.roundWinner.user?.id ?? null;
+            } else if (r.roundWinnerId) {
+                // If roundWinnerId is a participant ID, find the userId
+                const winnerParticipant = participants.find((p: any) => p.id === r.roundWinnerId);
+                roundWinnerUserId = winnerParticipant?.userId ?? null;
             }
             result.roundDetails.push({
                 label: r.roundNumber === "ONE" ? "Round 1" : r.roundNumber === "TWO" ? "Round 2" : r.roundNumber === "THREE" ? "Round 3" : r.roundNumber || "Round",
                 me: mePts,
                 foe: foePts,
-                winnerUserId: r.roundWinner?.userId ?? null,
+                winnerUserId: roundWinnerUserId,
             });
         }
+
+        // Calculate point difference (me - foe)
+        result.pointDiff = result.meTotal - result.foeTotal;
 
         // Compute own ELO delta: show ONLY my ELO change
         const gained = lastResult?.match?.eloGained ?? 0;
@@ -106,8 +128,39 @@ export default function BattleResultScreen() {
 
     const handleBack = () => {
         try { clearLast(); } catch { }
-        router.replace("/(app)");
+        router.back();
     };
+
+    // Show loading/empty state if no data
+    if (!lastResult || !lastResult.match) {
+        return (
+            <ThemedView style={styles.container}>
+                <ImageBackground
+                    source={require("../../../../assets/images/list_pokemon_bg.png")}
+                    style={styles.bg}
+                    imageStyle={styles.bgImage}
+                >
+                    <TWLinearGradient
+                        colors={["rgba(17,24,39,0.85)", "rgba(17,24,39,0.6)", "rgba(17,24,39,0.85)"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.overlay}
+                    />
+                    <View className="flex-1 items-center justify-center px-5">
+                        <ThemedText style={{ color: "#fbbf24", fontSize: 18, fontWeight: "700", marginBottom: 8 }}>
+                            Đang tải kết quả...
+                        </ThemedText>
+                        <ThemedText style={{ color: "#94a3b8", fontSize: 14, textAlign: "center", marginBottom: 24 }}>
+                            Vui lòng chờ trong giây lát
+                        </ThemedText>
+                        <ThemedText onPress={handleBack} style={{ color: "#93c5fd", fontSize: 14, textDecorationLine: "underline" }}>
+                            Về trang chính
+                        </ThemedText>
+                    </View>
+                </ImageBackground>
+            </ThemedView>
+        );
+    }
 
     return (
         <ThemedView style={styles.container}>
@@ -163,6 +216,11 @@ export default function BattleResultScreen() {
                                         <ThemedText style={{ color: "#ef9a9a", fontSize: 24, fontWeight: "900" }}>
                                             {foeTotal}
                                         </ThemedText>
+                                        {pointDiff < 0 && (
+                                            <ThemedText style={{ color: "#fca5a5", fontSize: 12, marginTop: 4 }}>
+                                                +{Math.abs(pointDiff)} điểm
+                                            </ThemedText>
+                                        )}
                                     </View>
                                 </View>
                             </TWLinearGradient>
@@ -196,6 +254,11 @@ export default function BattleResultScreen() {
                                         <ThemedText style={{ color: "#86efac", fontSize: 24, fontWeight: "900" }}>
                                             {meTotal}
                                         </ThemedText>
+                                        {pointDiff > 0 && (
+                                            <ThemedText style={{ color: "#86efac", fontSize: 12, marginTop: 4 }}>
+                                                +{pointDiff} điểm
+                                            </ThemedText>
+                                        )}
                                     </View>
                                     {/* Show ONLY my ELO change */}
                                     <View className="mt-2 items-end">
@@ -215,7 +278,7 @@ export default function BattleResultScreen() {
                         <ThemedText style={{ color: "#e5e7eb", fontWeight: "800", fontSize: 16, marginBottom: 8 }}>
                             Chi tiết từng round
                         </ThemedText>
-                        {roundDetails.map((rd, idx) => {
+                        {roundDetails.map((rd: { label: string; me: number; foe: number; winnerUserId?: number | null }, idx: number) => {
                             const meWin = rd.winnerUserId !== undefined && rd.winnerUserId !== null && me?.userId === rd.winnerUserId;
                             const foeWin = rd.winnerUserId !== undefined && rd.winnerUserId !== null && foe?.userId === rd.winnerUserId;
                             return (

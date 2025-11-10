@@ -10,6 +10,7 @@ import { IBattleMatchRound, ISubmitAnswer } from "@models/battle/battle.response
 import battleService from "@services/battle";
 import { useAuthStore } from "@stores/auth/auth.config";
 import { useMatchingStore } from "@stores/matching/matching.config";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Award, CheckCircle, Clock, Shield, XCircle, Zap } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -40,6 +41,8 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     const accessToken = useAuthStore((s) => s.accessToken);
     const setCurrentMatchId = useMatchingStore((s) => s.setCurrentMatchId);
     const setLastMatchResult = useMatchingStore((s) => s.setLastMatchResult);
+    const clearLastMatchResult = useMatchingStore((s) => (s as any).clearLastMatchResult);
+    const queryClient = useQueryClient();
 
     // Get match round data
     const { data: matchRound, isLoading: isLoadingMatchRound } = useListMatchRound() as {
@@ -102,6 +105,49 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             setCurrentMatchId(null);
         };
     }, [matchId, setCurrentMatchId]);
+
+    // Reset all battle state when matchId changes (new match)
+    useEffect(() => {
+        if (!matchId) return;
+
+        // Reset all state to initial values
+        setSelectedAnswer(null);
+        setIsAnswerSubmitted(false);
+        setShowResult(false);
+        setBattleComplete(false);
+        setMatchSummary(null);
+        setPlayerScore(0);
+        setOpponentScore(0);
+        setCurrentTurn(1);
+        setPlayerPokemonIndex(0);
+        setOpponentPokemonIndex(0);
+        setTypeAdvantage(null);
+        setShowFog(false);
+        setShowConfusion(false);
+        setIsWaitingForOpponent(false);
+        setCurrentQuestion(null);
+        setRoundStarted(false);
+        setRoundData(null);
+        setQuestionTimeRemaining(null);
+        setQuestionStartTime(null);
+        setCurrentQuestionIndex(0);
+        setTotalQuestions(null);
+        setIsLastQuestion(false);
+        setCurrentQuestionPoints(BASE_POINT_PER_QUESTION);
+        pointProgress.setValue(1);
+        shakeAnimation.setValue(0);
+
+        // Clear last match result from store
+        try {
+            clearLastMatchResult();
+        } catch (e) {
+            console.warn("Failed to clear last match result", e);
+        }
+
+        // Invalidate React Query cache for match round data
+        queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
+        queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
+    }, [matchId, clearLastMatchResult, queryClient]);
 
     // Get player and opponent Pokemon from round-started event or matchRound
     const playerPokemon = useMemo(() => {
@@ -628,8 +674,10 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         });
 
         // Match completed
+        // Note: Navigation is handled by global listener in battle.tsx
+        // This local handler only updates local state
         socket.on("match-completed", (payload: any) => {
-            console.log("Match completed:", payload);
+            console.log("Match completed (arena):", payload);
             const winnerId = payload?.match?.winnerId ?? null;
             const winnerName =
                 payload?.match?.winner?.name ||
@@ -644,7 +692,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 eloGained,
                 eloLost,
             });
-            // Save result payload to store and navigate to result screen
+            // Save result payload to store (global handler will handle navigation)
             try {
                 setLastMatchResult(payload);
             } catch (e) {
@@ -657,15 +705,8 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             if (payload?.opponentScore !== undefined) {
                 setOpponentScore(payload.opponentScore);
             }
-            // Navigate to result route
-            try {
-                router.replace({
-                    pathname: "/(app)/(battle)/result",
-                    params: { matchId: String(payload?.matchId || payload?.match?.id || matchId) },
-                } as any);
-            } catch (e) {
-                console.warn("Navigation to result screen failed", e);
-            }
+            // Navigation is handled by global listener in battle.tsx to ensure it works
+            // even if this component unmounts before the event arrives
         });
 
         return () => {
@@ -900,9 +941,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                             <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
                                 Đối thủ
                             </ThemedText>
-                            <ThemedText style={{ color: "#ef4444", fontSize: 24, fontWeight: "900", marginTop: 4 }}>
+                            {/* <ThemedText style={{ color: "#ef4444", fontSize: 24, fontWeight: "900", marginTop: 4 }}>
                                 {opponentScore}
-                            </ThemedText>
+                            </ThemedText> */}
                         </View>
 
                         {/* VS */}
@@ -929,9 +970,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                             <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
                                 Bạn
                             </ThemedText>
-                            <ThemedText style={{ color: "#22c55e", fontSize: 24, fontWeight: "900", marginTop: 4 }}>
+                            {/* <ThemedText style={{ color: "#22c55e", fontSize: 24, fontWeight: "900", marginTop: 4 }}>
                                 {playerScore}
-                            </ThemedText>
+                            </ThemedText> */}
                         </View>
                     </View>
                 </View>
