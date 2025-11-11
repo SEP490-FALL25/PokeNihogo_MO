@@ -1364,53 +1364,53 @@ const VocabularyListScreen = () => {
                 className="flex-row flex-wrap justify-between"
                 style={{ gap: 12 }}
               >
-                {/* Học từ mới - Top Left */}
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    router.push({
-                      pathname: "/(app)/content-list/flashcard",
-                      params: {
-                        id,
-                        contentType: contentTypeValue,
-                      },
-                    });
-                  }}
-                  className="rounded-3xl p-6 shadow-lg"
-                  style={{
-                    width: (width - 48 - 12) / 2,
-                    backgroundColor: "#E0F2FE",
-                  }}
-                >
-                  <View className="items-center mb-3">
-                    <View
-                      className="rounded-full items-center justify-center"
-                      style={{
-                        width: 80,
-                        height: 80,
-                        backgroundColor: "#BAE6FD",
-                      }}
-                    >
-                      <ThemedText style={{ fontSize: 36 }}>🏴‍☠️</ThemedText>
-                    </View>
-                  </View>
-                  <ThemedText
+                {/* Học từ mới/Kanji - Chỉ hiển thị khi không phải grammar */}
+                {contentTypeValue !== "grammar" && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.selectionAsync();
+                      router.push({
+                        pathname: "/(app)/content-list/flashcard",
+                        params: {
+                          id,
+                          contentType: contentTypeValue,
+                        },
+                      });
+                    }}
+                    className="rounded-3xl p-6 shadow-lg"
                     style={{
-                      textAlign: "center",
-                      fontSize: 16,
-                      fontWeight: "bold",
-                      color: "#1e40af",
+                      width: (width - 48 - 12) / 2,
+                      backgroundColor: "#E0F2FE",
                     }}
                   >
-                    {contentTypeValue === "grammar"
-                      ? "Học ngữ pháp"
-                      : contentTypeValue === "kanji"
+                    <View className="items-center mb-3">
+                      <View
+                        className="rounded-full items-center justify-center"
+                        style={{
+                          width: 80,
+                          height: 80,
+                          backgroundColor: "#BAE6FD",
+                        }}
+                      >
+                        <ThemedText style={{ fontSize: 36 }}>🏴‍☠️</ThemedText>
+                      </View>
+                    </View>
+                    <ThemedText
+                      style={{
+                        textAlign: "center",
+                        fontSize: 16,
+                        fontWeight: "bold",
+                        color: "#1e40af",
+                      }}
+                    >
+                      {contentTypeValue === "kanji"
                         ? "Học Kanji"
                         : "Học từ mới"}
-                  </ThemedText>
-                </TouchableOpacity>
+                    </ThemedText>
+                  </TouchableOpacity>
+                )}
 
-                {/* Kiểm tra từ mới - Bottom Left */}
+                {/* Kiểm tra - Full width khi là grammar, một nửa khi không phải grammar */}
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.selectionAsync();
@@ -1418,7 +1418,10 @@ const VocabularyListScreen = () => {
                   }}
                   className="rounded-3xl p-6 shadow-lg"
                   style={{
-                    width: (width - 48 - 12) / 2,
+                    width:
+                      contentTypeValue === "grammar"
+                        ? width - 48
+                        : (width - 48 - 12) / 2,
                     backgroundColor: "#FEF3C7",
                   }}
                 >
