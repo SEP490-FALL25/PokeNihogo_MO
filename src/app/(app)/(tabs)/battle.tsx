@@ -2,6 +2,7 @@ import { CountdownTimer } from "@components/atoms/CountdownTimer";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import UserAvatar from "@components/atoms/UserAvatar";
 import ModalBattleAccept from "@components/battle/modal-accept.battle";
+import ModalLeaderboard from "@components/battle/modal-leaderboard";
 import { HapticPressable } from "@components/HapticPressable";
 import GlowingRingEffect from "@components/molecules/GlowingRingEffect";
 import { ThemedText } from "@components/ThemedText";
@@ -37,6 +38,7 @@ const mockBattleHistory = [
 export default function BattleLobbyScreen() {
   const router = useRouter();
   const [showHistory, setShowHistory] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<"all" | "win" | "loss">("all");
   const [selectedBattle, setSelectedBattle] = useState<typeof mockBattleHistory[0] | null>(null);
   const { user } = useAuth();
@@ -120,10 +122,7 @@ export default function BattleLobbyScreen() {
    * Handle open leaderboard
    */
   const handleOpenLeaderboard = () => {
-    Alert.alert(
-      "Bảng xếp hạng",
-      "Màn hình bảng xếp hạng sẽ hiển thị tại đây (WIP).",
-    );
+    setShowLeaderboard(true);
   };
 
   const handleViewTopRewards = () => {
@@ -594,6 +593,12 @@ export default function BattleLobbyScreen() {
           </View>
         </View>
       </Modal>
+
+      <ModalLeaderboard
+        visible={showLeaderboard}
+        onRequestClose={() => setShowLeaderboard(false)}
+        rankName="N5"
+      />
 
       {/* Battle Detail Modal */}
       <Modal
