@@ -15,6 +15,7 @@ import { ROUTES } from "@routes/routes";
 import battleService from "@services/battle";
 import { useAuthStore } from "@stores/auth/auth.config";
 import { useMatchingStore } from "@stores/matching/matching.config";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Award, Crown, History, Info, Target, Trophy } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -100,22 +101,10 @@ export default function BattleLobbyScreen() {
     setInQueue(true);
     setGlobalInQueue(true); // Update global store
     try {
-      console.log("[QUEUE] Calling matchQueue()");
       await battleService.matchQueue();
-      console.log("[QUEUE] startQueue success");
-      // Emit join-searching-room when user starts queueing
-      console.log("[SOCKET] Socket:", socketRef.current);
       if (socketRef.current) {
-        console.log("[SOCKET] Emitting join-searching-room, socketId:", socketRef.current.id);
-        try {
-          socketRef.current.emit("join-searching-room", {}, (ack: any) => {
-            console.log("[SOCKET][ACK] join-searching-room:", ack);
-          });
-        } catch (e) {
-          console.log("[SOCKET][ERROR] emit join-searching-room failed:", e);
-        }
-      } else {
-        console.log("[SOCKET] socket not ready to emit join-searching-room");
+        socketRef.current.emit("join-searching-room", {}, (ack: any) => {
+        });
       }
     } catch (error: any) {
       Alert.alert("Lỗi", "Không thể tìm trận đấu");
@@ -187,6 +176,9 @@ export default function BattleLobbyScreen() {
     showMatchFoundModal: showGlobalMatchFound,
     hideMatchFoundModal: hideGlobalMatchFound,
   } = useMatchingStore();
+  const clearLastMatchResult = useMatchingStore((s) => (s as any).clearLastMatchResult);
+  const setLastMatchResult = useMatchingStore((s) => (s as any).setLastMatchResult);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!accessToken) return;
@@ -221,6 +213,15 @@ export default function BattleLobbyScreen() {
           setGlobalInQueue(false);
           hideGlobalMatchFound();
 
+          // Clear cache and last match result when starting new match
+          try {
+            clearLastMatchResult();
+          } catch (e) {
+            console.warn("Failed to clear last match result", e);
+          }
+          queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
+          queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
+
           router.push({
             pathname: ROUTES.APP.PICK_POKEMON,
             params: {
@@ -249,11 +250,32 @@ export default function BattleLobbyScreen() {
 
     socket.on("matching-event", onMatchingEvent);
 
+    // Global listener for match-completed (works even after navigating to result screen)
+    const onMatchCompleted = (payload: any) => {
+      console.log("Match completed (global):", payload);
+      try {
+        setLastMatchResult(payload);
+        const matchId = payload?.matchId || payload?.match?.id;
+        if (matchId) {
+          // Navigate to result screen
+          router.replace({
+            pathname: "/(app)/(battle)/result",
+            params: { matchId: String(matchId) },
+          } as any);
+        }
+      } catch (e) {
+        console.warn("Failed to handle match-completed", e);
+      }
+    };
+
+    socket.on("match-completed", onMatchCompleted);
+
     return () => {
       socket.off("matching-event", onMatchingEvent);
+      socket.off("match-completed", onMatchCompleted);
       // disconnectSocket();
     };
-  }, [accessToken, router, setGlobalInQueue, showGlobalMatchFound, hideGlobalMatchFound]);
+  }, [accessToken, router, setGlobalInQueue, showGlobalMatchFound, hideGlobalMatchFound, clearLastMatchResult, setLastMatchResult, queryClient]);
   //------------------------End------------------------//
 
 

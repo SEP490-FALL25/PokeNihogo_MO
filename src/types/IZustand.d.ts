@@ -51,6 +51,11 @@ declare namespace ZUSTAND {
         currentMatchId: string | null;
         setCurrentMatchId: (matchId: string | null) => void;
 
+        // Last match result payload
+        lastMatchResult: any | null;
+        setLastMatchResult: (result: any) => void;
+        clearLastMatchResult: () => void;
+
         // Match found modal (reuse ModalBattleAccept)
         matchFoundModal: {
             show: boolean;
