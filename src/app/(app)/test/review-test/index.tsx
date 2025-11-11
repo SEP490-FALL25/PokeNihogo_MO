@@ -43,7 +43,7 @@ export default function TestReviewScreen() {
     "test",
     reviewDataFromParams || undefined
   );
-
+console.log("reviewDataFromApi", reviewDataFromApi);
   // Use reviewData from params if available, otherwise use API data
   const reviewData = reviewDataFromApi || reviewDataFromParams;
 

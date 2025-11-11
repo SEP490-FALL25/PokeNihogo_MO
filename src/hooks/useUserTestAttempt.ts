@@ -5,6 +5,12 @@ export const useGetTestAttempt = (testId: string | number, testType?: string) =>
   return useQuery({
     queryKey: ["test", testId, testType],
     queryFn: async () => {
+      // Nếu là LESSON_TEST, gọi API lesson-review
+      if (testType === "LESSON_TEST") {
+        const res = await userTestService.getLessonReviewQuestions(testId);
+        return res.data;
+      }
+      // Các test khác (READING_TEST, LISTENING_TEST) giữ nguyên
       const res = await userTestService.getAttemptByTestId(testId);
       return res.data;
     },

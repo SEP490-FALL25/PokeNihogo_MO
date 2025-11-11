@@ -41,6 +41,12 @@ enum QUIZ {
   REVIEW = "/(app)/quiz/review",
 }
 
+enum TEST {
+  TEST = "/(app)/test",
+  RESULT = "/(app)/test/result",
+  REVIEW = "/(app)/test/review-test",
+}
+
 enum TABS {
   ROOT = "/(app)/(tabs)",
   HOME = "/(app)/(tabs)/home",
@@ -70,6 +76,7 @@ export const ROUTES = {
   TABS,
   STARTER,
   QUIZ,
+  TEST,
   ME,
   LESSON,
   READING,

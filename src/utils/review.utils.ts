@@ -1,4 +1,4 @@
-import { ParsedExplanation } from "@components/test/review";
+import { ParsedExplanation } from "@components/test/review/ReviewAnswerOption";
 import { IReviewResultQuestionBank } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 
 /**

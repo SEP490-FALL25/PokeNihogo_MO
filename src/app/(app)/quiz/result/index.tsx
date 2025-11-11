@@ -112,7 +112,7 @@ console.log('comingFromQuiz: ', comingFromQuiz);
         }
 
         router.push({
-          pathname: ROUTES.QUIZ.REVIEW,
+          pathname: ROUTES.TEST.REVIEW,
           params: {
             sessionId: resultId,
             reviewData: JSON.stringify(data),

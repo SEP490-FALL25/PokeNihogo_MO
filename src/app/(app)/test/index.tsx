@@ -178,7 +178,9 @@ export default function TestScreen() {
         </View>
       }
     >
-      {testType === "LISTENING_TEST" ? renderListeningTest() : renderReadingTest()}
+      {testType === "LISTENING_TEST" || testType === "LESSON_TEST" 
+        ? renderListeningTest() 
+        : renderReadingTest()}
 
       <ConfirmModal
         visible={showExitConfirmModal}
