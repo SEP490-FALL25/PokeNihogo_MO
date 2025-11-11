@@ -5,214 +5,146 @@ import { ROUTES } from "@routes/routes";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  BookOpen,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-} from "lucide-react-native";
+import { ChevronLeft, Sparkles } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, TouchableOpacity, View } from "react-native";
+import {
+  Animated,
+  Dimensions,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// --- Modern Dashboard Card Component ---
-interface DashboardCardProps {
-  title: string;
-  subtitle: string;
-  count: number;
-  emoji: string;
-  bgColor: string;
-  accentColor: string;
-  darkColor: string;
-  items: any[];
-  onPress: () => void;
-}
+const { width } = Dimensions.get("window");
 
-const DashboardCard = ({
-  title,
-  subtitle,
-  count,
-  emoji,
-  bgColor,
-  accentColor,
-  darkColor,
-  items,
-  onPress,
-}: DashboardCardProps) => {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.92}
-      style={{
-        backgroundColor: "white",
-        borderRadius: 24,
-        padding: 20,
-        marginBottom: 16,
-        shadowColor: accentColor,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
+// --- Modern Card Component ---
+const ModernCard = ({ children, style }: any) => (
+  <Animated.View
+    className="bg-white rounded-3xl p-6 shadow-xl"
+    style={[
+      {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.08,
         shadowRadius: 20,
-        elevation: 8,
-        borderWidth: 2,
-        borderColor: bgColor,
-      }}
-    >
-      {/* Header with Stats */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          marginBottom: 16,
-        }}
-      >
-        {/* Emoji Circle */}
-        <View
-          style={{
-            width: 64,
-            height: 64,
-            borderRadius: 20,
-            backgroundColor: bgColor,
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: 16,
-          }}
-        >
-          <ThemedText style={{ fontSize: 36 }}>{emoji}</ThemedText>
-        </View>
+        elevation: 10,
+      },
+      style,
+    ]}
+  >
+    {children}
+  </Animated.View>
+);
 
-        {/* Title and Subtitle */}
-        <View style={{ flex: 1 }}>
-          <ThemedText
-            style={{
-              fontSize: 22,
-              fontWeight: "bold",
-              color: darkColor,
-              marginBottom: 4,
-            }}
-          >
-            {title}
+// --- Vocabulary Card (Simple display, navigate to vocabulary list) ---
+const VocabularyCard = ({
+  item,
+  index,
+  lessonId,
+}: {
+  item: any;
+  index: number;
+  lessonId: string;
+}) => {
+  const handlePress = () => {
+    Haptics.selectionAsync();
+    router.push({
+      pathname: ROUTES.LESSON.CONTENT_LIST,
+      params: {
+        id: lessonId,
+        activityType: "learn",
+      },
+    });
+  };
+
+  return (
+    <ModernCard style={{ marginHorizontal: 4 }}>
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+        <View className="items-center justify-center">
+          <ThemedText className="text-3xl font-bold text-indigo-600 text-center">
+            {item.wordJp}
           </ThemedText>
-          <ThemedText
-            style={{
-              fontSize: 13,
-              color: accentColor,
-              fontWeight: "600",
-            }}
-          >
-            {subtitle}
+          <ThemedText className="text-lg text-indigo-400 mt-1 font-medium text-center">
+            {item.reading}
           </ThemedText>
         </View>
+      </TouchableOpacity>
+    </ModernCard>
+  );
+};
 
-        {/* Count Badge */}
-        <View
-          style={{
-            backgroundColor: bgColor,
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            borderRadius: 16,
-          }}
-        >
-          <ThemedText
-            style={{
-              fontSize: 24,
-              fontWeight: "bold",
-              color: darkColor,
-            }}
-          >
-            {count}
+// --- Grammar Card (Simple display, navigate to vocabulary list) ---
+const GrammarCard = ({
+  item,
+  lessonId,
+}: {
+  item: any;
+  lessonId: string;
+}) => {
+  const handlePress = () => {
+    Haptics.selectionAsync();
+    router.push({
+      pathname: ROUTES.LESSON.CONTENT_LIST,
+      params: {
+        id: lessonId,
+        contentType: "grammar",
+        activityType: "learn",
+      },
+    });
+  };
+
+  return (
+    <ModernCard style={{ marginHorizontal: 4 }}>
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+        <View className="items-center justify-center">
+          <ThemedText className="text-xl font-bold text-cyan-700 text-center">
+            {item.title}
           </ThemedText>
         </View>
-      </View>
+      </TouchableOpacity>
+    </ModernCard>
+  );
+};
 
-      {/* Preview Grid */}
-      <View
-        style={{
-          backgroundColor: bgColor,
-          borderRadius: 16,
-          padding: 16,
-          minHeight: 80,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: 8,
-          }}
-        >
-          {items.slice(0, 6).map((item, index) => (
-            <View
-              key={index}
-              style={{
-                backgroundColor: "white",
-                paddingHorizontal: 14,
-                paddingVertical: 8,
-                borderRadius: 12,
-                borderWidth: 1.5,
-                borderColor: accentColor + "40",
-              }}
-            >
-              <ThemedText
-                style={{
-                  fontSize: 15,
-                  fontWeight: "600",
-                  color: darkColor,
-                }}
-              >
-                {item.wordJp || item.title || item.character || "..."}
-              </ThemedText>
-            </View>
-          ))}
-          {items.length > 6 && (
-            <View
-              style={{
-                backgroundColor: accentColor,
-                paddingHorizontal: 14,
-                paddingVertical: 8,
-                borderRadius: 12,
-                justifyContent: "center",
-              }}
-            >
-              <ThemedText
-                style={{
-                  fontSize: 13,
-                  fontWeight: "bold",
-                  color: "white",
-                }}
-              >
-                +{items.length - 6}
-              </ThemedText>
-            </View>
-          )}
+// --- Kanji Card (Simple display, navigate to vocabulary list) ---
+const KanjiCard = ({
+  item,
+  lessonId,
+}: {
+  item: any;
+  lessonId: string;
+}) => {
+  const { t } = useTranslation();
+  const meaning =
+    item.meaning?.split("##")[0] || item.meaning || t("lessons.no_meaning");
+
+  const handlePress = () => {
+    Haptics.selectionAsync();
+    router.push({
+      pathname: ROUTES.LESSON.CONTENT_LIST,
+      params: {
+        id: lessonId,
+        contentType: "kanji",
+        activityType: "learn",
+      },
+    });
+  };
+
+  return (
+    <ModernCard style={{ marginHorizontal: 4 }}>
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+        <View className="items-center justify-center">
+          <ThemedText className="text-6xl font-bold text-amber-700 text-center mb-2">
+            {item.character}
+          </ThemedText>
+          <ThemedText className="text-lg font-medium text-amber-800 text-center">
+            {meaning}
+          </ThemedText>
         </View>
-      </View>
-
-      {/* Action Button */}
-      <View
-        style={{
-          marginTop: 16,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: accentColor,
-          paddingVertical: 12,
-          borderRadius: 14,
-        }}
-      >
-        <ThemedText
-          style={{
-            fontSize: 15,
-            fontWeight: "bold",
-            color: "white",
-            marginRight: 6,
-          }}
-        >
-          Bắt đầu học
-        </ThemedText>
-        <ChevronRight size={18} color="white" strokeWidth={3} />
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </ModernCard>
   );
 };
 
@@ -241,19 +173,6 @@ const LessonDetailScreen = () => {
     );
   }
 
-  // Navigate to content list
-  const navigateToContent = (contentType: "vocabulary" | "grammar" | "kanji") => {
-    Haptics.selectionAsync();
-    router.push({
-      pathname: ROUTES.LESSON.CONTENT_LIST,
-      params: {
-        id,
-        contentType,
-        activityType: "learn",
-      },
-    });
-  };
-
   return (
     <SafeAreaView className="flex-1 bg-white">
       <LinearGradient
@@ -261,252 +180,90 @@ const LessonDetailScreen = () => {
         style={{ flex: 1 }}
       >
         {/* Sticky Header */}
-        <View
-          style={{
-            backgroundColor: "white",
-            paddingHorizontal: 24,
-            paddingVertical: 16,
-            borderBottomLeftRadius: 24,
-            borderBottomRightRadius: 24,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            elevation: 3,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                backgroundColor: "#f3f4f6",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <ChevronLeft size={24} color="#374151" />
-            </TouchableOpacity>
-            <View style={{ flex: 1, alignItems: "center" }}>
-              <ThemedText
-                style={{
-                  fontSize: 18,
-                  fontWeight: "bold",
-                  color: "#1f2937",
-                }}
-              >
-                {lesson.name || `${t("lessons.title")} ${id}`}
-              </ThemedText>
-            </View>
-            <View style={{ width: 40 }} />
+        <View className="bg-white border-b border-gray-100 px-6 py-4 flex-row rounded-b-3xl items-center justify-between">
+          <TouchableOpacity onPress={() => router.back()}>
+            <ChevronLeft size={24} color="#6b7280" />
+          </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: "center" }}>
+            <ThemedText className="text-xl font-bold text-gray-800">
+              {t("lessons.title")} {id}
+            </ThemedText>
           </View>
+          <View style={{ width: 24 }} />
         </View>
 
-        <ScrollView
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
-        >
-          {/* Lesson Description */}
-          {lesson.description && (
-            <View
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.95)",
-                borderRadius: 20,
-                padding: 20,
-                marginBottom: 24,
-                borderLeftWidth: 4,
-                borderLeftColor: "#3b82f6",
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginBottom: 12,
-                }}
-              >
-                <BookOpen size={20} color="#3b82f6" />
-                <ThemedText
-                  style={{
-                    fontSize: 16,
-                    fontWeight: "bold",
-                    color: "#1f2937",
-                    marginLeft: 8,
-                  }}
-                >
-                  Về bài học này
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="p-6 pb-32">
+            {/* === TỪ VỰNG - HORIZONTAL SCROLL === */}
+            <View className="mb-8">
+              <View className="mb-4">
+                <ThemedText className="text-2xl font-bold text-indigo-600">
+                  {t("lessons.lesson_types.vocabulary")}
                 </ThemedText>
               </View>
-              <ThemedText
-                style={{
-                  fontSize: 15,
-                  color: "#4b5563",
-                  lineHeight: 24,
-                }}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="flex-row rounded-3xl"
               >
-                {lesson.description}
-              </ThemedText>
+                {voca.map((item: any, i: number) => (
+                  <View key={i} style={{ width: width - 80 }}>
+                    <VocabularyCard
+                      item={item}
+                      index={i}
+                      lessonId={id || ""}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
             </View>
-          )}
 
-          {/* Stats Overview */}
-          <View
-            style={{
-              backgroundColor: "rgba(255, 255, 255, 0.95)",
-              borderRadius: 20,
-              padding: 20,
-              marginBottom: 24,
-              flexDirection: "row",
-              justifyContent: "space-around",
-            }}
-          >
-            <View style={{ alignItems: "center" }}>
-              <ThemedText
-                style={{
-                  fontSize: 32,
-                  fontWeight: "bold",
-                  color: "#6366f1",
-                }}
+            {/* === NGỮ PHÁP - HORIZONTAL SCROLL === */}
+            <View className="mb-8">
+              <View className="mb-4">
+                <ThemedText className="text-2xl font-bold text-cyan-700">
+                  {t("lessons.lesson_types.grammar")}
+                </ThemedText>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="flex-row rounded-3xl"
               >
-                {voca.length + grammar.length + kanji.length}
-              </ThemedText>
-              <ThemedText
-                style={{
-                  fontSize: 13,
-                  color: "#6b7280",
-                  fontWeight: "600",
-                  marginTop: 4,
-                }}
-              >
-                Tổng nội dung
-              </ThemedText>
+                {grammar.map((item: any, i: number) => (
+                  <View key={i} style={{ width: width - 80 }}>
+                    <GrammarCard item={item} lessonId={id || ""} />
+                  </View>
+                ))}
+              </ScrollView>
             </View>
-            <View
-              style={{
-                width: 1,
-                backgroundColor: "#e5e7eb",
-              }}
-            />
-            <View style={{ alignItems: "center" }}>
-              <ThemedText
-                style={{
-                  fontSize: 32,
-                  fontWeight: "bold",
-                  color: "#10b981",
-                }}
+
+            {/* === KANJI - HORIZONTAL SCROLL === */}
+            <View className="mb-10">
+              <View className="mb-4">
+                <ThemedText className="text-2xl font-bold text-amber-700">
+                  {t("lessons.lesson_types.kanji")}
+                </ThemedText>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="flex-row rounded-3xl"
               >
-                3
-              </ThemedText>
-              <ThemedText
-                style={{
-                  fontSize: 13,
-                  color: "#6b7280",
-                  fontWeight: "600",
-                  marginTop: 4,
-                }}
-              >
-                Phần học
-              </ThemedText>
+                {kanji.map((item: any, i: number) => (
+                  <View key={i} style={{ width: width - 80 }}>
+                    <KanjiCard item={item} lessonId={id || ""} />
+                  </View>
+                ))}
+              </ScrollView>
             </View>
-          </View>
 
-          {/* Section Title */}
-          <View style={{ marginBottom: 20 }}>
-            <ThemedText
-              style={{
-                fontSize: 24,
-                fontWeight: "bold",
-                color: "#1f2937",
-              }}
-            >
-              Danh sách nội dung
-            </ThemedText>
-            <ThemedText
-              style={{
-                fontSize: 14,
-                color: "#6b7280",
-                marginTop: 4,
-              }}
-            >
-              Chọn phần muốn học
-            </ThemedText>
-          </View>
-
-          {/* Vocabulary Section */}
-          {voca.length > 0 && (
-            <DashboardCard
-              title="Từ vựng"
-              subtitle="Học từ mới tiếng Nhật"
-              count={voca.length}
-              emoji="📚"
-              bgColor="#EEF2FF"
-              accentColor="#6366f1"
-              darkColor="#312e81"
-              items={voca}
-              onPress={() => navigateToContent("vocabulary")}
-            />
-          )}
-
-          {/* Grammar Section */}
-          {grammar.length > 0 && (
-            <DashboardCard
-              title="Ngữ pháp"
-              subtitle="Cấu trúc câu và mẫu câu"
-              count={grammar.length}
-              emoji="✏️"
-              bgColor="#ECFEFF"
-              accentColor="#06b6d4"
-              darkColor="#164e63"
-              items={grammar}
-              onPress={() => navigateToContent("grammar")}
-            />
-          )}
-
-          {/* Kanji Section */}
-          {kanji.length > 0 && (
-            <DashboardCard
-              title="Kanji"
-              subtitle="Chữ Hán trong tiếng Nhật"
-              count={kanji.length}
-              emoji="🈯"
-              bgColor="#FEF3C7"
-              accentColor="#f59e0b"
-              darkColor="#92400e"
-              items={kanji}
-              onPress={() => navigateToContent("kanji")}
-            />
-          )}
-
-          {/* Start Button */}
-          <View style={{ marginTop: 8 }}>
+            {/* === FINAL TEST BUTTON === */}
             <BounceButton variant="solid" size="full" onPress={() => {}}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Sparkles size={20} color="white" style={{ marginRight: 8 }} />
-                <ThemedText
-                  style={{
-                    color: "white",
-                    fontSize: 18,
-                    fontWeight: "bold",
-                  }}
-                >
-                  Bắt đầu kiểm tra
-                </ThemedText>
-              </View>
+              <ThemedText className="text-white text-lg font-bold flex-row items-center">
+                <Sparkles size={20} color="white" className="mr-2" />
+                {t("common.start")}
+              </ThemedText>
             </BounceButton>
           </View>
         </ScrollView>
