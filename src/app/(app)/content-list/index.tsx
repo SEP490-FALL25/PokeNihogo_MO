@@ -1,6 +1,8 @@
 import KanjiWriter from "@components/KanjiWriter";
 import { ThemedText } from "@components/ThemedText";
 import { useLesson } from "@hooks/useLessons";
+import { useUserExerciseAttempt } from "@hooks/useUserExerciseAttempt";
+import { ROUTES } from "@routes/routes";
 import { Audio } from "expo-av";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
@@ -11,6 +13,7 @@ import { ChevronLeft, Pencil, Sparkles, Volume2, X } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  Alert,
   Animated,
   Dimensions,
   Easing,
@@ -965,6 +968,37 @@ const VocabularyListScreen = () => {
   const { data: lessonData, isLoading } = useLesson(id || "");
   const lesson: any = lessonData?.data || {};
 
+  // Fetch latest user exercise attempt for this lesson
+  const { data: latestExerciseAttempt } = useUserExerciseAttempt(id || "");
+
+  type ExerciseCategory = "vocabulary" | "grammar" | "kanji";
+
+  // Map attempt IDs by category
+  const attemptIdByCategory = React.useMemo(() => {
+    const list: any[] = latestExerciseAttempt?.data || [];
+    const map: Record<string, number | string | undefined> = {};
+    for (const item of list) {
+      const type = (item.exerciseType || "").toString().toLowerCase();
+      if (type === "vocabulary") map.vocabulary = item.id;
+      if (type === "grammar") map.grammar = item.id;
+      if (type === "kanji") map.kanji = item.id;
+    }
+    return map;
+  }, [latestExerciseAttempt]);
+
+  // Map status by category from latestExerciseAttempt
+  const statusByCategory = React.useMemo(() => {
+    const list: any[] = latestExerciseAttempt?.data || [];
+    const map: Record<string, string | undefined> = {};
+    for (const item of list) {
+      const type = (item.exerciseType || "").toString().toLowerCase();
+      if (type === "vocabulary") map.vocabulary = item.status;
+      if (type === "grammar") map.grammar = item.status;
+      if (type === "kanji") map.kanji = item.status;
+    }
+    return map;
+  }, [latestExerciseAttempt]);
+
   // State for Kanji Writer Modal
   const [showKanjiWriterModal, setShowKanjiWriterModal] = useState(false);
   const [selectedKanji, setSelectedKanji] = useState<string>("");
@@ -1092,6 +1126,52 @@ const VocabularyListScreen = () => {
   const handleCloseKanjiExplanation = () => {
     setShowKanjiExplanationModal(false);
     setSelectedKanjiItem(null);
+  };
+
+  // Start exercise function
+  const startExercise = async (category: ExerciseCategory) => {
+    try {
+      const status = statusByCategory[category];
+      const exerciseAttemptId = attemptIdByCategory[category];
+
+      if (!exerciseAttemptId) {
+        Alert.alert(
+          t("common.error") || "Error",
+          t("common.something_wrong") || "Có lỗi xảy ra, vui lòng thử lại."
+        );
+        return;
+      }
+
+      const proceed = () => {
+        Haptics.selectionAsync();
+        router.push({
+          pathname: ROUTES.QUIZ.QUIZ,
+          params: {
+            exerciseAttemptId: exerciseAttemptId.toString(),
+          },
+        });
+      };
+
+      if (status === "COMPLETED") {
+        Alert.alert(
+          t("common.confirm") || "Confirm",
+          t("lessons.retake_warning") ||
+            "Bạn đã hoàn thành bài này. Lần làm lại chỉ nhận 90% phần thưởng. Tiếp tục?",
+          [
+            { text: t("common.cancel") || "Hủy", style: "cancel" },
+            { text: t("common.continue") || "Tiếp tục", onPress: proceed },
+          ]
+        );
+      } else {
+        proceed();
+      }
+    } catch (e) {
+      console.warn("Failed to start exercise", e);
+      Alert.alert(
+        t("common.error") || "Error",
+        t("common.something_wrong") || "Có lỗi xảy ra, vui lòng thử lại."
+      );
+    }
   };
 
   // Reset progress when content data changes
@@ -1322,7 +1402,11 @@ const VocabularyListScreen = () => {
                       color: "#1e40af",
                     }}
                   >
-                    Học từ mới
+                    {contentTypeValue === "grammar"
+                      ? "Học ngữ pháp"
+                      : contentTypeValue === "kanji"
+                        ? "Học Kanji"
+                        : "Học từ mới"}
                   </ThemedText>
                 </TouchableOpacity>
 
@@ -1330,7 +1414,7 @@ const VocabularyListScreen = () => {
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.selectionAsync();
-                    router.setParams({ activityType: "test" });
+                    startExercise(contentTypeValue as ExerciseCategory);
                   }}
                   className="rounded-3xl p-6 shadow-lg"
                   style={{
@@ -1358,7 +1442,11 @@ const VocabularyListScreen = () => {
                       color: "#92400e",
                     }}
                   >
-                    Kiểm tra từ mới
+                    {contentTypeValue === "grammar"
+                      ? "Kiểm tra ngữ pháp"
+                      : contentTypeValue === "kanji"
+                        ? "Kiểm tra Kanji"
+                        : "Kiểm tra từ mới"}
                   </ThemedText>
                 </TouchableOpacity>
               </View>

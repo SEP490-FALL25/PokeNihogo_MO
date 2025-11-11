@@ -1,7 +1,6 @@
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
 import { useLesson } from "@hooks/useLessons";
-import { useUserExerciseAttempt } from "@hooks/useUserExerciseAttempt";
 import { ROUTES } from "@routes/routes";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -10,7 +9,6 @@ import { ChevronLeft, Sparkles } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Alert,
   Animated,
   Dimensions,
   ScrollView,
@@ -40,22 +38,6 @@ const ModernCard = ({ children, style }: any) => (
   </Animated.View>
 );
 
-// --- Floating Progress Ring (removed unused) ---
-
-function getButtonColor(status?: string) {
-  if (status === "COMPLETED") return "bg-emerald-600";
-  if (status === "IN_PROGRESS") return "bg-amber-500";
-  if (status === "ABANDONED") return "bg-rose-500";
-  if (status === "FAIL") return "bg-red-600";
-  return "bg-slate-200";
-}
-function getTextColor(status?: string) {
-  if (status === "COMPLETED") return "text-white";
-  if (status === "IN_PROGRESS") return "text-white";
-  if (status === "ABANDONED") return "text-white";
-  if (status === "FAIL") return "text-white";
-  return "text-slate-700";
-}
 
 // --- Vocabulary Card (Simple display, navigate to vocabulary list) ---
 const VocabularyCard = ({
@@ -174,86 +156,10 @@ const LessonDetailScreen = () => {
   const { data: lessonData, isLoading } = useLesson(id || "");
   const lesson: any = lessonData?.data || {};
 
-  // fetch latest user exercise attempt for this lesson
-  const { data: latestExerciseAttempt } = useUserExerciseAttempt(id || "");
-
-  type ExerciseCategory = "vocabulary" | "grammar" | "kanji";
-
-  // Map attempt IDs by category
-  const attemptIdByCategory = React.useMemo(() => {
-    const list: any[] = latestExerciseAttempt?.data || [];
-    const map: Record<string, number | string | undefined> = {};
-    for (const item of list) {
-      const type = (item.exerciseType || "").toString().toLowerCase();
-      if (type === "vocabulary") map.vocabulary = item.id;
-      if (type === "grammar") map.grammar = item.id;
-      if (type === "kanji") map.kanji = item.id;
-    }
-    return map;
-  }, [latestExerciseAttempt]);
-
-  // Map status by category from latestExerciseAttempt
-  const statusByCategory = React.useMemo(() => {
-    const list: any[] = latestExerciseAttempt?.data || [];
-    const map: Record<string, string | undefined> = {};
-    for (const item of list) {
-      const type = (item.exerciseType || "").toString().toLowerCase();
-      if (type === "vocabulary") map.vocabulary = item.status;
-      if (type === "grammar") map.grammar = item.status;
-      if (type === "kanji") map.kanji = item.status;
-    }
-    return map;
-  }, [latestExerciseAttempt]);
-
   // Try multiple property names in case of mock/real difference, fallback to []
   const voca: any[] = lesson.voca || lesson.vocabulary || [];
   const grammar: any[] = lesson.grama || lesson.grammar || [];
   const kanji: any[] = lesson.kanji || [];
-
-  const startExercise = async (category: ExerciseCategory) => {
-    try {
-      const status = statusByCategory[category];
-      const exerciseAttemptId = attemptIdByCategory[category];
-
-      if (!exerciseAttemptId) {
-        Alert.alert(
-          t("common.error") || "Error",
-          t("common.something_wrong") || "Có lỗi xảy ra, vui lòng thử lại."
-        );
-        return;
-      }
-
-      const proceed = () => {
-        Haptics.selectionAsync();
-        router.push({
-          pathname: ROUTES.QUIZ.QUIZ,
-          params: {
-            exerciseAttemptId: exerciseAttemptId.toString(),
-          },
-        });
-      };
-
-      if (status === "COMPLETED") {
-        Alert.alert(
-          t("common.confirm") || "Confirm",
-          t("lessons.retake_warning") ||
-            "Bạn đã hoàn thành bài này. Lần làm lại chỉ nhận 90% phần thưởng. Tiếp tục?",
-          [
-            { text: t("common.cancel") || "Hủy", style: "cancel" },
-            { text: t("common.continue") || "Tiếp tục", onPress: proceed },
-          ]
-        );
-      } else {
-        proceed();
-      }
-    } catch (e) {
-      console.warn("Failed to start exercise", e);
-      Alert.alert(
-        t("common.error") || "Error",
-        t("common.something_wrong") || "Có lỗi xảy ra, vui lòng thử lại."
-      );
-    }
-  };
 
   if (isLoading) {
     return (
@@ -292,20 +198,10 @@ const LessonDetailScreen = () => {
           <View className="p-6 pb-32">
             {/* === TỪ VỰNG - HORIZONTAL SCROLL === */}
             <View className="mb-8">
-              <View className="flex-row justify-between items-center mb-4">
+              <View className="mb-4">
                 <ThemedText className="text-2xl font-bold text-indigo-600">
                   {t("lessons.lesson_types.vocabulary")}
                 </ThemedText>
-                <TouchableOpacity
-                  onPress={() => startExercise("vocabulary")}
-                  className={`${getButtonColor(statusByCategory.vocabulary)} px-4 py-2 rounded-full`}
-                >
-                  <ThemedText
-                    className={`${getTextColor(statusByCategory.vocabulary)} text-sm font-medium`}
-                  >
-                    {t("lessons.do_vocab_exercise")}
-                  </ThemedText>
-                </TouchableOpacity>
               </View>
               <ScrollView
                 horizontal
@@ -326,20 +222,10 @@ const LessonDetailScreen = () => {
 
             {/* === NGỮ PHÁP - HORIZONTAL SCROLL === */}
             <View className="mb-8">
-              <View className="flex-row justify-between items-center mb-4">
+              <View className="mb-4">
                 <ThemedText className="text-2xl font-bold text-cyan-700">
                   {t("lessons.lesson_types.grammar")}
                 </ThemedText>
-                <TouchableOpacity
-                  onPress={() => startExercise("grammar")}
-                  className={`${getButtonColor(statusByCategory.grammar)} px-4 py-2 rounded-full`}
-                >
-                  <ThemedText
-                    className={`${getTextColor(statusByCategory.grammar)} text-sm font-medium`}
-                  >
-                    {t("lessons.do_grammar_exercise")}
-                  </ThemedText>
-                </TouchableOpacity>
               </View>
               <ScrollView
                 horizontal
@@ -356,20 +242,10 @@ const LessonDetailScreen = () => {
 
             {/* === KANJI - HORIZONTAL SCROLL === */}
             <View className="mb-10">
-              <View className="flex-row justify-between items-center mb-4">
+              <View className="mb-4">
                 <ThemedText className="text-2xl font-bold text-amber-700">
                   {t("lessons.lesson_types.kanji")}
                 </ThemedText>
-                <TouchableOpacity
-                  onPress={() => startExercise("kanji")}
-                  className={`${getButtonColor(statusByCategory.kanji)} px-4 py-2 rounded-full`}
-                >
-                  <ThemedText
-                    className={`${getTextColor(statusByCategory.kanji)} text-sm font-medium`}
-                  >
-                    {t("lessons.do_kanji_exercise")}
-                  </ThemedText>
-                </TouchableOpacity>
               </View>
               <ScrollView
                 horizontal
