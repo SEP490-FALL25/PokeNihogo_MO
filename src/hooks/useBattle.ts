@@ -4,13 +4,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
  * List match round
+ * @param matchId Optional match ID to include in query key for cache invalidation
  * @returns List match round data
  */
-export const useListMatchRound = () => {
+export const useListMatchRound = (matchId?: string | number) => {
     const language = useGlobalStore((state) => state.language);
     const { data, isLoading, isError } = useQuery({
-        queryKey: ['list-match-round', language],
+        queryKey: ['list-match-round', language, matchId],
         queryFn: () => battleService.getListMatchRound(),
+        enabled: true, // Always enabled, matchId is just for cache key
     });
     return { data: data?.data.data, isLoading, isError };
 };

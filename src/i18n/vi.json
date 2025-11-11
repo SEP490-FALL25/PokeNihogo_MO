@@ -487,6 +487,19 @@
     "purchase_success": "Mua thành công",
     "purchase_failed": "Mua thất bại"
   },
+  "leaderboard": {
+    "title": "Bảng xếp hạng",
+    "rank": "Hạng",
+    "rank_label": "Rank {{rank}}",
+    "you": "Bạn",
+    "loading_more": "Đang tải thêm...",
+    "all_loaded": "Đã hiển thị tất cả",
+    "error_loading": "Có lỗi xảy ra khi tải dữ liệu",
+    "no_data": "Không có dữ liệu",
+    "your_position": "Vị trí của bạn",
+    "loaded_count": "Đã tải {{current}} / {{total}} người chơi",
+    "elo": "ELO"
+  },
   "zod": {
     "errors": {
       "auth": {

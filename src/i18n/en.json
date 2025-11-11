@@ -487,6 +487,19 @@
     "purchase_success": "Purchase successful",
     "purchase_failed": "Purchase failed"
   },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "rank": "Rank",
+    "rank_label": "Rank {{rank}}",
+    "you": "You",
+    "loading_more": "Loading more...",
+    "all_loaded": "All displayed",
+    "error_loading": "Error loading data",
+    "no_data": "No data",
+    "your_position": "Your position",
+    "loaded_count": "Loaded {{current}} / {{total}} players",
+    "elo": "ELO"
+  },
   "zod": {
     "errors": {
       "auth": {

@@ -1,7 +1,9 @@
-import { CountdownTimer } from "@components/atoms/CountdownTimer";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import UserAvatar from "@components/atoms/UserAvatar";
 import ModalBattleAccept from "@components/battle/modal-accept.battle";
+import ModalLeaderboard from "@components/battle/modal-leaderboard";
+import SeasonInfo from "@components/battle/season-info.battle";
+import StatsBattle from "@components/battle/stats.battle";
 import { HapticPressable } from "@components/HapticPressable";
 import GlowingRingEffect from "@components/molecules/GlowingRingEffect";
 import { ThemedText } from "@components/ThemedText";
@@ -37,6 +39,7 @@ const mockBattleHistory = [
 export default function BattleLobbyScreen() {
   const router = useRouter();
   const [showHistory, setShowHistory] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<"all" | "win" | "loss">("all");
   const [selectedBattle, setSelectedBattle] = useState<typeof mockBattleHistory[0] | null>(null);
   const { user } = useAuth();
@@ -120,10 +123,7 @@ export default function BattleLobbyScreen() {
    * Handle open leaderboard
    */
   const handleOpenLeaderboard = () => {
-    Alert.alert(
-      "Bảng xếp hạng",
-      "Màn hình bảng xếp hạng sẽ hiển thị tại đây (WIP).",
-    );
+    setShowLeaderboard(true);
   };
 
   const handleViewTopRewards = () => {
@@ -155,8 +155,6 @@ export default function BattleLobbyScreen() {
    */
   const [matchedPlayer, setMatchedPlayer] = useState<IBattleMatchFound | null>(null);
 
-
-
   const handleCancelQueue = async () => {
     setInQueue(false);
     setGlobalInQueue(false); // Update global store
@@ -180,6 +178,13 @@ export default function BattleLobbyScreen() {
   const setLastMatchResult = useMatchingStore((s) => (s as any).setLastMatchResult);
   const queryClient = useQueryClient();
 
+  // Reset match-related state when component mounts (e.g., returning from result screen)
+  useEffect(() => {
+    setStatusMatch(null);
+    setShowAcceptModal(false);
+    setMatchedPlayer(null);
+  }, []);
+
   useEffect(() => {
     if (!accessToken) return;
 
@@ -193,6 +198,9 @@ export default function BattleLobbyScreen() {
         const match = payload?.match;
 
         if (match && 'opponent' in payload) {
+          // Reset status match to allow accepting new match
+          setStatusMatch(null);
+
           // Update local state for modal
           setMatchedPlayer(payload);
           setShowAcceptModal(true);
@@ -296,57 +304,10 @@ export default function BattleLobbyScreen() {
         />
 
         {/* Top status bar (respect safe area) */}
-        <View className="px-5" style={{ paddingTop: insets.top + 8 }}>
-          <TWLinearGradient
-            colors={["rgba(255,255,255,0.08)", "rgba(255,255,255,0.03)"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ borderRadius: 16, padding: 1 }}
-          >
-            <View className="rounded-2xl bg-black/40 px-4 py-3">
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center gap-2">
-                  <View className="w-2 h-2 rounded-full bg-cyan-400" />
-                  <ThemedText style={{ color: "#93c5fd", fontWeight: "700", fontSize: 15 }}>Season 1</ThemedText>
-                  <ThemedText style={{ color: "#94a3b8", fontSize: 13 }}>Kết thúc sau</ThemedText>
-                </View>
-                <CountdownTimer endDate={new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString()} daysLabel="ngày" />
-              </View>
-              <View className="mt-2 flex-row items-center gap-2">
-                <Crown size={14} color="#fbbf24" />
-                <ThemedText style={{ color: "#fde68a", fontSize: 12, fontWeight: "600" }}>Bronze II</ThemedText>
-                <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>• 1200 MMR</ThemedText>
-              </View>
-            </View>
-          </TWLinearGradient>
-        </View>
+        <SeasonInfo insetsTop={insets.top} />
 
         {/* Stats Preview */}
-        <View className="px-5 mt-4">
-          <View className="flex-row gap-3">
-            <View className="flex-1 rounded-xl border border-white/15 bg-white/5 p-3">
-              <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>Trận thắng</ThemedText>
-              <View className="flex-row items-end gap-1">
-                <ThemedText style={{ color: "#22d3ee", fontSize: 22, fontWeight: "700" }}>48</ThemedText>
-                <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 2 }}>/ 100</ThemedText>
-              </View>
-            </View>
-            <View className="flex-1 rounded-xl border border-white/15 bg-white/5 p-3">
-              <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>Tỷ lệ thắng</ThemedText>
-              <View className="flex-row items-end gap-1">
-                <ThemedText style={{ color: "#34d399", fontSize: 22, fontWeight: "700" }}>48</ThemedText>
-                <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 2 }}>%</ThemedText>
-              </View>
-            </View>
-            <View className="flex-1 rounded-xl border border-white/15 bg-white/5 p-3">
-              <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>Chuỗi thắng</ThemedText>
-              <View className="flex-row items-end gap-1">
-                <ThemedText style={{ color: "#fbbf24", fontSize: 22, fontWeight: "700" }}>5</ThemedText>
-                <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 2 }}>🔥</ThemedText>
-              </View>
-            </View>
-          </View>
-        </View>
+        <StatsBattle />
 
         {/* Title & History Button */}
         <View className="px-5 mt-6 flex-row items-center justify-between">
@@ -584,6 +545,12 @@ export default function BattleLobbyScreen() {
           </View>
         </View>
       </Modal>
+
+      <ModalLeaderboard
+        visible={showLeaderboard}
+        onRequestClose={() => setShowLeaderboard(false)}
+        rankName="N5"
+      />
 
       {/* Battle Detail Modal */}
       <Modal
