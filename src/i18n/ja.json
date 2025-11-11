@@ -392,5 +392,18 @@
         "banner_info": "バナー情報",
         "no_items": "アイテムがありません",
         "pokemon": "ポケモン"
+    },
+    "leaderboard": {
+        "title": "ランキング",
+        "rank": "ランク",
+        "rank_label": "ランク {{rank}}",
+        "you": "あなた",
+        "loading_more": "さらに読み込み中...",
+        "all_loaded": "すべて表示済み",
+        "error_loading": "データの読み込みエラー",
+        "no_data": "データなし",
+        "your_position": "あなたの位置",
+        "loaded_count": "読み込み済み {{current}} / {{total}} プレイヤー",
+        "elo": "ELO"
     }
 }

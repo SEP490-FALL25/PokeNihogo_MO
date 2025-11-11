@@ -1,27 +1,12 @@
 import UserAvatar from "@components/atoms/UserAvatar";
+import { useLeaderboard } from "@hooks/useLeaderboard";
+import { ILeaderboardResponse } from "@models/leaderboard/leaderboard.response";
 import { Award, Crown, Trophy } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
-interface LeaderboardEntry {
-    position: number;
-    userId: number;
-    name: string;
-    avatar: string | null;
-    finalElo: number;
-    finalRank: string;
-}
-
-interface LeaderboardData {
-    results: LeaderboardEntry[];
-    pagination: {
-        current: number;
-        pageSize: number;
-        totalPage: number;
-        totalItem: number;
-    };
-    me: LeaderboardEntry | null;
-}
+type LeaderboardEntry = ILeaderboardResponse["results"][0];
 
 interface ModalLeaderboardProps {
     visible: boolean;
@@ -29,127 +14,103 @@ interface ModalLeaderboardProps {
     rankName?: string;
 }
 
-// Generate mock data
-const generateMockEntries = (rank: string, count: number, startPosition: number = 1): LeaderboardEntry[] => {
-    const names = [
-        "Minh Phuoc", "Ad", "Sakura", "Takeshi", "Ayame", "Sensei", "Kana", "Raito",
-        "Hiroshi", "Yuki", "Akira", "Mei", "Kenji", "Sora", "Ren", "Mio",
-        "Taro", "Hana", "Kaito", "Emi", "Daiki", "Nana", "Riku", "Yui",
-        "Sato", "Tanaka", "Yamada", "Watanabe", "Ito", "Nakamura", "Kobayashi", "Kato"
-    ];
-
-    return Array.from({ length: count }, (_, i) => {
-        const position = startPosition + i;
-        const nameIndex = (position - 1) % names.length;
-        const baseElo = rank === "N5" ? 300 : rank === "N4" ? 800 : 1200;
-        const elo = Math.max(50, baseElo - (position - 1) * 2);
-
-        return {
-            position,
-            userId: 1000 + position,
-            name: `${names[nameIndex]}${position > names.length ? ` ${Math.floor((position - 1) / names.length) + 1}` : ""}`,
-            avatar: null,
-            finalElo: elo,
-            finalRank: rank,
-        };
-    });
-};
-
-// Mock data per rank - total items
-const TOTAL_ITEMS = 500; // Total users per rank
 const PAGE_SIZE = 100;
 
-// Mock data per rank
-const mockLeaderboardByRank: Record<string, { me: LeaderboardEntry | null; totalItem: number }> = {
-    N5: {
-        me: {
-            position: 2,
-            userId: 3,
-            name: "Ad",
-            avatar: null,
-            finalElo: 243,
-            finalRank: "N5",
-        },
-        totalItem: TOTAL_ITEMS,
-    },
-    N4: {
-        me: {
-            position: 12,
-            userId: 3,
-            name: "Ad",
-            avatar: null,
-            finalElo: 540,
-            finalRank: "N4",
-        },
-        totalItem: TOTAL_ITEMS,
-    },
-    N3: {
-        me: null,
-        totalItem: TOTAL_ITEMS,
-    },
-};
-
 export default function ModalLeaderboard({ visible, onRequestClose, rankName = "N5" }: ModalLeaderboardProps) {
-    const rankOptions = useMemo(() => Object.keys(mockLeaderboardByRank), []);
-    const [selectedRank, setSelectedRank] = useState(rankName);
-    const [currentPage, setCurrentPage] = useState(1);
+    const { t } = useTranslation();
+    const rankOptions = useMemo(() => ["N5", "N4", "N3"], []);
+
+    /**
+     * Selected rank and current page
+     */
+    const [selectedRank, setSelectedRank] = useState<string>(rankName);
+    const [currentPage, setCurrentPage] = useState<number>(1);
     const [allResults, setAllResults] = useState<LeaderboardEntry[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [allPagesData, setAllPagesData] = useState<Map<number, ILeaderboardResponse>>(new Map());
 
-    const rankConfig = mockLeaderboardByRank[selectedRank] ?? mockLeaderboardByRank.N5;
-    const totalPages = Math.ceil(rankConfig.totalItem / PAGE_SIZE);
-
-    // Load initial data
     useEffect(() => {
         if (visible && rankName) {
             setSelectedRank(rankName);
             setCurrentPage(1);
             setAllResults([]);
+            setAllPagesData(new Map());
         }
     }, [rankName, visible]);
 
-    // Load data when rank or page changes
+    const { leaderboard, pagination, isLoading, isError } = useLeaderboard({
+        rankName: selectedRank,
+        currentPage,
+        pageSize: PAGE_SIZE,
+        enabled: visible && Boolean(selectedRank),
+    });
+
+
+    const leaderboardResponse = useMemo(() => {
+        if (!leaderboard) return null;
+        if (typeof leaderboard === 'object' && 'results' in leaderboard) {
+            return leaderboard as ILeaderboardResponse;
+        }
+        if (Array.isArray(leaderboard)) {
+            return {
+                results: leaderboard as LeaderboardEntry[],
+                pagination: pagination || { current: currentPage, pageSize: PAGE_SIZE, totalPage: 1, totalItem: 0 },
+            };
+        }
+        return null;
+    }, [leaderboard, pagination, currentPage]);
+
     useEffect(() => {
-        if (!visible) return;
+        if (!leaderboardResponse || !leaderboardResponse.results || leaderboardResponse.results.length === 0) return;
+        if (!pagination) return;
 
-        const loadData = async () => {
-            setIsLoading(true);
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 300));
+        setAllPagesData(prev => {
+            const newMap = new Map(prev);
+            newMap.set(currentPage, leaderboardResponse);
+            return newMap;
+        });
+    }, [leaderboardResponse, currentPage, pagination]);
 
-            const startPosition = (currentPage - 1) * PAGE_SIZE + 1;
-            const newEntries = generateMockEntries(selectedRank, PAGE_SIZE, startPosition);
+    useEffect(() => {
+        const sortedPages = Array.from(allPagesData.entries())
+            .sort(([a], [b]) => a - b)
+            .map(([, data]) => data.results)
+            .flat();
 
-            if (currentPage === 1) {
-                setAllResults(newEntries);
-            } else {
-                setAllResults(prev => [...prev, ...newEntries]);
-            }
+        setAllResults(sortedPages);
+    }, [allPagesData]);
 
-            setIsLoading(false);
-        };
+    const leaderboardData = useMemo(() => {
+        const latestData = allPagesData.get(currentPage) || leaderboardResponse;
+        const results = allResults.length > 0 ? allResults : (leaderboardResponse?.results || []);
 
-        loadData();
-    }, [selectedRank, currentPage, visible]);
+        const me = (latestData && typeof latestData === 'object' && 'me' in latestData ? latestData.me : undefined)
+            || (leaderboardResponse && typeof leaderboardResponse === 'object' && 'me' in leaderboardResponse ? leaderboardResponse.me : undefined);
 
-    const leaderboardData: LeaderboardData = useMemo(() => {
+        console.log("[Leaderboard] leaderboardData:", {
+            resultsLength: results.length,
+            allResultsLength: allResults.length,
+            leaderboardResponseResultsLength: leaderboardResponse?.results?.length || 0,
+            hasMe: !!me
+        });
+
         return {
-            results: allResults,
-            pagination: {
+            results,
+            pagination: pagination || {
                 current: currentPage,
                 pageSize: PAGE_SIZE,
-                totalPage: totalPages,
-                totalItem: rankConfig.totalItem,
+                totalPage: 1,
+                totalItem: 0,
             },
-            me: rankConfig.me,
+            me,
         };
-    }, [allResults, currentPage, totalPages, rankConfig]);
+    }, [allResults, pagination, currentPage, allPagesData, leaderboardResponse]);
 
     const loadMore = () => {
-        if (!isLoading && currentPage < totalPages) {
+        if (!isLoading && pagination && currentPage < pagination.totalPage) {
             setCurrentPage(prev => prev + 1);
         }
     };
+    //--------------------------------End--------------------------------//
 
     const getPositionIcon = (position: number) => {
         if (position === 1) return <Crown size={20} color="#fbbf24" />;
@@ -167,7 +128,9 @@ export default function ModalLeaderboard({ visible, onRequestClose, rankName = "
     };
 
     const isCurrentUser = (entry: LeaderboardEntry) => {
-        return leaderboardData.me && entry.userId === leaderboardData.me.userId;
+        const me = leaderboardData.me;
+        if (!me || typeof me !== 'object' || !('userId' in me)) return false;
+        return entry.userId === (me as LeaderboardEntry).userId;
     };
 
     return (
@@ -178,8 +141,8 @@ export default function ModalLeaderboard({ visible, onRequestClose, rankName = "
                     <View className="px-6 py-5 border-b border-slate-700/50">
                         <View className="flex-row justify-between items-center">
                             <View className="flex-1">
-                                <Text className="text-2xl font-extrabold text-white mb-1">Bảng xếp hạng</Text>
-                                <Text className="text-sm text-slate-400 font-semibold">Hạng {selectedRank}</Text>
+                                <Text className="text-2xl font-extrabold text-white mb-1">{t("leaderboard.title")}</Text>
+                                <Text className="text-sm text-slate-400 font-semibold">{t("leaderboard.rank")} {selectedRank}</Text>
                             </View>
                             <TouchableOpacity
                                 onPress={onRequestClose}
@@ -205,7 +168,7 @@ export default function ModalLeaderboard({ visible, onRequestClose, rankName = "
                                             }`}
                                     >
                                         <Text className={`text-sm font-semibold ${isActive ? "text-cyan-300" : "text-slate-300"}`}>
-                                            Rank {option}
+                                            {t("leaderboard.rank_label", { rank: option })}
                                         </Text>
                                     </TouchableOpacity>
                                 );
@@ -229,7 +192,7 @@ export default function ModalLeaderboard({ visible, onRequestClose, rankName = "
                             scrollEventThrottle={400}
                         >
                             {(() => {
-                                return leaderboardData?.results && leaderboardData.results.length > 0 ? (
+                                return leaderboardData.results && leaderboardData.results.length > 0 ? (
                                     <>
                                         {leaderboardData.results.map((entry, index) => {
                                             const isMe = isCurrentUser(entry) ?? false;
@@ -263,7 +226,7 @@ export default function ModalLeaderboard({ visible, onRequestClose, rankName = "
                                                             </Text>
                                                             {isMe && (
                                                                 <View className="bg-cyan-500/30 px-2 py-0.5 rounded-full">
-                                                                    <Text className="text-xs font-bold text-cyan-200">Bạn</Text>
+                                                                    <Text className="text-xs font-bold text-cyan-200">{t("leaderboard.you")}</Text>
                                                                 </View>
                                                             )}
                                                         </View>
@@ -279,7 +242,7 @@ export default function ModalLeaderboard({ visible, onRequestClose, rankName = "
                                                         <Text className={`text-lg font-extrabold ${isMe ? "text-cyan-300" : "text-white"}`}>
                                                             {entry.finalElo}
                                                         </Text>
-                                                        <Text className="text-xs text-slate-400 font-medium">ELO</Text>
+                                                        <Text className="text-xs text-slate-400 font-medium">{t("leaderboard.elo")}</Text>
                                                     </View>
                                                 </View>
                                             );
@@ -287,12 +250,17 @@ export default function ModalLeaderboard({ visible, onRequestClose, rankName = "
                                         {isLoading && (
                                             <View className="py-4 items-center">
                                                 <ActivityIndicator size="small" color="#22d3ee" />
-                                                <Text className="text-slate-400 text-xs mt-2">Đang tải thêm...</Text>
+                                                <Text className="text-slate-400 text-xs mt-2">{t("leaderboard.loading_more")}</Text>
                                             </View>
                                         )}
-                                        {!isLoading && currentPage >= totalPages && allResults.length > 0 && (
+                                        {!isLoading && pagination && currentPage >= pagination.totalPage && leaderboardData.results.length > 0 && (
                                             <View className="py-4 items-center">
-                                                <Text className="text-slate-400 text-xs">Đã hiển thị tất cả</Text>
+                                                <Text className="text-slate-400 text-xs">{t("leaderboard.all_loaded")}</Text>
+                                            </View>
+                                        )}
+                                        {isError && (
+                                            <View className="py-4 items-center">
+                                                <Text className="text-red-400 text-xs">{t("leaderboard.error_loading")}</Text>
                                             </View>
                                         )}
                                     </>
@@ -302,8 +270,8 @@ export default function ModalLeaderboard({ visible, onRequestClose, rankName = "
                                             <ActivityIndicator size="large" color="#22d3ee" />
                                         ) : (
                                             <>
-                                                <Text className="text-slate-400">Không có dữ liệu</Text>
-                                                <Text className="text-slate-500 text-xs mt-2">Rank: {selectedRank}, Results: {leaderboardData?.results?.length || 0}</Text>
+                                                <Text className="text-slate-400">{t("leaderboard.no_data")}</Text>
+                                                <Text className="text-slate-500 text-xs mt-2">{t("leaderboard.rank")}: {selectedRank}, Results: {leaderboardData?.results?.length || 0}</Text>
                                             </>
                                         )}
                                     </View>
@@ -313,32 +281,32 @@ export default function ModalLeaderboard({ visible, onRequestClose, rankName = "
                     </View>
 
                     {/* User's Entry - Fixed at bottom */}
-                    {leaderboardData.me && (
+                    {leaderboardData.me && typeof leaderboardData.me === 'object' && 'position' in leaderboardData.me && (
                         <View className="px-6 py-4 border-t border-slate-700/50">
                             <View className="flex-row items-center p-4 rounded-2xl border border-cyan-500/50 bg-cyan-500/10">
                                 {/* Position */}
                                 <View className="w-12 items-center justify-center mr-3">
-                                    <Text className="text-lg font-bold text-cyan-300">#{leaderboardData.me.position}</Text>
+                                    <Text className="text-lg font-bold text-cyan-300">#{(leaderboardData.me as LeaderboardEntry).position}</Text>
                                 </View>
 
                                 {/* Avatar */}
                                 <View className="mr-3">
-                                    <UserAvatar name={leaderboardData.me.name} avatar={leaderboardData.me.avatar || undefined} size="small" />
+                                    <UserAvatar name={(leaderboardData.me as LeaderboardEntry).name} avatar={(leaderboardData.me as LeaderboardEntry).avatar || undefined} size="small" />
                                 </View>
 
                                 {/* Name and Rank */}
                                 <View className="flex-1 mr-3">
                                     <View className="flex-row items-center gap-2 mb-1">
                                         <Text className="text-base font-bold text-cyan-300">
-                                            {leaderboardData.me.name}
+                                            {(leaderboardData.me as LeaderboardEntry).name}
                                         </Text>
                                         <View className="bg-cyan-500/30 px-2 py-0.5 rounded-full">
-                                            <Text className="text-xs font-bold text-cyan-200">Bạn</Text>
+                                            <Text className="text-xs font-bold text-cyan-200">{t("leaderboard.you")}</Text>
                                         </View>
                                     </View>
                                     <View className="flex-row items-center gap-2">
                                         <View className="bg-slate-700/50 px-2 py-0.5 rounded">
-                                            <Text className="text-xs font-semibold text-slate-300">{leaderboardData.me.finalRank}</Text>
+                                            <Text className="text-xs font-semibold text-slate-300">{(leaderboardData.me as LeaderboardEntry).finalRank}</Text>
                                         </View>
                                     </View>
                                 </View>
@@ -346,9 +314,9 @@ export default function ModalLeaderboard({ visible, onRequestClose, rankName = "
                                 {/* ELO */}
                                 <View className="items-end">
                                     <Text className="text-lg font-extrabold text-cyan-300">
-                                        {leaderboardData.me.finalElo}
+                                        {(leaderboardData.me as LeaderboardEntry).finalElo}
                                     </Text>
-                                    <Text className="text-xs text-slate-400 font-medium">ELO</Text>
+                                    <Text className="text-xs text-slate-400 font-medium">{t("leaderboard.elo")}</Text>
                                 </View>
                             </View>
                         </View>
