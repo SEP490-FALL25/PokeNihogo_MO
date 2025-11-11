@@ -9,7 +9,16 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Speech from "expo-speech";
-import { ChevronLeft, Pencil, Sparkles, Volume2, X } from "lucide-react-native";
+import {
+  CheckCircle,
+  ChevronLeft,
+  Clock,
+  Pencil,
+  PlayCircle,
+  Sparkles,
+  Volume2,
+  X,
+} from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -1106,6 +1115,39 @@ const VocabularyListScreen = () => {
     }
   };
 
+  // Get current exercise status
+  const currentStatus = statusByCategory[contentTypeValue] || "NOT_STARTED";
+
+  // Get status-based styling
+  const getStatusStyle = (status: string | undefined) => {
+    switch (status) {
+      case "COMPLETED":
+        return {
+          backgroundColor: "#D1FAE5",
+          iconBg: "#10B981",
+          iconShadow: "#059669",
+          textColor: "#065F46",
+        };
+      case "IN_PROGRESS":
+        return {
+          backgroundColor: "#DBEAFE",
+          iconBg: "#3B82F6",
+          iconShadow: "#2563EB",
+          textColor: "#1E40AF",
+        };
+      case "NOT_STARTED":
+      default:
+        return {
+          backgroundColor: "#FEF3C7",
+          iconBg: "#F59E0B",
+          iconShadow: "#92400e",
+          textColor: "#92400e",
+        };
+    }
+  };
+
+  const statusStyle = getStatusStyle(currentStatus);
+
   // Handle Kanji writing
   const handleWriteKanji = (character: string) => {
     setSelectedKanji(character);
@@ -1430,7 +1472,9 @@ const VocabularyListScreen = () => {
                     contentTypeValue === "grammar"
                       ? width - 48
                       : (width - 48 - 12) / 2,
-                  backgroundColor: "#FEF3C7",
+                  backgroundColor: statusStyle.backgroundColor,
+                  borderWidth: 2,
+                  borderColor: statusStyle.iconBg,
                 }}
               >
                 <View className="items-center mb-3">
@@ -1439,8 +1483,8 @@ const VocabularyListScreen = () => {
                     style={{
                       width: 80,
                       height: 80,
-                      backgroundColor: "#F59E0B",
-                      shadowColor: "#92400e",
+                      backgroundColor: statusStyle.iconBg,
+                      shadowColor: statusStyle.iconShadow,
                       shadowOffset: { width: 0, height: 4 },
                       shadowOpacity: 0.3,
                       shadowRadius: 8,
@@ -1448,26 +1492,30 @@ const VocabularyListScreen = () => {
                       overflow: "hidden",
                     }}
                   >
-                    <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
-                      🔥
-                    </ThemedText>
+                    {currentStatus === "COMPLETED" ? (
+                      <CheckCircle size={40} color="#FFFFFF" fill="#FFFFFF" />
+                    ) : currentStatus === "IN_PROGRESS" ? (
+                      <Clock size={40} color="#FFFFFF" fill="#FFFFFF" />
+                    ) : (
+                      <PlayCircle size={40} color="#FFFFFF" fill="#FFFFFF" />
+                    )}
                   </View>
                 </View>
-                  <ThemedText
-                    style={{
-                      textAlign: "center",
-                      fontSize: 16,
-                      fontWeight: "bold",
-                      color: "#92400e",
-                    }}
-                  >
-                    {contentTypeValue === "grammar"
-                      ? "Kiểm tra ngữ pháp"
-                      : contentTypeValue === "kanji"
-                        ? "Kiểm tra Kanji"
-                        : "Kiểm tra từ mới"}
-                  </ThemedText>
-                </TouchableOpacity>
+                <ThemedText
+                  style={{
+                    textAlign: "center",
+                    fontSize: 16,
+                    fontWeight: "bold",
+                    color: statusStyle.textColor,
+                  }}
+                >
+                  {contentTypeValue === "grammar"
+                    ? "Kiểm tra ngữ pháp"
+                    : contentTypeValue === "kanji"
+                      ? "Kiểm tra Kanji"
+                      : "Kiểm tra từ mới"}
+                </ThemedText>
+              </TouchableOpacity>
               </View>
             </View>
 

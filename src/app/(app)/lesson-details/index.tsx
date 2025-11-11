@@ -228,6 +228,7 @@ const LessonDetailScreen = () => {
   const grammar: any[] = lesson.grama || lesson.grammar || [];
   const kanji: any[] = lesson.kanji || [];
   const testId = lesson.testId;
+  const checkLastTest = lesson.checkLastTest !== false; // Default to true if not specified
 
   if (isLoading) {
     return (
@@ -259,6 +260,10 @@ const LessonDetailScreen = () => {
   const handleStartTest = () => {
     if (!testId) {
       console.warn("No testId available for this lesson");
+      return;
+    }
+    if (!checkLastTest) {
+      console.warn("Cannot start test: checkLastTest is false");
       return;
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -506,7 +511,12 @@ const LessonDetailScreen = () => {
           {/* Start Button */}
           {testId && (
             <View style={{ marginTop: 8 }}>
-              <BounceButton variant="solid" size="full" onPress={handleStartTest}>
+              <BounceButton 
+                variant="solid" 
+                size="full" 
+                onPress={handleStartTest}
+                disabled={!checkLastTest}
+              >
                 <View
                   style={{
                     flexDirection: "row",
@@ -514,10 +524,14 @@ const LessonDetailScreen = () => {
                     justifyContent: "center",
                   }}
                 >
-                  <Sparkles size={20} color="white" style={{ marginRight: 8 }} />
+                  <Sparkles 
+                    size={20} 
+                    color={checkLastTest ? "white" : "#9ca3af"} 
+                    style={{ marginRight: 8 }} 
+                  />
                   <ThemedText
                     style={{
-                      color: "white",
+                      color: checkLastTest ? "white" : "#9ca3af",
                       fontSize: 18,
                       fontWeight: "bold",
                     }}
@@ -526,6 +540,19 @@ const LessonDetailScreen = () => {
                   </ThemedText>
                 </View>
               </BounceButton>
+              {!checkLastTest && (
+                <ThemedText
+                  style={{
+                    fontSize: 12,
+                    color: "#6b7280",
+                    textAlign: "center",
+                    marginTop: 8,
+                    fontStyle: "italic",
+                  }}
+                >
+                  Hoàn thành tất cả các phần học để bắt đầu kiểm tra
+                </ThemedText>
+              )}
             </View>
           )}
         </ScrollView>
