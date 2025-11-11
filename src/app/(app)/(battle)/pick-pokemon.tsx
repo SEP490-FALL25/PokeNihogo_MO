@@ -109,16 +109,25 @@ export default function PickPokemonScreen() {
             (r) => r.status === "SELECTING_POKEMON"
         );
 
-        // Nếu không tìm thấy, thì tìm vòng PENDING *đầu tiên* (lặp từ 0 tăng lên)
+        // Nếu không tìm thấy (ví dụ: tất cả đều PENDING hoặc COMPLETED)
         if (currentRoundIndex === -1) {
-            currentRoundIndex = matchRound.rounds.findIndex(
+            // Tìm vòng PENDING *cuối cùng* (newest) bằng cách dùng findLastIndex
+            // Cần import 'lodash' hoặc dùng polyfill cho findLastIndex nếu cần
+            // Cách đơn giản không cần import:
+            const reversedRounds = [...matchRound.rounds].reverse();
+            const lastPendingReversedIndex = reversedRounds.findIndex(
                 (r) => r.status === "PENDING"
             );
+
+            if (lastPendingReversedIndex !== -1) {
+                // Chuyển đổi index ngược về index gốc
+                currentRoundIndex = matchRound.rounds.length - 1 - lastPendingReversedIndex;
+            }
         }
         //#endregion
 
 
-        const safeCurrentRoundIndex = currentRoundIndex === -1 ? 0 : currentRoundIndex;
+        const safeCurrentRoundIndex = currentRoundIndex === -1 ? 0 : currentRoundIndex; // Giữ nguyên fallback an toàn
 
         // Determine turn based on orderSelected and whether already selected
         const currentRound = matchRound.rounds[safeCurrentRoundIndex];
@@ -133,13 +142,12 @@ export default function PickPokemonScreen() {
             const playerHasPicked = !!currentPlayer?.selectedUserPokemonId;
             const opponentHasPicked = !!currentOpponent?.selectedUserPokemonId;
 
-            // Case 1: One has picked, the other hasn't - the one who hasn't picked is next
             if (!playerHasPicked && opponentHasPicked) {
                 isPlayerTurn = true;
             } else if (playerHasPicked && !opponentHasPicked) {
                 isOpponentTurn = true;
             }
-            // Case 2: Both haven't picked - determine by orderSelected (lower number picks first)
+
             else if (!playerHasPicked && !opponentHasPicked) {
                 if (currentPlayer?.orderSelected !== undefined && currentOpponent?.orderSelected !== undefined) {
                     if (currentPlayer.orderSelected < currentOpponent.orderSelected) {
@@ -148,9 +156,6 @@ export default function PickPokemonScreen() {
                         isOpponentTurn = true;
                     }
                 } else {
-                    // Fallback: check if orderSelected === 1 (first picker in round)
-                    // In round 2, orderSelected might be 3, 4, etc.
-                    // We need to find the minimum orderSelected
                     const playerOrder = currentPlayer?.orderSelected;
                     const opponentOrder = currentOpponent?.orderSelected;
 
@@ -168,8 +173,6 @@ export default function PickPokemonScreen() {
                 }
             }
         } else if (currentRound?.status === "PENDING") {
-            // Round is pending - might be transitioning or waiting
-            // Check if someone still needs to pick
             const playerHasPicked = !!currentPlayer?.selectedUserPokemonId;
             const opponentHasPicked = !!currentOpponent?.selectedUserPokemonId;
 
@@ -198,7 +201,7 @@ export default function PickPokemonScreen() {
             try {
                 const deadlineTs = new Date(deadlineStr).getTime();
                 if (isNaN(deadlineTs)) return null;
-                // Only return deadline if it's in the future (at least 1 second)
+
                 if (deadlineTs <= Date.now()) return null;
                 return deadlineStr;
             } catch {
@@ -208,27 +211,32 @@ export default function PickPokemonScreen() {
 
         const pickDeadline = (() => {
             if (currentRound?.status === "SELECTING_POKEMON" || currentRound?.status === "PENDING") {
+                let activeDeadline: string | null = null;
 
-                // --- BẮT ĐẦU SỬA ---
-                // Logic mới:
-                // Chỉ cần tìm xem 1 trong 2 người, ai có deadline hợp lệ thì lấy
+                // Ưu tiên 1: Lấy deadline của người đang pick
+                if (currentPicker === "player") {
+                    activeDeadline = validateDeadline(currentPlayer?.endTimeSelected);
+                } else if (currentPicker === "opponent") {
+                    activeDeadline = validateDeadline(currentOpponent?.endTimeSelected);
+                }
 
-                // 1. Thử lấy deadline của 'currentPlayer' (người chơi trên máy này)
-                let deadline = validateDeadline(currentPlayer?.endTimeSelected);
-                if (deadline) return deadline;
+                // Nếu có deadline của người đang pick, trả về nó
+                if (activeDeadline) return activeDeadline;
 
-                // 2. Nếu không có, thử lấy deadline của 'currentOpponent' (đối thủ)
-                deadline = validateDeadline(currentOpponent?.endTimeSelected);
-                if (deadline) return deadline;
-
-                // 3. (Dự phòng) Nếu cả 2 đều không có, thử lấy deadline của cả Round
+                // Ưu tiên 2: Nếu không ai đang pick (ví dụ cả hai đã pick, chờ round)
+                // Lấy deadline của round (nếu có)
                 const roundDeadline = validateDeadline(currentRound?.endTimeRound);
                 if (roundDeadline) return roundDeadline;
 
-                // 4. Nếu không có gì cả, trả về null
-                return null;
-                // --- KẾT THÚC SỬA ---
+                // Fallback: Nếu vẫn không có, thử lấy deadline (chưa hết hạn) của bất kỳ ai
+                let fallbackDeadline = validateDeadline(currentPlayer?.endTimeSelected);
+                if (fallbackDeadline) return fallbackDeadline;
+
+                fallbackDeadline = validateDeadline(currentOpponent?.endTimeSelected);
+                if (fallbackDeadline) return fallbackDeadline;
             }
+
+            // Không tìm thấy deadline nào hợp lệ
             return null;
         })();
 
@@ -584,27 +592,18 @@ export default function PickPokemonScreen() {
         const socket = getSocket("matching", accessToken);
 
         socket.on("select-pokemon", (payload: any) => {
+            console.log("select-pokemon", payload);
             if (payload?.matchId && payload.matchId.toString() === matchId.toString()) {
                 if (payload?.data) {
+                    // SỬA LẠI NHƯ SAU:
                     queryClient.setQueryData(['list-match-round'], (oldData: any) => {
-                        if (oldData?.data?.data) {
-                            return {
-                                ...oldData,
-                                data: {
-                                    ...oldData.data,
-                                    data: payload.data,
-                                },
-                            };
-                        }
-                        return {
-                            data: {
-                                data: payload.data,
-                            },
-                        };
+                        // payload.data chính là object IBattleMatchRound mới
+                        // Chỉ cần return nó để thay thế hoàn toàn cache cũ.
+                        return payload.data;
                     });
                 }
 
-                // Also invalidate to ensure data consistency
+                // Vẫn giữ lại invalidate để đảm bảo dữ liệu cuối cùng là chính xác từ server
                 queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
                 queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
             }
@@ -703,10 +702,24 @@ export default function PickPokemonScreen() {
                         <View className="flex-row items-center gap-2">
                             <Clock size={16} color="#22d3ee" />
                             <ThemedText style={{ color: "#cbd5e1", fontSize: 14 }}>
-                                Round {battleContext?.currentRound ?
-                                    (battleContext.currentRound.roundNumber === "ONE" ? "1" :
-                                        battleContext.currentRound.roundNumber === "TWO" ? "2" : "3")
-                                    : (battleContext?.currentRoundIndex ?? 0) + 1}/3
+                                Round {(() => {
+                                    // Priority: roundStartingData > battleContext
+                                    if (roundStartingData?.roundNumber) {
+                                        const roundNum = roundStartingData.roundNumber;
+                                        if (roundNum === "ONE") return "1";
+                                        if (roundNum === "TWO") return "2";
+                                        if (roundNum === "THREE") return "3";
+                                        return roundNum; // Fallback if format is different
+                                    }
+                                    if (battleContext?.currentRound?.roundNumber) {
+                                        const roundNum = battleContext.currentRound.roundNumber;
+                                        if (roundNum === "ONE") return "1";
+                                        if (roundNum === "TWO") return "2";
+                                        if (roundNum === "THREE") return "3";
+                                        return roundNum;
+                                    }
+                                    return (battleContext?.currentRoundIndex ?? 0) + 1;
+                                })()}/3
                             </ThemedText>
                         </View>
                     </View>

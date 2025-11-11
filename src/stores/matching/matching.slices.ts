@@ -9,6 +9,11 @@ export const createMatchingSlice = (set: any) => ({
     currentMatchId: null as string | null,
     setCurrentMatchId: (matchId: string | null) => set({ currentMatchId: matchId }),
 
+    // Last match result payload to show on result screen
+    lastMatchResult: null as any,
+    setLastMatchResult: (result: any) => set({ lastMatchResult: result }),
+    clearLastMatchResult: () => set({ lastMatchResult: null }),
+
     // Match found modal (reuse ModalBattleAccept)
     matchFoundModal: {
         show: false,

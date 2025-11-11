@@ -1,4 +1,5 @@
 import { axiosPrivate } from "@configs/axios";
+import { ISubmitAnswer } from "@models/battle/battle.response";
 
 const battleService = {
     matchQueue: async () => {
@@ -22,8 +23,11 @@ const battleService = {
     },
 
     choosePokemon: async (matchId: number, pokemonId: number) => {
-        console.log("choosePokemon", matchId, pokemonId);
         return axiosPrivate.put(`/match-round-participant/choose-pokemon/round/${matchId}`, { pokemonId });
+    },
+
+    submitAnswer: async (roundQuestionId: number, data: ISubmitAnswer) => {
+        return axiosPrivate.put(`/round-question/answer/${roundQuestionId}`, data);
     },
 };
 
