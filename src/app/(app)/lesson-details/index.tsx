@@ -16,138 +16,148 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// --- Section Card Component ---
-interface SectionCardProps {
+// --- Hero Section Card Component ---
+interface HeroSectionCardProps {
   title: string;
   count: number;
-  icon: string;
-  bgColor: string;
-  accentColor: string;
-  previewItems: any[];
+  emoji: string;
+  gradientColors: [string, string];
+  previewText: string;
   onPress: () => void;
-  renderPreview: (item: any, index: number) => React.ReactNode;
 }
 
-const SectionCard = ({
+const HeroSectionCard = ({
   title,
   count,
-  icon,
-  bgColor,
-  accentColor,
-  previewItems,
+  emoji,
+  gradientColors,
+  previewText,
   onPress,
-  renderPreview,
-}: SectionCardProps) => {
+}: HeroSectionCardProps) => {
   return (
     <TouchableOpacity
       onPress={onPress}
-      activeOpacity={0.95}
+      activeOpacity={0.9}
       style={{
-        backgroundColor: "white",
-        borderRadius: 24,
-        padding: 20,
         marginBottom: 16,
+        borderRadius: 28,
+        overflow: "hidden",
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-        elevation: 6,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.12,
+        shadowRadius: 24,
+        elevation: 10,
       }}
     >
-      {/* Header */}
-      <View
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 16,
+          padding: 24,
+          minHeight: 160,
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
-          <View
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 16,
-              backgroundColor: bgColor,
-              alignItems: "center",
-              justifyContent: "center",
-              marginRight: 12,
-            }}
-          >
-            <ThemedText style={{ fontSize: 24 }}>{icon}</ThemedText>
-          </View>
+        {/* Header */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            marginBottom: 16,
+          }}
+        >
           <View style={{ flex: 1 }}>
-            <ThemedText
+            <View
               style={{
-                fontSize: 20,
-                fontWeight: "bold",
-                color: accentColor,
-                marginBottom: 2,
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 8,
               }}
             >
-              {title}
-            </ThemedText>
-            <ThemedText
-              style={{
-                fontSize: 14,
-                color: "#6b7280",
-                fontWeight: "500",
-              }}
-            >
-              {count} nội dung
-            </ThemedText>
-          </View>
-        </View>
-        <View
-          style={{
-            backgroundColor: bgColor,
-            borderRadius: 12,
-            padding: 8,
-          }}
-        >
-          <ChevronRight size={20} color={accentColor} />
-        </View>
-      </View>
-
-      {/* Preview Items */}
-      {previewItems.length > 0 && (
-        <View
-          style={{
-            backgroundColor: bgColor,
-            borderRadius: 16,
-            padding: 16,
-          }}
-        >
-          {previewItems.slice(0, 3).map((item, index) => (
-            <View key={index}>
-              {renderPreview(item, index)}
-              {index < Math.min(2, previewItems.length - 1) && (
-                <View
-                  style={{
-                    height: 1,
-                    backgroundColor: "rgba(255, 255, 255, 0.5)",
-                    marginVertical: 12,
-                  }}
-                />
-              )}
-            </View>
-          ))}
-          {previewItems.length > 3 && (
-            <View style={{ marginTop: 12, alignItems: "center" }}>
-              <ThemedText
+              <View
                 style={{
-                  fontSize: 13,
-                  color: accentColor,
-                  fontWeight: "600",
+                  width: 56,
+                  height: 56,
+                  borderRadius: 18,
+                  backgroundColor: "rgba(255, 255, 255, 0.3)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: 14,
                 }}
               >
-                +{previewItems.length - 3} nội dung khác
-              </ThemedText>
+                <ThemedText style={{ fontSize: 32 }}>{emoji}</ThemedText>
+              </View>
+              <View>
+                <ThemedText
+                  style={{
+                    fontSize: 24,
+                    fontWeight: "bold",
+                    color: "white",
+                    textShadowColor: "rgba(0, 0, 0, 0.1)",
+                    textShadowOffset: { width: 0, height: 1 },
+                    textShadowRadius: 2,
+                  }}
+                >
+                  {title}
+                </ThemedText>
+                <View
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.25)",
+                    paddingHorizontal: 12,
+                    paddingVertical: 4,
+                    borderRadius: 12,
+                    marginTop: 4,
+                    alignSelf: "flex-start",
+                  }}
+                >
+                  <ThemedText
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "bold",
+                      color: "white",
+                    }}
+                  >
+                    {count} nội dung
+                  </ThemedText>
+                </View>
+              </View>
             </View>
-          )}
+          </View>
+          <View
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.25)",
+              borderRadius: 16,
+              padding: 12,
+            }}
+          >
+            <ChevronRight size={24} color="white" strokeWidth={3} />
+          </View>
         </View>
-      )}
+
+        {/* Preview Text */}
+        <View
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.2)",
+            borderRadius: 16,
+            padding: 16,
+            borderWidth: 1,
+            borderColor: "rgba(255, 255, 255, 0.3)",
+          }}
+        >
+          <ThemedText
+            style={{
+              fontSize: 15,
+              color: "white",
+              lineHeight: 24,
+              fontWeight: "500",
+            }}
+            numberOfLines={2}
+          >
+            {previewText}
+          </ThemedText>
+        </View>
+      </LinearGradient>
     </TouchableOpacity>
   );
 };
@@ -188,6 +198,33 @@ const LessonDetailScreen = () => {
         activityType: "learn",
       },
     });
+  };
+
+  // Generate preview text for each section
+  const getVocabPreview = () => {
+    if (voca.length === 0) return "Chưa có từ vựng nào";
+    const preview = voca
+      .slice(0, 3)
+      .map((item) => item.wordJp)
+      .join("  •  ");
+    return preview + (voca.length > 3 ? "  •  ..." : "");
+  };
+
+  const getGrammarPreview = () => {
+    if (grammar.length === 0) return "Chưa có ngữ pháp nào";
+    const preview = grammar
+      .slice(0, 2)
+      .map((item) => item.title)
+      .join("  •  ");
+    return preview + (grammar.length > 2 ? "  •  ..." : "");
+  };
+
+  const getKanjiPreview = () => {
+    if (kanji.length === 0) return "Chưa có Kanji nào";
+    return kanji
+      .slice(0, 8)
+      .map((item) => item.character)
+      .join("  ");
   };
 
   return (
@@ -294,170 +331,63 @@ const LessonDetailScreen = () => {
             </View>
           )}
 
+          {/* Content Overview Title */}
+          <View style={{ marginBottom: 20 }}>
+            <ThemedText
+              style={{
+                fontSize: 26,
+                fontWeight: "bold",
+                color: "#1f2937",
+                textAlign: "center",
+              }}
+            >
+              Nội dung bài học
+            </ThemedText>
+            <ThemedText
+              style={{
+                fontSize: 15,
+                color: "#6b7280",
+                textAlign: "center",
+                marginTop: 6,
+              }}
+            >
+              Nhấn vào để xem chi tiết
+            </ThemedText>
+          </View>
+
           {/* Vocabulary Section */}
           {voca.length > 0 && (
-            <SectionCard
+            <HeroSectionCard
               title="Từ vựng"
               count={voca.length}
-              icon="📚"
-              bgColor="#EEF2FF"
-              accentColor="#4f46e5"
-              previewItems={voca}
+              emoji="📚"
+              gradientColors={["#667eea", "#764ba2"]}
+              previewText={getVocabPreview()}
               onPress={() => navigateToContent("vocabulary")}
-              renderPreview={(item) => (
-                <View>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <ThemedText
-                        style={{
-                          fontSize: 18,
-                          fontWeight: "bold",
-                          color: "#312e81",
-                          marginBottom: 4,
-                        }}
-                      >
-                        {item.wordJp}
-                      </ThemedText>
-                      <ThemedText
-                        style={{
-                          fontSize: 14,
-                          color: "#6366f1",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {item.reading}
-                      </ThemedText>
-                    </View>
-                    {item.meanings && item.meanings.length > 0 && (
-                      <ThemedText
-                        style={{
-                          fontSize: 13,
-                          color: "#4f46e5",
-                          fontWeight: "500",
-                          marginLeft: 12,
-                        }}
-                      >
-                        {typeof item.meanings[0] === "string"
-                          ? item.meanings[0]
-                          : item.meanings[0]?.meaning || ""}
-                      </ThemedText>
-                    )}
-                  </View>
-                </View>
-              )}
             />
           )}
 
           {/* Grammar Section */}
           {grammar.length > 0 && (
-            <SectionCard
+            <HeroSectionCard
               title="Ngữ pháp"
               count={grammar.length}
-              icon="✏️"
-              bgColor="#ECFEFF"
-              accentColor="#0891b2"
-              previewItems={grammar}
+              emoji="✏️"
+              gradientColors={["#06b6d4", "#0891b2"]}
+              previewText={getGrammarPreview()}
               onPress={() => navigateToContent("grammar")}
-              renderPreview={(item) => (
-                <View>
-                  <ThemedText
-                    style={{
-                      fontSize: 16,
-                      fontWeight: "bold",
-                      color: "#164e63",
-                      marginBottom: 4,
-                    }}
-                  >
-                    {item.title}
-                  </ThemedText>
-                  {item.description && (
-                    <ThemedText
-                      style={{
-                        fontSize: 13,
-                        color: "#0e7490",
-                        lineHeight: 20,
-                      }}
-                      numberOfLines={2}
-                    >
-                      {item.description}
-                    </ThemedText>
-                  )}
-                </View>
-              )}
             />
           )}
 
           {/* Kanji Section */}
           {kanji.length > 0 && (
-            <SectionCard
+            <HeroSectionCard
               title="Kanji"
               count={kanji.length}
-              icon="🈯"
-              bgColor="#FEF3C7"
-              accentColor="#d97706"
-              previewItems={kanji}
+              emoji="🈯"
+              gradientColors={["#f59e0b", "#d97706"]}
+              previewText={getKanjiPreview()}
               onPress={() => navigateToContent("kanji")}
-              renderPreview={(item) => (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                  }}
-                >
-                  <View
-                    style={{
-                      backgroundColor: "#fde68a",
-                      borderRadius: 12,
-                      width: 48,
-                      height: 48,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginRight: 12,
-                    }}
-                  >
-                    <ThemedText
-                      style={{
-                        fontSize: 28,
-                        fontWeight: "bold",
-                        color: "#92400e",
-                      }}
-                    >
-                      {item.character}
-                    </ThemedText>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <ThemedText
-                      style={{
-                        fontSize: 15,
-                        fontWeight: "bold",
-                        color: "#92400e",
-                        marginBottom: 2,
-                      }}
-                    >
-                      {item.meaning?.split("##")[0] || item.meaning}
-                    </ThemedText>
-                    {(item.onReading || item.kunReading) && (
-                      <ThemedText
-                        style={{
-                          fontSize: 12,
-                          color: "#b45309",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {[item.onReading, item.kunReading]
-                          .filter(Boolean)
-                          .join(" • ")}
-                      </ThemedText>
-                    )}
-                  </View>
-                </View>
-              )}
             />
           )}
 
