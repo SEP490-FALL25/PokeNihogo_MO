@@ -1,6 +1,7 @@
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import TypeBadge from "@components/atoms/TypeBadge";
 import UserAvatar from "@components/atoms/UserAvatar";
+import ModalEffectiveness from "@components/battle/modal-effectiveness";
 import { HapticPressable } from "@components/HapticPressable";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
@@ -17,9 +18,9 @@ import { useGlobalStore } from "@stores/global/global.config";
 import { useMatchingStore } from "@stores/matching/matching.config";
 import { useQueryClient } from "@tanstack/react-query"; // Thêm dòng này
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Check, Clock, Sparkles, Star, Timer, Zap } from "lucide-react-native";
+import { Check, Clock, Info, Sparkles, Star, Timer, Zap } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Animated, Image, ImageBackground, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, Animated, Image, ImageBackground, ScrollView, TouchableOpacity, View } from "react-native";
 
 export default function PickPokemonScreen() {
     /**
@@ -544,6 +545,24 @@ export default function PickPokemonScreen() {
     };
     //------------------------End------------------------//
 
+    /**
+     * Pokemon Info Modal
+     */
+    const [infoPokemonId, setInfoPokemonId] = useState<number | null>(null);
+    const [showInfoModal, setShowInfoModal] = useState(false);
+
+    const handleShowInfo = (pokemonId: number, e?: any) => {
+        e?.stopPropagation?.();
+        setInfoPokemonId(pokemonId);
+        setShowInfoModal(true);
+    };
+
+    const handleCloseInfo = () => {
+        setShowInfoModal(false);
+        setInfoPokemonId(null);
+    };
+    //------------------------End------------------------//
+
 
     /**
      * Choose Pokemon
@@ -673,7 +692,7 @@ export default function PickPokemonScreen() {
                         colors={["rgba(17,24,39,0.85)", "rgba(17,24,39,0.6)", "rgba(17,24,39,0.85)"]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
-                        style={{ ...StyleSheet.absoluteFillObject }}
+                        style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}
                     />
                     <View className="flex-1 items-center justify-center">
                         <ActivityIndicator size="large" color="#22d3ee" />
@@ -1217,7 +1236,7 @@ export default function PickPokemonScreen() {
                                                 colors={getRarityColors() as any}
                                                 start={{ x: 0, y: 0 }}
                                                 end={{ x: 0, y: 1 }}
-                                                style={{ ...StyleSheet.absoluteFillObject, borderRadius: 24 }}
+                                                style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, borderRadius: 24 }}
                                             />
 
                                             {/* Dark overlay for better contrast */}
@@ -1225,7 +1244,7 @@ export default function PickPokemonScreen() {
                                                 colors={["rgba(0,0,0,0.2)", "rgba(0,0,0,0.4)", "rgba(0,0,0,0.7)"]}
                                                 start={{ x: 0, y: 0 }}
                                                 end={{ x: 0, y: 1 }}
-                                                style={{ ...StyleSheet.absoluteFillObject, borderRadius: 24 }}
+                                                style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, borderRadius: 24 }}
                                             />
 
                                             {/* Rarity badge */}
@@ -1259,8 +1278,24 @@ export default function PickPokemonScreen() {
                                                 </View>
                                             </View>
 
+                                            {/* Info button */}
+                                            <TouchableOpacity
+                                                className="absolute top-1.5 right-1.5 z-30"
+                                                onPress={(e) => handleShowInfo(pokemon.id, e)}
+                                                style={{
+                                                    backgroundColor: "rgba(0, 0, 0, 0.6)",
+                                                    borderRadius: 12,
+                                                    padding: 6,
+                                                    borderWidth: 1,
+                                                    borderColor: "rgba(255, 255, 255, 0.3)",
+                                                }}
+                                                activeOpacity={0.7}
+                                            >
+                                                <Info size={14} color="#22d3ee" />
+                                            </TouchableOpacity>
+
                                             {/* Rarity stars */}
-                                            <View className="absolute top-1.5 right-1.5 z-20 flex-row gap-0.5">
+                                            <View className="absolute bottom-16 right-1.5 z-20 flex-row gap-0.5">
                                                 {Array.from({ length: rarityConfig.stars }).map((_, i) => (
                                                     <Star
                                                         key={i}
@@ -1349,6 +1384,14 @@ export default function PickPokemonScreen() {
                     )}
                 </ScrollView>
             </ImageBackground>
+
+            {/* Pokemon Info Modal */}
+            <ModalEffectiveness
+                visible={showInfoModal}
+                onRequestClose={handleCloseInfo}
+                pokemonId={infoPokemonId}
+                language={language}
+            />
         </ThemedView>
     );
 }

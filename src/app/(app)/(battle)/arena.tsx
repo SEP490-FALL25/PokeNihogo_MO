@@ -41,7 +41,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     const accessToken = useAuthStore((s) => s.accessToken);
     const setCurrentMatchId = useMatchingStore((s) => s.setCurrentMatchId);
     const setLastMatchResult = useMatchingStore((s) => s.setLastMatchResult);
-    const clearLastMatchResult = useMatchingStore((s) => (s as any).clearLastMatchResult);
     const queryClient = useQueryClient();
 
     // Get match round data
@@ -137,17 +136,13 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         pointProgress.setValue(1);
         shakeAnimation.setValue(0);
 
-        // Clear last match result from store
-        try {
-            clearLastMatchResult();
-        } catch (e) {
-            console.warn("Failed to clear last match result", e);
-        }
+        // Don't clear lastMatchResult here - it's already cleared in battle.tsx when starting a new match
+        // Clearing it here would remove data needed for the result screen
 
-        // Invalidate React Query cache for match round data
+        // Invalidate React Query cache for match round data to fetch fresh data for new match
         queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
         queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
-    }, [matchId, clearLastMatchResult, queryClient]);
+    }, [matchId, queryClient]);
 
     // Get player and opponent Pokemon from round-started event or matchRound
     const playerPokemon = useMemo(() => {

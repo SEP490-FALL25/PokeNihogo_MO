@@ -88,6 +88,7 @@ export const usePokemonById = (id: string) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ['pokemon', id],
     queryFn: () => pokemonService.getById(id),
+    enabled: !!id && id !== "",
   });
   return { data: data?.data.data, isLoading, isError };
 };
