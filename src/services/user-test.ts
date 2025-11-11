@@ -41,6 +41,11 @@ const userTestService = {
     return axiosPrivate.get(`/user-test-attempt/test/${testId}`);
   },
 
+  // Lấy câu hỏi test từ lesson (API mới cho lesson review test)
+  getLessonReviewQuestions: async (testId: string | number) => {
+    return axiosPrivate.get(`/test/lesson-review/${testId}/questions`);
+  },
+
   // Kiểm tra trạng thái hoàn thành bài test (reading)
   checkCompletion: async (userTestAttemptId: string | number) => {
     return axiosPrivate.get(`/user-test-attempt/${userTestAttemptId}/check-completion`);

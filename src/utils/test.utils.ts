@@ -28,6 +28,14 @@ export const getTestConfig = (testType?: string): TestConfig => {
         exitTitle: "Thoát bài nghe?",
         exitMessage: "Bạn có muốn quay lại danh sách bài nghe?",
       };
+    case "LESSON_TEST":
+      return {
+        title: "Kiểm tra bài học",
+        icon: "file-document-edit",
+        color: "#6366f1",
+        exitTitle: "Thoát bài kiểm tra?",
+        exitMessage: "Bạn có muốn quay lại bài học?",
+      };
     default:
       return {
         title: "Bài test",
@@ -42,15 +50,20 @@ export const getTestConfig = (testType?: string): TestConfig => {
 export const transformTestSets = (data: any): TestSet[] => {
   const setsRaw = data?.data?.testSets || [];
   let counter = 0;
-  return setsRaw.map((s: any) => {
-    const questions: TestQuestion[] = (s.testSetQuestionBanks || [])
+  return setsRaw.map((s: any, setIndex: number) => {
+    // Support both old format (testSetQuestionBanks) and new format (questions)
+    const questionList = s.testSetQuestionBanks || s.questions || [];
+    
+    const questions: TestQuestion[] = questionList
       .sort((a: any, b: any) => (a.questionOrder || 0) - (b.questionOrder || 0))
       .map((qb: any) => {
         const q = qb.questionBank;
         counter += 1;
+        // For new format: use set index + question id as set id
+        const setId = s.id || `set-${setIndex}`;
         return {
           bankId: String(q.id),
-          uid: `${s.id}-${q.id}`,
+          uid: `${setId}-${q.id}`,
           question: q.question || "",
           options: (q.answers || []).map((ans: any) => ({
             id: String(ans.id),
@@ -60,6 +73,6 @@ export const transformTestSets = (data: any): TestSet[] => {
           audioUrl: q.audioUrl || q.audioURL || q.audio || undefined,
         };
       });
-    return { id: String(s.id), content: s.content || "", questions };
+    return { id: String(s.id || `set-${setIndex}`), content: s.content || "", questions };
   });
 };
