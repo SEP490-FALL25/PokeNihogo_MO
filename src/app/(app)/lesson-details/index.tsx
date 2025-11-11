@@ -16,148 +16,202 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// --- Hero Section Card Component ---
-interface HeroSectionCardProps {
+// --- Modern Dashboard Card Component ---
+interface DashboardCardProps {
   title: string;
+  subtitle: string;
   count: number;
   emoji: string;
-  gradientColors: [string, string];
-  previewText: string;
+  bgColor: string;
+  accentColor: string;
+  darkColor: string;
+  items: any[];
   onPress: () => void;
 }
 
-const HeroSectionCard = ({
+const DashboardCard = ({
   title,
+  subtitle,
   count,
   emoji,
-  gradientColors,
-  previewText,
+  bgColor,
+  accentColor,
+  darkColor,
+  items,
   onPress,
-}: HeroSectionCardProps) => {
+}: DashboardCardProps) => {
   return (
     <TouchableOpacity
       onPress={onPress}
-      activeOpacity={0.9}
+      activeOpacity={0.92}
       style={{
+        backgroundColor: "white",
+        borderRadius: 24,
+        padding: 20,
         marginBottom: 16,
-        borderRadius: 28,
-        overflow: "hidden",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.12,
-        shadowRadius: 24,
-        elevation: 10,
+        shadowColor: accentColor,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 20,
+        elevation: 8,
+        borderWidth: 2,
+        borderColor: bgColor,
       }}
     >
-      <LinearGradient
-        colors={gradientColors}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      {/* Header with Stats */}
+      <View
         style={{
-          padding: 24,
-          minHeight: 160,
+          flexDirection: "row",
+          alignItems: "center",
+          marginBottom: 16,
         }}
       >
-        {/* Header */}
+        {/* Emoji Circle */}
         <View
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            marginBottom: 16,
+            width: 64,
+            height: 64,
+            borderRadius: 20,
+            backgroundColor: bgColor,
+            alignItems: "center",
+            justifyContent: "center",
+            marginRight: 16,
           }}
         >
-          <View style={{ flex: 1 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: 8,
-              }}
-            >
-              <View
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: 18,
-                  backgroundColor: "rgba(255, 255, 255, 0.3)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginRight: 14,
-                }}
-              >
-                <ThemedText style={{ fontSize: 32 }}>{emoji}</ThemedText>
-              </View>
-              <View>
-                <ThemedText
-                  style={{
-                    fontSize: 24,
-                    fontWeight: "bold",
-                    color: "white",
-                    textShadowColor: "rgba(0, 0, 0, 0.1)",
-                    textShadowOffset: { width: 0, height: 1 },
-                    textShadowRadius: 2,
-                  }}
-                >
-                  {title}
-                </ThemedText>
-                <View
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.25)",
-                    paddingHorizontal: 12,
-                    paddingVertical: 4,
-                    borderRadius: 12,
-                    marginTop: 4,
-                    alignSelf: "flex-start",
-                  }}
-                >
-                  <ThemedText
-                    style={{
-                      fontSize: 14,
-                      fontWeight: "bold",
-                      color: "white",
-                    }}
-                  >
-                    {count} nội dung
-                  </ThemedText>
-                </View>
-              </View>
-            </View>
-          </View>
-          <View
-            style={{
-              backgroundColor: "rgba(255, 255, 255, 0.25)",
-              borderRadius: 16,
-              padding: 12,
-            }}
-          >
-            <ChevronRight size={24} color="white" strokeWidth={3} />
-          </View>
+          <ThemedText style={{ fontSize: 36 }}>{emoji}</ThemedText>
         </View>
 
-        {/* Preview Text */}
+        {/* Title and Subtitle */}
+        <View style={{ flex: 1 }}>
+          <ThemedText
+            style={{
+              fontSize: 22,
+              fontWeight: "bold",
+              color: darkColor,
+              marginBottom: 4,
+            }}
+          >
+            {title}
+          </ThemedText>
+          <ThemedText
+            style={{
+              fontSize: 13,
+              color: accentColor,
+              fontWeight: "600",
+            }}
+          >
+            {subtitle}
+          </ThemedText>
+        </View>
+
+        {/* Count Badge */}
         <View
           style={{
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
+            backgroundColor: bgColor,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
             borderRadius: 16,
-            padding: 16,
-            borderWidth: 1,
-            borderColor: "rgba(255, 255, 255, 0.3)",
           }}
         >
           <ThemedText
             style={{
-              fontSize: 15,
-              color: "white",
-              lineHeight: 24,
-              fontWeight: "500",
+              fontSize: 24,
+              fontWeight: "bold",
+              color: darkColor,
             }}
-            numberOfLines={2}
           >
-            {previewText}
+            {count}
           </ThemedText>
         </View>
-      </LinearGradient>
+      </View>
+
+      {/* Preview Grid */}
+      <View
+        style={{
+          backgroundColor: bgColor,
+          borderRadius: 16,
+          padding: 16,
+          minHeight: 80,
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 8,
+          }}
+        >
+          {items.slice(0, 6).map((item, index) => (
+            <View
+              key={index}
+              style={{
+                backgroundColor: "white",
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                borderRadius: 12,
+                borderWidth: 1.5,
+                borderColor: accentColor + "40",
+              }}
+            >
+              <ThemedText
+                style={{
+                  fontSize: 15,
+                  fontWeight: "600",
+                  color: darkColor,
+                }}
+              >
+                {item.wordJp || item.title || item.character || "..."}
+              </ThemedText>
+            </View>
+          ))}
+          {items.length > 6 && (
+            <View
+              style={{
+                backgroundColor: accentColor,
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                borderRadius: 12,
+                justifyContent: "center",
+              }}
+            >
+              <ThemedText
+                style={{
+                  fontSize: 13,
+                  fontWeight: "bold",
+                  color: "white",
+                }}
+              >
+                +{items.length - 6}
+              </ThemedText>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Action Button */}
+      <View
+        style={{
+          marginTop: 16,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: accentColor,
+          paddingVertical: 12,
+          borderRadius: 14,
+        }}
+      >
+        <ThemedText
+          style={{
+            fontSize: 15,
+            fontWeight: "bold",
+            color: "white",
+            marginRight: 6,
+          }}
+        >
+          Bắt đầu học
+        </ThemedText>
+        <ChevronRight size={18} color="white" strokeWidth={3} />
+      </View>
     </TouchableOpacity>
   );
 };
@@ -198,33 +252,6 @@ const LessonDetailScreen = () => {
         activityType: "learn",
       },
     });
-  };
-
-  // Generate preview text for each section
-  const getVocabPreview = () => {
-    if (voca.length === 0) return "Chưa có từ vựng nào";
-    const preview = voca
-      .slice(0, 3)
-      .map((item) => item.wordJp)
-      .join("  •  ");
-    return preview + (voca.length > 3 ? "  •  ..." : "");
-  };
-
-  const getGrammarPreview = () => {
-    if (grammar.length === 0) return "Chưa có ngữ pháp nào";
-    const preview = grammar
-      .slice(0, 2)
-      .map((item) => item.title)
-      .join("  •  ");
-    return preview + (grammar.length > 2 ? "  •  ..." : "");
-  };
-
-  const getKanjiPreview = () => {
-    if (kanji.length === 0) return "Chưa có Kanji nào";
-    return kanji
-      .slice(0, 8)
-      .map((item) => item.character)
-      .join("  ");
   };
 
   return (
@@ -331,62 +358,130 @@ const LessonDetailScreen = () => {
             </View>
           )}
 
-          {/* Content Overview Title */}
+          {/* Stats Overview */}
+          <View
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+              borderRadius: 20,
+              padding: 20,
+              marginBottom: 24,
+              flexDirection: "row",
+              justifyContent: "space-around",
+            }}
+          >
+            <View style={{ alignItems: "center" }}>
+              <ThemedText
+                style={{
+                  fontSize: 32,
+                  fontWeight: "bold",
+                  color: "#6366f1",
+                }}
+              >
+                {voca.length + grammar.length + kanji.length}
+              </ThemedText>
+              <ThemedText
+                style={{
+                  fontSize: 13,
+                  color: "#6b7280",
+                  fontWeight: "600",
+                  marginTop: 4,
+                }}
+              >
+                Tổng nội dung
+              </ThemedText>
+            </View>
+            <View
+              style={{
+                width: 1,
+                backgroundColor: "#e5e7eb",
+              }}
+            />
+            <View style={{ alignItems: "center" }}>
+              <ThemedText
+                style={{
+                  fontSize: 32,
+                  fontWeight: "bold",
+                  color: "#10b981",
+                }}
+              >
+                3
+              </ThemedText>
+              <ThemedText
+                style={{
+                  fontSize: 13,
+                  color: "#6b7280",
+                  fontWeight: "600",
+                  marginTop: 4,
+                }}
+              >
+                Phần học
+              </ThemedText>
+            </View>
+          </View>
+
+          {/* Section Title */}
           <View style={{ marginBottom: 20 }}>
             <ThemedText
               style={{
-                fontSize: 26,
+                fontSize: 24,
                 fontWeight: "bold",
                 color: "#1f2937",
-                textAlign: "center",
               }}
             >
-              Nội dung bài học
+              Danh sách nội dung
             </ThemedText>
             <ThemedText
               style={{
-                fontSize: 15,
+                fontSize: 14,
                 color: "#6b7280",
-                textAlign: "center",
-                marginTop: 6,
+                marginTop: 4,
               }}
             >
-              Nhấn vào để xem chi tiết
+              Chọn phần muốn học
             </ThemedText>
           </View>
 
           {/* Vocabulary Section */}
           {voca.length > 0 && (
-            <HeroSectionCard
+            <DashboardCard
               title="Từ vựng"
+              subtitle="Học từ mới tiếng Nhật"
               count={voca.length}
               emoji="📚"
-              gradientColors={["#667eea", "#764ba2"]}
-              previewText={getVocabPreview()}
+              bgColor="#EEF2FF"
+              accentColor="#6366f1"
+              darkColor="#312e81"
+              items={voca}
               onPress={() => navigateToContent("vocabulary")}
             />
           )}
 
           {/* Grammar Section */}
           {grammar.length > 0 && (
-            <HeroSectionCard
+            <DashboardCard
               title="Ngữ pháp"
+              subtitle="Cấu trúc câu và mẫu câu"
               count={grammar.length}
               emoji="✏️"
-              gradientColors={["#06b6d4", "#0891b2"]}
-              previewText={getGrammarPreview()}
+              bgColor="#ECFEFF"
+              accentColor="#06b6d4"
+              darkColor="#164e63"
+              items={grammar}
               onPress={() => navigateToContent("grammar")}
             />
           )}
 
           {/* Kanji Section */}
           {kanji.length > 0 && (
-            <HeroSectionCard
+            <DashboardCard
               title="Kanji"
+              subtitle="Chữ Hán trong tiếng Nhật"
               count={kanji.length}
               emoji="🈯"
-              gradientColors={["#f59e0b", "#d97706"]}
-              previewText={getKanjiPreview()}
+              bgColor="#FEF3C7"
+              accentColor="#f59e0b"
+              darkColor="#92400e"
+              items={kanji}
               onPress={() => navigateToContent("kanji")}
             />
           )}
