@@ -1383,60 +1383,76 @@ const VocabularyListScreen = () => {
                       backgroundColor: "#E0F2FE",
                     }}
                   >
-                    <View className="items-center mb-3">
-                      <View
-                        className="rounded-full items-center justify-center"
-                        style={{
-                          width: 80,
-                          height: 80,
-                          backgroundColor: "#BAE6FD",
-                        }}
-                      >
-                        <ThemedText style={{ fontSize: 36 }}>🏴‍☠️</ThemedText>
-                      </View>
-                    </View>
-                    <ThemedText
-                      style={{
-                        textAlign: "center",
-                        fontSize: 16,
-                        fontWeight: "bold",
-                        color: "#1e40af",
-                      }}
-                    >
-                      {contentTypeValue === "kanji"
-                        ? "Học Kanji"
-                        : "Học từ mới"}
-                    </ThemedText>
-                  </TouchableOpacity>
-                )}
-
-                {/* Kiểm tra - Full width khi là grammar, một nửa khi không phải grammar */}
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    startExercise(contentTypeValue as ExerciseCategory);
-                  }}
-                  className="rounded-3xl p-6 shadow-lg"
-                  style={{
-                    width:
-                      contentTypeValue === "grammar"
-                        ? width - 48
-                        : (width - 48 - 12) / 2,
-                    backgroundColor: "#FEF3C7",
-                  }}
-                >
                   <View className="items-center mb-3">
                     <View
                       className="rounded-full items-center justify-center"
                       style={{
                         width: 80,
                         height: 80,
-                        backgroundColor: "#FDE68A",
+                        backgroundColor: "#3B82F6",
+                        shadowColor: "#1e40af",
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 8,
+                        elevation: 6,
+                        overflow: "hidden",
                       }}
                     >
-                      <ThemedText style={{ fontSize: 36 }}>🥷</ThemedText>
+                      <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
+                        ⚡
+                      </ThemedText>
                     </View>
                   </View>
+                  <ThemedText
+                    style={{
+                      textAlign: "center",
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      color: "#1e40af",
+                    }}
+                  >
+                    {contentTypeValue === "kanji"
+                      ? "Học Kanji"
+                      : "Học từ mới"}
+                  </ThemedText>
+                </TouchableOpacity>
+              )}
+
+              {/* Kiểm tra - Full width khi là grammar, một nửa khi không phải grammar */}
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  startExercise(contentTypeValue as ExerciseCategory);
+                }}
+                className="rounded-3xl p-6 shadow-lg"
+                style={{
+                  width:
+                    contentTypeValue === "grammar"
+                      ? width - 48
+                      : (width - 48 - 12) / 2,
+                  backgroundColor: "#FEF3C7",
+                }}
+              >
+                <View className="items-center mb-3">
+                  <View
+                    className="rounded-full items-center justify-center"
+                    style={{
+                      width: 80,
+                      height: 80,
+                      backgroundColor: "#F59E0B",
+                      shadowColor: "#92400e",
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 8,
+                      elevation: 6,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
+                      🔥
+                    </ThemedText>
+                  </View>
+                </View>
                   <ThemedText
                     style={{
                       textAlign: "center",
