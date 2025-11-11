@@ -4,11 +4,10 @@ import RewardShopModal from "@components/Organism/ShopPokemon";
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
 import HomeTourGuide from "@components/ui/HomeTourGuide";
 import { useWalletUser } from "@hooks/useWallet";
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ImageBackground, ScrollView, StyleSheet, View } from "react-native";
 import { CopilotStep, walkthroughable } from "react-native-copilot";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -67,10 +66,16 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
 
     return (
       <HomeTourGuide>
-        <LinearGradient
-          colors={["#dbeafe", "#ffffff", "#e0e7ff"]} // bg-gradient-to-br from-blue-50 via-white to-indigo-100
+        <ImageBackground
+          source={{
+            uri: "https://res.cloudinary.com/duzumnf05/image/upload/v1762878756/background/images/file_nv77kp.png",
+          }}
           style={styles.container}
+          imageStyle={styles.backgroundImage}
+          resizeMode="cover"
         >
+          {/* Overlay để làm mờ ảnh nền */}
+          <View style={styles.overlay} />
           <SafeAreaView style={styles.safeArea}>
             {/* Fixed Header */}
             <CopilotStep text={t("tour.header_description")} order={1} name="header">
@@ -129,7 +134,7 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
             onClose={() => setShowDailyQuests(false)}
             requests={dailyQuestsMock}
           /> */}
-        </LinearGradient>
+        </ImageBackground>
       </HomeTourGuide>
     );
   }
@@ -140,6 +145,15 @@ export default HomeLayout;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  backgroundImage: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255, 255, 255, 0.55)", // Làm mờ với màu trắng 50% opacity
   },
   safeArea: {
     flex: 1,

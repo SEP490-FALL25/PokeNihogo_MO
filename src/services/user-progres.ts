@@ -52,7 +52,6 @@ const userProgressService = {
       const response = await axiosPrivate.get(
         `user-progress/my?${queryString.toString()}`
       );
-console.log(response);
       // Validate response with Zod schema
       const validatedData = UserProgressResponseSchema.parse(response.data);
 

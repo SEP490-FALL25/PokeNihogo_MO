@@ -1,5 +1,4 @@
 import HomeLayout from "@components/layouts/HomeLayout";
-import LessonCategory from "@components/lesson/LessonCategory";
 import LessonMap from "@components/lesson/LessonMap";
 import { ThemedText } from "@components/ThemedText";
 import { Badge } from "@components/ui/Badge";
@@ -20,7 +19,6 @@ import {
 import { LessonProgress } from "@models/lesson/lesson.common";
 import { useIsFocused } from "@react-navigation/native";
 import { ROUTES } from "@routes/routes";
-import { useUserStore } from "@stores/user/user.config";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getJLPTLevelColor,
@@ -55,68 +53,45 @@ import {
   View,
 } from "react-native";
 
-// Optimized animated wrapper for LessonCategory
-const AnimatedLessonCategory = React.memo(
-  ({
-    category,
-    onLessonPress,
-    onCategoryPress,
-    delay,
-    isLoaded,
-  }: {
-    category: any;
-    onLessonPress: (lesson: LessonProgress) => void;
-    onCategoryPress?: (category: any) => void;
-    delay: number;
-    isLoaded: boolean;
-  }) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const slideAnim = useRef(new Animated.Value(30)).current;
+// Constants
+const DUO_IMAGES = [
+  require("@assets/animations/hectordev4pokeball.json"),
+  require("@assets/animations/Day 18 - Dreaming Snorlax.json"),
+  require("@assets/animations/Animation - 1740640302159.json"),
+  require("@assets/animations/Mystery Gift by Oscar Soronellas.json"),
+];
 
-    useEffect(() => {
-      if (isLoaded) {
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 300,
-            delay: delay,
-            useNativeDriver: true,
-          }),
-          Animated.timing(slideAnim, {
-            toValue: 0,
-            duration: 300,
-            delay: delay,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      }
-    }, [isLoaded, delay, fadeAnim, slideAnim]);
+const JLPT_LEVEL_ORDER = [
+  "jlpt-n5",
+  "jlpt-n4",
+  "jlpt-n3",
+  "jlpt-n2",
+  "jlpt-n1",
+] as const;
 
-    return (
-      <Animated.View
-        style={{
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-        }}
-      >
-        <LessonCategory
-          category={category}
-          onLessonPress={onLessonPress}
-          onCategoryPress={onCategoryPress}
-        />
-      </Animated.View>
-    );
-  }
-);
+const SKILL_CATEGORY_ROUTE_MAP: Record<string, string> = {
+  reading: ROUTES.TABS.READING,
+  speaking: ROUTES.TABS.SPEAKING,
+  listening: ROUTES.TABS.LISTENING,
+};
 
-AnimatedLessonCategory.displayName = "AnimatedLessonCategory";
+const SKILL_ICON_MAP: Record<string, React.ComponentType<{ size: number; color: string }>> = {
+  listening: Headphones,
+  vocabulary: Type,
+  grammar: FileText,
+  reading: BookOpen,
+  speaking: Mic,
+  writing: Pencil,
+  conversation: MessageSquare,
+  kanji: Languages,
+};
 
 // Component để render LessonMap cho từng level JLPT
-const JLPTLevelMap: React.FC<{
+const JLPTLevelMap = React.memo<{
   categoryId: string;
   levelName: string;
   onLessonPress: (lesson: LessonProgress) => void;
-}> = ({ categoryId, levelName, onLessonPress }) => {
+}>(({ categoryId, levelName, onLessonPress }) => {
   const {
     data,
     isLoading,
@@ -124,6 +99,7 @@ const JLPTLevelMap: React.FC<{
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch,
   } = useInfiniteUserLessons({
     pageSize: 50,
     lessonCategoryId: parseInt(categoryId, 10),
@@ -151,7 +127,7 @@ const JLPTLevelMap: React.FC<{
           title="Error loading lessons"
           description="Failed to load lessons for this level"
           error="Unknown error"
-          onRetry={() => {}}
+          onRetry={() => refetch()}
           retryText="Retry"
         />
       </View>
@@ -169,13 +145,6 @@ const JLPTLevelMap: React.FC<{
     );
   }
 
-  const DUO_IMAGE = [
-    require("@assets/animations/hectordev4pokeball.json"),
-    require("@assets/animations/Day 18 - Dreaming Snorlax.json"),
-    require("@assets/animations/Animation - 1740640302159.json"),
-    require("@assets/animations/Mystery Gift by Oscar Soronellas.json"),
-  ];
-
   return (
     <View style={styles.levelMapContainer}>
       <ThemedText type="subtitle" style={styles.levelTitle}>
@@ -183,7 +152,7 @@ const JLPTLevelMap: React.FC<{
       </ThemedText>
       {allLessons.length > 0 ? (
         <LessonMap
-          duoImages={DUO_IMAGE}
+          duoImages={DUO_IMAGES}
           lessons={allLessons}
           onLessonPress={onLessonPress}
         />
@@ -196,7 +165,65 @@ const JLPTLevelMap: React.FC<{
       )}
     </View>
   );
-};
+});
+
+JLPTLevelMap.displayName = "JLPTLevelMap";
+
+// Memoized Skill Category Item Component
+const SkillCategoryItem = React.memo<{
+  category: any;
+  isLoaded: boolean;
+  fadeAnim: Animated.Value;
+  slideAnim: Animated.Value;
+  onPress: (category: any) => void;
+  renderIcon: (slug: string) => React.ReactNode;
+}>(({ category, isLoaded, fadeAnim, slideAnim, onPress, renderIcon }) => {
+  const animatedStyle = useMemo(
+    () => ({
+      opacity: isLoaded ? fadeAnim : 0,
+      transform: [
+        {
+          translateY: isLoaded ? slideAnim : 30,
+        },
+      ],
+    }),
+    [isLoaded, fadeAnim, slideAnim]
+  );
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <TouchableOpacity
+        style={[styles.skillCategoryCard, { borderLeftColor: category.color }]}
+        onPress={() => onPress(category)}
+        activeOpacity={0.8}
+      >
+        <View style={styles.skillCategoryHeader}>
+          <View
+            style={[
+              styles.skillCategoryIcon,
+              { backgroundColor: category.color },
+            ]}
+          >
+            {renderIcon(category.route)}
+          </View>
+          <View style={styles.skillCategoryInfo}>
+            <ThemedText type="subtitle" style={styles.skillCategoryTitle}>
+              {category.name}
+            </ThemedText>
+            <ThemedText style={styles.skillCategoryDescription}>
+              {category.description}
+            </ThemedText>
+          </View>
+          <View style={styles.skillCategoryArrow}>
+            <ChevronRight size={20} color="#6b7280" />
+          </View>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+});
+
+SkillCategoryItem.displayName = "SkillCategoryItem";
 
 const CategoriesScreen = () => {
   const { t } = useTranslation();
@@ -208,7 +235,6 @@ const CategoriesScreen = () => {
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
 
   // Close BottomSheet when screen loses focus (e.g., when navigating away)
   useEffect(() => {
@@ -217,24 +243,25 @@ const CategoriesScreen = () => {
     }
   }, [isFocused, isBottomSheetOpen]);
 
-  const { level: userLevel } = useUserStore();
   const queryClient = useQueryClient();
 
-  const { data: progressData, isLoading: progressLoading, refetch: refetchProgress } = useUserProgress();
+  const { isLoading: progressLoading, refetch: refetchProgress } = useUserProgress();
   const {
     data: lessonCategoriesData,
     isLoading: lessonCategoriesLoading,
     error: lessonCategoriesError,
     refetch: refetchCategories,
   } = useLessonCategories();
+
   // Optimized animation effect when data loads
   useEffect(() => {
     const isDataReady = !progressLoading && !lessonCategoriesLoading;
 
-    if (isDataReady) {
+    if (isDataReady && !isLoaded) {
       setIsLoaded(true);
 
       // Simplified animation sequence
+      // Note: fadeAnim and slideAnim are refs, stable across renders, so not in deps
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -246,31 +273,33 @@ const CategoriesScreen = () => {
           duration: 300,
           useNativeDriver: true,
         }),
-        Animated.timing(progressAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: false,
-        }),
       ]).start();
     }
-  }, [
-    progressLoading,
-    lessonCategoriesLoading,
-    fadeAnim,
-    slideAnim,
-    progressAnim,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progressLoading, lessonCategoriesLoading, isLoaded]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      // Refetch all data queries
+      // Refetch all data queries including user lessons
       await Promise.all([
         refetchProgress(),
         refetchCategories(),
-        // Invalidate and refetch all infinite queries for JLPT levels
-        queryClient.invalidateQueries({ queryKey: ["user-lessons-infinite"] }),
-        queryClient.invalidateQueries({ queryKey: ["userProgress"] }),
+        // Refetch all user lessons infinite queries (all JLPT levels)
+        queryClient.refetchQueries({ 
+          queryKey: ["user-lessons-infinite"],
+          exact: false, // Match all queries starting with this key (all categories/levels)
+        }),
+        // Refetch all user progress infinite queries
+        queryClient.refetchQueries({ 
+          queryKey: ["userProgressInfinite"],
+          exact: false, // Match all queries starting with this key
+        }),
+        // Refetch all user progress queries
+        queryClient.refetchQueries({ 
+          queryKey: ["userProgress"],
+          exact: false, // Match all queries starting with this key
+        }),
       ]);
     } catch (error) {
       console.error("Error refreshing data:", error);
@@ -288,95 +317,67 @@ const CategoriesScreen = () => {
   }, []);
 
   const handleSkillCategoryPress = useCallback((category: any) => {
-    const routeMap: Record<string, any> = {
-      reading: ROUTES.TABS.READING,
-      speaking: ROUTES.TABS.SPEAKING,
-      listening: ROUTES.TABS.LISTENING,
-    };
-
-    const route = routeMap[category.route];
+    const route = SKILL_CATEGORY_ROUTE_MAP[category.route];
     if (route) {
       router.push(route as any);
     }
   }, []);
 
   const renderSkillIcon = useCallback((slug: string) => {
-    switch (slug) {
-      case "listening":
-        return <Headphones size={24} color="#ffffff" />;
-      case "vocabulary":
-        return <Type size={24} color="#ffffff" />;
-      case "grammar":
-        return <FileText size={24} color="#ffffff" />;
-      case "reading":
-        return <BookOpen size={24} color="#ffffff" />;
-      case "speaking":
-        return <Mic size={24} color="#ffffff" />;
-      case "writing":
-        return <Pencil size={24} color="#ffffff" />;
-      case "conversation":
-        return <MessageSquare size={24} color="#ffffff" />;
-      case "kanji":
-        return <Languages size={24} color="#ffffff" />;
-      default:
-        return <BookOpen size={24} color="#ffffff" />;
-    }
+    const IconComponent = SKILL_ICON_MAP[slug] || BookOpen;
+    return <IconComponent size={24} color="#ffffff" />;
   }, []);
   // Memoized level categories - filter by "jlpt-" prefix and sort N5 to N1
-  const levelCategories = useMemo(
-    () =>
-      lessonCategoriesData?.data.results
-        .filter((category: any) => {
-          const slug = category.slug.toLowerCase();
-          return slug.startsWith("jlpt-");
-        })
-        .sort((a: any, b: any) => {
-          // Sort JLPT levels from N5 to N1 (ascending order)
-          const levelOrder = [
-            "jlpt-n5",
-            "jlpt-n4",
-            "jlpt-n3",
-            "jlpt-n2",
-            "jlpt-n1",
-          ];
-          const aIndex = levelOrder.indexOf(a.slug.toLowerCase());
-          const bIndex = levelOrder.indexOf(b.slug.toLowerCase());
-          return aIndex - bIndex;
-        })
-        .map((category: any) => ({
-          id: category.id.toString(),
-          name: category.name,
-          description: category.name,
-          color: getJLPTLevelColor(category.slug),
-          level: category.slug.toUpperCase(),
-          icon: "1.circle.fill",
-          lessons: [],
-        })) || [],
-    [lessonCategoriesData?.data.results]
-  );
+  const levelCategories = useMemo(() => {
+    if (!lessonCategoriesData?.data.results) return [];
+    
+    return lessonCategoriesData.data.results
+      .filter((category: any) => {
+        const slug = category.slug.toLowerCase();
+        return slug.startsWith("jlpt-");
+      })
+      .sort((a: any, b: any) => {
+        const aIndex = JLPT_LEVEL_ORDER.indexOf(a.slug.toLowerCase() as any);
+        const bIndex = JLPT_LEVEL_ORDER.indexOf(b.slug.toLowerCase() as any);
+        // Handle items not in order array (shouldn't happen, but safe)
+        if (aIndex === -1 && bIndex === -1) return 0;
+        if (aIndex === -1) return 1;
+        if (bIndex === -1) return -1;
+        return aIndex - bIndex;
+      })
+      .map((category: any) => ({
+        id: category.id.toString(),
+        name: category.name,
+        description: category.name,
+        color: getJLPTLevelColor(category.slug),
+        level: category.slug.toUpperCase(),
+        icon: "1.circle.fill",
+        lessons: [],
+      }));
+  }, [lessonCategoriesData?.data.results]);
 
   // Lấy 3 level đầu tiên (N5, N4, N3) để hiển thị LessonMap
   const jlptLevelsForMap = useMemo(() => {
     return levelCategories.slice(0, 3);
   }, [levelCategories]);
   // Memoized skill categories - non-JLPT categories from API
-  const skillCategories = useMemo(
-    () =>
-      lessonCategoriesData?.data.results
-        .filter((category: any) => {
-          const slug = category.slug.toLowerCase();
-          return !slug.startsWith("jlpt-");
-        })
-        .map((category: any) => ({
-          id: category.id.toString(),
-          name: category.name,
-          description: category.name,
-          color: getSkillCategoryColor(category.slug),
-          icon: getSkillCategoryIcon(category.slug),
-          route: category.slug,
-        })) || [],
-    [lessonCategoriesData?.data.results]
-  );
+  const skillCategories = useMemo(() => {
+    if (!lessonCategoriesData?.data.results) return [];
+    
+    return lessonCategoriesData.data.results
+      .filter((category: any) => {
+        const slug = category.slug.toLowerCase();
+        return !slug.startsWith("jlpt-");
+      })
+      .map((category: any) => ({
+        id: category.id.toString(),
+        name: category.name,
+        description: category.name,
+        color: getSkillCategoryColor(category.slug),
+        icon: getSkillCategoryIcon(category.slug),
+        route: category.slug,
+      }));
+  }, [lessonCategoriesData?.data.results]);
 
   if (progressLoading || lessonCategoriesLoading) {
     return (
@@ -424,9 +425,7 @@ const CategoriesScreen = () => {
             {index > 0 && (
               <View style={styles.separatorContainer}>
                 <View style={styles.separatorLine} />
-                <ThemedText style={styles.separatorText}>
-                  {"-".repeat(30)}
-                </ThemedText>
+                <ThemedText style={styles.separatorText}>{"-".repeat(30)}</ThemedText>
                 <View style={styles.separatorLine} />
               </View>
             )}
@@ -464,52 +463,16 @@ const CategoriesScreen = () => {
               </BottomSheetHeader>
 
               <View style={styles.skillCategoriesContainer}>
-                {skillCategories.map((category, index) => (
-                  <Animated.View
+                {skillCategories.map((category) => (
+                  <SkillCategoryItem
                     key={category.id}
-                    style={{
-                      opacity: isLoaded ? fadeAnim : 0,
-                      transform: [
-                        {
-                          translateY: isLoaded ? slideAnim : 30,
-                        },
-                      ],
-                    }}
-                  >
-                    <TouchableOpacity
-                      style={[
-                        styles.skillCategoryCard,
-                        { borderLeftColor: category.color },
-                      ]}
-                      onPress={() => handleSkillCategoryPress(category)}
-                      activeOpacity={0.8}
-                    >
-                      <View style={styles.skillCategoryHeader}>
-                        <View
-                          style={[
-                            styles.skillCategoryIcon,
-                            { backgroundColor: category.color },
-                          ]}
-                        >
-                          {renderSkillIcon(category.route)}
-                        </View>
-                        <View style={styles.skillCategoryInfo}>
-                          <ThemedText
-                            type="subtitle"
-                            style={styles.skillCategoryTitle}
-                          >
-                            {category.name}
-                          </ThemedText>
-                          <ThemedText style={styles.skillCategoryDescription}>
-                            {category.description}
-                          </ThemedText>
-                        </View>
-                        <View style={styles.skillCategoryArrow}>
-                          <ChevronRight size={20} color="#6b7280" />
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  </Animated.View>
+                    category={category}
+                    isLoaded={isLoaded}
+                    fadeAnim={fadeAnim}
+                    slideAnim={slideAnim}
+                    onPress={handleSkillCategoryPress}
+                    renderIcon={renderSkillIcon}
+                  />
                 ))}
                 <TouchableOpacity
                   onPress={() => router.push(ROUTES.TABS.SPEAKING)}
@@ -535,7 +498,6 @@ const CategoriesScreen = () => {
                     exercise history
                   </ThemedText>
                 </TouchableOpacity>
-                
               </View>
             </BottomSheetContent>
           </BottomSheet>
@@ -556,53 +518,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: "center",
   },
-  subtitle: {
-    fontSize: 16,
-    color: "#6b7280",
-    textAlign: "center",
-    marginBottom: 20,
-  },
   contentContainer: {
     flex: 1,
-  },
-  progressCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  progressTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  progressStats: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  progressStatItem: {
-    alignItems: "center",
-  },
-  progressStatNumber: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#3b82f6",
-    marginBottom: 4,
-  },
-  progressStatLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    textAlign: "center",
   },
   categoriesSection: {
     marginBottom: 20,
@@ -617,9 +534,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "600",
     color: "#1f2937",
-  },
-  categoriesContainer: {
-    gap: 16,
   },
   bottomSpacing: {
     height: 80,
