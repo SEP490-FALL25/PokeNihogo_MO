@@ -227,6 +227,7 @@ const CategoriesScreen = () => {
     error: lessonCategoriesError,
     refetch: refetchCategories,
   } = useLessonCategories();
+  console.log("lessonCategoriesError", lessonCategoriesError);
   // Optimized animation effect when data loads
   useEffect(() => {
     const isDataReady = !progressLoading && !lessonCategoriesLoading;
@@ -264,13 +265,25 @@ const CategoriesScreen = () => {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      // Refetch all data queries
+      // Refetch all data queries including user lessons
       await Promise.all([
         refetchProgress(),
         refetchCategories(),
-        // Invalidate and refetch all infinite queries for JLPT levels
-        queryClient.invalidateQueries({ queryKey: ["user-lessons-infinite"] }),
-        queryClient.invalidateQueries({ queryKey: ["userProgress"] }),
+        // Refetch all user lessons infinite queries (all JLPT levels)
+        queryClient.refetchQueries({ 
+          queryKey: ["user-lessons-infinite"],
+          exact: false, // Match all queries starting with this key (all categories/levels)
+        }),
+        // Refetch all user progress infinite queries
+        queryClient.refetchQueries({ 
+          queryKey: ["userProgressInfinite"],
+          exact: false, // Match all queries starting with this key
+        }),
+        // Refetch all user progress queries
+        queryClient.refetchQueries({ 
+          queryKey: ["userProgress"],
+          exact: false, // Match all queries starting with this key
+        }),
       ]);
     } catch (error) {
       console.error("Error refreshing data:", error);

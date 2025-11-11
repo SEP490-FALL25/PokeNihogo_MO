@@ -22,9 +22,9 @@ import Svg, { Circle } from "react-native-svg";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // --- CẤU HÌNH CHUNG ---
-const NODE_SIZE = 70; // Kích thước node
-const NODE_INNER_SIZE = 30; // Kích thước icon bên trong
-const NODE_VERTICAL_SPACING = 120; // Khoảng cách dọc
+const NODE_SIZE = 85; // Kích thước node
+const NODE_INNER_SIZE = 38; // Kích thước icon bên trong
+const NODE_VERTICAL_SPACING = 130; // Khoảng cách dọc
 const CURVE_AMPLITUDE = 90; // Biên độ cong (Độ lệch tối đa)
 
 // ĐỊNH NGHĨA CHU KỲ MỚI (Mô hình tuyến tính liên tục: Node 1 -> 5 là nửa chu kỳ)
@@ -33,7 +33,7 @@ const PEAK_NODE_INDEX = 2; // Node thứ 3 là đỉnh (index 2)
 const CYCLE_LENGTH = 8; // Tổng số bước (Node 1 -> Node 9)
 
 const DUO_OFFSET = NODE_SIZE / 2 + 120; // Khoảng cách Duo so với cạnh node
-const DUO_IMAGE_SIZE = 120;
+const DUO_IMAGE_SIZE = 170;
 const DUO_FIXED_Y_OFFSET = 0; // Điều chỉnh Duo lên trên một chút
 
 // Định nghĩa kiểu dữ liệu cho node bài học
@@ -143,15 +143,11 @@ const convertLessonsToNodes = (
     // Logic xác định trạng thái
     const isCompleted = lesson.status === "COMPLETED";
     const isActive = i === activeIndex;
-    // Unlock: bài học đầu tiên hoặc bài học trước đã completed
-    const isUnlocked =
-      i === 0 || lessons[i - 1]?.status === "COMPLETED" || isActive;
+    // Unlock: Chỉ xét status, không cần check bài trước. Tất cả bài đều unlock (có thể làm bất kì bài nào)
+    const isUnlocked = true;
 
-    // Icon dựa trên vị trí peak (node 3, 7, 11...)
-    let icon = "star";
-    if (i % 4 === 2) {
-      icon = "bolt";
-    }
+    // Icon: TESTING_LAST dùng sấm sét, các status khác dùng ngôi sao
+    const icon = lesson.status === "TESTING_LAST" ? "bolt" : "star";
 
     data.push({
       id: lesson.id,
@@ -183,28 +179,62 @@ const LessonNodeComponent: React.FC<{
 
   const style = useMemo(() => {
     let iconContainerStyle: ViewStyle[] = [styles.baseIconContainer];
-    let iconColor = "#555";
+    const iconColor = "#ffffff"; // Icon luôn màu trắng
     let shadowColor = "#1a1a1a"; // Màu shadow mặc định
 
-    if (isActive) {
-      iconContainerStyle.push(styles.lessonIconActive);
-      iconColor = "#fff";
-      // Shadow màu xanh đậm hơn (tối hơn) cho active node - tạo hiệu ứng 3D
-      shadowColor = "#1b9e28";
-    } else if (isUnlocked) {
-      iconContainerStyle.push(styles.lessonIconUnlocked);
-      iconColor = "#888";
-      // Shadow tối hơn cho unlocked node - phần dưới của node
-      shadowColor = "#222";
-    } else {
+    // Ưu tiên màu theo status của bài học
+    const status = node.lessonProgress.status;
+    if (!isUnlocked) {
       iconContainerStyle.push(styles.lessonIconLocked);
-      iconColor = "#444";
-      // Shadow tối nhất cho locked node
       shadowColor = "#111";
+    } else if (status === "COMPLETED") {
+      // Hoàn thành: xanh lá
+      iconContainerStyle.push({
+        backgroundColor: "#22c55e",
+        borderWidth: 4,
+        borderColor: "#86efac",
+      });
+      shadowColor = "#166534";
+    } else if (status === "IN_PROGRESS" || status === "TESTING_LAST") {
+      // Đang học hoặc đang test: xanh dương
+      iconContainerStyle.push({
+        backgroundColor: "#3b82f6",
+        borderWidth: 4,
+        borderColor: "#93c5fd",
+      });
+      shadowColor = "#1e3a8a";
+    } else if (status === "FAILED") {
+      // Thất bại: màu đỏ
+      iconContainerStyle.push({
+        backgroundColor: "#ef4444",
+        borderWidth: 4,
+        borderColor: "#fca5a5",
+      });
+      shadowColor = "#991b1b";
+    } else {
+      // NOT_STARTED (giữ nguyên behavior hiện tại cho node đã mở khóa)
+      iconContainerStyle.push(styles.lessonIconUnlocked);
+      shadowColor = "#222";
+    }
+
+    // Nếu node đang active, giữ vòng progress ring; màu nền vẫn theo status
+    // Nhưng có thể làm đậm border để nổi bật
+    if (isActive && isUnlocked) {
+      iconContainerStyle.push({
+        borderWidth: 4,
+        borderColor:
+          status === "COMPLETED"
+            ? "#86efac"
+            : status === "IN_PROGRESS" || status === "TESTING_LAST"
+            ? "#93c5fd"
+            : status === "FAILED"
+            ? "#fca5a5"
+            : "#a3e635",
+      });
     }
 
     return { iconContainerStyle, iconColor, shadowColor };
-  }, [isActive, isUnlocked]);
+  }, [isActive, isUnlocked, node.lessonProgress.status]);
 
   const handlePressIn = () => {
     if (!isUnlocked) return;
@@ -266,16 +296,43 @@ const LessonNodeComponent: React.FC<{
     zIndex: 8,
   };
 
-  // Logic Progress Ring - luôn hiển thị cho node Active
+  // Logic Progress Ring - luôn hiển thị cho tất cả các node, chia thành 3 đoạn
   // Tăng kích thước để bao phủ cả shadow (shadow có offset 6px xuống dưới)
-  const showProgress = isActive;
+  const showProgress = true; // Luôn hiển thị progress ring cho tất cả bài học
   const progress = Math.max(0, Math.min(100, progressPercentage)) / 100;
   const progressColor = "#a3e635";
   const progressSize = NODE_SIZE + 20; // Tăng từ 10 lên 24 để bao phủ cả shadow (shadow offset 6px + margin)
-  const strokeWidth = 5;
+  const strokeWidth = 7; // Tăng độ dày của progress ring
   const radius = (progressSize - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - progress * circumference;
+  const segmentLength = circumference / 3; // Mỗi đoạn chiếm 1/3 chu vi
+  const segmentFillLength = segmentLength * 0.85; // 85% đoạn được fill, 15% là khoảng cách
+  const segmentGapLength = segmentLength * 0.15; // Khoảng cách giữa các đoạn
+  
+  // Tính toán progress cho từng đoạn (3 đoạn)
+  const segmentProgress = progress * 3; // 0-3: tổng số đoạn đã hoàn thành
+  const filledSegments = Math.floor(segmentProgress); // Số đoạn đã fill hoàn toàn (0, 1, 2, hoặc 3)
+  const partialSegmentProgress = Math.max(0, Math.min(1, segmentProgress - filledSegments)); // Tiến độ của đoạn đang fill (0-1)
+  
+  // Tính toán strokeDasharray và strokeDashoffset cho progress
+  let progressDashArray = "";
+  
+  if (filledSegments >= 3 || progress >= 1) {
+    // Fill cả 3 đoạn (100%)
+    progressDashArray = `${segmentFillLength} ${segmentGapLength} ${segmentFillLength} ${segmentGapLength} ${segmentFillLength} ${circumference}`;
+  } else if (filledSegments === 2) {
+    // Fill 2 đoạn + phần đoạn 3 (66-99%)
+    const partialLength = segmentFillLength * partialSegmentProgress;
+    progressDashArray = `${segmentFillLength} ${segmentGapLength} ${segmentFillLength} ${segmentGapLength} ${partialLength} ${circumference}`;
+  } else if (filledSegments === 1) {
+    // Fill 1 đoạn + phần đoạn 2 (33-65%)
+    const partialLength = segmentFillLength * partialSegmentProgress;
+    progressDashArray = `${segmentFillLength} ${segmentGapLength} ${partialLength} ${circumference}`;
+  } else if (partialSegmentProgress > 0) {
+    // Chỉ fill phần đoạn 1 (0-32%)
+    const partialLength = segmentFillLength * partialSegmentProgress;
+    progressDashArray = `${partialLength} ${circumference}`;
+  }
 
   return (
     <View style={nodeViewStyle}>
@@ -284,7 +341,7 @@ const LessonNodeComponent: React.FC<{
         <Animated.View style={[shadowStyle, animatedShadowStyle]} />
       )}
 
-      {/* Progress Ring (Luôn hiển thị cho node Active) - Đặt ngoài để không bị clip và không di chuyển khi press */}
+      {/* Progress Ring (Luôn hiển thị cho tất cả các node, chia thành 3 đoạn) - Đặt ngoài để không bị clip và không di chuyển khi press */}
       {showProgress && (
         <View
           style={{
@@ -300,6 +357,7 @@ const LessonNodeComponent: React.FC<{
             width={progressSize}
             style={styles.progressRing}
           >
+          {/* Background circle - chia thành 3 đoạn với khoảng cách */}
           <Circle
             stroke="#d6d3c7"
             fill="none"
@@ -307,19 +365,25 @@ const LessonNodeComponent: React.FC<{
             cy={progressSize / 2}
             r={radius}
             strokeWidth={strokeWidth}
-          />
-          <Circle
-            stroke={progressColor}
-            fill="none"
-            cx={progressSize / 2}
-            cy={progressSize / 2}
-            r={radius}
-            strokeWidth={strokeWidth}
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
+            strokeDasharray={`${segmentFillLength} ${segmentGapLength}`}
             strokeLinecap="round"
             transform={`rotate(-90 ${progressSize / 2} ${progressSize / 2})`}
           />
+          
+          {/* Progress circle - hiển thị progress dựa trên phần trăm hoàn thành */}
+          {progressDashArray && (
+            <Circle
+              stroke={progressColor}
+              fill="none"
+              cx={progressSize / 2}
+              cy={progressSize / 2}
+              r={radius}
+              strokeWidth={strokeWidth}
+              strokeDasharray={progressDashArray}
+              strokeLinecap="round"
+              transform={`rotate(-90 ${progressSize / 2} ${progressSize / 2})`}
+            />
+          )}
         </Svg>
         </View>
       )}
@@ -545,9 +609,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
-    width: 70, // NODE_SIZE
-    height: 70, // NODE_SIZE
-    borderRadius: 35, // NODE_SIZE / 2 - Bo tròn
+    width: NODE_SIZE, // NODE_SIZE
+    height: NODE_SIZE, // NODE_SIZE
+    borderRadius: NODE_SIZE / 2, // NODE_SIZE / 2 - Bo tròn
     overflow: "hidden",
   },
   progressRing: {

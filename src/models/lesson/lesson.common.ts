@@ -3,7 +3,7 @@ export interface LessonProgress {
   id: number;
   userId: number;
   lessonId: number;
-  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'TESTING_LAST' | 'COMPLETED' | 'FAILED';
   progressPercentage: number;
   completedAt: string | null;
   lastAccessedAt: string;
