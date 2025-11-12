@@ -46,15 +46,17 @@ export default function SeasonInfo({ insetsTop }: SeasonInfoProps) {
                 style={{ borderRadius: 16, padding: 1 }}
             >
                 <View className="rounded-2xl bg-black/40 px-4 py-3">
-                    <View className="flex-row items-center justify-between">
-                        <View className="flex-row items-center gap-2">
-                            <View className="w-2 h-2 rounded-full bg-cyan-400" />
-                            <ThemedText style={{ color: "#93c5fd", fontWeight: "700", fontSize: 15 }}>{seasonName}</ThemedText>
+                    <View className="flex-row items-center">
+                        <View className="flex-row items-center justify-between w-full">
+                            <View className="flex-row items-center gap-2">
+                                <View className="w-2 h-2 rounded-full bg-cyan-400" />
+                                <ThemedText style={{ color: "#93c5fd", fontWeight: "700", fontSize: 15 }}>{seasonName}</ThemedText>
+                                <ThemedText style={{ color: "#94a3b8", fontSize: 13 }}>Kết thúc sau</ThemedText>
+                            </View>
                             {endDate && (
-                                <>
-                                    <ThemedText style={{ color: "#94a3b8", fontSize: 13 }}>Kết thúc sau</ThemedText>
-                                    <CountdownTimer endDate={endDate} daysLabel="ngày" />
-                                </>
+                                <View className="flex-row items-center gap-2">
+                                    <CountdownTimer endDate={endDate} daysLabel="ngày" className="items-end" />
+                                </View>
                             )}
                         </View>
                     </View>

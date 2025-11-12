@@ -2,7 +2,7 @@ import { Clock } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
-export const CountdownTimer = ({ endDate, daysLabel }: { endDate: string; daysLabel: string }) => {
+export const CountdownTimer = ({ endDate, daysLabel, className }: { endDate: string; daysLabel: string; className?: string }) => {
     const [timeLeft, setTimeLeft] = useState({
         days: 0,
         hours: 0,
@@ -46,7 +46,7 @@ export const CountdownTimer = ({ endDate, daysLabel }: { endDate: string; daysLa
     };
 
     return (
-        <View className="flex-row items-center justify-center px-4 pb-2.5 rounded-lg">
+        <View className={`flex-row  gap-2 ${className}`}>
             <Text className="text-gray-500 font-semibold text-sm mr-2">
                 <Text className="font-bold">{formatTime()}</Text>
             </Text>
