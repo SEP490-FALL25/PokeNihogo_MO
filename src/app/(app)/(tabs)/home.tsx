@@ -5,11 +5,12 @@ import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import WelcomeModal from "@components/ui/WelcomeModal";
 import { useUserProgressInfinite } from "@hooks/useLessons";
+import { useUserTests } from "@hooks/useUserTest";
 import { IUserProgress } from "@models/user-progress/user-progress.common";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
 import { router } from "expo-router";
-import { Award, BookOpen, Calendar, ChevronRight, Clock, Flame, Target, TrendingUp } from "lucide-react-native";
+import { Award, BookOpen, Calendar, ChevronRight, Clock, FileText, Flame, Headphones, Mic, Target, TrendingUp } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -25,6 +26,25 @@ import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+/**
+ * User Test Item Type
+ */
+type UserTestItem = {
+  id: number;
+  limit: number;
+  status: string;
+  test: {
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+    levelN: number;
+    testType: string;
+    status: string;
+    limit: number;
+  };
+};
 
 /**
  * Weekly Progress Chart Component
@@ -165,6 +185,110 @@ const RecentActivityCard: React.FC<{
 };
 
 /**
+ * Test Card Component for Exercises
+ */
+const TestCard: React.FC<{
+  test: UserTestItem;
+  onPress: () => void;
+}> = ({ test, onPress }) => {
+  const getTestTypeColor = (testType: string) => {
+    switch (testType) {
+      case "LISTENING_TEST":
+        return "#8b5cf6";
+      case "READING_TEST":
+        return "#f59e0b";
+      case "SPEAKING_TEST":
+        return "#ef4444";
+      case "WRITING_TEST":
+        return "#10b981";
+      default:
+        return "#3b82f6";
+    }
+  };
+
+  const getTestTypeIcon = (testType: string) => {
+    switch (testType) {
+      case "LISTENING_TEST":
+        return Headphones;
+      case "READING_TEST":
+        return FileText;
+      case "SPEAKING_TEST":
+        return Mic;
+      default:
+        return Target;
+    }
+  };
+
+  const getTestTypeLabel = (testType: string) => {
+    switch (testType) {
+      case "LISTENING_TEST":
+        return "Nghe";
+      case "READING_TEST":
+        return "Đọc";
+      case "SPEAKING_TEST":
+        return "Nói";
+      case "WRITING_TEST":
+        return "Viết";
+      default:
+        return "Bài tập";
+    }
+  };
+
+  const Icon = getTestTypeIcon(test.test.testType);
+  const color = getTestTypeColor(test.test.testType);
+  const progress = test.limit / test.test.limit;
+
+  return (
+    <TouchableOpacity
+      style={styles.testCard}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.testCardContent}>
+        <View style={styles.testCardHeader}>
+          <View style={[styles.testCardIcon, { backgroundColor: `${color}15` }]}>
+            <Icon size={20} color={color} />
+          </View>
+          <View style={styles.testCardInfo}>
+            <ThemedText style={styles.testCardTitle} numberOfLines={1}>
+              {test.test.name}
+            </ThemedText>
+            <ThemedText style={styles.testCardSubtitle}>
+              {getTestTypeLabel(test.test.testType)} • N{test.test.levelN}
+            </ThemedText>
+          </View>
+        </View>
+        <View style={styles.testCardFooter}>
+          <View
+            style={[
+              styles.testCardStatus,
+              { backgroundColor: `${color}15` },
+            ]}
+          >
+            <ThemedText
+              style={[
+                styles.testCardStatusText,
+                { color: color },
+              ]}
+            >
+              {getTestTypeLabel(test.test.testType)}
+            </ThemedText>
+          </View>
+          <Progress.Bar
+            progress={Math.min(progress, 1)}
+            width={60}
+            height={4}
+            color={color}
+            unfilledColor="#e5e7eb"
+            borderWidth={0}
+          />
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+/**
  * Suggestion Card Component
  */
 const SuggestionCard: React.FC<{
@@ -217,6 +341,13 @@ export default function HomeScreen() {
     pageSize: 50,
     sortBy: "lastAccessedAt",
     sortOrder: "desc",
+  });
+
+  // Fetch recent tests/exercises
+  const { data: userTestsData } = useUserTests({
+    currentPage: 1,
+    pageSize: 10,
+    type: "ALL",
   });
 
   // Get all activities from paginated data
@@ -304,11 +435,28 @@ export default function HomeScreen() {
     console.log("User checked in daily!");
   };
 
+  // Get recent tests from API response
+  const recentTests = useMemo(() => {
+    const results = (userTestsData as any)?.data?.data?.results || [];
+    return results.slice(0, 10) as UserTestItem[];
+  }, [userTestsData]);
+
   /**
    * Handle activity card press
    */
   const handleActivityPress = (activity: IUserProgress) => {
     router.push(`${ROUTES.TABS.LEARN}?lessonId=${activity.lessonId}`);
+  };
+
+  /**
+   * Handle test card press
+   */
+  const handleTestPress = (test: UserTestItem) => {
+    const testType = test.test.testType;
+    router.push({
+      pathname: "/test",
+      params: { testId: String(test.test.id), testType },
+    });
   };
 
   /**
@@ -432,6 +580,38 @@ export default function HomeScreen() {
                   key={activity.id}
                   activity={activity}
                   onPress={() => handleActivityPress(activity)}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Recent Tests/Exercises */}
+        {recentTests.length > 0 && (
+          <View style={styles.recentSection}>
+            <View style={styles.sectionHeader}>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                {t("home.recent_exercises")}
+              </ThemedText>
+              <TouchableOpacity
+                onPress={() => router.push(ROUTES.TABS.LISTENING)}
+                activeOpacity={0.7}
+              >
+                <ThemedText style={styles.seeAllText}>
+                  {t("home.see_all")}
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.recentScrollContent}
+            >
+              {recentTests.map((test: UserTestItem) => (
+                <TestCard
+                  key={test.id}
+                  test={test}
+                  onPress={() => handleTestPress(test)}
                 />
               ))}
             </ScrollView>
@@ -740,5 +920,63 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#6b7280",
     lineHeight: 18,
+  },
+  // Test Card Styles
+  testCard: {
+    width: SCREEN_WIDTH * 0.75,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    marginRight: 12,
+  },
+  testCardContent: {
+    padding: 16,
+  },
+  testCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  testCardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  testCardInfo: {
+    flex: 1,
+  },
+  testCardTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  testCardSubtitle: {
+    fontSize: 13,
+    color: "#6b7280",
+  },
+  testCardFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  testCardStatus: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  testCardStatusText: {
+    fontSize: 12,
+    fontWeight: "600",
   },
 });

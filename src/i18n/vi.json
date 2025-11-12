@@ -314,7 +314,8 @@
     "suggestion_new_lesson": "Bài học mới",
     "suggestion_new_lesson_desc": "Khám phá các bài học mới phù hợp với trình độ của bạn",
     "suggestion_practice": "Luyện tập",
-    "suggestion_practice_desc": "Cải thiện kỹ năng nghe và phát âm"
+    "suggestion_practice_desc": "Cải thiện kỹ năng nghe và phát âm",
+    "recent_exercises": "Bài tập gần đây"
   },
   "quiz": {
     "question_types": {
