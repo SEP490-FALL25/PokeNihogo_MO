@@ -303,6 +303,68 @@
             "empty_state": "ランクの閾値は更新中です。",
             "range_between": "{{min}} 〜 {{max}} ELO",
             "range_min": "{{min}} 以上のELO"
+        },
+        "lobby": {
+            "title": "⚡ バトルロビー",
+            "history_button": "履歴",
+            "alerts": {
+                "top_rewards_title": "トップ報酬",
+                "top_rewards_message": "シーズンごとの報酬一覧を表示 (WIP)。",
+                "rank_info_title": "ランクシステム",
+                "rank_info_message": "ランク、昇格、ポイント保護の情報 (WIP)。",
+                "queue_error_message": "対戦を見つけられませんでした。",
+                "match_cancelled_title": "通知",
+                "match_cancelled_default": "対戦はキャンセルされました。"
+            },
+            "queue_status": {
+                "searching": "検索中...",
+                "waiting": "待機中"
+            },
+            "buttons": {
+                "find_match": "今すぐマッチング",
+                "queueing": "⏳ マッチング中..."
+            },
+            "queue_messages": [
+                "適切な相手を検索中...",
+                "MMRを調整しています...",
+                "ルームを準備しています..."
+            ],
+            "sections": {
+                "leaderboard_title": "ランキング",
+                "leaderboard_subtitle": "シーズンのトッププレイヤー",
+                "rewards_title": "報酬",
+                "rewards_subtitle": "スキン・バッジ・ジェム",
+                "rank_info_title": "ランク情報",
+                "rank_info_subtitle": "昇格条件とポイント保護"
+            },
+            "history": {
+                "title": "バトル履歴",
+                "stats": {
+                    "wins": "勝利",
+                    "losses": "敗北",
+                    "win_rate": "勝率"
+                },
+                "filters": {
+                    "all": "すべて ({{count}})",
+                    "wins": "勝利 ({{count}})",
+                    "losses": "敗北 ({{count}})"
+                },
+                "list": {
+                    "win_badge": "勝利",
+                    "loss_badge": "敗北",
+                    "score": "スコア: {{score}}"
+                },
+                "detail": {
+                    "win_title": "🎉 勝利",
+                    "loss_title": "💔 敗北",
+                    "opponent_label": "対戦相手",
+                    "score_label": "スコア",
+                    "mmr_change_label": "MMR変動",
+                    "mmr_current_label": "現在のMMR",
+                    "accuracy_label": "正確度",
+                    "duration_label": "所要時間"
+                }
+            }
         }
     },
     "lessons": {

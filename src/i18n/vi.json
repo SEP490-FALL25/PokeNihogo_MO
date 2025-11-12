@@ -195,6 +195,68 @@
       "empty_state": "Thông tin mốc điểm đang được cập nhật.",
       "range_between": "{{min}} - {{max}} ELO",
       "range_min": "≥ {{min}} ELO"
+    },
+    "lobby": {
+      "title": "⚡ SẢNH ĐẤU",
+      "history_button": "Lịch sử",
+      "alerts": {
+        "top_rewards_title": "Phần thưởng TOP",
+        "top_rewards_message": "Xem phần thưởng theo thứ hạng mùa giải (WIP).",
+        "rank_info_title": "Hệ thống Rank",
+        "rank_info_message": "Thông tin về bậc rank, thăng hạng và bảo lưu điểm (WIP).",
+        "queue_error_message": "Không thể tìm trận đấu.",
+        "match_cancelled_title": "Thông báo",
+        "match_cancelled_default": "Trận đấu đã bị hủy."
+      },
+      "queue_status": {
+        "searching": "Đang tìm...",
+        "waiting": "Đang chờ"
+      },
+      "buttons": {
+        "find_match": "TÌM TRẬN NGAY",
+        "queueing": "⏳ ĐANG TÌM TRẬN..."
+      },
+      "queue_messages": [
+        "Đang tìm đối thủ phù hợp...",
+        "Cân bằng MMR...",
+        "Xếp phòng..."
+      ],
+      "sections": {
+        "leaderboard_title": "Bảng xếp hạng",
+        "leaderboard_subtitle": "Top người chơi theo mùa",
+        "rewards_title": "Phần thưởng",
+        "rewards_subtitle": "Skin, huy hiệu, kim cương",
+        "rank_info_title": "Thông tin rank",
+        "rank_info_subtitle": "Cơ chế thăng hạng, bảo lưu điểm"
+      },
+      "history": {
+        "title": "Lịch sử thi đấu",
+        "stats": {
+          "wins": "Thắng",
+          "losses": "Thua",
+          "win_rate": "Tỉ lệ thắng"
+        },
+        "filters": {
+          "all": "Tất cả ({{count}})",
+          "wins": "Thắng ({{count}})",
+          "losses": "Thua ({{count}})"
+        },
+        "list": {
+          "win_badge": "THẮNG",
+          "loss_badge": "THUA",
+          "score": "Tỉ số: {{score}}"
+        },
+        "detail": {
+          "win_title": "🎉 CHIẾN THẮNG",
+          "loss_title": "💔 THẤT BẠI",
+          "opponent_label": "Đối thủ",
+          "score_label": "Tỉ số",
+          "mmr_change_label": "Thay đổi MMR",
+          "mmr_current_label": "MMR hiện tại",
+          "accuracy_label": "Độ chính xác",
+          "duration_label": "Thời gian"
+        }
+      }
     }
   },
   "navigation": {

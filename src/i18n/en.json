@@ -195,6 +195,68 @@
       "empty_state": "Rank thresholds are being updated.",
       "range_between": "{{min}} - {{max}} ELO",
       "range_min": "≥ {{min}} ELO"
+    },
+    "lobby": {
+      "title": "⚡ BATTLE LOBBY",
+      "history_button": "History",
+      "alerts": {
+        "top_rewards_title": "Top Rewards",
+        "top_rewards_message": "View season reward tiers (WIP).",
+        "rank_info_title": "Rank System",
+        "rank_info_message": "Details about rank tiers, promotion, and point protection (WIP).",
+        "queue_error_message": "Unable to find a match.",
+        "match_cancelled_title": "Notice",
+        "match_cancelled_default": "The match has been cancelled."
+      },
+      "queue_status": {
+        "searching": "Searching...",
+        "waiting": "Waiting"
+      },
+      "buttons": {
+        "find_match": "FIND MATCH NOW",
+        "queueing": "⏳ MATCHING..."
+      },
+      "queue_messages": [
+        "Searching for a suitable opponent...",
+        "Balancing MMR...",
+        "Setting up the room..."
+      ],
+      "sections": {
+        "leaderboard_title": "Leaderboard",
+        "leaderboard_subtitle": "Top players this season",
+        "rewards_title": "Rewards",
+        "rewards_subtitle": "Skins, badges, gems",
+        "rank_info_title": "Rank info",
+        "rank_info_subtitle": "Promotion rules and point protection"
+      },
+      "history": {
+        "title": "Battle History",
+        "stats": {
+          "wins": "Wins",
+          "losses": "Losses",
+          "win_rate": "Win Rate"
+        },
+        "filters": {
+          "all": "All ({{count}})",
+          "wins": "Wins ({{count}})",
+          "losses": "Losses ({{count}})"
+        },
+        "list": {
+          "win_badge": "WIN",
+          "loss_badge": "LOSS",
+          "score": "Score: {{score}}"
+        },
+        "detail": {
+          "win_title": "🎉 VICTORY",
+          "loss_title": "💔 DEFEAT",
+          "opponent_label": "Opponent",
+          "score_label": "Score",
+          "mmr_change_label": "MMR Change",
+          "mmr_current_label": "Current MMR",
+          "accuracy_label": "Accuracy",
+          "duration_label": "Duration"
+        }
+      }
     }
   },
   "navigation": {

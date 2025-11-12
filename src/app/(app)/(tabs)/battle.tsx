@@ -21,6 +21,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Award, Crown, History, Info, Target, Trophy } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, Animated, Easing, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Socket } from "socket.io-client";
@@ -36,8 +37,19 @@ const mockBattleHistory = [
   { id: 7, opponent: "Trainer Grace", result: "win", mmrChange: +26, date: "3 ngày trước", score: "3-2" },
 ];
 
+const totalMatches = mockBattleHistory.length;
+const totalWins = mockBattleHistory.filter((battle) => battle.result === "win").length;
+const totalLosses = mockBattleHistory.filter((battle) => battle.result === "loss").length;
+const winRate = totalMatches ? Math.round((totalWins / totalMatches) * 100) : 0;
+
 export default function BattleLobbyScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const queueMessagesTranslation = t("battle.lobby.queue_messages", { returnObjects: true });
+  const queueMessages =
+    Array.isArray(queueMessagesTranslation) && queueMessagesTranslation.length > 0
+      ? (queueMessagesTranslation as string[])
+      : [t("battle.lobby.queue_status.searching")];
   const [showHistory, setShowHistory] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<"all" | "win" | "loss">("all");
@@ -110,7 +122,7 @@ export default function BattleLobbyScreen() {
         });
       }
     } catch (error: any) {
-      Alert.alert("Lỗi", "Không thể tìm trận đấu");
+      Alert.alert(t("common.error"), t("battle.lobby.alerts.queue_error_message"));
       console.log("[QUEUE] startQueue failed:", error?.response?.data?.message);
       setInQueue(false);
       setGlobalInQueue(false); // Update global store
@@ -128,15 +140,15 @@ export default function BattleLobbyScreen() {
 
   const handleViewTopRewards = () => {
     Alert.alert(
-      "Phần thưởng TOP",
-      "Xem phần thưởng theo thứ hạng mùa giải (WIP).",
+      t("battle.lobby.alerts.top_rewards_title"),
+      t("battle.lobby.alerts.top_rewards_message"),
     );
   };
 
   const handleViewRankInfo = () => {
     Alert.alert(
-      "Hệ thống Rank",
-      "Thông tin về bậc rank, lên hạng và bảo lưu điểm (WIP).",
+      t("battle.lobby.alerts.rank_info_title"),
+      t("battle.lobby.alerts.rank_info_message"),
     );
   };
   //------------------------End------------------------//
@@ -245,7 +257,10 @@ export default function BattleLobbyScreen() {
           setGlobalInQueue(false);
           hideGlobalMatchFound();
 
-          Alert.alert("Thông báo", payload.message || "Trận đấu đã bị hủy.");
+          Alert.alert(
+            t("battle.lobby.alerts.match_cancelled_title"),
+            payload.message || t("battle.lobby.alerts.match_cancelled_default")
+          );
         }
       }
 
@@ -312,14 +327,14 @@ export default function BattleLobbyScreen() {
         {/* Title & History Button */}
         <View className="px-5 mt-6 flex-row items-center justify-between">
           <ThemedText style={{ color: "#fbbf24", letterSpacing: 3, fontSize: 18, fontWeight: "900" }}>
-            ⚡ BATTLE LOBBY
+            {t("battle.lobby.title")}
           </ThemedText>
           <HapticPressable
             className="flex-row items-center gap-2 px-4 py-2 rounded-full border border-white/15 bg-white/10"
             onPress={() => setShowHistory(true)}
           >
             <History size={16} color="#22d3ee" />
-            <ThemedText style={{ color: "#22d3ee", fontSize: 13, fontWeight: "600" }}>Lịch sử</ThemedText>
+            <ThemedText style={{ color: "#22d3ee", fontSize: 13, fontWeight: "600" }}>{t("battle.lobby.history_button")}</ThemedText>
           </HapticPressable>
         </View>
 
@@ -353,7 +368,9 @@ export default function BattleLobbyScreen() {
                   ) : (
                     <View className="w-24 h-24 rounded-full bg-white/10 border-2 border-white/20 border-dashed" />
                   )}
-                  <ThemedText style={{ color: "#cbd5e1", fontSize: 12, fontWeight: "600" }}>{inQueue ? "Đang tìm..." : "Đang chờ"}</ThemedText>
+                  <ThemedText style={{ color: "#cbd5e1", fontSize: 12, fontWeight: "600" }}>
+                    {inQueue ? t("battle.lobby.queue_status.searching") : t("battle.lobby.queue_status.waiting")}
+                  </ThemedText>
                 </View>
               </View>
               <View className="flex-row items-center gap-3 mt-3">
@@ -370,7 +387,7 @@ export default function BattleLobbyScreen() {
                   >
                     <Animated.View style={{ opacity: shimmer.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 0.85, 1] }) }}>
                       <ThemedText style={{ color: "#ffffff", fontSize: 16, fontWeight: "700", letterSpacing: 1.2 }}>
-                        {inQueue ? "⏳ ĐANG TÌM TRẬN..." : "TÌM TRẬN NGAY"}
+                        {inQueue ? t("battle.lobby.buttons.queueing") : t("battle.lobby.buttons.find_match")}
                       </ThemedText>
                     </Animated.View>
                   </TWLinearGradient>
@@ -380,7 +397,7 @@ export default function BattleLobbyScreen() {
                     className="px-5 py-3 rounded-full border border-red-400/40 bg-red-500/20"
                     onPress={handleCancelQueue}
                   >
-                    <ThemedText style={{ color: "#fca5a5", fontWeight: "700" }}>Hủy</ThemedText>
+                    <ThemedText style={{ color: "#fca5a5", fontWeight: "700" }}>{t("common.cancel")}</ThemedText>
                   </HapticPressable>
                 ) : null}
               </View>
@@ -391,7 +408,7 @@ export default function BattleLobbyScreen() {
           <View className="mt-6">
             {inQueue ? (
               <TypingText
-                messages={["Đang tìm đối thủ phù hợp...", "Cân bằng MMR...", "Xếp phòng..."]}
+                messages={queueMessages}
                 loop
                 textStyle={{ color: "#93c5fd" }}
               />
@@ -405,25 +422,25 @@ export default function BattleLobbyScreen() {
             <HapticPressable className="flex-1 rounded-2xl border border-white/15 bg-white/5 p-4" onPress={handleOpenLeaderboard}>
               <View className="flex-row items-center gap-2 mb-1">
                 <Trophy size={18} color="#22d3ee" />
-                <ThemedText style={{ color: "#e5e7eb", fontWeight: "700", fontSize: 14 }}>Bảng xếp hạng</ThemedText>
+                <ThemedText style={{ color: "#e5e7eb", fontWeight: "700", fontSize: 14 }}>{t("battle.lobby.sections.leaderboard_title")}</ThemedText>
               </View>
-              <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>Top người chơi theo mùa</ThemedText>
+              <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>{t("battle.lobby.sections.leaderboard_subtitle")}</ThemedText>
             </HapticPressable>
             <HapticPressable className="flex-1 rounded-2xl border border-white/15 bg-white/5 p-4" onPress={handleViewTopRewards}>
               <View className="flex-row items-center gap-2 mb-1">
                 <Crown size={18} color="#fbbf24" />
-                <ThemedText style={{ color: "#e5e7eb", fontWeight: "700", fontSize: 14 }}>Phần thưởng</ThemedText>
+                <ThemedText style={{ color: "#e5e7eb", fontWeight: "700", fontSize: 14 }}>{t("battle.lobby.sections.rewards_title")}</ThemedText>
               </View>
-              <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>Skin, huy hiệu, kim cương</ThemedText>
+              <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>{t("battle.lobby.sections.rewards_subtitle")}</ThemedText>
             </HapticPressable>
           </View>
 
           <HapticPressable className="mt-3 rounded-2xl border border-white/15 bg-white/5 p-4" onPress={handleViewRankInfo}>
             <View className="flex-row items-center gap-2 mb-1">
               <Info size={18} color="#60a5fa" />
-              <ThemedText style={{ color: "#e5e7eb", fontWeight: "700", fontSize: 14 }}>Thông tin rank</ThemedText>
+              <ThemedText style={{ color: "#e5e7eb", fontWeight: "700", fontSize: 14 }}>{t("battle.lobby.sections.rank_info_title")}</ThemedText>
             </View>
-            <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>Cơ chế thăng hạng, bảo lưu điểm</ThemedText>
+            <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>{t("battle.lobby.sections.rank_info_subtitle")}</ThemedText>
           </HapticPressable>
         </View>
 
@@ -446,7 +463,7 @@ export default function BattleLobbyScreen() {
                 <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center gap-3">
                     <History size={24} color="#22d3ee" />
-                    <ThemedText style={{ color: "#e5e7eb", fontSize: 20, fontWeight: "700" }}>Lịch sử thi đấu</ThemedText>
+                    <ThemedText style={{ color: "#e5e7eb", fontSize: 20, fontWeight: "700" }}>{t("battle.lobby.history.title")}</ThemedText>
                   </View>
                   <HapticPressable
                     className="w-10 h-10 items-center justify-center rounded-full bg-white/10"
@@ -461,23 +478,23 @@ export default function BattleLobbyScreen() {
                   <View className="flex-1 rounded-xl bg-green-500/10 border border-green-500/20 p-3">
                     <View className="flex-row items-center gap-2 mb-1">
                       <Award size={14} color="#22c55e" />
-                      <ThemedText style={{ color: "#86efac", fontSize: 11 }}>Thắng</ThemedText>
+                      <ThemedText style={{ color: "#86efac", fontSize: 11 }}>{t("battle.lobby.history.stats.wins")}</ThemedText>
                     </View>
-                    <ThemedText style={{ color: "#22c55e", fontSize: 20, fontWeight: "700" }}>5</ThemedText>
+                    <ThemedText style={{ color: "#22c55e", fontSize: 20, fontWeight: "700" }}>{totalWins}</ThemedText>
                   </View>
                   <View className="flex-1 rounded-xl bg-red-500/10 border border-red-500/20 p-3">
                     <View className="flex-row items-center gap-2 mb-1">
                       <Target size={14} color="#ef4444" />
-                      <ThemedText style={{ color: "#fca5a5", fontSize: 11 }}>Thua</ThemedText>
+                      <ThemedText style={{ color: "#fca5a5", fontSize: 11 }}>{t("battle.lobby.history.stats.losses")}</ThemedText>
                     </View>
-                    <ThemedText style={{ color: "#ef4444", fontSize: 20, fontWeight: "700" }}>2</ThemedText>
+                    <ThemedText style={{ color: "#ef4444", fontSize: 20, fontWeight: "700" }}>{totalLosses}</ThemedText>
                   </View>
                   <View className="flex-1 rounded-xl bg-cyan-500/10 border border-cyan-500/20 p-3">
                     <View className="flex-row items-center gap-2 mb-1">
                       <Trophy size={14} color="#22d3ee" />
-                      <ThemedText style={{ color: "#a5f3fc", fontSize: 11 }}>Tỉ lệ</ThemedText>
+                      <ThemedText style={{ color: "#a5f3fc", fontSize: 11 }}>{t("battle.lobby.history.stats.win_rate")}</ThemedText>
                     </View>
-                    <ThemedText style={{ color: "#22d3ee", fontSize: 20, fontWeight: "700" }}>71%</ThemedText>
+                    <ThemedText style={{ color: "#22d3ee", fontSize: 20, fontWeight: "700" }}>{`${winRate}%`}</ThemedText>
                   </View>
                 </View>
 
@@ -488,7 +505,7 @@ export default function BattleLobbyScreen() {
                     onPress={() => setHistoryFilter("all")}
                   >
                     <ThemedText style={{ color: historyFilter === "all" ? "#ffffff" : "#94a3b8", fontSize: 13, fontWeight: "600", textAlign: "center" }}>
-                      Tất cả ({mockBattleHistory.length})
+                      {t("battle.lobby.history.filters.all", { count: totalMatches })}
                     </ThemedText>
                   </HapticPressable>
                   <HapticPressable
@@ -496,7 +513,7 @@ export default function BattleLobbyScreen() {
                     onPress={() => setHistoryFilter("win")}
                   >
                     <ThemedText style={{ color: historyFilter === "win" ? "#ffffff" : "#94a3b8", fontSize: 13, fontWeight: "600", textAlign: "center" }}>
-                      Thắng (5)
+                      {t("battle.lobby.history.filters.wins", { count: totalWins })}
                     </ThemedText>
                   </HapticPressable>
                   <HapticPressable
@@ -504,7 +521,7 @@ export default function BattleLobbyScreen() {
                     onPress={() => setHistoryFilter("loss")}
                   >
                     <ThemedText style={{ color: historyFilter === "loss" ? "#ffffff" : "#94a3b8", fontSize: 13, fontWeight: "600", textAlign: "center" }}>
-                      Thua (2)
+                      {t("battle.lobby.history.filters.losses", { count: totalLosses })}
                     </ThemedText>
                   </HapticPressable>
                 </View>
@@ -523,13 +540,15 @@ export default function BattleLobbyScreen() {
                         <View className="flex-row items-center gap-2 mb-1">
                           <View className={`px-2 py-0.5 rounded-full ${battle.result === "win" ? "bg-green-500/20" : "bg-red-500/20"}`}>
                             <ThemedText style={{ color: battle.result === "win" ? "#22c55e" : "#ef4444", fontSize: 10, fontWeight: "700" }}>
-                              {battle.result === "win" ? "THẮNG" : "THUA"}
+                              {battle.result === "win" ? t("battle.lobby.history.list.win_badge") : t("battle.lobby.history.list.loss_badge")}
                             </ThemedText>
                           </View>
                           <ThemedText style={{ color: "#64748b", fontSize: 11 }}>{battle.date}</ThemedText>
                         </View>
                         <ThemedText style={{ color: "#e5e7eb", fontSize: 15, fontWeight: "600" }}>{battle.opponent}</ThemedText>
-                        <ThemedText style={{ color: "#94a3b8", fontSize: 12, marginTop: 2 }}>Tỉ số: {battle.score}</ThemedText>
+                        <ThemedText style={{ color: "#94a3b8", fontSize: 12, marginTop: 2 }}>
+                          {t("battle.lobby.history.list.score", { score: battle.score })}
+                        </ThemedText>
                       </View>
                       <View className="items-end">
                         <ThemedText style={{ color: battle.mmrChange > 0 ? "#22c55e" : "#ef4444", fontSize: 18, fontWeight: "700" }}>
@@ -570,7 +589,7 @@ export default function BattleLobbyScreen() {
             >
               <View className="flex-row items-center justify-between mb-3">
                 <ThemedText style={{ color: "#ffffff", fontSize: 22, fontWeight: "700" }}>
-                  {selectedBattle?.result === "win" ? "🎉 CHIẾN THẮNG" : "💔 THẤT BẠI"}
+                  {selectedBattle?.result === "win" ? t("battle.lobby.history.detail.win_title") : t("battle.lobby.history.detail.loss_title")}
                 </ThemedText>
                 <HapticPressable
                   className="w-8 h-8 items-center justify-center rounded-full bg-white/20"
@@ -588,7 +607,7 @@ export default function BattleLobbyScreen() {
             <View className="p-6">
               {/* Opponent Info */}
               <View className="mb-5">
-                <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 8 }}>Đối thủ</ThemedText>
+                <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 8 }}>{t("battle.lobby.history.detail.opponent_label")}</ThemedText>
                 <View className="flex-row items-center gap-3">
                   <UserAvatar name={selectedBattle?.opponent || "?"} size="small" />
                   <ThemedText style={{ color: "#e5e7eb", fontSize: 18, fontWeight: "600" }}>
@@ -599,7 +618,7 @@ export default function BattleLobbyScreen() {
 
               {/* Score */}
               <View className="mb-5">
-                <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 8 }}>Tỉ số</ThemedText>
+                <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 8 }}>{t("battle.lobby.history.detail.score_label")}</ThemedText>
                 <ThemedText style={{ color: "#e5e7eb", fontSize: 32, fontWeight: "700", textAlign: "center" }}>
                   {selectedBattle?.score}
                 </ThemedText>
@@ -609,13 +628,13 @@ export default function BattleLobbyScreen() {
               <View className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <View className="flex-row items-center justify-between">
                   <View>
-                    <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 4 }}>Thay đổi MMR</ThemedText>
+                    <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 4 }}>{t("battle.lobby.history.detail.mmr_change_label")}</ThemedText>
                     <ThemedText style={{ color: selectedBattle && selectedBattle.mmrChange > 0 ? "#22c55e" : "#ef4444", fontSize: 28, fontWeight: "700" }}>
                       {selectedBattle && selectedBattle.mmrChange > 0 ? "+" : ""}{selectedBattle?.mmrChange}
                     </ThemedText>
                   </View>
                   <View className="items-end">
-                    <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 4 }}>MMR hiện tại</ThemedText>
+                    <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 4 }}>{t("battle.lobby.history.detail.mmr_current_label")}</ThemedText>
                     <ThemedText style={{ color: "#22d3ee", fontSize: 20, fontWeight: "600" }}>1200</ThemedText>
                   </View>
                 </View>
@@ -624,11 +643,11 @@ export default function BattleLobbyScreen() {
               {/* Performance Stats */}
               <View className="mt-5 flex-row gap-3">
                 <View className="flex-1 rounded-xl bg-cyan-500/10 border border-cyan-500/20 p-3">
-                  <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>Độ chính xác</ThemedText>
+                  <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>{t("battle.lobby.history.detail.accuracy_label")}</ThemedText>
                   <ThemedText style={{ color: "#22d3ee", fontSize: 18, fontWeight: "700" }}>85%</ThemedText>
                 </View>
                 <View className="flex-1 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3">
-                  <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>Thời gian</ThemedText>
+                  <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>{t("battle.lobby.history.detail.duration_label")}</ThemedText>
                   <ThemedText style={{ color: "#fbbf24", fontSize: 18, fontWeight: "700" }}>12:34</ThemedText>
                 </View>
               </View>
@@ -639,7 +658,7 @@ export default function BattleLobbyScreen() {
                 onPress={() => setSelectedBattle(null)}
               >
                 <ThemedText style={{ color: "#e5e7eb", fontSize: 15, fontWeight: "600", textAlign: "center" }}>
-                  Đóng
+                  {t("common.close")}
                 </ThemedText>
               </HapticPressable>
             </View>
