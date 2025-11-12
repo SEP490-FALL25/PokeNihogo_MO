@@ -2,6 +2,7 @@ import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import UserAvatar from "@components/atoms/UserAvatar";
 import ModalBattleAccept from "@components/battle/modal-accept.battle";
 import ModalLeaderboard from "@components/battle/modal-leaderboard";
+import ModalRewardLeaderboard from "@components/battle/modal-rewardLeaderboard";
 import SeasonInfo from "@components/battle/season-info.battle";
 import StatsBattle from "@components/battle/stats.battle";
 import { HapticPressable } from "@components/HapticPressable";
@@ -52,6 +53,7 @@ export default function BattleLobbyScreen() {
       : [t("battle.lobby.queue_status.searching")];
   const [showHistory, setShowHistory] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showRewards, setShowRewards] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<"all" | "win" | "loss">("all");
   const [selectedBattle, setSelectedBattle] = useState<typeof mockBattleHistory[0] | null>(null);
   const { user } = useAuth();
@@ -139,10 +141,7 @@ export default function BattleLobbyScreen() {
   };
 
   const handleViewTopRewards = () => {
-    Alert.alert(
-      t("battle.lobby.alerts.top_rewards_title"),
-      t("battle.lobby.alerts.top_rewards_message"),
-    );
+    setShowRewards(true);
   };
 
   const handleViewRankInfo = () => {
@@ -569,6 +568,11 @@ export default function BattleLobbyScreen() {
         visible={showLeaderboard}
         onRequestClose={() => setShowLeaderboard(false)}
         rankName="N5"
+      />
+
+      <ModalRewardLeaderboard
+        visible={showRewards}
+        onRequestClose={() => setShowRewards(false)}
       />
 
       {/* Battle Detail Modal */}

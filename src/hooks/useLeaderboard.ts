@@ -44,6 +44,14 @@ export const useLeaderboardSeasonNow = () => {
         queryKey: ['leaderboard-season-now'],
         queryFn: () => leaderboardService.getLeaderboardSeasonNow(),
     });
-    return { data: data?.data.data, isLoading, isError };
+    // Response structure: { statusCode, data: {...}, message }
+    // axios wraps it: response.data = { statusCode, data: {...}, message }
+    // So we need: data?.data (the inner data object)
+    const responseData = data as any;
+    return {
+        data: responseData?.data?.data ?? responseData?.data,
+        isLoading,
+        isError
+    };
 };
 //------------------------End------------------------//

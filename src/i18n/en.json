@@ -21,7 +21,8 @@
     "simple_dialog_test": "This is a simple dialog test",
     "close": "Close",
     "shop": "Shop",
-    "open-shop": "Open Shop"
+    "open-shop": "Open Shop",
+    "error": "Error"
   },
   "auth": {
     "email": "Email",
@@ -261,6 +262,39 @@
           "accuracy_label": "Accuracy",
           "duration_label": "Duration"
         }
+      }
+    },
+    "rewards": {
+      "title": "Season Rewards",
+      "subtitle": "Rewards for {{season}}",
+      "loading": "Loading rewards...",
+      "empty": "No rewards available for this season.",
+      "error": "Failed to load rewards. Please try again.",
+      "no_rewards": "No rewards for this rank",
+      "empty_for_league": "No rewards for this league",
+      "no_rewards_for_rank": "No rewards for this tier",
+      "rank_order": "Order: {{order}}",
+      "rank_rewards_count": "{{count}} tier(s)",
+      "ranks": {
+        "top1": "Top 1",
+        "top2-10": "Top 2-10",
+        "top11-50": "Top 11-50",
+        "top51-100": "Top 51-100",
+        "default": "Rank {{order}}"
+      },
+      "types": {
+        "pokemon": "Pokémon",
+        "gem": "Gem",
+        "coin": "Coin",
+        "item": "Item",
+        "skin": "Skin",
+        "badge": "Badge",
+        "daily_request": "Daily Request"
+      },
+      "targets": {
+        "exp": "EXP",
+        "point": "Point",
+        "level": "Level"
       }
     }
   },

@@ -1,3 +1,4 @@
+import { rewardEntitySchema } from "@models/reward/reward.entity";
 import { z } from "zod";
 
 /**
@@ -13,4 +14,25 @@ export const leaderboardEntitySchema = z.object({
 });
 
 export type ILeaderboardEntity = z.infer<typeof leaderboardEntitySchema>;
+//------------------------End------------------------//
+
+
+/**
+ * Leaderboard Season Now Entity Schema
+ */
+export const leaderboardSeasonNowEntitySchema = z.object({
+    id: z.number(),
+    startDate: z.string(),
+    endDate: z.string(),
+    status: z.enum(["ACTIVE", "INACTIVE"]),
+    nameTranslation: z.string(),
+    seasonRankRewards: z.array(z.object({
+        id: z.number(),
+        rankName: z.string(),
+        order: z.number(),
+        rewards: z.array(rewardEntitySchema),
+    })),
+});
+
+export type ILeaderboardSeasonNowEntity = z.infer<typeof leaderboardSeasonNowEntitySchema>;
 //------------------------End------------------------//

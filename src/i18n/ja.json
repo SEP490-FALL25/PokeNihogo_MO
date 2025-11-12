@@ -370,6 +370,39 @@
                     "duration_label": "所要時間"
                 }
             }
+        },
+        "rewards": {
+            "title": "シーズン報酬",
+            "subtitle": "{{season}}の報酬",
+            "loading": "報酬を読み込み中...",
+            "empty": "このシーズンの報酬はありません。",
+            "error": "報酬の読み込みに失敗しました。もう一度お試しください。",
+            "no_rewards": "このランクに報酬はありません",
+            "empty_for_league": "このリーグに報酬はありません",
+            "no_rewards_for_rank": "この階層に報酬はありません",
+            "rank_order": "順位: {{order}}",
+            "rank_rewards_count": "{{count}}階層",
+            "ranks": {
+                "top1": "1位",
+                "top2-10": "2-10位",
+                "top11-50": "11-50位",
+                "top51-100": "51-100位",
+                "default": "順位 {{order}}"
+            },
+            "types": {
+                "pokemon": "ポケモン",
+                "gem": "ジェム",
+                "coin": "コイン",
+                "item": "アイテム",
+                "skin": "スキン",
+                "badge": "バッジ",
+                "daily_request": "デイリーリクエスト"
+            },
+            "targets": {
+                "exp": "経験値",
+                "point": "ポイント",
+                "level": "レベル"
+            }
         }
     },
     "lessons": {
