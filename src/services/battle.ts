@@ -1,5 +1,6 @@
 import { axiosPrivate } from "@configs/axios";
 import { ISubmitAnswer } from "@models/battle/battle.response";
+import { IQueryRequest } from "@models/common/common.request";
 
 const battleService = {
     matchQueue: async () => {
@@ -28,6 +29,15 @@ const battleService = {
 
     submitAnswer: async (roundQuestionId: number, data: ISubmitAnswer) => {
         return axiosPrivate.put(`/round-question/answer/${roundQuestionId}`, data);
+    },
+
+    getUserMatchingHistory: async (params?: IQueryRequest) => {
+        const queryParams: IQueryRequest = {
+            currentPage: params?.currentPage || 1,
+            pageSize: params?.pageSize || 20,
+            ...params,
+        };
+        return axiosPrivate.get(`/user/matching/history`, { params: queryParams });
     },
 };
 

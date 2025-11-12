@@ -21,7 +21,8 @@
     "simple_dialog_test": "Đây là test hộp thoại đơn giản",
     "close": "Đóng",
     "shop": "Cửa hàng",
-    "open-shop": "Mở cửa hàng"
+    "open-shop": "Mở cửa hàng",
+    "error": "Lỗi"
   },
   "auth": {
     "email": "Email",
@@ -183,7 +184,120 @@
     "tip_1": "Luyện tập thường xuyên để cải thiện thời gian phản ứng",
     "tip_2": "Tập trung vào độ chính xác hơn là tốc độ lúc đầu",
     "tip_3": "Nghiên cứu lỗi sai để tránh lặp lại",
-    "tip_4": "Tham gia các trận chiến phù hợp với trình độ hiện tại"
+    "tip_4": "Tham gia các trận chiến phù hợp với trình độ hiện tại",
+    "season_info": {
+      "ends_in": "Kết thúc sau",
+      "days_label": "ngày"
+    },
+    "rank_modal": {
+      "title": "Bậc rank & mốc điểm",
+      "description": "Mốc ELO cần đạt để thăng hạng. Điểm ELO hiện tại của bạn: <highlight>{{eloScore}}</highlight>.",
+      "current_badge": "Hạng hiện tại",
+      "empty_state": "Thông tin mốc điểm đang được cập nhật.",
+      "range_between": "{{min}} - {{max}} ELO",
+      "range_min": "≥ {{min}} ELO"
+    },
+    "stats": {
+      "total_wins": "Trận thắng",
+      "win_rate": "Tỷ lệ thắng",
+      "win_streak": "Chuỗi thắng"
+    },
+    "lobby": {
+      "title": "⚡ SẢNH ĐẤU",
+      "history_button": "Lịch sử",
+      "alerts": {
+        "top_rewards_title": "Phần thưởng TOP",
+        "top_rewards_message": "Xem phần thưởng theo thứ hạng mùa giải (WIP).",
+        "rank_info_title": "Hệ thống Rank",
+        "rank_info_message": "Thông tin về bậc rank, thăng hạng và bảo lưu điểm (WIP).",
+        "queue_error_message": "Không thể tìm trận đấu.",
+        "match_cancelled_title": "Thông báo",
+        "match_cancelled_default": "Trận đấu đã bị hủy."
+      },
+      "queue_status": {
+        "searching": "Đang tìm...",
+        "waiting": "Đang chờ"
+      },
+      "buttons": {
+        "find_match": "TÌM TRẬN NGAY",
+        "queueing": "⏳ ĐANG TÌM TRẬN..."
+      },
+      "queue_messages": [
+        "Đang tìm đối thủ phù hợp...",
+        "Cân bằng MMR...",
+        "Xếp phòng..."
+      ],
+      "sections": {
+        "leaderboard_title": "Bảng xếp hạng",
+        "leaderboard_subtitle": "Top người chơi theo mùa",
+        "rewards_title": "Phần thưởng",
+        "rewards_subtitle": "Skin, huy hiệu, kim cương",
+        "rank_info_title": "Thông tin rank",
+        "rank_info_subtitle": "Cơ chế thăng hạng, bảo lưu điểm"
+      },
+      "history": {
+        "title": "Lịch sử thi đấu",
+        "empty": "Không có lịch sử thi đấu",
+        "stats": {
+          "wins": "Thắng",
+          "losses": "Thua",
+          "win_rate": "Tỉ lệ thắng"
+        },
+        "filters": {
+          "all": "Tất cả ({{count}})",
+          "wins": "Thắng ({{count}})",
+          "losses": "Thua ({{count}})"
+        },
+        "list": {
+          "win_badge": "THẮNG",
+          "loss_badge": "THUA",
+          "score": "Tỉ số: {{score}}"
+        },
+        "detail": {
+          "win_title": "🎉 CHIẾN THẮNG",
+          "loss_title": "💔 THẤT BẠI",
+          "opponent_label": "Đối thủ",
+          "score_label": "Tỉ số",
+          "mmr_change_label": "Thay đổi MMR",
+          "mmr_current_label": "MMR hiện tại",
+          "accuracy_label": "Độ chính xác",
+          "duration_label": "Thời gian"
+        }
+      }
+    },
+    "rewards": {
+      "title": "Phần thưởng mùa giải",
+      "subtitle": "Phần thưởng cho {{season}}",
+      "loading": "Đang tải phần thưởng...",
+      "empty": "Không có phần thưởng cho mùa giải này.",
+      "error": "Không thể tải phần thưởng. Vui lòng thử lại.",
+      "no_rewards": "Không có phần thưởng cho hạng này",
+      "empty_for_league": "Không có phần thưởng cho hạng này",
+      "no_rewards_for_rank": "Không có phần thưởng cho mốc này",
+      "rank_order": "Thứ hạng: {{order}}",
+      "rank_rewards_count": "{{count}} mốc",
+      "ranks": {
+        "top1": "Hạng 1",
+        "top2-10": "Hạng 2-10",
+        "top11-50": "Hạng 11-50",
+        "top51-100": "Hạng 51-100",
+        "default": "Thứ hạng {{order}}"
+      },
+      "types": {
+        "pokemon": "Pokémon",
+        "gem": "Kim cương",
+        "coin": "Xu",
+        "item": "Vật phẩm",
+        "skin": "Skin",
+        "badge": "Huy hiệu",
+        "daily_request": "Nhiệm vụ hàng ngày"
+      },
+      "targets": {
+        "exp": "Kinh nghiệm",
+        "point": "Điểm",
+        "level": "Cấp độ"
+      }
+    }
   },
   "navigation": {
     "title": "Điều hướng chính",

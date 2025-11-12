@@ -1,9 +1,11 @@
 import { ThemedText } from "@components/ThemedText";
 import { useUserStatsSeason } from "@hooks/useSeason";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, View } from "react-native";
 
 export default function StatsBattle() {
+    const { t } = useTranslation();
     const { data, isLoading } = useUserStatsSeason();
 
     if (isLoading) {
@@ -30,7 +32,7 @@ export default function StatsBattle() {
             <View className="flex-row gap-3">
                 {/* Trận thắng */}
                 <View className="flex-1 rounded-xl border border-white/15 bg-white/5 p-3">
-                    <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>Trận thắng</ThemedText>
+                    <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>{t("battle.stats.total_wins")}</ThemedText>
                     <View className="flex-row items-end gap-1">
                         <ThemedText style={{ color: "#22d3ee", fontSize: 22, fontWeight: "700" }}>{totalWins}</ThemedText>
                         <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 2 }}>/ {totalMatches}</ThemedText>
@@ -39,7 +41,7 @@ export default function StatsBattle() {
 
                 {/* Tỷ lệ thắng */}
                 <View className="flex-1 rounded-xl border border-white/15 bg-white/5 p-3">
-                    <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>Tỷ lệ thắng</ThemedText>
+                    <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>{t("battle.stats.win_rate")}</ThemedText>
                     <View className="flex-row items-end gap-1">
                         <ThemedText style={{ color: "#34d399", fontSize: 22, fontWeight: "700" }}>{Math.round(rateWin)}</ThemedText>
                         <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 2 }}>%</ThemedText>
@@ -48,7 +50,7 @@ export default function StatsBattle() {
 
                 {/* Chuỗi thắng */}
                 <View className="flex-1 rounded-xl border border-white/15 bg-white/5 p-3">
-                    <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>Chuỗi thắng</ThemedText>
+                    <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>{t("battle.stats.win_streak")}</ThemedText>
                     <View className="flex-row items-end gap-1">
                         <ThemedText style={{ color: "#fbbf24", fontSize: 22, fontWeight: "700" }}>{currentWinStreak}</ThemedText>
                         <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 2 }}>🔥</ThemedText>

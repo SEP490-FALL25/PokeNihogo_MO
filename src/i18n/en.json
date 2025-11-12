@@ -21,7 +21,8 @@
     "simple_dialog_test": "This is a simple dialog test",
     "close": "Close",
     "shop": "Shop",
-    "open-shop": "Open Shop"
+    "open-shop": "Open Shop",
+    "error": "Error"
   },
   "auth": {
     "email": "Email",
@@ -183,7 +184,120 @@
     "tip_1": "Practice regularly to improve your reaction time",
     "tip_2": "Focus on accuracy over speed in the beginning",
     "tip_3": "Study your mistakes to avoid repeating them",
-    "tip_4": "Join battles that match your current skill level"
+    "tip_4": "Join battles that match your current skill level",
+    "season_info": {
+      "ends_in": "Ends in",
+      "days_label": "days"
+    },
+    "rank_modal": {
+      "title": "Rank tiers & ELO thresholds",
+      "description": "ELO milestones required to rank up. Your current ELO: <highlight>{{eloScore}}</highlight>.",
+      "current_badge": "Current rank",
+      "empty_state": "Rank thresholds are being updated.",
+      "range_between": "{{min}} - {{max}} ELO",
+      "range_min": "≥ {{min}} ELO"
+    },
+    "stats": {
+      "total_wins": "Total Wins",
+      "win_rate": "Win Rate",
+      "win_streak": "Win Streak"
+    },
+    "lobby": {
+      "title": "⚡ BATTLE LOBBY",
+      "history_button": "History",
+      "alerts": {
+        "top_rewards_title": "Top Rewards",
+        "top_rewards_message": "View season reward tiers (WIP).",
+        "rank_info_title": "Rank System",
+        "rank_info_message": "Details about rank tiers, promotion, and point protection (WIP).",
+        "queue_error_message": "Unable to find a match.",
+        "match_cancelled_title": "Notice",
+        "match_cancelled_default": "The match has been cancelled."
+      },
+      "queue_status": {
+        "searching": "Searching...",
+        "waiting": "Waiting"
+      },
+      "buttons": {
+        "find_match": "FIND MATCH NOW",
+        "queueing": "⏳ MATCHING..."
+      },
+      "queue_messages": [
+        "Searching for a suitable opponent...",
+        "Balancing MMR...",
+        "Setting up the room..."
+      ],
+      "sections": {
+        "leaderboard_title": "Leaderboard",
+        "leaderboard_subtitle": "Top players this season",
+        "rewards_title": "Rewards",
+        "rewards_subtitle": "Skins, badges, gems",
+        "rank_info_title": "Rank info",
+        "rank_info_subtitle": "Promotion rules and point protection"
+      },
+      "history": {
+        "title": "Battle History",
+        "empty": "No battle history",
+        "stats": {
+          "wins": "Wins",
+          "losses": "Losses",
+          "win_rate": "Win Rate"
+        },
+        "filters": {
+          "all": "All ({{count}})",
+          "wins": "Wins ({{count}})",
+          "losses": "Losses ({{count}})"
+        },
+        "list": {
+          "win_badge": "WIN",
+          "loss_badge": "LOSS",
+          "score": "Score: {{score}}"
+        },
+        "detail": {
+          "win_title": "🎉 VICTORY",
+          "loss_title": "💔 DEFEAT",
+          "opponent_label": "Opponent",
+          "score_label": "Score",
+          "mmr_change_label": "MMR Change",
+          "mmr_current_label": "Current MMR",
+          "accuracy_label": "Accuracy",
+          "duration_label": "Duration"
+        }
+      }
+    },
+    "rewards": {
+      "title": "Season Rewards",
+      "subtitle": "Rewards for {{season}}",
+      "loading": "Loading rewards...",
+      "empty": "No rewards available for this season.",
+      "error": "Failed to load rewards. Please try again.",
+      "no_rewards": "No rewards for this rank",
+      "empty_for_league": "No rewards for this league",
+      "no_rewards_for_rank": "No rewards for this tier",
+      "rank_order": "Order: {{order}}",
+      "rank_rewards_count": "{{count}} tier(s)",
+      "ranks": {
+        "top1": "Top 1",
+        "top2-10": "Top 2-10",
+        "top11-50": "Top 11-50",
+        "top51-100": "Top 51-100",
+        "default": "Rank {{order}}"
+      },
+      "types": {
+        "pokemon": "Pokémon",
+        "gem": "Gem",
+        "coin": "Coin",
+        "item": "Item",
+        "skin": "Skin",
+        "badge": "Badge",
+        "daily_request": "Daily Request"
+      },
+      "targets": {
+        "exp": "EXP",
+        "point": "Point",
+        "level": "Level"
+      }
+    }
   },
   "navigation": {
     "title": "Main Navigation",
