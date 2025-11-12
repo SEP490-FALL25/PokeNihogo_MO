@@ -70,7 +70,6 @@ export const useUserMatchingHistory = (params?: IQueryRequest) => {
     });
     return {
         data: data?.data.data?.results || [],
-        pagination: data?.data.data?.pagination,
         isLoading,
         isError
     };

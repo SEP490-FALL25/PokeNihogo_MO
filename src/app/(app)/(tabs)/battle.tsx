@@ -21,10 +21,10 @@ import { useAuthStore } from "@stores/auth/auth.config";
 import { useMatchingStore } from "@stores/matching/matching.config";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { Award, Crown, History, Info, Target, Trophy } from "lucide-react-native";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Crown, History, Info, Trophy } from "lucide-react-native";
+import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Animated, Easing, ImageBackground, Modal, ScrollView, StatusBar, StyleSheet, View } from "react-native";
+import { Alert, Animated, Easing, ImageBackground, StatusBar, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Socket } from "socket.io-client";
 
@@ -259,6 +259,8 @@ export default function BattleLobbyScreen() {
         setLastMatchResult(payload);
         const matchId = payload?.matchId || payload?.match?.id;
         if (matchId) {
+          // Invalidate user matching history to refetch latest data
+          queryClient.invalidateQueries({ queryKey: ['user-matching-history'] });
           // Navigate to result screen
           router.replace({
             pathname: "/(app)/(battle)/result",

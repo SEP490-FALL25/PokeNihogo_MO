@@ -15,7 +15,7 @@ interface ModalBattleHistoryProps {
 
 export default function ModalBattleHistory({ visible, onRequestClose }: ModalBattleHistoryProps) {
     const { t } = useTranslation();
-    const { data, pagination, isLoading, isError } = useUserMatchingHistory();
+    const { data, isLoading, isError } = useUserMatchingHistory();
     const insets = useSafeAreaInsets();
     const screenHeight = Dimensions.get("window").height;
     const modalHeight = screenHeight * 0.7;
