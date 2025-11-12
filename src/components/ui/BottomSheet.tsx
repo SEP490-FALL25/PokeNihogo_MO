@@ -92,9 +92,6 @@ const BottomSheet = ({
     }
   }, [isOpen, handleOpenChange])
 
-  React.useEffect(() => {
-    console.log('BottomSheet isOpen state:', isOpen, 'isControlled:', isControlled)
-  }, [isOpen, isControlled])
 
   return (
     <>
@@ -104,11 +101,6 @@ const BottomSheet = ({
             isOpen,
             onOpenChange: handleOpenChange,
           } as any)
-          console.log('BottomSheet cloned child:', 
-            typeof child.type === 'string' ? child.type : (child.type as any)?.displayName || (child.type as any)?.name || 'Unknown',
-            'with isOpen:', isOpen,
-            'onOpenChange:', !!handleOpenChange
-          )
           return cloned
         }
         return child
@@ -125,7 +117,6 @@ const BottomSheetTrigger = React.forwardRef<
   }
 >(({ children, isOpen, onOpenChange, ...props }, ref) => {
   const handlePress = (e?: any) => {
-    console.log('BottomSheetTrigger pressed, onOpenChange:', !!onOpenChange, 'isOpen:', isOpen)
     if (onOpenChange) {
       onOpenChange(true)
     } else {

@@ -414,7 +414,22 @@
     "partner_pokemon": "Pokémon đồng hành của bạn",
     "take_care_description": "Chăm sóc Pokémon đồng hành và cùng nhau tiến hóa!",
     "take_care_me": "Hãy chăm sóc tôi nhé!",
-    "partner_pokemon_short": "Pokémon đồng hành"
+    "partner_pokemon_short": "Pokémon đồng hành",
+    "stats_completed": "Hoàn thành",
+    "stats_in_progress": "Đang học",
+    "stats_streak": "Chuỗi ngày",
+    "stats_progress": "Tiến độ",
+    "weekly_progress": "Tiến độ tuần này",
+    "recent_activities": "Hoạt động gần đây",
+    "see_all": "Xem tất cả",
+    "suggestions": "Gợi ý cho bạn",
+    "suggestion_continue": "Tiếp tục bài học",
+    "suggestion_continue_desc": "Quay lại bài học bạn đang học dở",
+    "suggestion_new_lesson": "Bài học mới",
+    "suggestion_new_lesson_desc": "Khám phá các bài học mới phù hợp với trình độ của bạn",
+    "suggestion_practice": "Luyện tập",
+    "suggestion_practice_desc": "Cải thiện kỹ năng nghe và phát âm",
+    "recent_exercises": "Bài tập gần đây"
   },
   "quiz": {
     "question_types": {
@@ -466,8 +481,9 @@
     "reading": "Đọc",
     "listening": "Nghe",
     "speaking": "Nói",
-    "battle": "Đấu trường",
-    "quiz_demo": "Demo Quiz"
+    "battle": "Chiến đấu",
+    "quiz_demo": "Demo Quiz",
+    "ai_speaking": "AI"
   },
   "settings": {
     "title": "Cài đặt",

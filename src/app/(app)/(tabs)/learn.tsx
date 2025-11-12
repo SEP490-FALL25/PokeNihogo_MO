@@ -479,30 +479,6 @@ const CategoriesScreen = () => {
                     renderIcon={renderSkillIcon}
                   />
                 ))}
-                <TouchableOpacity
-                  onPress={() => router.push(ROUTES.TABS.SPEAKING)}
-                >
-                  <ThemedText type="subtitle" style={styles.categoriesTitle}>
-                    {t("lessons.view_all_categories")}
-                  </ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => router.push(ROUTES.APP.AI_CONVERSATION)}
-                >
-                  <ThemedText type="subtitle" style={styles.categoriesTitle}>
-                    speak with ai
-                  </ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => router.push(ROUTES.APP.DEMO)}>
-                  <ThemedText type="subtitle" style={styles.categoriesTitle}>
-                    test ui
-                  </ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => router.push(ROUTES.ME.EXERCISE_HISTORY)}>
-                  <ThemedText type="subtitle" style={styles.categoriesTitle}>
-                    exercise history
-                  </ThemedText>
-                </TouchableOpacity>
               </View>
             </BottomSheetContent>
           </BottomSheet>

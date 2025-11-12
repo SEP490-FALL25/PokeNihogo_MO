@@ -1,7 +1,6 @@
 import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
-import { IconSymbol } from "@components/ui/IconSymbol";
 import { TestStatus } from "@constants/test.enum";
 import { useUserTests } from "@hooks/useUserTest";
 import { router } from "expo-router";
@@ -139,6 +138,32 @@ export default function ListeningScreen() {
       <ThemedText style={styles.subtitle}>
         {t("listening.subtitle")}
       </ThemedText>
+
+      <Animated.View
+        style={[
+          styles.statsCard,
+          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        ]}
+      >
+        <ThemedText type="subtitle" style={styles.statsTitle}>
+          📊 {t("listening.progress_title")}
+        </ThemedText>
+        <View style={styles.statsGrid}>
+          <View style={styles.statItem}>
+            <ThemedText style={styles.statNumber}>15</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("listening.exercises_done")}</ThemedText>
+          </View>
+          <View style={styles.statItem}>
+            <ThemedText style={styles.statNumber}>2.5h</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("listening.total_time")}</ThemedText>
+          </View>
+          <View style={styles.statItem}>
+            <ThemedText style={styles.statNumber}>88%</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("listening.accuracy")}</ThemedText>
+          </View>
+        </View>
+      </Animated.View>
+
       <ThemedText type="subtitle" style={styles.sectionTitle}>
         🎵 {t("listening.audio_exercises")}
       </ThemedText>
@@ -169,31 +194,6 @@ export default function ListeningScreen() {
             </Animated.View>
           ))}
       </View>
-
-      <Animated.View
-        style={[
-          styles.statsCard,
-          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
-        ]}
-      >
-        <ThemedText type="subtitle" style={styles.statsTitle}>
-          📊 {t("listening.progress_title")}
-        </ThemedText>
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
-            <ThemedText style={styles.statNumber}>15</ThemedText>
-            <ThemedText style={styles.statLabel}>{t("listening.exercises_done")}</ThemedText>
-          </View>
-          <View style={styles.statItem}>
-            <ThemedText style={styles.statNumber}>2.5h</ThemedText>
-            <ThemedText style={styles.statLabel}>{t("listening.total_time")}</ThemedText>
-          </View>
-          <View style={styles.statItem}>
-            <ThemedText style={styles.statNumber}>88%</ThemedText>
-            <ThemedText style={styles.statLabel}>{t("listening.accuracy")}</ThemedText>
-          </View>
-        </View>
-      </Animated.View>
 
       <ThemedView style={styles.tipsCard}>
         <ThemedText type="subtitle" style={styles.tipsTitle}>

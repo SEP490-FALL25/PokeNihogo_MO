@@ -38,10 +38,10 @@ const getTabConfig = (t: (key: string) => string): Tab[] => [
     color: "#06b6d4",
   },
   {
-    name: "reading",
-    icon: "text",
-    label: t("tabs.reading"),
-    route: ROUTES.TABS.READING,
+    name: "speaking",
+    icon: "volume-high",
+    label: t("tabs.speaking"),
+    route: ROUTES.TABS.SPEAKING,
     color: "#f59e0b",
   },
   {
@@ -52,10 +52,10 @@ const getTabConfig = (t: (key: string) => string): Tab[] => [
     color: "#3b82f6",
   },
   {
-    name: "listening",
-    icon: "volume-high",
-    label: t("tabs.listening"),
-    route: ROUTES.TABS.LISTENING,
+    name: "ai-speaking",
+    icon: "chatbox",
+    label: t("tabs.ai_speaking"),
+    route: ROUTES.TABS.AI_CONVERSATION,
     color: "#8b5cf6",
   },
   {
