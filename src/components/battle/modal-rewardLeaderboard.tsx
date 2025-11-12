@@ -16,12 +16,9 @@ interface ModalRewardLeaderboardProps {
 }
 
 export default function ModalRewardLeaderboard({ visible, onRequestClose }: ModalRewardLeaderboardProps) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const { data, isLoading } = useLeaderboardSeasonNow();
 
-    // (Tất cả logic useMemo, getRankLabelKeyByOrder, getRewardTypeLabel, getRewardTargetLabel giữ nguyên như cũ)
-    // ...
-    // Group rewards by rankName (Giữ nguyên)
     const groupedByRank = useMemo(() => {
         if (!data?.seasonRankRewards) return {};
         type RankRewardType = ILeaderboardSeasonNowEntity["seasonRankRewards"][0];
@@ -38,7 +35,7 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
         return grouped;
     }, [data]);
 
-    // Get sorted rank names (Giữ nguyên)
+    // Get sorted rank names 
     const sortedRankNames = useMemo(() => {
         const rankOrder = ["N1", "N2", "N3", "N4", "N5"];
         const rankNames = Object.keys(groupedByRank);
@@ -52,20 +49,18 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
         });
     }, [groupedByRank]);
 
-    // Dùng useState (Giữ nguyên)
+    // Dùng useState 
     const [activeRank, setActiveRank] = useState<string | null>(
         sortedRankNames.length > 0 ? sortedRankNames[sortedRankNames.length - 1] : null
     );
 
-    // Cập nhật activeRank khi data load xong (Giữ nguyên)
+    // Cập nhật activeRank khi data load xong 
     React.useEffect(() => {
         if (!activeRank && sortedRankNames.length > 0) {
             setActiveRank(sortedRankNames[sortedRankNames.length - 1]);
         }
     }, [sortedRankNames, activeRank]);
 
-    // (Các hàm helper getRankLabelKeyByOrder, getRewardTypeLabel, getRewardTargetLabel giữ nguyên)
-    // ...
     const getRankLabelKeyByOrder = (order: number) => {
         switch (order) {
             case 1:
@@ -103,7 +98,7 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
         return targetMap[rewardTarget] || rewardTarget;
     };
 
-    // Lấy data cho tab đang active (Giữ nguyên)
+    // Lấy data cho tab đang active
     const activeRankEntries = useMemo(() => {
         if (!activeRank || !groupedByRank[activeRank]) return [];
         return groupedByRank[activeRank];
@@ -114,9 +109,7 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
             <View className="flex-1 bg-[rgba(0,0,0,0.8)] justify-center items-center p-6">
                 <View className="w-full max-w-[420px] bg-slate-900 rounded-3xl border border-white/10 flex-1" style={{ minHeight: 400, maxHeight: "85%" }}>
 
-                    {/* Header (Giữ nguyên) */}
                     <View className="px-6 py-5 border-b border-white/10">
-                        {/* ... (Giữ nguyên Header) ... */}
                         <View className="flex-row items-center justify-between">
                             <View className="flex-row items-center gap-3">
                                 <Crown size={24} color="#fbbf24" />
@@ -138,10 +131,8 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
                         )}
                     </View>
 
-                    {/* Content (Giữ nguyên logic loading/empty) */}
                     {isLoading ? (
                         <View className="py-20 items-center justify-center" style={{ minHeight: 300 }}>
-                            {/* ... (Giữ nguyên Loading) ... */}
                             <ActivityIndicator size="large" color="#22d3ee" />
                             <ThemedText style={{ color: "#94a3b8", fontSize: 14, marginTop: 12 }}>
                                 {t("battle.rewards.loading")}
@@ -149,16 +140,13 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
                         </View>
                     ) : !data || sortedRankNames.length === 0 ? (
                         <View className="py-20 items-center justify-center px-6" style={{ minHeight: 300 }}>
-                            {/* ... (Giữ nguyên Empty) ... */}
                             <Sparkles size={48} color="#64748b" />
                             <ThemedText style={{ color: "#94a3b8", fontSize: 16, marginTop: 12, textAlign: "center" }}>
                                 {t("battle.rewards.empty")}
                             </ThemedText>
                         </View>
                     ) : (
-                        // --- THAY ĐỔI: Thêm flex-1 vào wrapper của Tabs (View) ---
                         <View className="w-full flex-1">
-                            {/* 1. Thanh điều hướng Hạng (Tabs) TÙY CHỈNH (Giữ nguyên) */}
                             <View className="flex-row px-6 pt-3 border-b border-white/10">
                                 {sortedRankNames.map((rankName) => {
                                     const isActive = activeRank === rankName;
@@ -186,10 +174,8 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
                                 })}
                             </View>
 
-                            {/* 2. Nội dung của Hạng đang được chọn (Giữ nguyên) */}
                             <View className="flex-1">
                                 {!activeRankEntries || activeRankEntries.length === 0 ? (
-                                    // (Giữ nguyên)
                                     <View className="py-20 items-center justify-center px-6 flex-1">
                                         <Sparkles size={48} color="#64748b" />
                                         <ThemedText style={{ color: "#94a3b8", fontSize: 16, marginTop: 12, textAlign: "center" }}>
@@ -197,17 +183,14 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
                                         </ThemedText>
                                     </View>
                                 ) : (
-                                    // --- THAY ĐỔI: Bỏ flex-1 khỏi ScrollView ---
                                     <ScrollView
                                         key={activeRank}
-                                        className="px-6 pt-4" // Bỏ 'flex-1'
+                                        className="px-6 pt-4"
                                         contentContainerStyle={{ paddingBottom: 20 }}
                                         showsVerticalScrollIndicator={false}
                                     >
-                                        {/* Lặp qua các mốc (Top 1, Top 2-10) của Hạng này (Giữ nguyên) */}
                                         {activeRankEntries.map((entry) => (
                                             <View key={entry.id} className="mb-5">
-                                                {/* Tiêu đề mốc (Giữ nguyên) */}
                                                 <View className="flex-row items-center gap-2.5 mb-3">
                                                     <View className="w-1.5 h-5 bg-amber-400 rounded-full" />
                                                     <ThemedText style={{ color: "#fbbf24", fontSize: 18, fontWeight: "800" }}>
@@ -220,7 +203,6 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
                                                     </ThemedText>
                                                 </View>
 
-                                                {/* Danh sách phần thưởng (Giữ nguyên) */}
                                                 <View className="gap-2">
                                                     {entry.rewards && entry.rewards.length > 0 ? (
                                                         entry.rewards.map((reward: IRewardEntity, idx: number) => (
@@ -228,7 +210,6 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
                                                                 key={`${reward.id}-${idx}`}
                                                                 className="flex-row items-center gap-3 p-3 pl-4 rounded-xl bg-white/5 border border-white/5"
                                                             >
-                                                                {/* ... (Nội dung item giữ nguyên) ... */}
                                                                 <View className="flex-1">
                                                                     <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600" }}>
                                                                         {reward.nameTranslation || getRewardTypeLabel(reward.rewardType)}
@@ -268,7 +249,6 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
                                 )}
                             </View>
                         </View>
-                        // --- HẾT PHẦN THAY ĐỔI ---
                     )}
                 </View>
             </View>
