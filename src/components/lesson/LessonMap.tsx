@@ -1,7 +1,6 @@
 import LottieAnimation from "@components/ui/LottieAnimation";
-import { FontAwesome5 } from "@expo/vector-icons";
 import { LessonProgress } from "@models/lesson/lesson.common";
-import { Image } from "expo-image";
+import { Image, type ImageSource } from "expo-image";
 import React, { useMemo } from "react";
 import {
   Dimensions,
@@ -23,7 +22,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // --- CẤU HÌNH CHUNG ---
 const NODE_SIZE = 85; // Kích thước node
-const NODE_INNER_SIZE = 38; // Kích thước icon bên trong
 const NODE_VERTICAL_SPACING = 130; // Khoảng cách dọc
 const CURVE_AMPLITUDE = 90; // Biên độ cong (Độ lệch tối đa)
 
@@ -36,12 +34,51 @@ const DUO_OFFSET = NODE_SIZE / 2 + 120; // Khoảng cách Duo so với cạnh no
 const DUO_IMAGE_SIZE = 170;
 const DUO_FIXED_Y_OFFSET = 0; // Điều chỉnh Duo lên trên một chút
 
+const STATUS_ICON_MAP: Record<string, ImageSource> = {
+  COMPLETED: require("@assets/images/COMPLETED.png"),
+  FAILED: require("@assets/images/FAILED.png"),
+  IN_PROGRESS: require("@assets/images/IN_PROGRESS.png"),
+  NOT_STARTED: require("@assets/images/NOT_STARTED.png"),
+  TESTING_LAST: require("@assets/images/TESTING_LAST.png"),
+  TESTING_LAST_FAILED: require("@assets/images/TESTING_LAST_FAILED.png"),
+};
+
+const STATUS_STYLE_MAP: Record<
+  string,
+  { backgroundColor: string; shadowColor: string }
+> = {
+  COMPLETED: {
+    backgroundColor: "#dcfce7",
+    shadowColor: "#166534",
+  },
+  FAILED: {
+    backgroundColor: "#fee2e2",
+    shadowColor: "#991b1b",
+  },
+  IN_PROGRESS: {
+    backgroundColor: "#dbeafe",
+    shadowColor: "#1e3a8a",
+  },
+  NOT_STARTED: {
+    backgroundColor: "#f3f4f6",
+    shadowColor: "#222222",
+  },
+  TESTING_LAST: {
+    backgroundColor: "#dbeafe",
+    shadowColor: "#1e3a8a",
+  },
+  TESTING_LAST_FAILED: {
+    backgroundColor: "#fee2e2",
+    shadowColor: "#991b1b",
+  },
+};
+
 // Định nghĩa kiểu dữ liệu cho node bài học
 export type LessonNode = {
   id: number;
   lessonId: number;
   type: "lesson";
-  icon: string;
+  iconSource: ImageSource;
   x: number;
   y: number;
   isCompleted: boolean;
@@ -140,20 +177,22 @@ const convertLessonsToNodes = (
 
     const x = middleX + offsetX;
 
+    const rawStatus = (lesson.status as string) ?? "NOT_STARTED";
+    const statusKey = rawStatus.toUpperCase();
+    const iconSource =
+      STATUS_ICON_MAP[statusKey] ?? STATUS_ICON_MAP.NOT_STARTED;
+
     // Logic xác định trạng thái
-    const isCompleted = lesson.status === "COMPLETED";
+    const isCompleted = statusKey === "COMPLETED";
     const isActive = i === activeIndex;
     // Unlock: Chỉ xét status, không cần check bài trước. Tất cả bài đều unlock (có thể làm bất kì bài nào)
     const isUnlocked = true;
-
-    // Icon: TESTING_LAST và TESTING_LAST_FAILED dùng sấm sét, các status khác dùng ngôi sao
-    const icon = lesson.status === "TESTING_LAST" || (lesson.status as string) === "TESTING_LAST_FAILED" ? "bolt" : "star";
 
     data.push({
       id: lesson.id,
       lessonId: lesson.lessonId,
       type: "lesson",
-      icon,
+      iconSource,
       x,
       y,
       isCompleted,
@@ -178,62 +217,33 @@ const LessonNodeComponent: React.FC<{
   const shadowOpacity = useSharedValue(1);
 
   const style = useMemo(() => {
-    let iconContainerStyle: ViewStyle[] = [styles.baseIconContainer];
-    const iconColor = "#ffffff"; // Icon luôn màu trắng
-    let shadowColor = "#1a1a1a"; // Màu shadow mặc định
+    const iconContainerStyle: ViewStyle[] = [
+      styles.baseIconContainer,
+      styles.lessonIconWrapper,
+    ];
+    let shadowColor = "#1a1a1a";
 
-    // Ưu tiên màu theo status của bài học
-    const status = node.lessonProgress.status;
     if (!isUnlocked) {
       iconContainerStyle.push(styles.lessonIconLocked);
-      shadowColor = "#111";
-    } else if (status === "COMPLETED") {
-      // Hoàn thành: xanh lá
-      iconContainerStyle.push({
-        backgroundColor: "#22c55e",
-        borderWidth: 4,
-        borderColor: "#86efac",
-      });
-      shadowColor = "#166534";
-    } else if (status === "IN_PROGRESS" || status === "TESTING_LAST") {
-      // Đang học hoặc đang test: xanh dương
-      iconContainerStyle.push({
-        backgroundColor: "#3b82f6",
-        borderWidth: 4,
-        borderColor: "#93c5fd",
-      });
-      shadowColor = "#1e3a8a";
-    } else if (status === "FAILED" || (status as string) === "TESTING_LAST_FAILED") {
-      // Thất bại: màu đỏ
-      iconContainerStyle.push({
-        backgroundColor: "#ef4444",
-        borderWidth: 4,
-        borderColor: "#fca5a5",
-      });
-      shadowColor = "#991b1b";
+      shadowColor = "#111111";
     } else {
-      // NOT_STARTED (giữ nguyên behavior hiện tại cho node đã mở khóa)
-      iconContainerStyle.push(styles.lessonIconUnlocked);
-      shadowColor = "#222";
-    }
+      const status =
+        ((node.lessonProgress.status as string) ?? "NOT_STARTED").toUpperCase();
+      const statusStyle =
+        STATUS_STYLE_MAP[status] ?? STATUS_STYLE_MAP.NOT_STARTED;
 
-    // Nếu node đang active, giữ vòng progress ring; màu nền vẫn theo status
-    // Nhưng có thể làm đậm border để nổi bật
-    if (isActive && isUnlocked) {
       iconContainerStyle.push({
-        borderWidth: 4,
-        borderColor:
-          status === "COMPLETED"
-            ? "#86efac"
-            : status === "IN_PROGRESS" || status === "TESTING_LAST"
-            ? "#93c5fd"
-            : status === "FAILED" || (status as string) === "TESTING_LAST_FAILED"
-            ? "#fca5a5"
-            : "#a3e635",
+        backgroundColor: statusStyle.backgroundColor,
       });
+
+      shadowColor = statusStyle.shadowColor;
+
+      if (isActive) {
+        iconContainerStyle.push(styles.lessonIconActive);
+      }
     }
 
-    return { iconContainerStyle, iconColor, shadowColor };
+    return { iconContainerStyle, shadowColor };
   }, [isActive, isUnlocked, node.lessonProgress.status]);
 
   const handlePressIn = () => {
@@ -277,12 +287,6 @@ const LessonNodeComponent: React.FC<{
     height: NODE_SIZE + containerPadding * 2 + 6, // Thêm 6px cho shadow
     zIndex: 10,
   };
-
-  const IconContainerStyle = [
-    { width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2 },
-    ...style.iconContainerStyle,
-    { justifyContent: "center" as const, alignItems: "center" as const },
-  ];
 
   // Shadow style dựa trên trạng thái node - tạo hiệu ứng 3D
   const shadowStyle: ViewStyle = {
@@ -411,11 +415,11 @@ const LessonNodeComponent: React.FC<{
           onPress={handlePress}
         >
           {/* Node Icon */}
-          <View style={[IconContainerStyle, { zIndex: 12 }]}>
-            <FontAwesome5
-              name={node.icon}
-              size={NODE_INNER_SIZE}
-              color={style.iconColor}
+          <View style={[...style.iconContainerStyle, { zIndex: 12 }]}>
+            <Image
+              source={node.iconSource}
+              style={styles.lessonStatusImage}
+              contentFit="contain"
             />
           </View>
         </Pressable>
@@ -624,21 +628,24 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 5,
   },
-  // --- Node đang Active (Node BẮT ĐẦU) ---
+  lessonIconWrapper: {
+    width: NODE_SIZE,
+    height: NODE_SIZE,
+    borderRadius: NODE_SIZE / 2,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f3f4f6",
+    overflow: "hidden",
+  },
   lessonIconActive: {
-    backgroundColor: "#6bbf47",
-    borderWidth: 4,
-    borderColor: "#a3e635",
+    transform: [{ scale: 1.03 }],
   },
-  // --- Node đã mở khóa (nhưng chưa Active) ---
-  lessonIconUnlocked: {
-    backgroundColor: "#444",
-    borderWidth: 0,
-  },
-  // --- Node bị khóa ---
   lessonIconLocked: {
-    backgroundColor: "#333",
-    borderWidth: 0,
+    backgroundColor: "#1f2937",
+  },
+  lessonStatusImage: {
+    width: NODE_SIZE - 6,
+    height: NODE_SIZE - 6,
   },
   // --- Duo/Linh vật ---
   duoPlaceholder: {
