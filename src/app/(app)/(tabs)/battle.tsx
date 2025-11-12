@@ -1,6 +1,7 @@
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import UserAvatar from "@components/atoms/UserAvatar";
 import ModalBattleAccept from "@components/battle/modal-accept.battle";
+import ModalBattleHistory from "@components/battle/modal-battleHistory";
 import ModalLeaderboard from "@components/battle/modal-leaderboard";
 import ModalRewardLeaderboard from "@components/battle/modal-rewardLeaderboard";
 import SeasonInfo from "@components/battle/season-info.battle";
@@ -27,21 +28,6 @@ import { Alert, Animated, Easing, ImageBackground, Modal, ScrollView, StatusBar,
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Socket } from "socket.io-client";
 
-// Mock battle history data
-const mockBattleHistory = [
-  { id: 1, opponent: "Trainer Alice", result: "win", mmrChange: +25, date: "2 giờ trước", score: "3-1" },
-  { id: 2, opponent: "Trainer Bob", result: "win", mmrChange: +22, date: "5 giờ trước", score: "3-2" },
-  { id: 3, opponent: "Trainer Charlie", result: "loss", mmrChange: -18, date: "1 ngày trước", score: "1-3" },
-  { id: 4, opponent: "Trainer Diana", result: "win", mmrChange: +28, date: "1 ngày trước", score: "3-0" },
-  { id: 5, opponent: "Trainer Eve", result: "win", mmrChange: +24, date: "2 ngày trước", score: "3-1" },
-  { id: 6, opponent: "Trainer Frank", result: "loss", mmrChange: -20, date: "2 ngày trước", score: "2-3" },
-  { id: 7, opponent: "Trainer Grace", result: "win", mmrChange: +26, date: "3 ngày trước", score: "3-2" },
-];
-
-const totalMatches = mockBattleHistory.length;
-const totalWins = mockBattleHistory.filter((battle) => battle.result === "win").length;
-const totalLosses = mockBattleHistory.filter((battle) => battle.result === "loss").length;
-const winRate = totalMatches ? Math.round((totalWins / totalMatches) * 100) : 0;
 
 export default function BattleLobbyScreen() {
   const router = useRouter();
@@ -54,8 +40,6 @@ export default function BattleLobbyScreen() {
   const [showHistory, setShowHistory] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showRewards, setShowRewards] = useState(false);
-  const [historyFilter, setHistoryFilter] = useState<"all" | "win" | "loss">("all");
-  const [selectedBattle, setSelectedBattle] = useState<typeof mockBattleHistory[0] | null>(null);
   const { user } = useAuth();
 
   const [showAcceptModal, setShowAcceptModal] = useState<boolean>(false);
@@ -152,10 +136,6 @@ export default function BattleLobbyScreen() {
   };
   //------------------------End------------------------//
 
-  const filteredHistory = useMemo(() => {
-    if (historyFilter === "all") return mockBattleHistory;
-    return mockBattleHistory.filter(battle => battle.result === historyFilter);
-  }, [historyFilter]);
 
 
   /**
@@ -447,122 +427,10 @@ export default function BattleLobbyScreen() {
         <View pointerEvents="none" style={styles.scanline} />
       </ImageBackground>
 
-      {/* Battle History Modal */}
-      <Modal
+      <ModalBattleHistory
         visible={showHistory}
-        animationType="slide"
-        transparent
         onRequestClose={() => setShowHistory(false)}
-      >
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.8)" }}>
-          <View style={{ flex: 1, marginTop: insets.top + 40 }}>
-            <View className="flex-1 bg-slate-900 rounded-t-3xl">
-              {/* Modal Header */}
-              <View className="px-6 py-5 border-b border-white/10">
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center gap-3">
-                    <History size={24} color="#22d3ee" />
-                    <ThemedText style={{ color: "#e5e7eb", fontSize: 20, fontWeight: "700" }}>{t("battle.lobby.history.title")}</ThemedText>
-                  </View>
-                  <HapticPressable
-                    className="w-10 h-10 items-center justify-center rounded-full bg-white/10"
-                    onPress={() => setShowHistory(false)}
-                  >
-                    <ThemedText style={{ color: "#94a3b8", fontSize: 20 }}>✕</ThemedText>
-                  </HapticPressable>
-                </View>
-
-                {/* Quick Stats */}
-                <View className="flex-row gap-3 mt-4">
-                  <View className="flex-1 rounded-xl bg-green-500/10 border border-green-500/20 p-3">
-                    <View className="flex-row items-center gap-2 mb-1">
-                      <Award size={14} color="#22c55e" />
-                      <ThemedText style={{ color: "#86efac", fontSize: 11 }}>{t("battle.lobby.history.stats.wins")}</ThemedText>
-                    </View>
-                    <ThemedText style={{ color: "#22c55e", fontSize: 20, fontWeight: "700" }}>{totalWins}</ThemedText>
-                  </View>
-                  <View className="flex-1 rounded-xl bg-red-500/10 border border-red-500/20 p-3">
-                    <View className="flex-row items-center gap-2 mb-1">
-                      <Target size={14} color="#ef4444" />
-                      <ThemedText style={{ color: "#fca5a5", fontSize: 11 }}>{t("battle.lobby.history.stats.losses")}</ThemedText>
-                    </View>
-                    <ThemedText style={{ color: "#ef4444", fontSize: 20, fontWeight: "700" }}>{totalLosses}</ThemedText>
-                  </View>
-                  <View className="flex-1 rounded-xl bg-cyan-500/10 border border-cyan-500/20 p-3">
-                    <View className="flex-row items-center gap-2 mb-1">
-                      <Trophy size={14} color="#22d3ee" />
-                      <ThemedText style={{ color: "#a5f3fc", fontSize: 11 }}>{t("battle.lobby.history.stats.win_rate")}</ThemedText>
-                    </View>
-                    <ThemedText style={{ color: "#22d3ee", fontSize: 20, fontWeight: "700" }}>{`${winRate}%`}</ThemedText>
-                  </View>
-                </View>
-
-                {/* Filter Tabs */}
-                <View className="flex-row gap-2 mt-4">
-                  <HapticPressable
-                    className={`flex-1 py-2 rounded-full ${historyFilter === "all" ? "bg-cyan-500" : "bg-white/5"}`}
-                    onPress={() => setHistoryFilter("all")}
-                  >
-                    <ThemedText style={{ color: historyFilter === "all" ? "#ffffff" : "#94a3b8", fontSize: 13, fontWeight: "600", textAlign: "center" }}>
-                      {t("battle.lobby.history.filters.all", { count: totalMatches })}
-                    </ThemedText>
-                  </HapticPressable>
-                  <HapticPressable
-                    className={`flex-1 py-2 rounded-full ${historyFilter === "win" ? "bg-green-500" : "bg-white/5"}`}
-                    onPress={() => setHistoryFilter("win")}
-                  >
-                    <ThemedText style={{ color: historyFilter === "win" ? "#ffffff" : "#94a3b8", fontSize: 13, fontWeight: "600", textAlign: "center" }}>
-                      {t("battle.lobby.history.filters.wins", { count: totalWins })}
-                    </ThemedText>
-                  </HapticPressable>
-                  <HapticPressable
-                    className={`flex-1 py-2 rounded-full ${historyFilter === "loss" ? "bg-red-500" : "bg-white/5"}`}
-                    onPress={() => setHistoryFilter("loss")}
-                  >
-                    <ThemedText style={{ color: historyFilter === "loss" ? "#ffffff" : "#94a3b8", fontSize: 13, fontWeight: "600", textAlign: "center" }}>
-                      {t("battle.lobby.history.filters.losses", { count: totalLosses })}
-                    </ThemedText>
-                  </HapticPressable>
-                </View>
-              </View>
-
-              {/* Battle List */}
-              <ScrollView className="flex-1 px-6 pt-4">
-                {filteredHistory.map((battle) => (
-                  <HapticPressable
-                    key={battle.id}
-                    className="py-4 border-b border-white/5"
-                    onPress={() => setSelectedBattle(battle)}
-                  >
-                    <View className="flex-row items-center justify-between">
-                      <View className="flex-1">
-                        <View className="flex-row items-center gap-2 mb-1">
-                          <View className={`px-2 py-0.5 rounded-full ${battle.result === "win" ? "bg-green-500/20" : "bg-red-500/20"}`}>
-                            <ThemedText style={{ color: battle.result === "win" ? "#22c55e" : "#ef4444", fontSize: 10, fontWeight: "700" }}>
-                              {battle.result === "win" ? t("battle.lobby.history.list.win_badge") : t("battle.lobby.history.list.loss_badge")}
-                            </ThemedText>
-                          </View>
-                          <ThemedText style={{ color: "#64748b", fontSize: 11 }}>{battle.date}</ThemedText>
-                        </View>
-                        <ThemedText style={{ color: "#e5e7eb", fontSize: 15, fontWeight: "600" }}>{battle.opponent}</ThemedText>
-                        <ThemedText style={{ color: "#94a3b8", fontSize: 12, marginTop: 2 }}>
-                          {t("battle.lobby.history.list.score", { score: battle.score })}
-                        </ThemedText>
-                      </View>
-                      <View className="items-end">
-                        <ThemedText style={{ color: battle.mmrChange > 0 ? "#22c55e" : "#ef4444", fontSize: 18, fontWeight: "700" }}>
-                          {battle.mmrChange > 0 ? "+" : ""}{battle.mmrChange}
-                        </ThemedText>
-                        <ThemedText style={{ color: "#64748b", fontSize: 11 }}>MMR</ThemedText>
-                      </View>
-                    </View>
-                  </HapticPressable>
-                ))}
-              </ScrollView>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      />
 
       <ModalLeaderboard
         visible={showLeaderboard}
@@ -574,101 +442,6 @@ export default function BattleLobbyScreen() {
         visible={showRewards}
         onRequestClose={() => setShowRewards(false)}
       />
-
-      {/* Battle Detail Modal */}
-      <Modal
-        visible={selectedBattle !== null}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setSelectedBattle(null)}
-      >
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.9)", justifyContent: "center", alignItems: "center" }}>
-          <View className="w-11/12 max-w-md bg-slate-900 rounded-3xl overflow-hidden border border-white/10">
-            {/* Detail Header */}
-            <TWLinearGradient
-              colors={selectedBattle?.result === "win" ? ["#22c55e", "#16a34a"] : ["#ef4444", "#dc2626"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ padding: 20 }}
-            >
-              <View className="flex-row items-center justify-between mb-3">
-                <ThemedText style={{ color: "#ffffff", fontSize: 22, fontWeight: "700" }}>
-                  {selectedBattle?.result === "win" ? t("battle.lobby.history.detail.win_title") : t("battle.lobby.history.detail.loss_title")}
-                </ThemedText>
-                <HapticPressable
-                  className="w-8 h-8 items-center justify-center rounded-full bg-white/20"
-                  onPress={() => setSelectedBattle(null)}
-                >
-                  <ThemedText style={{ color: "#ffffff", fontSize: 18 }}>✕</ThemedText>
-                </HapticPressable>
-              </View>
-              <ThemedText style={{ color: "#ffffff", fontSize: 14, opacity: 0.9 }}>
-                {selectedBattle?.date}
-              </ThemedText>
-            </TWLinearGradient>
-
-            {/* Detail Content */}
-            <View className="p-6">
-              {/* Opponent Info */}
-              <View className="mb-5">
-                <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 8 }}>{t("battle.lobby.history.detail.opponent_label")}</ThemedText>
-                <View className="flex-row items-center gap-3">
-                  <UserAvatar name={selectedBattle?.opponent || "?"} size="small" />
-                  <ThemedText style={{ color: "#e5e7eb", fontSize: 18, fontWeight: "600" }}>
-                    {selectedBattle?.opponent}
-                  </ThemedText>
-                </View>
-              </View>
-
-              {/* Score */}
-              <View className="mb-5">
-                <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 8 }}>{t("battle.lobby.history.detail.score_label")}</ThemedText>
-                <ThemedText style={{ color: "#e5e7eb", fontSize: 32, fontWeight: "700", textAlign: "center" }}>
-                  {selectedBattle?.score}
-                </ThemedText>
-              </View>
-
-              {/* MMR Change */}
-              <View className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <View className="flex-row items-center justify-between">
-                  <View>
-                    <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 4 }}>{t("battle.lobby.history.detail.mmr_change_label")}</ThemedText>
-                    <ThemedText style={{ color: selectedBattle && selectedBattle.mmrChange > 0 ? "#22c55e" : "#ef4444", fontSize: 28, fontWeight: "700" }}>
-                      {selectedBattle && selectedBattle.mmrChange > 0 ? "+" : ""}{selectedBattle?.mmrChange}
-                    </ThemedText>
-                  </View>
-                  <View className="items-end">
-                    <ThemedText style={{ color: "#64748b", fontSize: 12, marginBottom: 4 }}>{t("battle.lobby.history.detail.mmr_current_label")}</ThemedText>
-                    <ThemedText style={{ color: "#22d3ee", fontSize: 20, fontWeight: "600" }}>1200</ThemedText>
-                  </View>
-                </View>
-              </View>
-
-              {/* Performance Stats */}
-              <View className="mt-5 flex-row gap-3">
-                <View className="flex-1 rounded-xl bg-cyan-500/10 border border-cyan-500/20 p-3">
-                  <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>{t("battle.lobby.history.detail.accuracy_label")}</ThemedText>
-                  <ThemedText style={{ color: "#22d3ee", fontSize: 18, fontWeight: "700" }}>85%</ThemedText>
-                </View>
-                <View className="flex-1 rounded-xl bg-amber-500/10 border border-amber-500/20 p-3">
-                  <ThemedText style={{ color: "#64748b", fontSize: 11, marginBottom: 4 }}>{t("battle.lobby.history.detail.duration_label")}</ThemedText>
-                  <ThemedText style={{ color: "#fbbf24", fontSize: 18, fontWeight: "700" }}>12:34</ThemedText>
-                </View>
-              </View>
-
-              {/* Close Button */}
-              <HapticPressable
-                className="mt-6 py-3 rounded-full bg-white/10 border border-white/15"
-                onPress={() => setSelectedBattle(null)}
-              >
-                <ThemedText style={{ color: "#e5e7eb", fontSize: 15, fontWeight: "600", textAlign: "center" }}>
-                  {t("common.close")}
-                </ThemedText>
-              </HapticPressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       {/* Accept Match Modal */}
       <ModalBattleAccept

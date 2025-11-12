@@ -237,6 +237,7 @@
       },
       "history": {
         "title": "Battle History",
+        "empty": "No battle history",
         "stats": {
           "wins": "Wins",
           "losses": "Losses",

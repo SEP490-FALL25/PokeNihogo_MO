@@ -344,6 +344,7 @@
             },
             "history": {
                 "title": "バトル履歴",
+                "empty": "バトル履歴がありません",
                 "stats": {
                     "wins": "勝利",
                     "losses": "敗北",

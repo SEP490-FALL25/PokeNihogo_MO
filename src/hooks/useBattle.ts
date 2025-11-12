@@ -1,3 +1,4 @@
+import { IQueryRequest } from "@models/common/common.request";
 import battleService from "@services/battle";
 import { useGlobalStore } from "@stores/global/global.config";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -59,13 +60,19 @@ export const useChoosePokemon = () => {
 
 /**
  * Get user matching history
- * @returns User matching history data
+ * @param params Optional query parameters (currentPage, pageSize)
+ * @returns User matching history data with results and pagination
  */
-export const useUserMatchingHistory = () => {
+export const useUserMatchingHistory = (params?: IQueryRequest) => {
     const { data, isLoading, isError } = useQuery({
-        queryKey: ['user-matching-history'],
-        queryFn: () => battleService.getUserMatchingHistory(),
+        queryKey: ['user-matching-history', params?.currentPage, params?.pageSize],
+        queryFn: () => battleService.getUserMatchingHistory(params),
     });
-    return { data: data?.data.data, isLoading, isError };
+    return {
+        data: data?.data.data?.results || [],
+        pagination: data?.data.data?.pagination,
+        isLoading,
+        isError
+    };
 };
 //------------------------End------------------------//

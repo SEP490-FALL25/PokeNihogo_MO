@@ -237,6 +237,7 @@
       },
       "history": {
         "title": "Lịch sử thi đấu",
+        "empty": "Không có lịch sử thi đấu",
         "stats": {
           "wins": "Thắng",
           "losses": "Thua",
