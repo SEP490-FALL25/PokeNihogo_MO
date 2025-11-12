@@ -1,6 +1,8 @@
 
 import { BATTLE_STATUS } from "@constants/battle.enum";
+import { BackendResponsePaginationModel } from "@models/backend/common";
 import { z } from "zod";
+import { BattleUserMatchingHistoryEntitySchema } from "./battle.entity";
 
 /**
  * Battle Match Found Schema
@@ -109,4 +111,13 @@ export const SubmitAnswerSchema = z.object({
 });
 
 export type ISubmitAnswer = z.infer<typeof SubmitAnswerSchema>;
+//------------------------End------------------------//
+
+
+/**
+ * Battle User Matching History Response Schema
+ */
+export const BattleUserMatchingHistoryResponseSchema = BackendResponsePaginationModel(BattleUserMatchingHistoryEntitySchema)
+
+export type IBattleUserMatchingHistoryResponse = z.infer<typeof BattleUserMatchingHistoryResponseSchema>;
 //------------------------End------------------------//

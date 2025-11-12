@@ -1,7 +1,13 @@
 import leaderboardService from "@services/leaderboard";
 import { useQuery } from "@tanstack/react-query";
 
-
+/**
+ * Get leaderboard by rank name
+ * @param rankName Rank name
+ * @param currentPage Current page
+ * @param pageSize Page size
+ * @param enabled Enabled
+ */
 export const useLeaderboard = ({
     rankName,
     currentPage = 1,
@@ -27,3 +33,25 @@ export const useLeaderboard = ({
         pagination: responseData?.data?.pagination ?? responseData?.pagination,
     };
 };
+
+
+/**
+ * Get leaderboard season now
+ * @returns Leaderboard season now data
+ */
+export const useLeaderboardSeasonNow = () => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['leaderboard-season-now'],
+        queryFn: () => leaderboardService.getLeaderboardSeasonNow(),
+    });
+    // Response structure: { statusCode, data: {...}, message }
+    // axios wraps it: response.data = { statusCode, data: {...}, message }
+    // So we need: data?.data (the inner data object)
+    const responseData = data as any;
+    return {
+        data: responseData?.data?.data ?? responseData?.data,
+        isLoading,
+        isError
+    };
+};
+//------------------------End------------------------//

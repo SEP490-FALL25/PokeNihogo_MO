@@ -9,6 +9,10 @@ const leaderboardService = {
                 pageSize,
             },
         });
+    },  
+
+    getLeaderboardSeasonNow: async () => {
+        return await axiosPrivate.get(`/leaderboard-season/reward-now`);
     },
 };
 
