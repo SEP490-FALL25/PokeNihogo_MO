@@ -4,18 +4,13 @@ import { ThemedText } from "@components/ThemedText";
 import { useUserStatsSeason } from "@hooks/useSeason";
 import { Crown, Info } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, TouchableOpacity, View } from "react-native";
-import ModalRank from "./modal-rank";
+import ModalRank, { type RankRule } from "./modal-rank";
 
 interface SeasonInfoProps {
     insetsTop: number;
 }
-
-type RankRule = {
-    name: string;
-    min: number;
-    max?: number | null;
-};
 
 const DEFAULT_RANK_RULES: RankRule[] = [
     { name: "N5", min: 0, max: 999 },
@@ -26,6 +21,7 @@ const DEFAULT_RANK_RULES: RankRule[] = [
 ];
 
 export default function SeasonInfo({ insetsTop }: SeasonInfoProps) {
+    const { t } = useTranslation();
     const { data, isLoading } = useUserStatsSeason();
     const [showRankInfo, setShowRankInfo] = useState<boolean>(false);
     const rankRules = useMemo<RankRule[]>(() => {
@@ -100,12 +96,14 @@ export default function SeasonInfo({ insetsTop }: SeasonInfoProps) {
                                 <View className="flex-row items-center gap-2">
                                     <View className="w-2 h-2 rounded-full bg-cyan-400" />
                                     <ThemedText style={{ color: "#93c5fd", fontWeight: "700", fontSize: 15 }}>{seasonName}</ThemedText>
-                                    <ThemedText style={{ color: "#94a3b8", fontSize: 13 }}>Kết thúc sau</ThemedText>
+                                    <ThemedText style={{ color: "#94a3b8", fontSize: 13 }}>
+                                        {t("battle.season_info.ends_in")}
+                                    </ThemedText>
                                 </View>
 
                                 {endDate && (
                                     <View className="mt-1 flex-row items-center gap-2">
-                                        <CountdownTimer endDate={endDate} daysLabel="ngày" />
+                                        <CountdownTimer endDate={endDate} daysLabel={t("battle.season_info.days_label")} />
                                     </View>
                                 )}
                             </View>

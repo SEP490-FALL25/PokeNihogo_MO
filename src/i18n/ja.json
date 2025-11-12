@@ -291,7 +291,19 @@
         "tip_1": "定期的に練習して反応時間を改善する",
         "tip_2": "最初は速度よりも正確性に集中する",
         "tip_3": "間違いを研究して繰り返さないようにする",
-        "tip_4": "現在のスキルレベルに合ったバトルに参加する"
+        "tip_4": "現在のスキルレベルに合ったバトルに参加する",
+        "season_info": {
+            "ends_in": "終了まで",
+            "days_label": "日"
+        },
+        "rank_modal": {
+            "title": "ランクと必要ELO",
+            "description": "昇格に必要なELOです。現在のELO: <highlight>{{eloScore}}</highlight>。",
+            "current_badge": "現在のランク",
+            "empty_state": "ランクの閾値は更新中です。",
+            "range_between": "{{min}} 〜 {{max}} ELO",
+            "range_min": "{{min}} 以上のELO"
+        }
     },
     "lessons": {
         "title": "レッスン",

@@ -183,7 +183,19 @@
     "tip_1": "Luyện tập thường xuyên để cải thiện thời gian phản ứng",
     "tip_2": "Tập trung vào độ chính xác hơn là tốc độ lúc đầu",
     "tip_3": "Nghiên cứu lỗi sai để tránh lặp lại",
-    "tip_4": "Tham gia các trận chiến phù hợp với trình độ hiện tại"
+    "tip_4": "Tham gia các trận chiến phù hợp với trình độ hiện tại",
+    "season_info": {
+      "ends_in": "Kết thúc sau",
+      "days_label": "ngày"
+    },
+    "rank_modal": {
+      "title": "Bậc rank & mốc điểm",
+      "description": "Mốc ELO cần đạt để thăng hạng. Điểm ELO hiện tại của bạn: <highlight>{{eloScore}}</highlight>.",
+      "current_badge": "Hạng hiện tại",
+      "empty_state": "Thông tin mốc điểm đang được cập nhật.",
+      "range_between": "{{min}} - {{max}} ELO",
+      "range_min": "≥ {{min}} ELO"
+    }
   },
   "navigation": {
     "title": "Điều hướng chính",

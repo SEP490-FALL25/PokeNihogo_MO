@@ -183,7 +183,19 @@
     "tip_1": "Practice regularly to improve your reaction time",
     "tip_2": "Focus on accuracy over speed in the beginning",
     "tip_3": "Study your mistakes to avoid repeating them",
-    "tip_4": "Join battles that match your current skill level"
+    "tip_4": "Join battles that match your current skill level",
+    "season_info": {
+      "ends_in": "Ends in",
+      "days_label": "days"
+    },
+    "rank_modal": {
+      "title": "Rank tiers & ELO thresholds",
+      "description": "ELO milestones required to rank up. Your current ELO: <highlight>{{eloScore}}</highlight>.",
+      "current_badge": "Current rank",
+      "empty_state": "Rank thresholds are being updated.",
+      "range_between": "{{min}} - {{max}} ELO",
+      "range_min": "≥ {{min}} ELO"
+    }
   },
   "navigation": {
     "title": "Main Navigation",

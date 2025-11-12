@@ -1,7 +1,8 @@
 import React from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
-type RankRule = {
+export type RankRule = {
     name: string;
     min: number;
     max?: number | null;
@@ -16,20 +17,27 @@ type ModalRankProps = {
 };
 
 export default function ModalRank({ visible, onClose, rankRules, rankName, eloScore }: ModalRankProps) {
+    const { t } = useTranslation();
+
     return (
         <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
             <View className="flex-1 bg-[rgba(2,6,23,0.7)] justify-center items-center p-6">
                 <View className="w-full max-w-[420px] bg-[rgba(15,23,42,0.95)] rounded-3xl p-5 border border-[rgba(148,163,184,0.2)]">
                     <View className="flex-row items-center justify-between">
-                        <Text className="text-lg font-bold text-slate-100">Bậc rank & mốc điểm</Text>
+                        <Text className="text-lg font-bold text-slate-100">
+                            {t("battle.rank_modal.title")}
+                        </Text>
                         <TouchableOpacity onPress={onClose} className="w-8 h-8 rounded-full bg-[rgba(148,163,184,0.15)] items-center justify-center" activeOpacity={0.7}>
                             <Text className="-mt-[2px] text-[22px] text-[#cbd5f5] font-semibold">×</Text>
                         </TouchableOpacity>
                     </View>
 
                     <Text className="mt-3 text-[13px] leading-[18px] text-slate-400">
-                        Mốc ELO cần đạt để thăng hạng. Điểm ELO hiện tại của bạn:{" "}
-                        <Text className="text-[#38bdf8] font-bold">{eloScore}</Text>.
+                        <Trans
+                            i18nKey="battle.rank_modal.description"
+                            values={{ eloScore }}
+                            components={{ highlight: <Text className="text-[#38bdf8] font-bold" /> }}
+                        />
                     </Text>
 
                     {rankRules.length > 0 ? (
@@ -42,8 +50,8 @@ export default function ModalRank({ visible, onClose, rankRules, rankName, eloSc
                                 const isCurrent = rule.name === rankName;
                                 const rangeText =
                                     rule.max && rule.max > rule.min
-                                        ? `${rule.min} - ${rule.max} ELO`
-                                        : `≥ ${rule.min} ELO`;
+                                        ? t("battle.rank_modal.range_between", { min: rule.min, max: rule.max })
+                                        : t("battle.rank_modal.range_min", { min: rule.min });
                                 return (
                                     <View
                                         key={rule.name}
@@ -56,7 +64,9 @@ export default function ModalRank({ visible, onClose, rankRules, rankName, eloSc
                                             <Text className="text-[13px] font-semibold text-[#cbd5f5]">{rangeText}</Text>
                                         </View>
                                         {isCurrent && (
-                                            <Text className="mt-2 text-xs font-semibold text-[#38bdf8]">Hạng hiện tại</Text>
+                                            <Text className="mt-2 text-xs font-semibold text-[#38bdf8]">
+                                                {t("battle.rank_modal.current_badge")}
+                                            </Text>
                                         )}
                                     </View>
                                 );
@@ -65,7 +75,7 @@ export default function ModalRank({ visible, onClose, rankRules, rankName, eloSc
                     ) : (
                         <View className="mt-5 py-6 items-center justify-center rounded-2xl bg-[rgba(148,163,184,0.08)]">
                             <Text className="text-[13px] text-[#cbd5f5]">
-                                Thông tin mốc điểm đang được cập nhật.
+                                {t("battle.rank_modal.empty_state")}
                             </Text>
                         </View>
                     )}
