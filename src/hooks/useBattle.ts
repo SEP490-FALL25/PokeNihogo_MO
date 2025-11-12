@@ -55,3 +55,31 @@ export const useChoosePokemon = () => {
     });
 };
 //------------------------End------------------------//
+
+
+/**
+ * Get leaderboard season now
+ * @returns Leaderboard season now data
+ */
+export const useLeaderboardSeasonNow = () => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['leaderboard-season-now'],
+        queryFn: () => battleService.getLeaderboardSeasonNow(),
+    });
+    return { data: data?.data.data, isLoading, isError };
+};
+//------------------------End------------------------//
+
+
+/**
+ * Get user matching history
+ * @returns User matching history data
+ */
+export const useUserMatchingHistory = () => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['user-matching-history'],
+        queryFn: () => battleService.getUserMatchingHistory(),
+    });
+    return { data: data?.data.data, isLoading, isError };
+};
+//------------------------End------------------------//
