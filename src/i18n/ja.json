@@ -144,7 +144,8 @@
         "listening": "リスニング",
         "speaking": "スピーキング",
         "battle": "バトル",
-        "quiz_demo": "クイズデモ"
+        "quiz_demo": "クイズデモ",
+        "ai_speaking": "AI"
     },
     "settings": {
         "title": "設定",

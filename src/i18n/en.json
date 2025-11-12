@@ -353,7 +353,8 @@
     "listening": "Listening",
     "speaking": "Speaking",
     "battle": "Battle",
-    "quiz_demo": "Quiz Demo"
+    "quiz_demo": "Quiz Demo",
+    "ai_speaking": "AI"
   },
   "settings": {
     "title": "Settings",
