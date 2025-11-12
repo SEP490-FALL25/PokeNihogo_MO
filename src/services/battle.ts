@@ -30,10 +30,6 @@ const battleService = {
         return axiosPrivate.put(`/round-question/answer/${roundQuestionId}`, data);
     },
 
-    getLeaderboardSeasonNow: async () => {
-        return axiosPrivate.get(`/leaderboard-season/reward-now`);
-    },
-
     getUserMatchingHistory: async () => {
         return axiosPrivate.get(`/user/matching/history`);
     },

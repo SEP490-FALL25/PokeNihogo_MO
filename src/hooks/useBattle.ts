@@ -58,20 +58,6 @@ export const useChoosePokemon = () => {
 
 
 /**
- * Get leaderboard season now
- * @returns Leaderboard season now data
- */
-export const useLeaderboardSeasonNow = () => {
-    const { data, isLoading, isError } = useQuery({
-        queryKey: ['leaderboard-season-now'],
-        queryFn: () => battleService.getLeaderboardSeasonNow(),
-    });
-    return { data: data?.data.data, isLoading, isError };
-};
-//------------------------End------------------------//
-
-
-/**
  * Get user matching history
  * @returns User matching history data
  */
