@@ -308,6 +308,12 @@ const CategoriesScreen = () => {
     }
   }, [refetchProgress, refetchCategories, queryClient]);
 
+  // Auto refresh when component mounts
+  useEffect(() => {
+    handleRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleLessonPress = useCallback((lesson: LessonProgress) => {
     // Navigate to lesson detail or start lesson
     router.push({

@@ -146,8 +146,8 @@ const convertLessonsToNodes = (
     // Unlock: Chỉ xét status, không cần check bài trước. Tất cả bài đều unlock (có thể làm bất kì bài nào)
     const isUnlocked = true;
 
-    // Icon: TESTING_LAST dùng sấm sét, các status khác dùng ngôi sao
-    const icon = lesson.status === "TESTING_LAST" ? "bolt" : "star";
+    // Icon: TESTING_LAST và TESTING_LAST_FAILED dùng sấm sét, các status khác dùng ngôi sao
+    const icon = lesson.status === "TESTING_LAST" || (lesson.status as string) === "TESTING_LAST_FAILED" ? "bolt" : "star";
 
     data.push({
       id: lesson.id,
@@ -203,7 +203,7 @@ const LessonNodeComponent: React.FC<{
         borderColor: "#93c5fd",
       });
       shadowColor = "#1e3a8a";
-    } else if (status === "FAILED") {
+    } else if (status === "FAILED" || (status as string) === "TESTING_LAST_FAILED") {
       // Thất bại: màu đỏ
       iconContainerStyle.push({
         backgroundColor: "#ef4444",
@@ -227,7 +227,7 @@ const LessonNodeComponent: React.FC<{
             ? "#86efac"
             : status === "IN_PROGRESS" || status === "TESTING_LAST"
             ? "#93c5fd"
-            : status === "FAILED"
+            : status === "FAILED" || (status as string) === "TESTING_LAST_FAILED"
             ? "#fca5a5"
             : "#a3e635",
       });
