@@ -196,6 +196,11 @@
       "range_between": "{{min}} - {{max}} ELO",
       "range_min": "≥ {{min}} ELO"
     },
+    "stats": {
+      "total_wins": "Trận thắng",
+      "win_rate": "Tỷ lệ thắng",
+      "win_streak": "Chuỗi thắng"
+    },
     "lobby": {
       "title": "⚡ SẢNH ĐẤU",
       "history_button": "Lịch sử",

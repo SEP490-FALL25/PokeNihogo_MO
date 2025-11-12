@@ -304,6 +304,11 @@
             "range_between": "{{min}} 〜 {{max}} ELO",
             "range_min": "{{min}} 以上のELO"
         },
+        "stats": {
+            "total_wins": "勝利数",
+            "win_rate": "勝率",
+            "win_streak": "連勝"
+        },
         "lobby": {
             "title": "⚡ バトルロビー",
             "history_button": "履歴",

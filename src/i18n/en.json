@@ -196,6 +196,11 @@
       "range_between": "{{min}} - {{max}} ELO",
       "range_min": "≥ {{min}} ELO"
     },
+    "stats": {
+      "total_wins": "Total Wins",
+      "win_rate": "Win Rate",
+      "win_streak": "Win Streak"
+    },
     "lobby": {
       "title": "⚡ BATTLE LOBBY",
       "history_button": "History",
