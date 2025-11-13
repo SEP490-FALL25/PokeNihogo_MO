@@ -68,10 +68,10 @@ export default function AbilitiesScreen() {
       }
     >
       <ThemedText type="title" style={styles.title}>
-        🎯 Năng lực
+        🎯 {t("tabs.abilities")}
       </ThemedText>
       <ThemedText style={styles.subtitle}>
-        Luyện tập và nâng cao kỹ năng tiếng Nhật của bạn
+        {t("tabs.abilities_subtitle")}
       </ThemedText>
 
       {/* Tab Navigation */}
