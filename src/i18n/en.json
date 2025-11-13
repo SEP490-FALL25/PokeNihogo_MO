@@ -670,6 +670,11 @@
     },
     "condition_types": {
       "learning_streak": "{{days}} consecutive days of learning"
+    },
+    "reward": {
+      "receive_button": "Receive Reward",
+      "receive_success": "Reward received successfully!",
+      "receive_error": "Failed to receive reward. Please try again."
     }
   }
 }

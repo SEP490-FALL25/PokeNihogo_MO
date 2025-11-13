@@ -1,13 +1,14 @@
 // src/app/(app)/achievements.tsx
+import MinimalGameAlert from '@components/atoms/MinimalAlert';
 import BackScreen from '@components/molecules/Back';
-import { useAchievement } from '@hooks/useAchievement';
+import { useAchievement, useReceiveAchievementReward } from '@hooks/useAchievement';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { CheckCircle2, ImageOff, Sparkles } from 'lucide-react-native';
 import { cssInterop } from 'nativewind';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, SectionList, StatusBar, Text, View } from 'react-native';
+import { ActivityIndicator, Image, SectionList, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import * as Progress from 'react-native-progress';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,15 +17,18 @@ const TWLinearGradient = LinearGradient as unknown as React.ComponentType<React.
 
 type AchievementCardItem = {
     id: string;
+    achievementId: number;
     name: string;
     description: string;
     unlocked: boolean;
     statusLabel: string;
     progress: number;
     progressLabel: string;
+    showProgress: boolean;
     imageUrl: string | null;
     badgeColors: [string, string];
     rewardLabel?: string;
+    canReceiveReward: boolean;
 };
 
 type AchievementSection = {
@@ -40,7 +44,17 @@ const tierColorMap: Record<string, [string, string]> = {
 
 const getTierColors = (tier: string | undefined): [string, string] => tierColorMap[tier ?? ''] ?? ['#64748b', '#475569'];
 
-const AchievementCard = ({ item }: { item: AchievementCardItem }) => (
+const AchievementCard = ({
+    item,
+    onReceiveReward,
+    isReceivingReward,
+    t
+}: {
+    item: AchievementCardItem;
+    onReceiveReward: (achievementId: number) => void;
+    isReceivingReward: boolean;
+    t: (key: string, options?: any) => string;
+}) => (
     <View className="flex-1 my-2">
         <TWLinearGradient
             colors={item.unlocked ? ['#1e293b', '#334155'] : ['#374151', '#4b5563']}
@@ -79,19 +93,40 @@ const AchievementCard = ({ item }: { item: AchievementCardItem }) => (
                     <Text className="text-xs text-emerald-300 mt-1" numberOfLines={1}>{item.rewardLabel}</Text>
                 )}
 
+                {item.canReceiveReward && (
+                    <TouchableOpacity
+                        onPress={() => onReceiveReward(item.achievementId)}
+                        disabled={isReceivingReward}
+                        className={`mt-2 px-4 py-2 rounded-lg ${isReceivingReward ? 'bg-emerald-500/50' : 'bg-emerald-500'}`}
+                        activeOpacity={0.7}
+                    >
+                        <Text className="text-white text-xs font-semibold text-center">
+                            {isReceivingReward ? t('common.loading') : t('achievements.reward.receive_button', { defaultValue: 'Nhận thưởng' })}
+                        </Text>
+                    </TouchableOpacity>
+                )}
+
                 <View className="mt-3">
-                    <Progress.Bar
-                        progress={item.progress}
-                        width={null}
-                        height={6}
-                        color={item.unlocked ? '#22c55e' : item.badgeColors[1]}
-                        borderWidth={0}
-                        borderRadius={3}
-                        unfilledColor="#1e293b"
-                    />
-                    <Text className="text-right text-xs font-semibold text-slate-400 mt-1">
-                        {item.statusLabel} • {item.progressLabel}
-                    </Text>
+                    {item.showProgress ? (
+                        <>
+                            <Progress.Bar
+                                progress={item.progress}
+                                width={null}
+                                height={6}
+                                color={item.unlocked ? '#22c55e' : item.badgeColors[1]}
+                                borderWidth={0}
+                                borderRadius={3}
+                                unfilledColor="#1e293b"
+                            />
+                            <Text className="text-right text-xs font-semibold text-slate-400 mt-1">
+                                {item.statusLabel} • {item.progressLabel}
+                            </Text>
+                        </>
+                    ) : (
+                        <Text className="text-right text-xs font-semibold text-slate-400 mt-1">
+                            {item.statusLabel}
+                        </Text>
+                    )}
                 </View>
             </View>
         </TWLinearGradient>
@@ -121,6 +156,21 @@ const EmptyState = () => {
 export default function AchievementsScreen() {
     const { t } = useTranslation();
     const { data, isLoading, error } = useAchievement({ sort: 'displayOrder' });
+    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+    const [showErrorAlert, setShowErrorAlert] = useState(false);
+
+    const { mutate: receiveReward, isPending: isReceivingReward } = useReceiveAchievementReward();
+
+    const handleReceiveReward = (achievementId: number) => {
+        receiveReward(achievementId, {
+            onSuccess: () => {
+                setShowSuccessAlert(true);
+            },
+            onError: () => {
+                setShowErrorAlert(true);
+            },
+        });
+    };
 
     const sections = useMemo<AchievementSection[]>(() => {
         if (!data?.results) {
@@ -145,6 +195,10 @@ export default function AchievementsScreen() {
                             ? t('achievements.status.in_progress')
                             : t('achievements.status.locked');
                     const progressLabel = unlocked ? '100%' : '0%';
+                    // Can receive reward if achievement is completed (status === 'COMPLETED' or achievedAt !== null) and has reward
+                    // Note: This logic might need adjustment based on your API response structure
+                    // If API has a field indicating reward was already received, use that instead
+                    const canReceiveReward = unlocked && achievement.reward !== null;
 
                     const conditionDescription = (() => {
                         switch (achievement.conditionType) {
@@ -157,15 +211,18 @@ export default function AchievementsScreen() {
 
                     return {
                         id: achievement.id.toString(),
+                        achievementId: achievement.id,
                         name: achievement.nameTranslation ?? achievement.nameKey,
                         description: conditionDescription,
                         unlocked,
                         statusLabel,
                         progress,
                         progressLabel,
+                        showProgress,
                         imageUrl: achievement.imageUrl,
                         badgeColors: getTierColors(achievement.achievementTierType),
                         rewardLabel: achievement.reward?.nameTranslation ?? achievement.reward?.nameKey ?? undefined,
+                        canReceiveReward,
                     } satisfies AchievementCardItem;
                 }),
             }))
@@ -189,7 +246,14 @@ export default function AchievementsScreen() {
                 <SectionList
                     sections={sections}
                     keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => <AchievementCard item={item} />}
+                    renderItem={({ item }) => (
+                        <AchievementCard
+                            item={item}
+                            onReceiveReward={handleReceiveReward}
+                            isReceivingReward={isReceivingReward}
+                            t={t}
+                        />
+                    )}
                     renderSectionHeader={({ section: { title } }) => (
                         <View className="flex-row items-center gap-3 px-4 pt-6 pb-2">
                             <TWLinearGradient colors={['#6FAFB2', '#7EC5C8']} className="w-8 h-8 rounded-lg items-center justify-center">
@@ -202,6 +266,20 @@ export default function AchievementsScreen() {
                     ListEmptyComponent={!error ? EmptyState : undefined}
                 />
             )}
+
+            <MinimalGameAlert
+                message={t('achievements.reward.receive_success')}
+                visible={showSuccessAlert}
+                onHide={() => setShowSuccessAlert(false)}
+                type="success"
+            />
+
+            <MinimalGameAlert
+                message={t('achievements.reward.receive_error')}
+                visible={showErrorAlert}
+                onHide={() => setShowErrorAlert(false)}
+                type="error"
+            />
         </SafeAreaView>
     );
 }

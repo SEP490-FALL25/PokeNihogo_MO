@@ -531,6 +531,11 @@
         },
         "condition_types": {
             "learning_streak": "{{days}}日連続学習"
+        },
+        "reward": {
+            "receive_button": "報酬を受け取る",
+            "receive_success": "報酬を受け取りました！",
+            "receive_error": "報酬の受け取りに失敗しました。もう一度お試しください。"
         }
     }
 }

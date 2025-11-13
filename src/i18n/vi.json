@@ -670,6 +670,11 @@
     },
     "condition_types": {
       "learning_streak": "Chuỗi {{days}} ngày học liên tiếp"
+    },
+    "reward": {
+      "receive_button": "Nhận thưởng",
+      "receive_success": "Đã nhận thưởng thành công!",
+      "receive_error": "Nhận thưởng thất bại. Vui lòng thử lại."
     }
   }
 }
