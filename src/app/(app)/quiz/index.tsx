@@ -4,6 +4,7 @@ import { QuizProgress } from "@components/quiz/index/QuizProgress";
 import { QuizQuestionCard } from "@components/quiz/index/QuizQuestionCard";
 import { QuizHeader } from "@components/quiz/shared/QuizHeader";
 import { ConfirmModal } from "@components/ui/ConfirmModal";
+import { ExerciseAttemptStatus } from "@constants/exercise.enum";
 // import BounceButton from "@components/ui/BounceButton";
 // import { Button } from "@components/ui/Button";
 import { useUpsertUserAnswerLog } from "@hooks/useUserAnswerLog";
@@ -375,7 +376,7 @@ export default function QuizScreen() {
     continueAndAbandonExercise(
       {
         exerciseAttemptId: currentExerciseAttemptId.toString(),
-        status: "SKIPPED",
+        status: ExerciseAttemptStatus.SKIPPED,
       },
       {
         onSuccess: () => {
@@ -399,7 +400,7 @@ export default function QuizScreen() {
     continueAndAbandonExercise(
       {
         exerciseAttemptId: currentExerciseAttemptId.toString(),
-        status: "IN_PROGRESS",
+        status: ExerciseAttemptStatus.IN_PROGRESS,
       },
       {
         onSuccess: () => {

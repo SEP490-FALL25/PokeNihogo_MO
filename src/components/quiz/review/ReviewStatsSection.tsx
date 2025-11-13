@@ -1,3 +1,4 @@
+import { ExerciseAttemptStatus } from "@constants/exercise.enum";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -14,7 +15,7 @@ interface ReviewStats {
 
 interface ReviewStatsSectionProps {
   stats: ReviewStats;
-  questions: Array<{ id: number; isCorrect?: boolean }>;
+  questions: { id: number; isCorrect?: boolean }[];
   onQuestionPress?: (questionId: string, index: number) => void;
 }
 
@@ -33,13 +34,22 @@ export function ReviewStatsSection({
     return `${hrs.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Calculate circular progress percentages
-  const circularProgress = useMemo(() => {
-    const correctPercent = (stats.answeredCorrect / stats.totalQuestions) * 100;
-    const incorrectPercent =
-      (stats.answeredInCorrect / stats.totalQuestions) * 100;
-    return { correct: correctPercent, incorrect: incorrectPercent };
-  }, [stats]);
+  const isFailedStatus = useMemo(() => {
+    return (
+      stats.status === ExerciseAttemptStatus.FAIL ||
+      stats.status === ExerciseAttemptStatus.FAILED
+    );
+  }, [stats.status]);
+
+  // Determine progress color based on status
+  const progressColor = useMemo(() => {
+    return isFailedStatus ? "#ef4444" : "#14b8a6";
+  }, [isFailedStatus]);
+
+  // Text color for circular progress
+  const textColor = useMemo(() => {
+    return isFailedStatus ? "#ef4444" : "#14b8a6";
+  }, [isFailedStatus]);
 
   // Helper to check if question is correct
   const getQuestionStatus = (index: number) => {
@@ -65,39 +75,24 @@ export function ReviewStatsSection({
               strokeWidth="8"
               fill="none"
             />
-            {/* Incorrect segment */}
-            {circularProgress.incorrect > 0 && (
-              <Circle
-                cx="50"
-                cy="50"
-                r="45"
-                stroke="#ef4444"
-                strokeWidth="8"
-                fill="none"
-                strokeDasharray={`${2 * Math.PI * 45}`}
-                strokeDashoffset={`${2 * Math.PI * 45 * (1 - circularProgress.incorrect / 100)}`}
-                strokeLinecap="round"
-                transform={`rotate(-90 50 50)`}
-              />
-            )}
-            {/* Correct segment */}
-            {circularProgress.correct > 0 && (
-              <Circle
-                cx="50"
-                cy="50"
-                r="45"
-                stroke="#14b8a6"
-                strokeWidth="8"
-                fill="none"
-                strokeDasharray={`${2 * Math.PI * 45}`}
-                strokeDashoffset={`${2 * Math.PI * 45 * (1 - (circularProgress.correct + circularProgress.incorrect) / 100)}`}
-                strokeLinecap="round"
-                transform={`rotate(${-90 + (circularProgress.incorrect / 100) * 360} 50 50)`}
-              />
-            )}
+            {/* Progress circle based on status */}
+            <Circle
+              cx="50"
+              cy="50"
+              r="45"
+              stroke={progressColor}
+              strokeWidth="8"
+              fill="none"
+              strokeDasharray={`${2 * Math.PI * 45}`}
+              strokeDashoffset="0"
+              strokeLinecap="round"
+              transform={`rotate(-90 50 50)`}
+            />
           </Svg>
           <View style={styles.circularTextContainer}>
-            <Text style={styles.circularText}>{stats.answeredCorrect}</Text>
+            <Text style={[styles.circularText, { color: textColor }]}>
+              {stats.answeredCorrect}
+            </Text>
           </View>
         </View>
 
@@ -120,16 +115,16 @@ export function ReviewStatsSection({
             <View
               style={[
                 styles.statusBadge,
-                stats.status === "FAIL" && styles.statusBadgeFail,
+                isFailedStatus && styles.statusBadgeFail,
               ]}
             >
               <Text
                 style={[
                   styles.statusText,
-                  stats.status === "FAIL" && styles.statusTextFail,
+                  isFailedStatus && styles.statusTextFail,
                 ]}
               >
-                {stats.status === "FAIL" ? "Không đạt" : "Đạt"}
+                {isFailedStatus ? "Không đạt" : "Đạt"}
               </Text>
             </View>
           </View>
@@ -239,7 +234,6 @@ const styles = StyleSheet.create({
   circularText: {
     fontSize: 32,
     fontWeight: "700",
-    color: "#14b8a6",
   },
   statsList: {
     flex: 1,
