@@ -51,6 +51,7 @@ enum TABS {
   HOME = "/(app)/(tabs)/home",
   LEARN = "/(app)/(tabs)/learn",
   LESSONS = "/(app)/(tabs)/lessons",
+  ABILITIES = "/(app)/(tabs)/abilities",
   READING = "/(app)/(tabs)/reading",
   LISTENING = "/(app)/(tabs)/listening",
   SPEAKING = "/(app)/(tabs)/speaking",

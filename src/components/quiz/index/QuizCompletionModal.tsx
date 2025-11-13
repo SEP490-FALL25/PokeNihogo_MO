@@ -1,3 +1,4 @@
+import { QuizCompletionStatus } from "@constants/quiz.enum";
 import { ICheckCompletionData } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import React, { useEffect, useMemo, useRef } from "react";
 import {
@@ -72,6 +73,24 @@ export function QuizCompletionModal({
       fadeAnim.setValue(0);
     }
   }, [visible, scaleAnim, fadeAnim]);
+
+  const statusLabel = useMemo(() => {
+    if (!data) {
+      return "Chưa bắt đầu";
+    }
+
+    switch (data.status) {
+      case QuizCompletionStatus.COMPLETED:
+        return "Hoàn thành";
+      case QuizCompletionStatus.IN_PROGRESS:
+        return "Đang làm";
+      case QuizCompletionStatus.FAILED:
+        return "Không đạt";
+      case QuizCompletionStatus.PENDING:
+      default:
+        return "Chưa bắt đầu";
+    }
+  }, [data]);
 
   if (!visible || !data) return null;
 
@@ -163,11 +182,7 @@ export function QuizCompletionModal({
                           : styles.statusTextInProgress,
                       ]}
                     >
-                      {data.status === "COMPLETED"
-                        ? "Hoàn thành"
-                        : data.status === "IN_PROGRESS"
-                        ? "Đang làm"
-                        : "Chưa bắt đầu"}
+                      {statusLabel}
                     </Text>
                   </View>
                 </View>

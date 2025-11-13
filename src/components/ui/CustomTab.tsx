@@ -38,10 +38,10 @@ const getTabConfig = (t: (key: string) => string): Tab[] => [
     color: "#06b6d4",
   },
   {
-    name: "speaking",
-    icon: "volume-high",
-    label: t("tabs.speaking"),
-    route: ROUTES.TABS.SPEAKING,
+    name: "abilities",
+    icon: "trophy",
+    label: t("tabs.abilities"),
+    route: ROUTES.TABS.ABILITIES,
     color: "#f59e0b",
   },
   {

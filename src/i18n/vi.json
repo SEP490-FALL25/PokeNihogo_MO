@@ -478,6 +478,8 @@
   "tabs": {
     "home": "Trang chủ",
     "learn": "Học",
+    "abilities": "Năng lực",
+    "abilities_subtitle": "Luyện tập và nâng cao kỹ năng tiếng Nhật của bạn",
     "reading": "Đọc",
     "listening": "Nghe",
     "speaking": "Nói",
@@ -650,13 +652,33 @@
   },
   "exercise_history": {
     "title": "Lịch sử bài tập",
+    "subtitle": "Xem lại các bài tập và bài test đã làm",
+    "exercises_tab": "Bài tập",
+    "tests_tab": "Bài kiểm tra",
+    "statistics": "Thống kê",
+    "total_attempts": "Tổng số lần làm",
+    "total_time": "Tổng thời gian",
+    "completed": "Hoàn thành",
+    "failed": "Thất bại",
+    "skipped": "Bỏ qua",
+    "abandoned": "Bỏ dở",
     "empty_title": "Chưa có bài tập nào",
     "empty_description": "Bạn chưa hoàn thành bài tập nào. Hãy bắt đầu học để xem lịch sử của bạn ở đây!",
+    "empty_exercises_title": "Chưa có bài tập nào",
+    "empty_exercises_description": "Bạn chưa hoàn thành bài tập nào. Hãy bắt đầu học để xem lịch sử của bạn ở đây!",
+    "empty_tests_title": "Chưa có bài kiểm tra nào",
+    "empty_tests_description": "Bạn chưa hoàn thành bài kiểm tra nào. Hãy làm bài test để xem lịch sử của bạn ở đây!",
     "load_error": "Không thể tải lịch sử bài tập",
     "retry": "Thử lại",
     "correct": "đúng",
-    "completed": "Hoàn thành",
+    "incorrect": "sai",
+    "in_progress": "Đang làm",
+    "not_started": "Chưa bắt đầu",
+    "review_requirement": "Cần đạt 80% để xem review",
+    "test": "Bài kiểm tra",
+    "exercise": "Bài tập",
     "unknown_exercise": "Bài tập không xác định",
+    "unknown_item": "Không xác định",
     "filters": {
       "all_levels": "Tất cả cấp độ",
       "all_types": "Tất cả loại"
@@ -672,6 +694,15 @@
     "just_now": "Vừa xong",
     "minutes_ago": "{{minutes}} phút trước",
     "hours_ago": "{{hours}} giờ trước",
-    "days_ago": "{{days}} ngày trước"
+    "days_ago": "{{days}} ngày trước",
+    "status": {
+      "not_started": "Chưa bắt đầu",
+      "in_progress": "Đang làm",
+      "completed": "Hoàn thành",
+      "fail": "Thất bại",
+      "failed": "Thất bại",
+      "abandoned": "Bỏ dở",
+      "skipped": "Bỏ qua"
+    }
   }
 }

@@ -463,12 +463,19 @@
   "tabs": {
     "home": "Home",
     "learn": "Learn",
+    "abilities": "Abilities",
+    "abilities_subtitle": "Practice and improve your Japanese skills",
     "reading": "Reading",
     "listening": "Listening",
     "speaking": "Speaking",
     "battle": "Battle",
     "quiz_demo": "Quiz Demo",
-    "ai_speaking": "AI"
+    "ai_speaking": "AI",
+    "subtabs": {
+      "listening": "Listening",
+      "reading": "Reading",
+      "speaking": "Speaking"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -635,13 +642,33 @@
   },
   "exercise_history": {
     "title": "Exercise History",
+    "subtitle": "Review your completed exercises and tests",
+    "exercises_tab": "Exercises",
+    "tests_tab": "Tests",
+    "statistics": "Statistics",
+    "total_attempts": "Total Attempts",
+    "total_time": "Total Time",
+    "completed": "Completed",
+    "failed": "Failed",
+    "skipped": "Skipped",
+    "abandoned": "Abandoned",
     "empty_title": "No exercises yet",
     "empty_description": "You haven't completed any exercises. Start learning to see your history here!",
+    "empty_exercises_title": "No exercises yet",
+    "empty_exercises_description": "You haven't completed any exercises. Start learning to see your history here!",
+    "empty_tests_title": "No tests yet",
+    "empty_tests_description": "You haven't completed any tests. Take a test to see your history here!",
     "load_error": "Unable to load exercise history",
     "retry": "Retry",
     "correct": "correct",
-    "completed": "Completed",
+    "incorrect": "incorrect",
+    "in_progress": "In Progress",
+    "not_started": "Not Started",
+    "review_requirement": "Need 80% to review",
+    "test": "Test",
+    "exercise": "Exercise",
     "unknown_exercise": "Unknown exercise",
+    "unknown_item": "Unknown",
     "filters": {
       "all_levels": "All levels",
       "all_types": "All types"
@@ -657,6 +684,15 @@
     "just_now": "Just now",
     "minutes_ago": "{{minutes}} min ago",
     "hours_ago": "{{hours}} hr ago",
-    "days_ago": "{{days}} days ago"
+    "days_ago": "{{days}} days ago",
+    "status": {
+      "not_started": "Not Started",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "fail": "Failed",
+      "failed": "Failed",
+      "abandoned": "Abandoned",
+      "skipped": "Skipped"
+    }
   }
 }
