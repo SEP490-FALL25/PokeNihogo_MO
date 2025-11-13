@@ -657,5 +657,19 @@
     "minutes_ago": "{{minutes}} phút trước",
     "hours_ago": "{{hours}} giờ trước",
     "days_ago": "{{days}} ngày trước"
+  },
+  "achievements": {
+    "title": "Sổ tay Thành tích",
+    "loading": "Đang tải danh sách thành tích...",
+    "empty": "Chưa có thành tích nào.",
+    "error": "Không thể tải dữ liệu thành tích. Vui lòng thử lại sau.",
+    "status": {
+      "completed": "Đã hoàn thành",
+      "in_progress": "Đang tiến độ",
+      "locked": "Chưa mở khóa"
+    },
+    "condition_types": {
+      "learning_streak": "Chuỗi {{days}} ngày học liên tiếp"
+    }
   }
 }
