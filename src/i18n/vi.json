@@ -704,5 +704,25 @@
       "abandoned": "Bỏ dở",
       "skipped": "Bỏ qua"
     }
+  },
+  "dictionary": {
+    "title": "Từ điển",
+    "search_placeholder": "Tìm kiếm từ, kanji, hoặc cụm từ...",
+    "camera": "Camera",
+    "radical": "Bộ",
+    "voice": "Giọng nói",
+    "handwriting": "Viết tay",
+    "no_results": "Không tìm thấy kết quả",
+    "try_different_search": "Thử tìm kiếm với từ khóa khác",
+    "start_searching": "Bắt đầu tìm kiếm",
+    "search_description": "Nhập tiếng Nhật hoặc tiếng Anh để tìm kiếm từ, kanji, câu, và nhiều hơn nữa",
+    "recent_searches": "Tìm kiếm gần đây",
+    "tabs": {
+      "word": "Từ",
+      "kanji": "Kanji",
+      "sentence": "Câu",
+      "grammar": "Ngữ pháp",
+      "japan_japan": "Nhật - Nhật"
+    }
   }
 }

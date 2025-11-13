@@ -694,5 +694,25 @@
       "abandoned": "Abandoned",
       "skipped": "Skipped"
     }
+  },
+  "dictionary": {
+    "title": "Dictionary",
+    "search_placeholder": "Search for words, kanji, or phrases...",
+    "camera": "Camera",
+    "radical": "Radical",
+    "voice": "Voice",
+    "handwriting": "Write",
+    "no_results": "No results found",
+    "try_different_search": "Try searching with different keywords",
+    "start_searching": "Start searching",
+    "search_description": "Type Japanese or English to search for words, kanji, sentences, and more",
+    "recent_searches": "Recent Searches",
+    "tabs": {
+      "word": "Word",
+      "kanji": "Kanji",
+      "sentence": "Sentence",
+      "grammar": "Grammar",
+      "japan_japan": "Japan - Japan"
+    }
   }
 }

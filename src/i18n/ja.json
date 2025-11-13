@@ -576,5 +576,25 @@
             "abandoned": "放棄",
             "skipped": "スキップ"
         }
+    },
+    "dictionary": {
+        "title": "辞書",
+        "search_placeholder": "単語、漢字、フレーズを検索...",
+        "camera": "カメラ",
+        "radical": "部首",
+        "voice": "音声",
+        "handwriting": "手書き",
+        "no_results": "結果が見つかりません",
+        "try_different_search": "別のキーワードで検索してください",
+        "start_searching": "検索を開始",
+        "search_description": "日本語または英語を入力して、単語、漢字、文章などを検索",
+        "recent_searches": "最近の検索",
+        "tabs": {
+            "word": "単語",
+            "kanji": "漢字",
+            "sentence": "文",
+            "grammar": "文法",
+            "japan_japan": "日本 - 日本"
+        }
     }
 }

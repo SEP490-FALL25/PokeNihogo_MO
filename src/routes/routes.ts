@@ -13,6 +13,7 @@ enum ME {
   SETTINGS = "/(app)/(me)/settings",
   POKEMON_DETAIL = "/(app)/(me)/pokemon/[id]",
   EXERCISE_HISTORY = "/(app)/(me)/exercise-history",
+  DICTIONARY = "/(app)/(me)/dictionary",
 }
 
 enum AUTH {
