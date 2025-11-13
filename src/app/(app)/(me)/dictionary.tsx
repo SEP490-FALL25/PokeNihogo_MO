@@ -45,6 +45,7 @@ export default function DictionaryScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [language, setLanguage] = useState<'ja' | 'en'>('en');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFocused, setIsFocused] = useState(false);
   
   // Debounce search query to avoid too many API calls
   const debouncedQuery = useDebounce(searchQuery, 300);
@@ -129,6 +130,8 @@ export default function DictionaryScreen() {
                 // Reset to page 1 when search query changes
                 setCurrentPage(1);
               }}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               returnKeyType="search"
               autoCapitalize="none"
               autoCorrect={false}
@@ -190,7 +193,7 @@ export default function DictionaryScreen() {
               {t('dictionary.try_different_search')}
             </Text>
           </View>
-        ) : searchHistory.length > 0 ? (
+        ) : isFocused && searchHistory.length > 0 ? (
           <ScrollView className="flex-1 px-4 py-4">
             <View className="flex-row items-center mb-3">
               <Clock size={18} color="#9ca3af" />
