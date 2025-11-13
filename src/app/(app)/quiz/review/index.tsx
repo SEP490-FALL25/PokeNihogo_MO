@@ -2,6 +2,10 @@ import QuizLayout from "@components/layouts/QuizLayout";
 import { ReviewQuestionCard } from "@components/quiz/review/ReviewQuestionCard";
 import { ReviewStatsSection } from "@components/quiz/review/ReviewStatsSection";
 import { QuizHeader } from "@components/quiz/shared/QuizHeader";
+import {
+  ScrollToTopButton,
+  useScrollToTop,
+} from "@components/ui/ScrollToTopButton";
 import { useReviewResultUnified } from "@hooks/useReviewResultUnified";
 import { IReviewResultQuestionBank } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import { router, useLocalSearchParams } from "expo-router";
@@ -48,6 +52,10 @@ export default function QuizReviewScreen() {
   const scaleAnims = useRef<Record<string, Animated.Value[]>>({}).current;
   const scrollRef = useRef<ScrollView | null>(null);
   const questionOffsetsRef = useRef<Record<string, number>>({});
+  
+  // Scroll to top button logic
+  const { showButton, buttonOpacity, handleScroll, scrollToTop } =
+    useScrollToTop(scrollRef, 200);
 
   // Get sorted questions by questionOrder
   const questions = useMemo((): IReviewResultQuestionBank[] => {
@@ -122,29 +130,31 @@ export default function QuizReviewScreen() {
       }
     >
       <View style={styles.container}>
-        {/* Statistics Section - Fixed at top */}
-        {stats && (
-          <ReviewStatsSection
-            stats={stats}
-            questions={questions.map((q) => ({ id: q.id, isCorrect: q.isCorrect }))}
-            onQuestionPress={(questionId, index) => {
-              const offset = questionOffsetsRef.current[questionId];
-              if (offset !== undefined && scrollRef.current) {
-                scrollRef.current.scrollTo({
-                  y: offset - 20,
-                  animated: true,
-                });
-              }
-            }}
-          />
-        )}
-
-        {/* Questions ScrollView */}
+        {/* Questions ScrollView with Statistics Section inside */}
         <ScrollView
           ref={scrollRef}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: 0 }]}
           style={styles.questionsScrollView}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
         >
+          {/* Statistics Section - Now scrolls with questions */}
+          {stats && (
+            <ReviewStatsSection
+              stats={stats}
+              questions={questions.map((q) => ({ id: q.id, isCorrect: q.isCorrect }))}
+              onQuestionPress={(questionId, index) => {
+                const offset = questionOffsetsRef.current[questionId];
+                if (offset !== undefined && scrollRef.current) {
+                  scrollRef.current.scrollTo({
+                    y: offset - 20,
+                    animated: true,
+                  });
+                }
+              }}
+            />
+          )}
+
           {questions.map((q, qIdx) => {
             const userSelectedIds = getUserSelectedAnswers(q);
             const correctAnswerIds = getCorrectAnswers(q);
@@ -171,6 +181,13 @@ export default function QuizReviewScreen() {
             );
           })}
         </ScrollView>
+
+        {/* Scroll to Top Button */}
+        <ScrollToTopButton
+          show={showButton}
+          opacity={buttonOpacity}
+          onPress={scrollToTop}
+        />
       </View>
     </QuizLayout>
   );
@@ -181,7 +198,6 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: { fontSize: 18, color: "#6b7280" },
   questionsScrollView: { flex: 1 },
-
   scrollContent: { paddingBottom: 24 },
 });
 
