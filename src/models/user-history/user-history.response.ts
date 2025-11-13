@@ -36,3 +36,31 @@ export const HistoryListResponseSchema = z.object({
 export type IHistoryItem = z.infer<typeof HistoryItemSchema>;
 export type IHistoryListResponse = z.infer<typeof HistoryListResponseSchema>;
 
+/**
+ * Recent Exercise Item Schema
+ */
+export const RecentExerciseItemSchema = z.object({
+  exerciseId: z.number(),
+  exerciseName: z.string(),
+  lessonId: z.number(),
+  lessonTitle: z.string(),
+  status: z.string(), // FAILED, SKIPPED, COMPLETED, etc.
+});
+
+export const RecentExercisesResponseSchema = z.object({
+  statusCode: z.number(),
+  message: z.string(),
+  data: z.object({
+    results: z.array(RecentExerciseItemSchema),
+    pagination: z.object({
+      current: z.number(),
+      pageSize: z.number(),
+      totalPage: z.number(),
+      totalItem: z.number(),
+    }),
+  }),
+});
+
+export type IRecentExerciseItem = z.infer<typeof RecentExerciseItemSchema>;
+export type IRecentExercisesResponse = z.infer<typeof RecentExercisesResponseSchema>;
+

@@ -1,4 +1,4 @@
-import { IHistoryListResponse } from "@models/user-history/user-history.response";
+import { IHistoryListResponse, IRecentExercisesResponse } from "@models/user-history/user-history.response";
 import userHistoryService from "@services/user-history";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
@@ -8,6 +8,11 @@ type GetHistoryExercisesParams = {
 };
 
 type GetHistoryTestsParams = {
+  currentPage?: number;
+  pageSize?: number;
+};
+
+type GetRecentExercisesParams = {
   currentPage?: number;
   pageSize?: number;
 };
@@ -84,5 +89,21 @@ export const useCombinedHistory = (params?: {
       testsQuery.refetch();
     },
   };
+};
+
+/**
+ * Hook to get recent exercises
+ */
+export const useRecentExercises = (params?: GetRecentExercisesParams) => {
+  return useQuery({
+    queryKey: ["recent-exercises", params],
+    queryFn: async () => {
+      const res = await userHistoryService.getRecentExercises({
+        currentPage: params?.currentPage ?? 1,
+        pageSize: params?.pageSize ?? 10,
+      });
+      return res.data as IRecentExercisesResponse;
+    },
+  });
 };
 

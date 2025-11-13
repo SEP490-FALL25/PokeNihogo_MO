@@ -5,12 +5,24 @@ import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import WelcomeModal from "@components/ui/WelcomeModal";
 import { useUserProgressInfinite } from "@hooks/useLessons";
-import { useUserTests } from "@hooks/useUserTest";
+import { useRecentExercises } from "@hooks/useUserHistory";
+import { IRecentExerciseItem } from "@models/user-history/user-history.response";
 import { IUserProgress } from "@models/user-progress/user-progress.common";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
 import { router } from "expo-router";
-import { Award, BookOpen, Calendar, ChevronRight, Clock, FileText, Flame, Headphones, Mic, Target, TrendingUp } from "lucide-react-native";
+import {
+  Award,
+  BookOpen,
+  BookText,
+  Calendar,
+  ChevronRight,
+  Clock,
+  Flame,
+  Languages,
+  Target,
+  TrendingUp,
+} from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -26,25 +38,6 @@ import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
-/**
- * User Test Item Type
- */
-type UserTestItem = {
-  id: number;
-  limit: number;
-  status: string;
-  test: {
-    id: number;
-    name: string;
-    description: string;
-    price: number;
-    levelN: number;
-    testType: string;
-    status: string;
-    limit: number;
-  };
-};
 
 /**
  * Weekly Progress Chart Component
@@ -66,15 +59,12 @@ const WeeklyProgressChart: React.FC<{ data: number[] }> = ({ data }) => {
                     styles.chartBar,
                     {
                       height: `${Math.max(height, 10)}%`,
-                      backgroundColor:
-                        value > 0 ? "#3b82f6" : "#e5e7eb",
+                      backgroundColor: value > 0 ? "#3b82f6" : "#e5e7eb",
                     },
                   ]}
                 />
               </View>
-              <ThemedText style={styles.chartLabel}>
-                {days[index]}
-              </ThemedText>
+              <ThemedText style={styles.chartLabel}>{days[index]}</ThemedText>
             </View>
           );
         })}
@@ -185,58 +175,70 @@ const RecentActivityCard: React.FC<{
 };
 
 /**
- * Test Card Component for Exercises
+ * Exercise Card Component for Recent Exercises
  */
-const TestCard: React.FC<{
-  test: UserTestItem;
+const ExerciseCard: React.FC<{
+  exercise: IRecentExerciseItem;
   onPress: () => void;
-}> = ({ test, onPress }) => {
-  const getTestTypeColor = (testType: string) => {
-    switch (testType) {
-      case "LISTENING_TEST":
-        return "#8b5cf6";
-      case "READING_TEST":
-        return "#f59e0b";
-      case "SPEAKING_TEST":
-        return "#ef4444";
-      case "WRITING_TEST":
+}> = ({ exercise, onPress }) => {
+  const getExerciseTypeInfo = (exerciseName: string) => {
+    const name = exerciseName.toLowerCase();
+    if (name.includes("vocabulary") || name.includes("vocab")) {
+      return {
+        icon: BookOpen,
+        color: "#3b82f6", // Blue
+        type: "Từ vựng",
+      };
+    } else if (name.includes("kanji")) {
+      return {
+        icon: Languages,
+        color: "#ef4444", // Red
+        type: "Kanji",
+      };
+    } else if (name.includes("grammar") || name.includes("gramma")) {
+      return {
+        icon: BookText,
+        color: "#f59e0b", // Amber
+        type: "Ngữ pháp",
+      };
+    } else {
+      return {
+        icon: BookOpen,
+        color: "#8b5cf6", // Purple
+        type: "Bài tập",
+      };
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
         return "#10b981";
+      case "FAILED":
+        return "#ef4444";
+      case "SKIPPED":
+        return "#f59e0b";
       default:
         return "#3b82f6";
     }
   };
 
-  const getTestTypeIcon = (testType: string) => {
-    switch (testType) {
-      case "LISTENING_TEST":
-        return Headphones;
-      case "READING_TEST":
-        return FileText;
-      case "SPEAKING_TEST":
-        return Mic;
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return "Hoàn thành";
+      case "FAILED":
+        return "Chưa đạt";
+      case "SKIPPED":
+        return "Đã bỏ qua";
       default:
-        return Target;
+        return status;
     }
   };
 
-  const getTestTypeLabel = (testType: string) => {
-    switch (testType) {
-      case "LISTENING_TEST":
-        return "Nghe";
-      case "READING_TEST":
-        return "Đọc";
-      case "SPEAKING_TEST":
-        return "Nói";
-      case "WRITING_TEST":
-        return "Viết";
-      default:
-        return "Bài tập";
-    }
-  };
-
-  const Icon = getTestTypeIcon(test.test.testType);
-  const color = getTestTypeColor(test.test.testType);
-  const progress = test.limit / test.test.limit;
+  const typeInfo = getExerciseTypeInfo(exercise.exerciseName);
+  const Icon = typeInfo.icon;
+  const statusColor = getStatusColor(exercise.status);
 
   return (
     <TouchableOpacity
@@ -244,44 +246,27 @@ const TestCard: React.FC<{
       onPress={onPress}
       activeOpacity={0.7}
     >
+      <View style={[styles.testCardIcon, { backgroundColor: typeInfo.color }]}>
+        <Icon size={24} color="#ffffff" />
+      </View>
       <View style={styles.testCardContent}>
-        <View style={styles.testCardHeader}>
-          <View style={[styles.testCardIcon, { backgroundColor: `${color}15` }]}>
-            <Icon size={20} color={color} />
-          </View>
-          <View style={styles.testCardInfo}>
-            <ThemedText style={styles.testCardTitle} numberOfLines={1}>
-              {test.test.name}
-            </ThemedText>
-            <ThemedText style={styles.testCardSubtitle}>
-              {getTestTypeLabel(test.test.testType)} • N{test.test.levelN}
-            </ThemedText>
-          </View>
-        </View>
-        <View style={styles.testCardFooter}>
-          <View
-            style={[
-              styles.testCardStatus,
-              { backgroundColor: `${color}15` },
-            ]}
+        <ThemedText style={styles.testCardTitle} numberOfLines={1}>
+          {exercise.exerciseName}
+        </ThemedText>
+        <ThemedText style={styles.testCardSubtitle} numberOfLines={1}>
+          {exercise.lessonTitle}
+        </ThemedText>
+        <View
+          style={[
+            styles.testCardStatus,
+            { backgroundColor: `${statusColor}15` },
+          ]}
+        >
+          <ThemedText
+            style={[styles.testCardStatusText, { color: statusColor }]}
           >
-            <ThemedText
-              style={[
-                styles.testCardStatusText,
-                { color: color },
-              ]}
-            >
-              {getTestTypeLabel(test.test.testType)}
-            </ThemedText>
-          </View>
-          <Progress.Bar
-            progress={Math.min(progress, 1)}
-            width={60}
-            height={4}
-            color={color}
-            unfilledColor="#e5e7eb"
-            borderWidth={0}
-          />
+            {getStatusText(exercise.status)}
+          </ThemedText>
         </View>
       </View>
     </TouchableOpacity>
@@ -343,19 +328,16 @@ export default function HomeScreen() {
     sortOrder: "desc",
   });
 
-  // Fetch recent tests/exercises
-  const { data: userTestsData } = useUserTests({
+  // Fetch recent exercises
+  const { data: recentExercisesData } = useRecentExercises({
     currentPage: 1,
     pageSize: 10,
-    type: "ALL",
   });
 
   // Get all activities from paginated data
   const allActivities = useMemo(() => {
     if (!userProgressData?.pages) return [];
-    return userProgressData.pages.flatMap(
-      (page) => page?.data?.results || []
-    );
+    return userProgressData.pages.flatMap((page) => page?.data?.results || []);
   }, [userProgressData]);
 
   // Get recent activities from user progress
@@ -382,8 +364,7 @@ export default function HomeScreen() {
     const totalProgress =
       activities.length > 0
         ? activities.reduce(
-            (sum: number, item: IUserProgress) =>
-              sum + item.progressPercentage,
+            (sum: number, item: IUserProgress) => sum + item.progressPercentage,
             0
           ) / activities.length
         : 0;
@@ -411,7 +392,6 @@ export default function HomeScreen() {
     );
   }, [starterId]);
 
-
   /**
    * Show welcome modal for first-time users
    */
@@ -435,11 +415,10 @@ export default function HomeScreen() {
     console.log("User checked in daily!");
   };
 
-  // Get recent tests from API response
-  const recentTests = useMemo(() => {
-    const results = (userTestsData as any)?.data?.data?.results || [];
-    return results.slice(0, 10) as UserTestItem[];
-  }, [userTestsData]);
+  // Get recent exercises from API response
+  const recentExercises = useMemo(() => {
+    return recentExercisesData?.data?.results || [];
+  }, [recentExercisesData]);
 
   /**
    * Handle activity card press
@@ -449,14 +428,10 @@ export default function HomeScreen() {
   };
 
   /**
-   * Handle test card press
+   * Handle exercise card press
    */
-  const handleTestPress = (test: UserTestItem) => {
-    const testType = test.test.testType;
-    router.push({
-      pathname: "/test",
-      params: { testId: String(test.test.id), testType },
-    });
+  const handleExercisePress = (exercise: IRecentExerciseItem) => {
+    router.push(`${ROUTES.TABS.LEARN}?lessonId=${exercise.lessonId}`);
   };
 
   /**
@@ -586,15 +561,15 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Recent Tests/Exercises */}
-        {recentTests.length > 0 && (
+        {/* Recent Exercises */}
+        {recentExercises.length > 0 && (
           <View style={styles.recentSection}>
             <View style={styles.sectionHeader}>
               <ThemedText type="subtitle" style={styles.sectionTitle}>
                 {t("home.recent_exercises")}
               </ThemedText>
               <TouchableOpacity
-                onPress={() => router.push(ROUTES.TABS.LISTENING)}
+                onPress={() => router.push(ROUTES.TABS.LEARN)}
                 activeOpacity={0.7}
               >
                 <ThemedText style={styles.seeAllText}>
@@ -607,11 +582,11 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.recentScrollContent}
             >
-              {recentTests.map((test: UserTestItem) => (
-                <TestCard
-                  key={test.id}
-                  test={test}
-                  onPress={() => handleTestPress(test)}
+              {recentExercises.map((exercise: IRecentExerciseItem) => (
+                <ExerciseCard
+                  key={exercise.exerciseId}
+                  exercise={exercise}
+                  onPress={() => handleExercisePress(exercise)}
                 />
               ))}
             </ScrollView>
@@ -839,7 +814,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "rgba(243, 244, 246, 0.5)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -902,7 +877,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: "#eff6ff",
+    backgroundColor: "rgba(239, 246, 255, 0.5)",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
@@ -923,10 +898,11 @@ const styles = StyleSheet.create({
   },
   // Test Card Styles
   testCard: {
-    width: SCREEN_WIDTH * 0.75,
+    width: SCREEN_WIDTH * 0.6,
     backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: 16,
+    borderRadius: 12,
     shadowColor: "#000",
+    padding: 8,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -935,45 +911,42 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     marginRight: 12,
-  },
-  testCardContent: {
-    padding: 16,
-  },
-  testCardHeader: {
     flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
+    overflow: "hidden",
+    minHeight: 70,
+    height: 100,
   },
   testCardIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    height: "100%",
+    width: 80,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    alignSelf: "center",
+    borderRadius: 12,
+    opacity: 0.6,
   },
-  testCardInfo: {
+  testCardContent: {
     flex: 1,
+    padding: 12,
+    paddingLeft: 8,
+    justifyContent: "center",
   },
   testCardTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
     color: "#111827",
     marginBottom: 4,
   },
   testCardSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#6b7280",
-  },
-  testCardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    marginBottom: 8,
   },
   testCardStatus: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 16,
+    alignSelf: "flex-start",
   },
   testCardStatusText: {
     fontSize: 12,

@@ -1,5 +1,4 @@
 import { axiosPrivate } from "@configs/axios";
-import { IQueryRequest } from "@models/common/common.request";
 
 type GetHistoryExercisesParams = {
   currentPage?: number;
@@ -7,6 +6,11 @@ type GetHistoryExercisesParams = {
 };
 
 type GetHistoryTestsParams = {
+  currentPage?: number;
+  pageSize?: number;
+};
+
+type GetRecentExercisesParams = {
   currentPage?: number;
   pageSize?: number;
 };
@@ -45,6 +49,24 @@ const userHistoryService = {
     const queryString = queryParams.toString();
     return axiosPrivate.get(
       `/user-history/history-tests${queryString ? `?${queryString}` : ""}`
+    );
+  },
+
+  /**
+   * Get list of recent exercises
+   * GET /user-history/recent-exercises
+   */
+  getRecentExercises: async (params?: GetRecentExercisesParams) => {
+    const queryParams = new URLSearchParams();
+    if (params?.currentPage) {
+      queryParams.append("currentPage", params.currentPage.toString());
+    }
+    if (params?.pageSize) {
+      queryParams.append("pageSize", params.pageSize.toString());
+    }
+    const queryString = queryParams.toString();
+    return axiosPrivate.get(
+      `/user-history/recent-exercises${queryString ? `?${queryString}` : ""}`
     );
   },
 };
