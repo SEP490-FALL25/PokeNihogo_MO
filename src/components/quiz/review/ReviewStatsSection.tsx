@@ -1,7 +1,7 @@
 import { ExerciseAttemptStatus } from "@constants/exercise.enum";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useMemo, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
 interface ReviewStats {
@@ -17,14 +17,39 @@ interface ReviewStatsSectionProps {
   stats: ReviewStats;
   questions: { id: number; isCorrect?: boolean }[];
   onQuestionPress?: (questionId: string, index: number) => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export function ReviewStatsSection({
   stats,
   questions,
   onQuestionPress,
+  isCollapsed = false,
+  onToggleCollapse,
 }: ReviewStatsSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Animation values
+  const heightAnim = useRef(new Animated.Value(isCollapsed ? 0 : 1)).current;
+  const opacityAnim = useRef(new Animated.Value(isCollapsed ? 0 : 1)).current;
+  
+  // Animate when collapsed state changes
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(heightAnim, {
+        toValue: isCollapsed ? 0 : 1,
+        useNativeDriver: false,
+        tension: 65,
+        friction: 9,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: isCollapsed ? 0 : 1,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [isCollapsed, heightAnim, opacityAnim]);
 
   // Format time (seconds to HH:MM:SS)
   const formatTime = (seconds: number): string => {
@@ -62,133 +87,242 @@ export function ReviewStatsSection({
 
   return (
     <View style={styles.statsSection}>
-      <View style={styles.statsHeader}>
-        {/* Circular Progress */}
-        <View style={styles.circularProgressContainer}>
-          <Svg width={100} height={100} style={styles.circularSvg}>
-            {/* Background circle */}
-            <Circle
-              cx="50"
-              cy="50"
-              r="45"
-              stroke="#e5e7eb"
-              strokeWidth="8"
-              fill="none"
-            />
-            {/* Progress circle based on status */}
-            <Circle
-              cx="50"
-              cy="50"
-              r="45"
-              stroke={progressColor}
-              strokeWidth="8"
-              fill="none"
-              strokeDasharray={`${2 * Math.PI * 45}`}
-              strokeDashoffset="0"
-              strokeLinecap="round"
-              transform={`rotate(-90 50 50)`}
-            />
-          </Svg>
-          <View style={styles.circularTextContainer}>
-            <Text style={[styles.circularText, { color: textColor }]}>
-              {stats.answeredCorrect}
-            </Text>
-          </View>
-        </View>
+      {/* Collapsed View - Compact version with animation */}
+      {isCollapsed && (
+        <Animated.View 
+          style={[
+            styles.statsSectionCollapsed,
+            {
+              opacity: opacityAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [1, 0],
+              }),
+              transform: [
+                {
+                  scale: opacityAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [1, 0.95],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <View style={styles.collapsedContent}>
+            {/* Compact Circular Progress */}
+            <View style={styles.circularProgressContainerSmall}>
+              <Svg width={50} height={50} style={styles.circularSvg}>
+                {/* Background circle */}
+                <Circle
+                  cx="25"
+                  cy="25"
+                  r="22"
+                  stroke="#e5e7eb"
+                  strokeWidth="4"
+                  fill="none"
+                />
+                {/* Progress circle */}
+                <Circle
+                  cx="25"
+                  cy="25"
+                  r="22"
+                  stroke={progressColor}
+                  strokeWidth="4"
+                  fill="none"
+                  strokeDasharray={`${2 * Math.PI * 22}`}
+                  strokeDashoffset="0"
+                  strokeLinecap="round"
+                  transform={`rotate(-90 25 25)`}
+                />
+              </Svg>
+              <View style={styles.circularTextContainerSmall}>
+                <Text style={[styles.circularTextSmall, { color: textColor }]}>
+                  {stats.answeredCorrect}
+                </Text>
+              </View>
+            </View>
 
-        {/* Stats List */}
-        <View style={styles.statsList}>
-          <View style={styles.statRow}>
-            <Text style={styles.statLabel}>Số câu đúng:</Text>
-            <Text style={styles.statValue}>{stats.answeredCorrect}</Text>
-          </View>
-          <View style={styles.statRow}>
-            <Text style={styles.statLabel}>Số câu không làm:</Text>
-            <Text style={styles.statValue}>{stats.unansweredQuestions}</Text>
-          </View>
-          <View style={styles.statRow}>
-            <Text style={styles.statLabel}>Số câu sai:</Text>
-            <Text style={styles.statValue}>{stats.answeredInCorrect}</Text>
-          </View>
-          <View style={styles.statRow}>
-            <Text style={styles.statLabel}>Trạng thái:</Text>
-            <View
-              style={[
-                styles.statusBadge,
-                isFailedStatus && styles.statusBadgeFail,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.statusText,
-                  isFailedStatus && styles.statusTextFail,
-                ]}
-              >
-                {isFailedStatus ? "Không đạt" : "Đạt"}
+            {/* Compact Stats */}
+            <View style={styles.collapsedStats}>
+              <Text style={styles.collapsedStatsText}>
+                {stats.answeredCorrect}/{stats.totalQuestions} đúng
+              </Text>
+              <Text style={styles.collapsedTimeText}>
+                ⏱ {formatTime(stats.time)}
               </Text>
             </View>
+
+            {/* Expand Button */}
+            <TouchableOpacity
+              onPress={onToggleCollapse}
+              style={styles.collapsedExpandButton}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.expandChevron}>▾</Text>
+            </TouchableOpacity>
           </View>
-        </View>
-      </View>
+        </Animated.View>
+      )}
 
-      {/* Time and Expand Row */}
-      <View style={styles.timeExpandRow}>
-        <View style={styles.timeContainer}>
-          <MaterialCommunityIcons name="timer-outline" size={20} color="#14b8a6" />
-          <Text style={styles.timeText}>{formatTime(stats.time)}</Text>
-        </View>
+      {/* Expanded View - Full version with animation */}
+      {!isCollapsed && (
+        <Animated.View
+          style={[
+            styles.statsSectionExpanded,
+            {
+              opacity: opacityAnim,
+              transform: [
+                {
+                  scale: opacityAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0.95, 1],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <View style={styles.statsHeader}>
+            {/* Circular Progress */}
+            <View style={styles.circularProgressContainer}>
+              <Svg width={100} height={100} style={styles.circularSvg}>
+                {/* Background circle */}
+                <Circle
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  stroke="#e5e7eb"
+                  strokeWidth="8"
+                  fill="none"
+                />
+                {/* Progress circle based on status */}
+                <Circle
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  stroke={progressColor}
+                  strokeWidth="8"
+                  fill="none"
+                  strokeDasharray={`${2 * Math.PI * 45}`}
+                  strokeDashoffset="0"
+                  strokeLinecap="round"
+                  transform={`rotate(-90 50 50)`}
+                />
+              </Svg>
+              <View style={styles.circularTextContainer}>
+                <Text style={[styles.circularText, { color: textColor }]}>
+                  {stats.answeredCorrect}
+                </Text>
+              </View>
+            </View>
 
-        {questions.length > 0 && (
-          <TouchableOpacity
-            style={styles.expandButton}
-            onPress={() => setIsExpanded(!isExpanded)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.expandText}>
-              {isExpanded ? "Thu gọn" : "Mở rộng"}
-            </Text>
-            <Text style={styles.expandChevron}>
-              {isExpanded ? "▴" : "▾"}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Expanded Grid */}
-      {isExpanded && questions.length > 0 && (
-        <View style={styles.gridWrap}>
-          <View style={styles.grid}>
-            {questions.map((q, idx) => {
-              const { isCorrect, isWrong } = getQuestionStatus(idx);
-              return (
-                <TouchableOpacity
-                  key={q.id}
-                  onPress={() => {
-                    if (onQuestionPress) {
-                      onQuestionPress(q.id.toString(), idx);
-                    }
-                  }}
-                  activeOpacity={0.85}
+            {/* Stats List */}
+            <View style={styles.statsList}>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Số câu đúng:</Text>
+                <Text style={styles.statValue}>{stats.answeredCorrect}</Text>
+              </View>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Số câu không làm:</Text>
+                <Text style={styles.statValue}>{stats.unansweredQuestions}</Text>
+              </View>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Số câu sai:</Text>
+                <Text style={styles.statValue}>{stats.answeredInCorrect}</Text>
+              </View>
+              <View style={styles.statRow}>
+                <Text style={styles.statLabel}>Trạng thái:</Text>
+                <View
                   style={[
-                    styles.numCell,
-                    isCorrect && styles.numCellCorrect,
-                    isWrong && styles.numCellWrong,
+                    styles.statusBadge,
+                    isFailedStatus && styles.statusBadgeFail,
                   ]}
                 >
                   <Text
                     style={[
-                      styles.numCellText,
-                      isCorrect && styles.numCellTextCorrect,
-                      isWrong && styles.numCellTextWrong,
+                      styles.statusText,
+                      isFailedStatus && styles.statusTextFail,
                     ]}
                   >
-                    {idx + 1}
+                    {isFailedStatus ? "Không đạt" : "Đạt"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* Time and Expand Row */}
+          <View style={styles.timeExpandRow}>
+            <View style={styles.timeContainer}>
+              <MaterialCommunityIcons name="timer-outline" size={20} color="#14b8a6" />
+              <Text style={styles.timeText}>{formatTime(stats.time)}</Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {questions.length > 0 && (
+                <TouchableOpacity
+                  style={styles.expandButton}
+                  onPress={() => setIsExpanded(!isExpanded)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.expandText}>
+                    {isExpanded ? "Thu gọn" : "Mở rộng"}
+                  </Text>
+                  <Text style={styles.expandChevron}>
+                    {isExpanded ? "▴" : "▾"}
                   </Text>
                 </TouchableOpacity>
-              );
-            })}
+              )}
+              
+              {onToggleCollapse && (
+                <TouchableOpacity
+                  style={styles.collapseButton}
+                  onPress={onToggleCollapse}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.expandChevron}>▴</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
-        </View>
+
+          {/* Expanded Grid */}
+          {isExpanded && questions.length > 0 && (
+            <View style={styles.gridWrap}>
+              <View style={styles.grid}>
+                {questions.map((q, idx) => {
+                  const { isCorrect, isWrong } = getQuestionStatus(idx);
+                  return (
+                    <TouchableOpacity
+                      key={q.id}
+                      onPress={() => {
+                        if (onQuestionPress) {
+                          onQuestionPress(q.id.toString(), idx);
+                        }
+                      }}
+                      activeOpacity={0.85}
+                      style={[
+                        styles.numCell,
+                        isCorrect && styles.numCellCorrect,
+                        isWrong && styles.numCellWrong,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.numCellText,
+                          isCorrect && styles.numCellTextCorrect,
+                          isWrong && styles.numCellTextWrong,
+                        ]}
+                      >
+                        {idx + 1}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+        </Animated.View>
       )}
     </View>
   );
@@ -198,7 +332,6 @@ const styles = StyleSheet.create({
   statsSection: {
     backgroundColor: "white",
     borderRadius: 16,
-    padding: 20,
     marginHorizontal: 10,
     marginTop: 10,
     marginBottom: 10,
@@ -208,6 +341,65 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     zIndex: 10,
+    overflow: "hidden",
+  },
+  statsSectionCollapsed: {
+    padding: 12,
+    paddingVertical: 10,
+  },
+  statsSectionExpanded: {
+    padding: 20,
+  },
+  collapsedContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  circularProgressContainerSmall: {
+    width: 50,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  circularTextContainerSmall: {
+    position: "absolute",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 50,
+    height: 50,
+  },
+  circularTextSmall: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  collapsedStats: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  collapsedStatsText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginBottom: 2,
+  },
+  collapsedTimeText: {
+    fontSize: 13,
+    color: "#6b7280",
+  },
+  collapsedExpandButton: {
+    backgroundColor: "#f3f4f6",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  collapseButton: {
+    backgroundColor: "#f3f4f6",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    minWidth: 36,
+    alignItems: "center",
+    justifyContent: "center",
   },
   statsHeader: {
     flexDirection: "row",

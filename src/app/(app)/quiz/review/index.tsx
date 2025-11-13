@@ -9,10 +9,12 @@ import {
 import { useReviewResultUnified } from "@hooks/useReviewResultUnified";
 import { IReviewResultQuestionBank } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useMemo, useRef } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Animated,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
   Text,
@@ -52,10 +54,47 @@ export default function QuizReviewScreen() {
   const scaleAnims = useRef<Record<string, Animated.Value[]>>({}).current;
   const scrollRef = useRef<ScrollView | null>(null);
   const questionOffsetsRef = useRef<Record<string, number>>({});
+  const lastScrollY = useRef(0);
+  
+  // State for collapse/expand stats section
+  const [isStatsCollapsed, setIsStatsCollapsed] = useState(false);
+  const [manualControl, setManualControl] = useState(false);
   
   // Scroll to top button logic
-  const { showButton, buttonOpacity, handleScroll, scrollToTop } =
+  const { showButton, buttonOpacity, scrollToTop } =
     useScrollToTop(scrollRef, 200);
+  
+  // Handle scroll with auto collapse/expand
+  const handleScrollWithCollapse = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const currentScrollY = event.nativeEvent.contentOffset.y;
+      
+      // If user manually controlled, don't auto-collapse/expand for a while
+      if (!manualControl) {
+        if (currentScrollY > 100 && !isStatsCollapsed) {
+          // Scrolling down, collapse
+          setIsStatsCollapsed(true);
+        } else if (currentScrollY < 50 && isStatsCollapsed) {
+          // Near top, expand
+          setIsStatsCollapsed(false);
+        }
+      } else {
+        // Reset manual control if user scrolls to very top or far down
+        if (currentScrollY < 10 || currentScrollY > 300) {
+          setManualControl(false);
+        }
+      }
+      
+      lastScrollY.current = currentScrollY;
+    },
+    [isStatsCollapsed, manualControl]
+  );
+  
+  // Handle manual toggle from user
+  const handleManualToggle = useCallback(() => {
+    setIsStatsCollapsed(!isStatsCollapsed);
+    setManualControl(true);
+  }, [isStatsCollapsed]);
 
   // Get sorted questions by questionOrder
   const questions = useMemo((): IReviewResultQuestionBank[] => {
@@ -130,31 +169,33 @@ export default function QuizReviewScreen() {
       }
     >
       <View style={styles.container}>
-        {/* Questions ScrollView with Statistics Section inside */}
+        {/* Statistics Section - Fixed at top with auto collapse */}
+        {stats && (
+          <ReviewStatsSection
+            stats={stats}
+            questions={questions.map((q) => ({ id: q.id, isCorrect: q.isCorrect }))}
+            onQuestionPress={(questionId, index) => {
+              const offset = questionOffsetsRef.current[questionId];
+              if (offset !== undefined && scrollRef.current) {
+                scrollRef.current.scrollTo({
+                  y: offset - 20,
+                  animated: true,
+                });
+              }
+            }}
+            isCollapsed={isStatsCollapsed}
+            onToggleCollapse={handleManualToggle}
+          />
+        )}
+
+        {/* Questions ScrollView */}
         <ScrollView
           ref={scrollRef}
           contentContainerStyle={[styles.scrollContent, { paddingBottom: 0 }]}
           style={styles.questionsScrollView}
-          onScroll={handleScroll}
+          onScroll={handleScrollWithCollapse}
           scrollEventThrottle={16}
         >
-          {/* Statistics Section - Now scrolls with questions */}
-          {stats && (
-            <ReviewStatsSection
-              stats={stats}
-              questions={questions.map((q) => ({ id: q.id, isCorrect: q.isCorrect }))}
-              onQuestionPress={(questionId, index) => {
-                const offset = questionOffsetsRef.current[questionId];
-                if (offset !== undefined && scrollRef.current) {
-                  scrollRef.current.scrollTo({
-                    y: offset - 20,
-                    animated: true,
-                  });
-                }
-              }}
-            />
-          )}
-
           {questions.map((q, qIdx) => {
             const userSelectedIds = getUserSelectedAnswers(q);
             const correctAnswerIds = getCorrectAnswers(q);
