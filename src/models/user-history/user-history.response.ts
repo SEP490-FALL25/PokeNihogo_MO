@@ -24,6 +24,11 @@ export const HistoryListResponseSchema = z.object({
   data: z.object({
     results: z.array(HistoryItemSchema),
     allTime: z.number(),
+    allAttempts: z.number(),
+    completedAttempts: z.number(),
+    failedAttempts: z.number(),
+    skippedAttempts: z.number(),
+    abandonedAttempts: z.number(),
     pagination: z.object({
       current: z.number(),
       pageSize: z.number(),

@@ -12,7 +12,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { BookOpen, FileText, Trophy } from 'lucide-react-native';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -26,7 +26,112 @@ import {
 import { FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Removed unused width variable
+type TabType = 'exercises' | 'tests';
+
+// Statistics Card Component
+interface StatisticsCardProps {
+  allTime: number;
+  allAttempts: number;
+  completedAttempts: number;
+  failedAttempts: number;
+  skippedAttempts: number;
+  abandonedAttempts: number;
+  t: (key: string, options?: any) => string;
+}
+
+const StatisticsCard: React.FC<StatisticsCardProps> = ({
+  allTime,
+  allAttempts,
+  completedAttempts,
+  failedAttempts,
+  skippedAttempts,
+  abandonedAttempts,
+  t,
+}) => {
+  // Format time (minutes)
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${remainingMinutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
+  return (
+    <LinearGradient
+      colors={['#ffffff', '#f8fafc']}
+      style={styles.statsCard}
+      className="rounded-3xl p-5 mb-4"
+    >
+      <Text className="text-lg font-extrabold text-slate-800 mb-4">
+        {t('exercise_history.statistics')}
+      </Text>
+      
+      {/* Main Stats Row */}
+      <View className="flex-row mb-4">
+        <View className="flex-1 items-center">
+          <View className="bg-gradient-to-br from-teal-400 to-teal-500 rounded-2xl px-4 py-3 mb-2 w-full items-center" style={{ backgroundColor: '#14b8a6' }}>
+            <Text className="text-3xl font-extrabold text-white">{allAttempts}</Text>
+          </View>
+          <Text className="text-xs font-bold text-slate-600 text-center">
+            {t('exercise_history.total_attempts')}
+          </Text>
+        </View>
+        
+        <View className="flex-1 items-center mx-2">
+          <View className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-2xl px-4 py-3 mb-2 w-full items-center" style={{ backgroundColor: '#f59e0b' }}>
+            <Text className="text-3xl font-extrabold text-white">{formatTime(allTime)}</Text>
+          </View>
+          <Text className="text-xs font-bold text-slate-600 text-center">
+            {t('exercise_history.total_time')}
+          </Text>
+        </View>
+      </View>
+
+      {/* Status Stats Grid */}
+      <View className="flex-row flex-wrap">
+        <View className="w-1/2 pr-1 mb-2">
+          <View className="bg-green-50 rounded-xl p-3 border border-green-100">
+            <Text className="text-2xl font-extrabold text-green-600">{completedAttempts}</Text>
+            <Text className="text-xs font-semibold text-green-700 mt-0.5">
+              {t('exercise_history.completed')}
+            </Text>
+          </View>
+        </View>
+        
+        <View className="w-1/2 pl-1 mb-2">
+          <View className="bg-red-50 rounded-xl p-3 border border-red-100">
+            <Text className="text-2xl font-extrabold text-red-600">{failedAttempts}</Text>
+            <Text className="text-xs font-semibold text-red-700 mt-0.5">
+              {t('exercise_history.failed')}
+            </Text>
+          </View>
+        </View>
+        
+        <View className="w-1/2 pr-1">
+          <View className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+            <Text className="text-2xl font-extrabold text-slate-600">{skippedAttempts}</Text>
+            <Text className="text-xs font-semibold text-slate-700 mt-0.5">
+              {t('exercise_history.skipped')}
+            </Text>
+          </View>
+        </View>
+        
+        <View className="w-1/2 pl-1">
+          <View className="bg-orange-50 rounded-xl p-3 border border-orange-100">
+            <Text className="text-2xl font-extrabold text-orange-600">{abandonedAttempts}</Text>
+            <Text className="text-xs font-semibold text-orange-700 mt-0.5">
+              {t('exercise_history.abandoned')}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </LinearGradient>
+  );
+};
 
 // Helper function to format date
 const formatDate = (dateString: string, t: (key: string, options?: any) => string): string => {
@@ -181,6 +286,7 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, onPress, t }) => {
 export default function ExerciseHistoryScreen() {
   const { t } = useTranslation();
   const pageSize = 10;
+  const [activeTab, setActiveTab] = useState<TabType>('exercises');
 
   const {
     data: exercisesData,
@@ -208,26 +314,59 @@ export default function ExerciseHistoryScreen() {
     pageSize,
   });
 
-  // Combine and sort history items by updatedAt (newest first)
-  const combinedHistory = useMemo(() => {
+  // Get exercises list sorted by updatedAt (newest first)
+  const exercisesList = useMemo(() => {
     const exercises = exercisesData?.pages.flatMap((page) => page.data?.results ?? []) ?? [];
-    const tests = testsData?.pages.flatMap((page) => page.data?.results ?? []) ?? [];
-    
-    const all = [...exercises, ...tests];
-    
-    // Sort by updatedAt descending (newest first)
-    return all.sort((a, b) => {
+    return exercises.sort((a, b) => {
       const dateA = new Date(a.updatedAt).getTime();
       const dateB = new Date(b.updatedAt).getTime();
       return dateB - dateA;
     });
-  }, [exercisesData, testsData]);
+  }, [exercisesData]);
 
-  const isLoading = isLoadingExercises || isLoadingTests;
-  const isError = isErrorExercises || isErrorTests;
-  const isRefetching = isRefetchingExercises || isRefetchingTests;
-  const isFetchingNext = isFetchingNextExercises || isFetchingNextTests;
-  const hasNextPage = hasNextExercises || hasNextTests;
+  // Get tests list sorted by updatedAt (newest first)
+  const testsList = useMemo(() => {
+    const tests = testsData?.pages.flatMap((page) => page.data?.results ?? []) ?? [];
+    return tests.sort((a, b) => {
+      const dateA = new Date(a.updatedAt).getTime();
+      const dateB = new Date(b.updatedAt).getTime();
+      return dateB - dateA;
+    });
+  }, [testsData]);
+
+  // Get statistics from the first page
+  const exercisesStats = useMemo(() => {
+    const firstPage = exercisesData?.pages[0]?.data;
+    return {
+      allTime: firstPage?.allTime ?? 0,
+      allAttempts: firstPage?.allAttempts ?? 0,
+      completedAttempts: firstPage?.completedAttempts ?? 0,
+      failedAttempts: firstPage?.failedAttempts ?? 0,
+      skippedAttempts: firstPage?.skippedAttempts ?? 0,
+      abandonedAttempts: firstPage?.abandonedAttempts ?? 0,
+    };
+  }, [exercisesData]);
+
+  const testsStats = useMemo(() => {
+    const firstPage = testsData?.pages[0]?.data;
+    return {
+      allTime: firstPage?.allTime ?? 0,
+      allAttempts: firstPage?.allAttempts ?? 0,
+      completedAttempts: firstPage?.completedAttempts ?? 0,
+      failedAttempts: firstPage?.failedAttempts ?? 0,
+      skippedAttempts: firstPage?.skippedAttempts ?? 0,
+      abandonedAttempts: firstPage?.abandonedAttempts ?? 0,
+    };
+  }, [testsData]);
+
+  // Get current data based on active tab
+  const currentData = activeTab === 'exercises' ? exercisesList : testsList;
+  const currentStats = activeTab === 'exercises' ? exercisesStats : testsStats;
+  const isLoading = activeTab === 'exercises' ? isLoadingExercises : isLoadingTests;
+  const isError = activeTab === 'exercises' ? isErrorExercises : isErrorTests;
+  const isRefetching = activeTab === 'exercises' ? isRefetchingExercises : isRefetchingTests;
+  const isFetchingNext = activeTab === 'exercises' ? isFetchingNextExercises : isFetchingNextTests;
+  const hasNextPage = activeTab === 'exercises' ? hasNextExercises : hasNextTests;
 
   const handleItemPress = (item: IHistoryItem) => {
     // Only allow review if score >= 80%
@@ -260,14 +399,20 @@ export default function ExerciseHistoryScreen() {
   };
 
   const handleRefresh = () => {
-    refetchExercises();
-    refetchTests();
+    if (activeTab === 'exercises') {
+      refetchExercises();
+    } else {
+      refetchTests();
+    }
   };
 
   const handleLoadMore = () => {
     if (hasNextPage && !isFetchingNext) {
-      fetchNextExercises();
-      fetchNextTests();
+      if (activeTab === 'exercises') {
+        fetchNextExercises();
+      } else {
+        fetchNextTests();
+      }
     }
   };
 
@@ -278,11 +423,67 @@ export default function ExerciseHistoryScreen() {
       {/* Header */}
       <BackScreen onPress={() => router.back()} color="black" title={t('exercise_history.title')} />
 
+      {/* Tab Selection */}
+      <View className="px-4 pt-4 pb-2">
+        <View className="flex-row bg-white rounded-2xl p-1.5 shadow-sm">
+          <Pressable
+            onPress={() => setActiveTab('exercises')}
+            className={`flex-1 py-3 rounded-xl ${
+              activeTab === 'exercises' ? 'bg-purple-500' : 'bg-transparent'
+            }`}
+            style={activeTab === 'exercises' ? styles.activeTabShadow : undefined}
+          >
+            <View className="flex-row items-center justify-center">
+              <BookOpen 
+                size={18} 
+                color={activeTab === 'exercises' ? '#ffffff' : '#94a3b8'} 
+                strokeWidth={2.5}
+              />
+              <Text
+                className={`ml-2 font-bold text-sm ${
+                  activeTab === 'exercises' ? 'text-white' : 'text-slate-400'
+                }`}
+              >
+                {t('exercise_history.exercises_tab')}
+              </Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            onPress={() => setActiveTab('tests')}
+            className={`flex-1 py-3 rounded-xl ${
+              activeTab === 'tests' ? 'bg-blue-500' : 'bg-transparent'
+            }`}
+            style={activeTab === 'tests' ? styles.activeTabShadow : undefined}
+          >
+            <View className="flex-row items-center justify-center">
+              <FileText 
+                size={18} 
+                color={activeTab === 'tests' ? '#ffffff' : '#94a3b8'} 
+                strokeWidth={2.5}
+              />
+              <Text
+                className={`ml-2 font-bold text-sm ${
+                  activeTab === 'tests' ? 'text-white' : 'text-slate-400'
+                }`}
+              >
+                {t('exercise_history.tests_tab')}
+              </Text>
+            </View>
+          </Pressable>
+        </View>
+      </View>
+
       {/* Content */}
       <View className="flex-1 px-4">
         {isLoading ? (
           <View className="flex-1">
-            {Array.from({ length: 5 }, (_, i) => (
+            {/* Statistics Skeleton */}
+            <View className="mb-4">
+              <Skeleton style={styles.statsSkeleton} className="rounded-3xl" />
+            </View>
+            {/* Cards Skeleton */}
+            {Array.from({ length: 3 }, (_, i) => (
               <View key={i} className="mb-4">
                 <Skeleton style={styles.cardSkeleton} className="rounded-3xl" />
               </View>
@@ -300,19 +501,27 @@ export default function ExerciseHistoryScreen() {
               <Text className="text-white font-bold">{t('exercise_history.retry')}</Text>
             </Pressable>
           </View>
-        ) : combinedHistory.length === 0 ? (
+        ) : currentData.length === 0 ? (
           <View className="flex-1 items-center justify-center">
-            <BookOpen size={64} color="#94a3b8" strokeWidth={1.5} />
+            {activeTab === 'exercises' ? (
+              <BookOpen size={64} color="#94a3b8" strokeWidth={1.5} />
+            ) : (
+              <FileText size={64} color="#94a3b8" strokeWidth={1.5} />
+            )}
             <Text className="text-xl font-bold text-slate-600 mt-4 mb-2">
-              {t('exercise_history.empty_title')}
+              {activeTab === 'exercises' 
+                ? t('exercise_history.empty_exercises_title') 
+                : t('exercise_history.empty_tests_title')}
             </Text>
             <Text className="text-sm text-slate-500 text-center px-8">
-              {t('exercise_history.empty_description')}
+              {activeTab === 'exercises'
+                ? t('exercise_history.empty_exercises_description')
+                : t('exercise_history.empty_tests_description')}
             </Text>
           </View>
         ) : (
           <FlatList
-            data={combinedHistory}
+            data={currentData}
             keyExtractor={(item) => `${item.testId ? 'test' : 'exercise'}-${item.attemptId}`}
             renderItem={({ item }) => (
               <HistoryCard
@@ -330,6 +539,17 @@ export default function ExerciseHistoryScreen() {
                 refreshing={isRefetching}
                 onRefresh={handleRefresh}
                 colors={['#6FAFB2']}
+              />
+            }
+            ListHeaderComponent={
+              <StatisticsCard
+                allTime={currentStats.allTime}
+                allAttempts={currentStats.allAttempts}
+                completedAttempts={currentStats.completedAttempts}
+                failedAttempts={currentStats.failedAttempts}
+                skippedAttempts={currentStats.skippedAttempts}
+                abandonedAttempts={currentStats.abandonedAttempts}
+                t={t}
               />
             }
             ListFooterComponent={
@@ -354,6 +574,13 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 6,
   },
+  statsCard: {
+    shadowColor: '#6FAFB2',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 5,
+  },
   scoreBadge: {
     borderRadius: 16,
     paddingHorizontal: 12,
@@ -374,6 +601,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  statsSkeleton: {
+    width: '100%',
+    height: 240,
+    backgroundColor: '#f1f5f9',
+  },
   cardSkeleton: {
     width: '100%',
     height: 180,
@@ -381,6 +613,13 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
+  },
+  activeTabShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
   },
 });
 
