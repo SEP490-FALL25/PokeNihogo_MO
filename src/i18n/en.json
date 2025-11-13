@@ -463,12 +463,18 @@
   "tabs": {
     "home": "Home",
     "learn": "Learn",
+    "abilities": "Abilities",
     "reading": "Reading",
     "listening": "Listening",
     "speaking": "Speaking",
     "battle": "Battle",
     "quiz_demo": "Quiz Demo",
-    "ai_speaking": "AI"
+    "ai_speaking": "AI",
+    "subtabs": {
+      "listening": "Listening",
+      "reading": "Reading",
+      "speaking": "Speaking"
+    }
   },
   "settings": {
     "title": "Settings",
