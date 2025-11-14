@@ -684,6 +684,26 @@
     "just_now": "Just now",
     "minutes_ago": "{{minutes}} min ago",
     "hours_ago": "{{hours}} hr ago",
+    "days_ago": "{{days}} days ago"
+  },
+  "achievements": {
+    "title": "Achievement Book",
+    "loading": "Loading achievements...",
+    "empty": "No achievements yet.",
+    "error": "Unable to load achievements. Please try again later.",
+    "status": {
+      "completed": "Completed",
+      "claimed": "Reward Claimed",
+      "in_progress": "In progress",
+      "locked": "Locked"
+    },
+    "condition_types": {
+      "learning_streak": "{{days}} consecutive days of learning"
+    },
+    "reward": {
+      "receive_button": "Receive Reward",
+      "receive_success": "Reward received successfully!",
+      "receive_error": "Failed to receive reward. Please try again."
     "days_ago": "{{days}} days ago",
     "status": {
       "not_started": "Not Started",
