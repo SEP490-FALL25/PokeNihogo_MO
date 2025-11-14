@@ -1,18 +1,17 @@
-import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { TestStatus } from "@constants/test.enum";
 import { useUserTests } from "@hooks/useUserTest";
+import { ROUTES } from "@routes/routes";
 import { router } from "expo-router";
 import { HeadphonesIcon } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Animated,
-  RefreshControl,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    Animated,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 type UserTestItem = {
@@ -37,13 +36,12 @@ const ListeningCard: React.FC<{
 }> = ({ item, onPress }) => {
   return (
     <TouchableOpacity
-      style={[styles.listeningCard, { borderLeftColor: "#10b981" }]}
+      style={[styles.card, { borderLeftColor: "#10b981" }]}
       onPress={onPress}
       activeOpacity={0.8}
     >
       <View style={styles.cardHeader}>
         <View style={[styles.iconContainer, { backgroundColor: "#10b981" }]}>
-          {/* <IconSymbol name={"headphones" as any} size={24} color="#ffffff" /> */}
           <HeadphonesIcon size={24} color="#ffffff" />
         </View>
         <View style={styles.exerciseInfo}>
@@ -74,7 +72,7 @@ const ListeningCard: React.FC<{
   );
 };
 
-export default function ListeningScreen() {
+export const ListeningContent: React.FC = () => {
   const { t } = useTranslation();
   const [isLoaded, setIsLoaded] = React.useState(false);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -84,8 +82,6 @@ export default function ListeningScreen() {
     data: userTestsData,
     isLoading,
     error,
-    refetch,
-    isRefetching,
   } = useUserTests({
     type: TestStatus.LISTENING_TEST,
     currentPage: 1,
@@ -94,11 +90,6 @@ export default function ListeningScreen() {
 
   const items: UserTestItem[] =
     (userTestsData as any)?.data?.data?.results ?? [];
-  const refreshing = isRefetching;
-
-  const handleRefresh = React.useCallback(async () => {
-    await refetch();
-  }, [refetch]);
 
   React.useEffect(() => {
     const ready = !isLoading;
@@ -121,24 +112,13 @@ export default function ListeningScreen() {
 
   const handleListeningPress = (testId: number) => {
     router.push({
-      pathname: "/test",
+      pathname: ROUTES.TEST.TEST,
       params: { testId: String(testId), testType: "LISTENING_TEST" },
     });
   };
 
   return (
-    <HomeLayout
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-      }
-    >
-      <ThemedText type="title" style={styles.title}>
-        🎧 {t("listening.title")}
-      </ThemedText>
-      <ThemedText style={styles.subtitle}>
-        {t("listening.subtitle")}
-      </ThemedText>
-
+    <View style={styles.container}>
       <Animated.View
         style={[
           styles.statsCard,
@@ -158,7 +138,7 @@ export default function ListeningScreen() {
             <ThemedText style={styles.statLabel}>{t("listening.total_time")}</ThemedText>
           </View>
           <View style={styles.statItem}>
-            <ThemedText style={styles.statNumber}>88%</ThemedText>
+            <ThemedText style={[styles.statNumber, { color: "#10b981" }]}>88%</ThemedText>
             <ThemedText style={styles.statLabel}>{t("listening.accuracy")}</ThemedText>
           </View>
         </View>
@@ -214,34 +194,25 @@ export default function ListeningScreen() {
           </ThemedText>
         </View>
       </ThemedView>
-    </HomeLayout>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1f2937",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#6b7280",
-    textAlign: "center",
-    marginBottom: 20,
+  container: {
+    flex: 1,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "600",
     color: "#1f2937",
     marginBottom: 16,
+    marginTop: 16,
   },
   exercisesContainer: {
     gap: 16,
   },
-  listeningCard: {
+  card: {
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 12,
     padding: 16,
@@ -281,9 +252,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6b7280",
   },
-  playButton: {
-    marginLeft: 8,
-  },
   cardFooter: {
     gap: 8,
   },
@@ -311,27 +279,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   durationText: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontWeight: "500",
-  },
-  progressContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  progressBar: {
-    flex: 1,
-    height: 6,
-    backgroundColor: "#e5e7eb",
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    borderRadius: 3,
-  },
-  progressText: {
     fontSize: 12,
     color: "#6b7280",
     fontWeight: "500",
@@ -403,40 +350,5 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     lineHeight: 20,
   },
-  controlsCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  controlsTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  controlsRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 20,
-    marginBottom: 12,
-  },
-  controlButton: {
-    padding: 8,
-  },
-  controlsHint: {
-    fontSize: 12,
-    color: "#6b7280",
-    textAlign: "center",
-    fontStyle: "italic",
-  },
 });
+

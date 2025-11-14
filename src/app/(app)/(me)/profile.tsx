@@ -9,10 +9,12 @@ import { formatDateToMMYYYY } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import {
+  BookOpen,
   Calendar,
   ChevronRight,
   Cog,
   Flame,
+  History,
   Shield,
   Sparkles,
   Star,
@@ -352,6 +354,82 @@ export default function ProfileScreen() {
                     resizeMode="contain"
                   />
                 ))}
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Exercise History Card */}
+          <TouchableOpacity
+            onPress={() => router.push(ROUTES.ME.EXERCISE_HISTORY)}
+            activeOpacity={0.7}
+            className="mb-6"
+          >
+            <LinearGradient
+              colors={['#ffffff', '#fefefe']}
+              style={styles.collectionCard}
+              className="p-6 rounded-3xl overflow-hidden shadow-lg"
+            >
+              {/* Decorative Element */}
+              <View className="absolute -top-10 -right-10 w-35 h-35 rounded-full bg-indigo-50 opacity-40" />
+
+              {/* Header */}
+              <View className="flex-row items-center mb-5">
+                <LinearGradient
+                  colors={['#6366f1', '#4f46e5']}
+                  style={styles.collectionIconContainer}
+                  className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
+                >
+                  <History size={24} color="white" strokeWidth={2.5} />
+                </LinearGradient>
+
+                <View className="flex-1">
+                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('exercise_history.title')}</Text>
+                  <Text className="text-sm font-semibold text-slate-500 tracking-wide">
+                    {t('exercise_history.subtitle')}
+                  </Text>
+                </View>
+
+                <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center">
+                  <ChevronRight size={20} color="#64748b" strokeWidth={2.8} />
+                </View>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Dictionary Card */}
+          <TouchableOpacity
+            onPress={() => router.push(ROUTES.ME.DICTIONARY)}
+            activeOpacity={0.7}
+            className="mb-6"
+          >
+            <LinearGradient
+              colors={['#ffffff', '#fefefe']}
+              style={styles.collectionCard}
+              className="p-6 rounded-3xl overflow-hidden shadow-lg"
+            >
+              {/* Decorative Element */}
+              <View className="absolute -top-10 -right-10 w-35 h-35 rounded-full bg-amber-50 opacity-40" />
+
+              {/* Header */}
+              <View className="flex-row items-center mb-5">
+                <LinearGradient
+                  colors={['#f59e0b', '#d97706']}
+                  style={styles.collectionIconContainer}
+                  className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
+                >
+                  <BookOpen size={24} color="white" strokeWidth={2.5} />
+                </LinearGradient>
+
+                <View className="flex-1">
+                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('dictionary.title')}</Text>
+                  <Text className="text-sm font-semibold text-slate-500 tracking-wide">
+                    {t('dictionary.search_description')}
+                  </Text>
+                </View>
+
+                <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center">
+                  <ChevronRight size={20} color="#64748b" strokeWidth={2.8} />
+                </View>
               </View>
             </LinearGradient>
           </TouchableOpacity>

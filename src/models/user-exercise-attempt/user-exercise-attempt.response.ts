@@ -1,3 +1,5 @@
+import { ExerciseAttemptStatus } from "@constants/exercise.enum";
+import { QuizCompletionStatus } from "@constants/quiz.enum";
 import { z } from "zod";
 
 /**
@@ -10,7 +12,7 @@ export const CheckCompletionDataSchema = z.object({
   unansweredQuestions: z.number(),
   unansweredQuestionIds: z.array(z.number()),
   allCorrect: z.boolean(),
-  status: z.enum(["IN_PROGRESS", "COMPLETED", "PENDING"]),
+  status: z.nativeEnum(QuizCompletionStatus),
 });
 
 export const CheckCompletionResponseSchema = z.object({
@@ -31,7 +33,7 @@ export const SubmitCompletionDataSchema = z.object({
   answeredQuestions: z.number(),
   unansweredQuestions: z.number(),
   allCorrect: z.boolean(),
-  status: z.enum(["IN_PROGRESS", "COMPLETED", "PENDING", "FAIL"]),
+  status: z.nativeEnum(QuizCompletionStatus),
 });
 
 export const SubmitCompletionResponseSchema = z.object({
@@ -81,7 +83,7 @@ export const ReviewResultDataSchema = z.object({
   answeredCorrect: z.number(),
   answeredInCorrect: z.number(),
   time: z.number(),
-  status: z.string(),
+  status: z.nativeEnum(ExerciseAttemptStatus),
 });
 
 export const ReviewResultResponseSchema = z.object({
@@ -109,7 +111,7 @@ export const ExerciseHistoryItemSchema = z.object({
   answeredInCorrect: z.number(),
   score: z.number(), // percentage score
   time: z.number(), // time spent in seconds
-  status: z.string(),
+  status: z.nativeEnum(ExerciseAttemptStatus),
   completedAt: z.string(),
   lesson: z.object({
     id: z.number(),

@@ -1,27 +1,137 @@
 import BackScreen from '@components/molecules/Back';
 import { Skeleton } from '@components/ui/Skeleton';
-import { useExerciseHistory } from '@hooks/useUserExerciseAttempt';
-import { IExerciseHistoryItem } from '@models/user-exercise-attempt/user-exercise-attempt.response';
+import { ExerciseAttemptStatus } from '@constants/exercise.enum';
+import { useHistoryExercises, useHistoryTests } from '@hooks/useUserHistory';
+import { IHistoryItem } from '@models/user-history/user-history.response';
 import { ROUTES } from '@routes/routes';
+import {
+  getExerciseStatusBgColor,
+  getExerciseStatusColor,
+  getExerciseStatusText,
+} from '@utils/exercise-status.utils';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { BookOpen, Clock, Target, Trophy } from 'lucide-react-native';
+import { BookOpen, FileText, Trophy } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-    ActivityIndicator,
-    Pressable,
-    RefreshControl,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Removed unused width variable
+type TabType = 'exercises' | 'tests';
+
+// Statistics Card Component
+interface StatisticsCardProps {
+  allTime: number;
+  allAttempts: number;
+  completedAttempts: number;
+  failedAttempts: number;
+  skippedAttempts: number;
+  abandonedAttempts: number;
+  t: (key: string, options?: any) => string;
+}
+
+const StatisticsCard: React.FC<StatisticsCardProps> = ({
+  allTime,
+  allAttempts,
+  completedAttempts,
+  failedAttempts,
+  skippedAttempts,
+  abandonedAttempts,
+  t,
+}) => {
+  // Format time (minutes)
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${remainingMinutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
+  return (
+    <LinearGradient
+      colors={['#ffffff', '#f8fafc']}
+      style={styles.statsCard}
+      className="rounded-3xl p-5 mb-4"
+    >
+      <Text className="text-lg font-extrabold text-slate-800 mb-4">
+        {t('exercise_history.statistics')}
+      </Text>
+      
+      {/* Main Stats Row */}
+      <View className="flex-row mb-4">
+        <View className="flex-1 items-center">
+          <View className="bg-gradient-to-br from-teal-400 to-teal-500 rounded-2xl px-4 py-3 mb-2 w-full items-center" style={{ backgroundColor: '#14b8a6' }}>
+            <Text className="text-3xl font-extrabold text-white">{allAttempts}</Text>
+          </View>
+          <Text className="text-xs font-bold text-slate-600 text-center">
+            {t('exercise_history.total_attempts')}
+          </Text>
+        </View>
+        
+        <View className="flex-1 items-center mx-2">
+          <View className="bg-gradient-to-br from-amber-400 to-amber-500 rounded-2xl px-4 py-3 mb-2 w-full items-center" style={{ backgroundColor: '#f59e0b' }}>
+            <Text className="text-3xl font-extrabold text-white">{formatTime(allTime)}</Text>
+          </View>
+          <Text className="text-xs font-bold text-slate-600 text-center">
+            {t('exercise_history.total_time')}
+          </Text>
+        </View>
+      </View>
+
+      {/* Status Stats Grid */}
+      <View className="flex-row flex-wrap">
+        <View className="w-1/2 pr-1 mb-2">
+          <View className="bg-green-50 rounded-xl p-3 border border-green-100">
+            <Text className="text-2xl font-extrabold text-green-600">{completedAttempts}</Text>
+            <Text className="text-xs font-semibold text-green-700 mt-0.5">
+              {t('exercise_history.completed')}
+            </Text>
+          </View>
+        </View>
+        
+        <View className="w-1/2 pl-1 mb-2">
+          <View className="bg-red-50 rounded-xl p-3 border border-red-100">
+            <Text className="text-2xl font-extrabold text-red-600">{failedAttempts}</Text>
+            <Text className="text-xs font-semibold text-red-700 mt-0.5">
+              {t('exercise_history.failed')}
+            </Text>
+          </View>
+        </View>
+        
+        <View className="w-1/2 pr-1">
+          <View className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+            <Text className="text-2xl font-extrabold text-slate-600">{skippedAttempts}</Text>
+            <Text className="text-xs font-semibold text-slate-700 mt-0.5">
+              {t('exercise_history.skipped')}
+            </Text>
+          </View>
+        </View>
+        
+        <View className="w-1/2 pl-1">
+          <View className="bg-orange-50 rounded-xl p-3 border border-orange-100">
+            <Text className="text-2xl font-extrabold text-orange-600">{abandonedAttempts}</Text>
+            <Text className="text-xs font-semibold text-orange-700 mt-0.5">
+              {t('exercise_history.abandoned')}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </LinearGradient>
+  );
+};
 
 // Helper function to format date
 const formatDate = (dateString: string, t: (key: string, options?: any) => string): string => {
@@ -46,54 +156,40 @@ const formatDate = (dateString: string, t: (key: string, options?: any) => strin
   return date.toLocaleDateString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
-// Helper function to format time
-const formatTime = (seconds: number): string => {
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  if (remainingSeconds === 0) return `${minutes}ph`;
-  return `${minutes}ph ${remainingSeconds}s`;
-};
-
-// Helper function to get JLPT level text
-const getJlptLevel = (levelJlpt: number): string => {
-  return `N${levelJlpt}`;
-};
-
-// Helper function to get skill type display name
-const getSkillTypeName = (exerciseType: string, t: (key: string) => string): string => {
-  const typeMap: Record<string, string> = {
-    reading: t('exercise_history.skill_types.reading'),
-    listening: t('exercise_history.skill_types.listening'),
-    speaking: t('exercise_history.skill_types.speaking'),
-    vocabulary: t('exercise_history.skill_types.vocabulary'),
-    grammar: t('exercise_history.skill_types.grammar'),
-    kanji: t('exercise_history.skill_types.kanji'),
-  };
-  return typeMap[exerciseType.toLowerCase()] || exerciseType;
-};
 
 // Helper function to get score color
-const getScoreColor = (score: number): string => {
+const getScoreColor = (score: number | null): string => {
+  if (score === null) return '#94a3b8'; // gray for no score
   if (score >= 80) return '#10b981'; // green
   if (score >= 60) return '#f59e0b'; // yellow
   return '#ef4444'; // red
 };
 
-// Exercise Card Component
-interface ExerciseCardProps {
-  item: IExerciseHistoryItem;
+// History Card Component (for both exercises and tests)
+interface HistoryCardProps {
+  item: IHistoryItem;
   onPress: () => void;
   t: (key: string) => string;
 }
 
-const ExerciseCard: React.FC<ExerciseCardProps> = ({ item, onPress, t }) => {
+const HistoryCard: React.FC<HistoryCardProps> = ({ item, onPress, t }) => {
+  const isTest = !!item.testId;
+  const itemName = item.testName || item.exerciseName || t('exercise_history.unknown_item');
   const scoreColor = getScoreColor(item.score);
-  const jlptLevel = getJlptLevel(item.levelJlpt);
-  const skillTypeName = getSkillTypeName(item.exerciseType, t);
+  const hasScore = item.score !== null;
+  
+  // Check if can review (score >= 80%)
+  const canReview = item.score !== null && item.score >= 80;
+  const isInProgress = item.status === ExerciseAttemptStatus.IN_PROGRESS;
+  const canPress = canReview || isInProgress;
 
   return (
-    <Pressable onPress={onPress} className="mb-4">
+    <Pressable 
+      onPress={canPress ? onPress : undefined} 
+      disabled={!canPress}
+      className="mb-4"
+      style={{ opacity: canPress ? 1 : 0.6 }}
+    >
       <LinearGradient
         colors={['#ffffff', '#fafbfc']}
         style={styles.card}
@@ -101,77 +197,85 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ item, onPress, t }) => {
       >
         {/* Card Header */}
         <View className="flex-row items-start justify-between mb-4">
-          <View className="flex-1">
+          <View className="flex-1 mr-3">
+            <View className="flex-row items-center mb-2">
+              {isTest ? (
+                <FileText size={18} color="#3b82f6" strokeWidth={2.5} />
+              ) : (
+                <BookOpen size={18} color="#a855f7" strokeWidth={2.5} />
+              )}
+              <Text className="ml-2 text-xs font-bold text-slate-500 uppercase tracking-wide">
+                {isTest ? t('exercise_history.test') : t('exercise_history.exercise')}
+              </Text>
+            </View>
             <Text className="text-lg font-extrabold text-slate-800 mb-1 tracking-tight" numberOfLines={2}>
-              {item.exerciseName || item.lesson?.titleJp || t('exercise_history.unknown_exercise')}
+              {itemName}
             </Text>
             <Text className="text-sm font-semibold text-slate-500 tracking-wide">
-              {formatDate(item.completedAt, t)}
+              {formatDate(item.updatedAt, t)}
             </Text>
           </View>
           
           {/* Score Badge */}
-          <View
-            style={[styles.scoreBadge, { backgroundColor: `${scoreColor}15` }]}
-            className="px-3 py-1.5 rounded-2xl"
-          >
-            <Text style={{ color: scoreColor }} className="text-lg font-extrabold">
-              {item.score}%
-            </Text>
-          </View>
+          {hasScore ? (
+            <View
+              style={[styles.scoreBadge, { backgroundColor: `${scoreColor}15` }]}
+              className="px-3 py-1.5 rounded-2xl"
+            >
+              <Text style={{ color: scoreColor }} className="text-lg font-extrabold">
+                {item.score}%
+              </Text>
+            </View>
+          ) : (
+            <View
+              style={[styles.scoreBadge, { backgroundColor: '#f1f5f9' }]}
+              className="px-3 py-1.5 rounded-2xl"
+            >
+              <Text style={{ color: '#94a3b8' }} className="text-sm font-bold">
+                {getExerciseStatusText(item.status, t)}
+              </Text>
+            </View>
+          )}
         </View>
 
-        {/* Card Body - Info Grid */}
-        <View className="flex-row flex-wrap gap-3 mb-4">
-          {/* JLPT Level */}
-          <View className="flex-row items-center bg-blue-50 px-3 py-2 rounded-xl">
-            <Target size={16} color="#3b82f6" strokeWidth={2.5} />
-            <Text className="ml-2 text-sm font-bold text-blue-600">
-              {jlptLevel}
-            </Text>
-          </View>
-
-          {/* Skill Type */}
-          <View className="flex-row items-center bg-purple-50 px-3 py-2 rounded-xl">
-            <BookOpen size={16} color="#a855f7" strokeWidth={2.5} />
-            <Text className="ml-2 text-sm font-bold text-purple-600">
-              {skillTypeName}
-            </Text>
-          </View>
-
-          {/* Time */}
-          <View className="flex-row items-center bg-orange-50 px-3 py-2 rounded-xl">
-            <Clock size={16} color="#f97316" strokeWidth={2.5} />
-            <Text className="ml-2 text-sm font-bold text-orange-600">
-              {formatTime(item.time)}
-            </Text>
-          </View>
-        </View>
-
-        {/* Card Footer - Stats */}
+        {/* Card Body - Stats */}
         <View className="pt-4 border-t border-slate-100">
-          <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center justify-between mb-3">
             <View className="flex-row items-center">
               <Trophy size={18} color="#f59e0b" strokeWidth={2.5} />
               <Text className="ml-2 text-sm font-semibold text-slate-600">
-                {item.answeredCorrect}/{item.totalQuestions} {t('exercise_history.correct')}
+                {item.correctAnswers}/{item.totalQuestions} {t('exercise_history.correct')}
               </Text>
             </View>
+            {item.incorrectAnswers > 0 && (
+              <Text className="text-sm font-semibold text-slate-500">
+                {item.incorrectAnswers} {t('exercise_history.incorrect')}
+              </Text>
+            )}
+          </View>
+          
+          {/* Status Badge */}
+          <View className="flex-row items-center justify-between">
             <View
               style={[styles.statusBadge, {
-                backgroundColor: item.status === 'COMPLETED' ? '#d1fae5' : '#fef3c7',
+                backgroundColor: getExerciseStatusBgColor(item.status),
               }]}
               className="px-3 py-1 rounded-xl"
             >
               <Text
                 style={{
-                  color: item.status === 'COMPLETED' ? '#059669' : '#d97706',
+                  color: getExerciseStatusColor(item.status),
                 }}
                 className="text-xs font-bold uppercase tracking-wide"
               >
-                {item.status === 'COMPLETED' ? t('exercise_history.completed') : item.status}
+                {getExerciseStatusText(item.status, t)}
               </Text>
             </View>
+            {item.score !== null && item.score < 80 && (
+              <Text className="text-xs font-semibold text-slate-400">
+                {t('exercise_history.review_requirement')}
+              </Text>
+            )}
           </View>
         </View>
       </LinearGradient>
@@ -181,44 +285,135 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ item, onPress, t }) => {
 
 export default function ExerciseHistoryScreen() {
   const { t } = useTranslation();
-  const [selectedLevel, setSelectedLevel] = useState<number | undefined>(undefined);
-  const [selectedType, setSelectedType] = useState<string | undefined>(undefined);
+  const pageSize = 10;
+  const [activeTab, setActiveTab] = useState<TabType>('exercises');
 
   const {
-    data,
-    isLoading,
-    isError,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    refetch,
-    isRefetching,
-  } = useExerciseHistory({
-    limit: 20,
-    levelJlpt: selectedLevel,
-    exerciseType: selectedType,
+    data: exercisesData,
+    isLoading: isLoadingExercises,
+    isError: isErrorExercises,
+    fetchNextPage: fetchNextExercises,
+    hasNextPage: hasNextExercises,
+    isFetchingNextPage: isFetchingNextExercises,
+    refetch: refetchExercises,
+    isRefetching: isRefetchingExercises,
+  } = useHistoryExercises({
+    pageSize,
   });
 
-  const exerciseHistory = useMemo(() => {
-    return data?.pages.flatMap((page: any) => {
-      // Axios wraps response in { data: ... }
-      // Service returns { statusCode, message, data: { results, ... } }
-      // So page.data = { statusCode, message, data: { results, ... } }
-      const response = page.data as { data?: { results?: IExerciseHistoryItem[] } };
-      return response?.data?.results ?? [];
-    }) ?? [];
-  }, [data]);
+  const {
+    data: testsData,
+    isLoading: isLoadingTests,
+    isError: isErrorTests,
+    fetchNextPage: fetchNextTests,
+    hasNextPage: hasNextTests,
+    isFetchingNextPage: isFetchingNextTests,
+    refetch: refetchTests,
+    isRefetching: isRefetchingTests,
+  } = useHistoryTests({
+    pageSize,
+  });
 
-  const handleExercisePress = (item: IExerciseHistoryItem) => {
-    // Navigate to review screen if available
-    router.push({
-      pathname: ROUTES.QUIZ.REVIEW,
-      params: { sessionId: item.exerciseAttemptId.toString() },
+  // Get exercises list sorted by updatedAt (newest first)
+  const exercisesList = useMemo(() => {
+    const exercises = exercisesData?.pages.flatMap((page) => page.data?.results ?? []) ?? [];
+    return exercises.sort((a, b) => {
+      const dateA = new Date(a.updatedAt).getTime();
+      const dateB = new Date(b.updatedAt).getTime();
+      return dateB - dateA;
     });
+  }, [exercisesData]);
+
+  // Get tests list sorted by updatedAt (newest first)
+  const testsList = useMemo(() => {
+    const tests = testsData?.pages.flatMap((page) => page.data?.results ?? []) ?? [];
+    return tests.sort((a, b) => {
+      const dateA = new Date(a.updatedAt).getTime();
+      const dateB = new Date(b.updatedAt).getTime();
+      return dateB - dateA;
+    });
+  }, [testsData]);
+
+  // Get statistics from the first page
+  const exercisesStats = useMemo(() => {
+    const firstPage = exercisesData?.pages[0]?.data;
+    return {
+      allTime: firstPage?.allTime ?? 0,
+      allAttempts: firstPage?.allAttempts ?? 0,
+      completedAttempts: firstPage?.completedAttempts ?? 0,
+      failedAttempts: firstPage?.failedAttempts ?? 0,
+      skippedAttempts: firstPage?.skippedAttempts ?? 0,
+      abandonedAttempts: firstPage?.abandonedAttempts ?? 0,
+    };
+  }, [exercisesData]);
+
+  const testsStats = useMemo(() => {
+    const firstPage = testsData?.pages[0]?.data;
+    return {
+      allTime: firstPage?.allTime ?? 0,
+      allAttempts: firstPage?.allAttempts ?? 0,
+      completedAttempts: firstPage?.completedAttempts ?? 0,
+      failedAttempts: firstPage?.failedAttempts ?? 0,
+      skippedAttempts: firstPage?.skippedAttempts ?? 0,
+      abandonedAttempts: firstPage?.abandonedAttempts ?? 0,
+    };
+  }, [testsData]);
+
+  // Get current data based on active tab
+  const currentData = activeTab === 'exercises' ? exercisesList : testsList;
+  const currentStats = activeTab === 'exercises' ? exercisesStats : testsStats;
+  const isLoading = activeTab === 'exercises' ? isLoadingExercises : isLoadingTests;
+  const isError = activeTab === 'exercises' ? isErrorExercises : isErrorTests;
+  const isRefetching = activeTab === 'exercises' ? isRefetchingExercises : isRefetchingTests;
+  const isFetchingNext = activeTab === 'exercises' ? isFetchingNextExercises : isFetchingNextTests;
+  const hasNextPage = activeTab === 'exercises' ? hasNextExercises : hasNextTests;
+
+  const handleItemPress = (item: IHistoryItem) => {
+    // Only allow review if score >= 80%
+    const canReview = item.score !== null && item.score >= 80;
+    
+    if (canReview) {
+      if (item.testId) {
+        // Navigate to test review
+        router.push({
+          pathname: ROUTES.TEST.REVIEW,
+          params: { userTestAttemptId: item.attemptId.toString() },
+        });
+      } else if (item.exerciseId) {
+        // Navigate to exercise review
+        router.push({
+          pathname: ROUTES.QUIZ.REVIEW,
+          params: { sessionId: item.attemptId.toString() },
+        });
+      }
+    } else if (item.status === ExerciseAttemptStatus.IN_PROGRESS) {
+      // Navigate to continue if in progress
+      if (item.testId) {
+        router.push({
+          pathname: ROUTES.TEST.TEST,
+          params: { testId: item.testId.toString() },
+        });
+      }
+    }
+    // If score < 80%, do nothing (can't review)
   };
 
   const handleRefresh = () => {
-    refetch();
+    if (activeTab === 'exercises') {
+      refetchExercises();
+    } else {
+      refetchTests();
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (hasNextPage && !isFetchingNext) {
+      if (activeTab === 'exercises') {
+        fetchNextExercises();
+      } else {
+        fetchNextTests();
+      }
+    }
   };
 
   return (
@@ -228,72 +423,67 @@ export default function ExerciseHistoryScreen() {
       {/* Header */}
       <BackScreen onPress={() => router.back()} color="black" title={t('exercise_history.title')} />
 
-      {/* Filter Section */}
-      <View className="px-4 pt-2 pb-3">
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterContainer}
-        >
-          {/* Level Filter */}
+      {/* Tab Selection */}
+      <View className="px-4 pt-4 pb-2">
+        <View className="flex-row bg-white rounded-2xl p-1.5 shadow-sm">
           <Pressable
-            className={`px-4 py-2 rounded-2xl mr-2 ${
-              selectedLevel === undefined ? 'bg-teal-500' : 'bg-white'
+            onPress={() => setActiveTab('exercises')}
+            className={`flex-1 py-3 rounded-xl ${
+              activeTab === 'exercises' ? 'bg-purple-500' : 'bg-transparent'
             }`}
-            onPress={() => setSelectedLevel(undefined)}
-            style={styles.filterButton}
+            style={activeTab === 'exercises' ? styles.activeTabShadow : undefined}
           >
-            <Text
-              className={`text-sm font-bold ${
-                selectedLevel === undefined ? 'text-white' : 'text-slate-700'
-              }`}
-            >
-              {t('exercise_history.filters.all_levels')}
-            </Text>
-          </Pressable>
-          {[5, 4, 3].map((level) => (
-            <Pressable
-              key={level}
-              className={`px-4 py-2 rounded-2xl mr-2 ${
-                selectedLevel === level ? 'bg-teal-500' : 'bg-white'
-              }`}
-              onPress={() => setSelectedLevel(level)}
-              style={styles.filterButton}
-            >
+            <View className="flex-row items-center justify-center">
+              <BookOpen 
+                size={18} 
+                color={activeTab === 'exercises' ? '#ffffff' : '#94a3b8'} 
+                strokeWidth={2.5}
+              />
               <Text
-                className={`text-sm font-bold ${
-                  selectedLevel === level ? 'text-white' : 'text-slate-700'
+                className={`ml-2 font-bold text-sm ${
+                  activeTab === 'exercises' ? 'text-white' : 'text-slate-400'
                 }`}
               >
-                N{level}
+                {t('exercise_history.exercises_tab')}
               </Text>
-            </Pressable>
-          ))}
-
-          {/* Type Filter */}
-          <Pressable
-            className={`px-4 py-2 rounded-2xl mr-2 ${
-              selectedType === undefined ? 'bg-teal-500' : 'bg-white'
-            }`}
-            onPress={() => setSelectedType(undefined)}
-            style={styles.filterButton}
-          >
-            <Text
-              className={`text-sm font-bold ${
-                selectedType === undefined ? 'text-white' : 'text-slate-700'
-              }`}
-            >
-              {t('exercise_history.filters.all_types')}
-            </Text>
+            </View>
           </Pressable>
-        </ScrollView>
+
+          <Pressable
+            onPress={() => setActiveTab('tests')}
+            className={`flex-1 py-3 rounded-xl ${
+              activeTab === 'tests' ? 'bg-blue-500' : 'bg-transparent'
+            }`}
+            style={activeTab === 'tests' ? styles.activeTabShadow : undefined}
+          >
+            <View className="flex-row items-center justify-center">
+              <FileText 
+                size={18} 
+                color={activeTab === 'tests' ? '#ffffff' : '#94a3b8'} 
+                strokeWidth={2.5}
+              />
+              <Text
+                className={`ml-2 font-bold text-sm ${
+                  activeTab === 'tests' ? 'text-white' : 'text-slate-400'
+                }`}
+              >
+                {t('exercise_history.tests_tab')}
+              </Text>
+            </View>
+          </Pressable>
+        </View>
       </View>
 
       {/* Content */}
       <View className="flex-1 px-4">
         {isLoading ? (
           <View className="flex-1">
-            {Array.from({ length: 5 }, (_, i) => (
+            {/* Statistics Skeleton */}
+            <View className="mb-4">
+              <Skeleton style={styles.statsSkeleton} className="rounded-3xl" />
+            </View>
+            {/* Cards Skeleton */}
+            {Array.from({ length: 3 }, (_, i) => (
               <View key={i} className="mb-4">
                 <Skeleton style={styles.cardSkeleton} className="rounded-3xl" />
               </View>
@@ -311,34 +501,38 @@ export default function ExerciseHistoryScreen() {
               <Text className="text-white font-bold">{t('exercise_history.retry')}</Text>
             </Pressable>
           </View>
-        ) : exerciseHistory.length === 0 ? (
+        ) : currentData.length === 0 ? (
           <View className="flex-1 items-center justify-center">
-            <BookOpen size={64} color="#94a3b8" strokeWidth={1.5} />
+            {activeTab === 'exercises' ? (
+              <BookOpen size={64} color="#94a3b8" strokeWidth={1.5} />
+            ) : (
+              <FileText size={64} color="#94a3b8" strokeWidth={1.5} />
+            )}
             <Text className="text-xl font-bold text-slate-600 mt-4 mb-2">
-              {t('exercise_history.empty_title')}
+              {activeTab === 'exercises' 
+                ? t('exercise_history.empty_exercises_title') 
+                : t('exercise_history.empty_tests_title')}
             </Text>
             <Text className="text-sm text-slate-500 text-center px-8">
-              {t('exercise_history.empty_description')}
+              {activeTab === 'exercises'
+                ? t('exercise_history.empty_exercises_description')
+                : t('exercise_history.empty_tests_description')}
             </Text>
           </View>
         ) : (
           <FlatList
-            data={exerciseHistory}
-            keyExtractor={(item) => item.id.toString()}
+            data={currentData}
+            keyExtractor={(item) => `${item.testId ? 'test' : 'exercise'}-${item.attemptId}`}
             renderItem={({ item }) => (
-              <ExerciseCard
+              <HistoryCard
                 item={item}
-                onPress={() => handleExercisePress(item)}
+                onPress={() => handleItemPress(item)}
                 t={t}
               />
             )}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
-            onEndReached={() => {
-              if (hasNextPage && !isFetchingNextPage) {
-                fetchNextPage();
-              }
-            }}
+            onEndReached={handleLoadMore}
             onEndReachedThreshold={0.4}
             refreshControl={
               <RefreshControl
@@ -347,8 +541,19 @@ export default function ExerciseHistoryScreen() {
                 colors={['#6FAFB2']}
               />
             }
+            ListHeaderComponent={
+              <StatisticsCard
+                allTime={currentStats.allTime}
+                allAttempts={currentStats.allAttempts}
+                completedAttempts={currentStats.completedAttempts}
+                failedAttempts={currentStats.failedAttempts}
+                skippedAttempts={currentStats.skippedAttempts}
+                abandonedAttempts={currentStats.abandonedAttempts}
+                t={t}
+              />
+            }
             ListFooterComponent={
-              isFetchingNextPage ? (
+              isFetchingNext ? (
                 <View className="py-4">
                   <ActivityIndicator size="large" color="#6FAFB2" />
                 </View>
@@ -368,6 +573,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 6,
+  },
+  statsCard: {
+    shadowColor: '#6FAFB2',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 5,
   },
   scoreBadge: {
     borderRadius: 16,
@@ -389,6 +601,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  statsSkeleton: {
+    width: '100%',
+    height: 240,
+    backgroundColor: '#f1f5f9',
+  },
   cardSkeleton: {
     width: '100%',
     height: 180,
@@ -397,5 +614,13 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 20,
   },
+  activeTabShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
 });
+
 

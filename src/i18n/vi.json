@@ -414,7 +414,22 @@
     "partner_pokemon": "Pokémon đồng hành của bạn",
     "take_care_description": "Chăm sóc Pokémon đồng hành và cùng nhau tiến hóa!",
     "take_care_me": "Hãy chăm sóc tôi nhé!",
-    "partner_pokemon_short": "Pokémon đồng hành"
+    "partner_pokemon_short": "Pokémon đồng hành",
+    "stats_completed": "Hoàn thành",
+    "stats_in_progress": "Đang học",
+    "stats_streak": "Chuỗi ngày",
+    "stats_progress": "Tiến độ",
+    "weekly_progress": "Tiến độ tuần này",
+    "recent_activities": "Hoạt động gần đây",
+    "see_all": "Xem tất cả",
+    "suggestions": "Gợi ý cho bạn",
+    "suggestion_continue": "Tiếp tục bài học",
+    "suggestion_continue_desc": "Quay lại bài học bạn đang học dở",
+    "suggestion_new_lesson": "Bài học mới",
+    "suggestion_new_lesson_desc": "Khám phá các bài học mới phù hợp với trình độ của bạn",
+    "suggestion_practice": "Luyện tập",
+    "suggestion_practice_desc": "Cải thiện kỹ năng nghe và phát âm",
+    "recent_exercises": "Bài tập gần đây"
   },
   "quiz": {
     "question_types": {
@@ -463,11 +478,14 @@
   "tabs": {
     "home": "Trang chủ",
     "learn": "Học",
+    "abilities": "Năng lực",
+    "abilities_subtitle": "Luyện tập và nâng cao kỹ năng tiếng Nhật của bạn",
     "reading": "Đọc",
     "listening": "Nghe",
     "speaking": "Nói",
-    "battle": "Đấu trường",
-    "quiz_demo": "Demo Quiz"
+    "battle": "Chiến đấu",
+    "quiz_demo": "Demo Quiz",
+    "ai_speaking": "AI"
   },
   "settings": {
     "title": "Cài đặt",
@@ -634,13 +652,33 @@
   },
   "exercise_history": {
     "title": "Lịch sử bài tập",
+    "subtitle": "Xem lại các bài tập và bài test đã làm",
+    "exercises_tab": "Bài tập",
+    "tests_tab": "Bài kiểm tra",
+    "statistics": "Thống kê",
+    "total_attempts": "Tổng số lần làm",
+    "total_time": "Tổng thời gian",
+    "completed": "Hoàn thành",
+    "failed": "Thất bại",
+    "skipped": "Bỏ qua",
+    "abandoned": "Bỏ dở",
     "empty_title": "Chưa có bài tập nào",
     "empty_description": "Bạn chưa hoàn thành bài tập nào. Hãy bắt đầu học để xem lịch sử của bạn ở đây!",
+    "empty_exercises_title": "Chưa có bài tập nào",
+    "empty_exercises_description": "Bạn chưa hoàn thành bài tập nào. Hãy bắt đầu học để xem lịch sử của bạn ở đây!",
+    "empty_tests_title": "Chưa có bài kiểm tra nào",
+    "empty_tests_description": "Bạn chưa hoàn thành bài kiểm tra nào. Hãy làm bài test để xem lịch sử của bạn ở đây!",
     "load_error": "Không thể tải lịch sử bài tập",
     "retry": "Thử lại",
     "correct": "đúng",
-    "completed": "Hoàn thành",
+    "incorrect": "sai",
+    "in_progress": "Đang làm",
+    "not_started": "Chưa bắt đầu",
+    "review_requirement": "Cần đạt 80% để xem review",
+    "test": "Bài kiểm tra",
+    "exercise": "Bài tập",
     "unknown_exercise": "Bài tập không xác định",
+    "unknown_item": "Không xác định",
     "filters": {
       "all_levels": "Tất cả cấp độ",
       "all_types": "Tất cả loại"
@@ -675,7 +713,37 @@
     "reward": {
       "receive_button": "Nhận thưởng",
       "receive_success": "Đã nhận thưởng thành công!",
-      "receive_error": "Nhận thưởng thất bại. Vui lòng thử lại."
+      "receive_error": "Nhận thưởng thất bại. Vui lòng thử lại.",
+      "days_ago": "{{days}} ngày trước",
+      "status": {
+        "not_started": "Chưa bắt đầu",
+        "in_progress": "Đang làm",
+        "completed": "Hoàn thành",
+        "fail": "Thất bại",
+        "failed": "Thất bại",
+        "abandoned": "Bỏ dở",
+        "skipped": "Bỏ qua"
+      }
+    }
+  },
+  "dictionary": {
+    "title": "Từ điển",
+    "search_placeholder": "Tìm kiếm từ, kanji, hoặc cụm từ...",
+    "camera": "Camera",
+    "radical": "Bộ",
+    "voice": "Giọng nói",
+    "handwriting": "Viết tay",
+    "no_results": "Không tìm thấy kết quả",
+    "try_different_search": "Thử tìm kiếm với từ khóa khác",
+    "start_searching": "Bắt đầu tìm kiếm",
+    "search_description": "Nhập tiếng Nhật hoặc tiếng Anh để tìm kiếm từ, kanji, câu, và nhiều hơn nữa",
+    "recent_searches": "Tìm kiếm gần đây",
+    "tabs": {
+      "word": "Từ",
+      "kanji": "Kanji",
+      "sentence": "Câu",
+      "grammar": "Ngữ pháp",
+      "japan_japan": "Nhật - Nhật"
     }
   },
   "subscription": {

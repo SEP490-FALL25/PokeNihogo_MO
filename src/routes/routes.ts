@@ -15,6 +15,7 @@ enum ME {
   SETTINGS = "/(app)/(me)/settings",
   POKEMON_DETAIL = "/(app)/(me)/pokemon/[id]",
   EXERCISE_HISTORY = "/(app)/(me)/exercise-history",
+  DICTIONARY = "/(app)/(me)/dictionary",
 }
 
 enum AUTH {
@@ -53,6 +54,7 @@ enum TABS {
   HOME = "/(app)/(tabs)/home",
   LEARN = "/(app)/(tabs)/learn",
   LESSONS = "/(app)/(tabs)/lessons",
+  ABILITIES = "/(app)/(tabs)/abilities",
   READING = "/(app)/(tabs)/reading",
   LISTENING = "/(app)/(tabs)/listening",
   SPEAKING = "/(app)/(tabs)/speaking",
@@ -60,6 +62,7 @@ enum TABS {
   EXPLORE = "/(app)/(tabs)/explore",
   DEMO = "/(app)/(tabs)/demo",
   PROFILE = "/(app)/(tabs)/profile",
+  AI_CONVERSATION = "/(app)/ai-conversation",
 }
 
 enum LESSON {

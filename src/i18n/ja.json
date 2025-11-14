@@ -140,11 +140,14 @@
     "tabs": {
         "home": "ホーム",
         "learn": "学習",
+        "abilities": "能力",
+        "abilities_subtitle": "能力を練習して改善しましょう",
         "reading": "読解",
         "listening": "リスニング",
         "speaking": "スピーキング",
         "battle": "バトル",
-        "quiz_demo": "クイズデモ"
+        "quiz_demo": "クイズデモ",
+        "ai_speaking": "AI"
     },
     "settings": {
         "title": "設定",
@@ -549,6 +552,82 @@
     "popular": "人気",
     "purchase_success": "プランの購入に成功しました！",
     "purchase_failed": "プランの購入に失敗しました",
-    "insufficient_balance": "このプランを購入するには残高が不足しています"
+    "insufficient_balance": "このプランを購入するには残高が不足しています",
   }
+    },
+    "exercise_history": {
+        "title": "練習履歴",
+        "subtitle": "完了した練習とテストを確認",
+        "exercises_tab": "練習",
+        "tests_tab": "テスト",
+        "statistics": "統計",
+        "total_attempts": "総試行回数",
+        "total_time": "総時間",
+        "completed": "完了",
+        "failed": "失敗",
+        "skipped": "スキップ",
+        "abandoned": "中断",
+        "empty_title": "まだ練習がありません",
+        "empty_description": "まだ練習を完了していません。学習を始めて、ここに履歴を表示しましょう！",
+        "empty_exercises_title": "まだ練習がありません",
+        "empty_exercises_description": "まだ練習を完了していません。学習を始めて、ここに履歴を表示しましょう！",
+        "empty_tests_title": "まだテストがありません",
+        "empty_tests_description": "まだテストを完了していません。テストを受けて、ここに履歴を表示しましょう！",
+        "load_error": "練習履歴を読み込めません",
+        "retry": "再試行",
+        "correct": "正解",
+        "incorrect": "不正解",
+        "in_progress": "進行中",
+        "not_started": "未開始",
+        "review_requirement": "レビューするには80%必要",
+        "test": "テスト",
+        "exercise": "練習",
+        "unknown_exercise": "不明な練習",
+        "unknown_item": "不明",
+        "filters": {
+            "all_levels": "すべてのレベル",
+            "all_types": "すべてのタイプ"
+        },
+        "skill_types": {
+            "reading": "読解",
+            "listening": "リスニング",
+            "speaking": "スピーキング",
+            "vocabulary": "語彙",
+            "grammar": "文法",
+            "kanji": "漢字"
+        },
+        "just_now": "たった今",
+        "minutes_ago": "{{minutes}}分前",
+        "hours_ago": "{{hours}}時間前",
+        "days_ago": "{{days}}日前",
+        "status": {
+            "not_started": "未開始",
+            "in_progress": "進行中",
+            "completed": "完了",
+            "fail": "失敗",
+            "failed": "失敗",
+            "abandoned": "放棄",
+            "skipped": "スキップ"
+        }
+    },
+    "dictionary": {
+        "title": "辞書",
+        "search_placeholder": "単語、漢字、フレーズを検索...",
+        "camera": "カメラ",
+        "radical": "部首",
+        "voice": "音声",
+        "handwriting": "手書き",
+        "no_results": "結果が見つかりません",
+        "try_different_search": "別のキーワードで検索してください",
+        "start_searching": "検索を開始",
+        "search_description": "日本語または英語を入力して、単語、漢字、文章などを検索",
+        "recent_searches": "最近の検索",
+        "tabs": {
+            "word": "単語",
+            "kanji": "漢字",
+            "sentence": "文",
+            "grammar": "文法",
+            "japan_japan": "日本 - 日本"
+        }
+    }
 }

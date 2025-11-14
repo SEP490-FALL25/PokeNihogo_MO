@@ -1,4 +1,5 @@
 import { axiosPrivate } from "@configs/axios";
+import { ExerciseAttemptStatus } from "@constants/exercise.enum";
 import { IExerciseHistoryItem } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 
 // Feature flags
@@ -67,7 +68,7 @@ const generateMockExerciseHistory = (): IExerciseHistoryItem[] => {
       answeredInCorrect,
       score,
       time,
-      status: 'COMPLETED',
+      status: ExerciseAttemptStatus.COMPLETED,
       completedAt,
       lesson: {
         id: 100 + i,
@@ -116,7 +117,7 @@ const userExerciseAttemptService = {
   },
   continueAndAbandonExercise: async (
     exerciseAttemptId: string,
-    status: string
+    status: ExerciseAttemptStatus
   ) => {
     return axiosPrivate.put(`/user-exercise-attempt/${exerciseAttemptId}`, {
       status,

@@ -8,6 +8,7 @@ export default function AppLayout() {
             <Stack.Screen name="pokemon-collection" />
             <Stack.Screen name="achievements" />
             <Stack.Screen name="settings" />
+            <Stack.Screen name="dictionary" />
         </Stack>
     );
 }
