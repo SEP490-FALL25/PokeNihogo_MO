@@ -9,11 +9,12 @@ import {
   Search,
   X
 } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -46,6 +47,7 @@ export default function DictionaryScreen() {
   const [language, setLanguage] = useState<'ja' | 'en'>('en');
   const [currentPage, setCurrentPage] = useState(1);
   const [isFocused, setIsFocused] = useState(false);
+  const searchInputRef = useRef<TextInput>(null);
   
   // Debounce search query to avoid too many API calls
   const debouncedQuery = useDebounce(searchQuery, 300);
@@ -119,9 +121,10 @@ export default function DictionaryScreen() {
 
         {/* Search Bar */}
         <View className="px-4 mb-3">
-          <View className="bg-white rounded-2xl flex-row items-center px-4 py-3 shadow-sm">
+          <View className="bg-white rounded-2xl flex-row items-center px-4 py-3 shadow-sm relative z-10">
             <Search size={20} color="#9ca3af" />
             <TextInput
+              ref={searchInputRef}
               className="flex-1 mx-3 text-base text-gray-900"
               placeholder={t('dictionary.search_placeholder')}
               value={searchQuery}
@@ -131,7 +134,10 @@ export default function DictionaryScreen() {
                 setCurrentPage(1);
               }}
               onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
+              onBlur={() => {
+                // Delay to allow dropdown item press
+                setTimeout(() => setIsFocused(false), 200);
+              }}
               returnKeyType="search"
               autoCapitalize="none"
               autoCorrect={false}
@@ -170,71 +176,165 @@ export default function DictionaryScreen() {
         </View>
       </LinearGradient>
 
-      {/* Results */}
-      <View className="flex-1">
-        {isLoading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#4A9FA2" />
+      {/* Overlay to detect outside clicks */}
+      {isFocused && (
+        <Pressable
+          style={styles.overlay}
+          onPress={() => {
+            setIsFocused(false);
+            searchInputRef.current?.blur();
+          }}
+        />
+      )}
+
+      {/* Dropdown for search suggestions/history - positioned right after gradient */}
+      {isFocused && (
+        <View 
+          style={styles.dropdownWrapper}
+          className="px-4 -mt-6"
+        >
+          <Pressable
+            onPress={(e) => {
+              // Prevent overlay from triggering when clicking inside dropdown
+              e.stopPropagation();
+            }}
+          >
+            <View 
+              className="bg-white rounded-xl shadow-lg border border-gray-200"
+              style={styles.dropdownContainer}
+            >
+          {searchQuery.trim() ? (
+            // Show search suggestions when typing
+            <>
+              {isLoading ? (
+                <View className="py-8 items-center justify-center">
+                  <ActivityIndicator size="small" color="#4A9FA2" />
+                </View>
+              ) : searchResults.length > 0 ? (
+                <ScrollView 
+                  style={styles.dropdownScrollView}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                  nestedScrollEnabled={true}
+                >
+                  {searchResults.map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      className="py-3 px-4 border-b border-gray-50 active:bg-gray-50"
+                      onPress={() => {
+                        setSearchQuery(item.word);
+                        setIsFocused(false);
+                        searchInputRef.current?.blur();
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View className="flex-row items-center mb-1">
+                        <Text className="text-lg font-bold text-gray-900 mr-2">{item.word}</Text>
+                        {item.reading && (
+                          <Text className="text-sm text-gray-500">「{item.reading}」</Text>
+                        )}
+                      </View>
+                      {item.meaning && (
+                        <Text className="text-sm text-gray-700 mt-1">{item.meaning}</Text>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              ) : (
+                <View className="py-6 px-4">
+                  <Text className="text-sm text-gray-400 text-center">
+                    {t('dictionary.no_results')}
+                  </Text>
+                </View>
+              )}
+            </>
+          ) : (
+            // Show search history when no query
+            searchHistory.length > 0 && (
+              <>
+                <View className="flex-row items-center px-4 py-3 border-b border-gray-100">
+                  <Clock size={16} color="#9ca3af" />
+                  <Text className="text-sm font-semibold text-gray-700 ml-2">
+                    {t('dictionary.recent_searches')}
+                  </Text>
+                </View>
+                <ScrollView 
+                  style={styles.dropdownScrollView}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                  nestedScrollEnabled={true}
+                >
+                  {searchHistory.map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      className="flex-row items-center py-3 px-4 border-b border-gray-50 active:bg-gray-50"
+                      onPress={() => {
+                        setSearchQuery(item.searchKeyword);
+                        setIsFocused(false);
+                        searchInputRef.current?.blur();
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View className="w-8 h-8 bg-blue-50 rounded-full items-center justify-center mr-3">
+                        <Clock size={14} color="#3b82f6" />
+                      </View>
+                      <Text className="flex-1 text-base text-gray-900 font-medium">
+                        {item.searchKeyword}
+                      </Text>
+                      <Text className="text-xs text-gray-400 ml-2">
+                        {new Date(item.createdAt).toLocaleDateString('vi-VN', {
+                          day: '2-digit',
+                          month: '2-digit',
+                        })}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            )
+          )}
           </View>
-        ) : searchResults.length > 0 ? (
-          <FlatList
-            data={searchResults}
-            renderItem={renderSearchResult}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.resultsContainer}
-          />
-        ) : searchQuery.trim() ? (
-          <View className="flex-1 items-center justify-center px-6">
-            <BookOpen size={64} color="#d1d5db" />
-            <Text className="text-lg font-semibold text-gray-400 mt-4 text-center">
-              {t('dictionary.no_results')}
-            </Text>
-            <Text className="text-sm text-gray-400 mt-2 text-center">
-              {t('dictionary.try_different_search')}
-            </Text>
-          </View>
-        ) : isFocused && searchHistory.length > 0 ? (
-          <ScrollView className="flex-1 px-4 py-4">
-            <View className="flex-row items-center mb-3">
-              <Clock size={18} color="#9ca3af" />
-              <Text className="text-base font-semibold text-gray-700 ml-2">
-                {t('dictionary.recent_searches')}
+          </Pressable>
+        </View>
+      )}
+
+      {/* Results - only show when not focused or when search is submitted */}
+      {!isFocused && (
+        <View className="flex-1">
+          {isLoading ? (
+            <View className="flex-1 items-center justify-center">
+              <ActivityIndicator size="large" color="#4A9FA2" />
+            </View>
+          ) : searchResults.length > 0 ? (
+            <FlatList
+              data={searchResults}
+              renderItem={renderSearchResult}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.resultsContainer}
+            />
+          ) : searchQuery.trim() ? (
+            <View className="flex-1 items-center justify-center px-6">
+              <BookOpen size={64} color="#d1d5db" />
+              <Text className="text-lg font-semibold text-gray-400 mt-4 text-center">
+                {t('dictionary.no_results')}
+              </Text>
+              <Text className="text-sm text-gray-400 mt-2 text-center">
+                {t('dictionary.try_different_search')}
               </Text>
             </View>
-            {searchHistory.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                className="flex-row items-center py-3 px-2 border-b border-gray-100"
-                onPress={() => setSearchQuery(item.searchKeyword)}
-                activeOpacity={0.6}
-              >
-                <View className="w-10 h-10 bg-blue-50 rounded-full items-center justify-center">
-                  <Clock size={18} color="#3b82f6" />
-                </View>
-                <Text className="flex-1 text-base text-gray-900 ml-3 font-medium">
-                  {item.searchKeyword}
-                </Text>
-                <Text className="text-xs text-gray-400">
-                  {new Date(item.createdAt).toLocaleDateString('vi-VN', {
-                    day: '2-digit',
-                    month: '2-digit',
-                  })}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        ) : (
-          <View className="flex-1 items-center justify-center px-6">
-            <Search size={64} color="#d1d5db" />
-            <Text className="text-lg font-semibold text-gray-400 mt-4 text-center">
-              {t('dictionary.start_searching')}
-            </Text>
-            <Text className="text-sm text-gray-400 mt-2 text-center">
-              {t('dictionary.search_description')}
-            </Text>
-          </View>
-        )}
-      </View>
+          ) : (
+            <View className="flex-1 items-center justify-center px-6">
+              <Search size={64} color="#d1d5db" />
+              <Text className="text-lg font-semibold text-gray-400 mt-4 text-center">
+                {t('dictionary.start_searching')}
+              </Text>
+              <Text className="text-sm text-gray-400 mt-2 text-center">
+                {t('dictionary.search_description')}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -242,6 +342,25 @@ export default function DictionaryScreen() {
 const styles = StyleSheet.create({
   resultsContainer: {
     paddingBottom: 20,
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999,
+    elevation: 9, // For Android, slightly lower than dropdown
+  },
+  dropdownWrapper: {
+    zIndex: 1000,
+    elevation: 10, // For Android
+  },
+  dropdownContainer: {
+    maxHeight: 400,
+  },
+  dropdownScrollView: {
+    maxHeight: 350,
   },
 });
 
