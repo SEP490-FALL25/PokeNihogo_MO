@@ -40,7 +40,7 @@ const achievementService = {
     },
 
     receiveAchievementReward: async (achievementId: number): Promise<void> => {
-        const response = await axiosPrivate.post(`/user-achievement/get-reward/${achievementId}`);
+        const response = await axiosPrivate.put(`/user-achievement/get-reward/${achievementId}`);
         return response.data;
     },
 };

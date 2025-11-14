@@ -526,6 +526,7 @@
         "error": "実績を読み込めませんでした。後でもう一度お試しください。",
         "status": {
             "completed": "完了",
+            "claimed": "報酬受取済み",
             "in_progress": "進行中",
             "locked": "ロック"
         },

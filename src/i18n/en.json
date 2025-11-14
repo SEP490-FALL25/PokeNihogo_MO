@@ -665,6 +665,7 @@
     "error": "Unable to load achievements. Please try again later.",
     "status": {
       "completed": "Completed",
+      "claimed": "Reward Claimed",
       "in_progress": "In progress",
       "locked": "Locked"
     },

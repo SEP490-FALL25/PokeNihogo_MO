@@ -665,6 +665,7 @@
     "error": "Không thể tải dữ liệu thành tích. Vui lòng thử lại sau.",
     "status": {
       "completed": "Đã hoàn thành",
+      "claimed": "Đã nhận thưởng",
       "in_progress": "Đang tiến độ",
       "locked": "Chưa mở khóa"
     },

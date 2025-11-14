@@ -1,14 +1,15 @@
 // src/app/(app)/achievements.tsx
 import MinimalGameAlert from '@components/atoms/MinimalAlert';
 import BackScreen from '@components/molecules/Back';
+import { USER_ACHIEVEMENT_STATUS } from '@constants/user-achievement.enum';
 import { useAchievement, useReceiveAchievementReward } from '@hooks/useAchievement';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { CheckCircle2, ImageOff, Sparkles } from 'lucide-react-native';
 import { cssInterop } from 'nativewind';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Image, SectionList, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Animated, Image, SectionList, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import * as Progress from 'react-native-progress';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -28,6 +29,8 @@ type AchievementCardItem = {
     imageUrl: string | null;
     badgeColors: [string, string];
     rewardLabel?: string;
+    rewardId?: number;
+    userAchievementId?: number;
     canReceiveReward: boolean;
 };
 
@@ -51,11 +54,44 @@ const AchievementCard = ({
     t
 }: {
     item: AchievementCardItem;
-    onReceiveReward: (achievementId: number) => void;
+    onReceiveReward: (id: string) => void;
     isReceivingReward: boolean;
     t: (key: string, options?: any) => string;
-}) => (
-    <View className="flex-1 my-2">
+}) => {
+    const glowAnimation = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+        if (item.canReceiveReward) {
+            const pulse = Animated.loop(
+                Animated.sequence([
+                    Animated.timing(glowAnimation, {
+                        toValue: 1.3,
+                        duration: 1500,
+                        useNativeDriver: false,
+                    }),
+                    Animated.timing(glowAnimation, {
+                        toValue: 1,
+                        duration: 1500,
+                        useNativeDriver: false,
+                    }),
+                ])
+            );
+            pulse.start();
+            return () => pulse.stop();
+        }
+    }, [item.canReceiveReward, glowAnimation]);
+
+    const animatedShadowOpacity = glowAnimation.interpolate({
+        inputRange: [1, 1.3],
+        outputRange: [0.6, 1],
+    });
+
+    const animatedShadowRadius = glowAnimation.interpolate({
+        inputRange: [1, 1.3],
+        outputRange: [12, 18],
+    });
+
+    const cardContent = (
         <TWLinearGradient
             colors={item.unlocked ? ['#1e293b', '#334155'] : ['#374151', '#4b5563']}
             start={{ x: 0, y: 0 }}
@@ -95,7 +131,7 @@ const AchievementCard = ({
 
                 {item.canReceiveReward && (
                     <TouchableOpacity
-                        onPress={() => onReceiveReward(item.achievementId)}
+                        onPress={() => onReceiveReward(item.userAchievementId?.toString() ?? '')}
                         disabled={isReceivingReward}
                         className={`mt-2 px-4 py-2 rounded-lg ${isReceivingReward ? 'bg-emerald-500/50' : 'bg-emerald-500'}`}
                         activeOpacity={0.7}
@@ -130,8 +166,31 @@ const AchievementCard = ({
                 </View>
             </View>
         </TWLinearGradient>
-    </View>
-);
+    );
+
+    return (
+        <View className="flex-1 my-2">
+            {item.canReceiveReward ? (
+                <Animated.View
+                    style={{
+                        borderWidth: 2,
+                        borderColor: '#22c55e',
+                        borderRadius: 16,
+                        shadowColor: '#22c55e',
+                        shadowOffset: { width: 0, height: 0 },
+                        shadowOpacity: animatedShadowOpacity,
+                        shadowRadius: animatedShadowRadius,
+                        elevation: 12,
+                    }}
+                >
+                    {cardContent}
+                </Animated.View>
+            ) : (
+                cardContent
+            )}
+        </View>
+    );
+};
 
 const LoadingState = () => {
     const { t } = useTranslation();
@@ -161,7 +220,8 @@ export default function AchievementsScreen() {
 
     const { mutate: receiveReward, isPending: isReceivingReward } = useReceiveAchievementReward();
 
-    const handleReceiveReward = (achievementId: number) => {
+    const handleReceiveReward = (id: string) => {
+        const achievementId = parseInt(id, 10);
         receiveReward(achievementId, {
             onSuccess: () => {
                 setShowSuccessAlert(true);
@@ -184,21 +244,23 @@ export default function AchievementsScreen() {
                 title: group.nameTranslation ?? group.nameKey,
                 data: group.achievements.results.map((achievement) => {
                     const achievedAt = achievement.userAchievement?.achievedAt ?? null;
-                    const status = achievement.userAchievement?.status ?? (achievedAt ? 'COMPLETED' : null);
-                    const unlocked = Boolean(achievedAt) || status === 'COMPLETED';
+                    const status = achievement.userAchievement?.status as USER_ACHIEVEMENT_STATUS | undefined;
+                    const unlocked = Boolean(achievedAt) ||
+                        status === USER_ACHIEVEMENT_STATUS.COMPLETED_NOT_CLAIMED ||
+                        status === USER_ACHIEVEMENT_STATUS.CLAIMED;
                     // Only show progress for completed (100%) or locked (0%), not for IN_PROGRESS since we don't have actual progress value
                     const progress = unlocked ? 1 : 0;
                     const showProgress = unlocked || !achievement.userAchievement; // Show progress only if completed or locked
-                    const statusLabel = unlocked
-                        ? t('achievements.status.completed')
-                        : status === 'IN_PROGRESS'
-                            ? t('achievements.status.in_progress')
-                            : t('achievements.status.locked');
+                    const statusLabel = status === USER_ACHIEVEMENT_STATUS.CLAIMED
+                        ? t('achievements.status.claimed')
+                        : status === USER_ACHIEVEMENT_STATUS.COMPLETED_NOT_CLAIMED
+                            ? t('achievements.status.completed')
+                            : status === USER_ACHIEVEMENT_STATUS.IN_PROGRESS
+                                ? t('achievements.status.in_progress')
+                                : t('achievements.status.locked');
                     const progressLabel = unlocked ? '100%' : '0%';
-                    // Can receive reward if achievement is completed (status === 'COMPLETED' or achievedAt !== null) and has reward
-                    // Note: This logic might need adjustment based on your API response structure
-                    // If API has a field indicating reward was already received, use that instead
-                    const canReceiveReward = unlocked && achievement.reward !== null;
+                    // Can receive reward only if achievement is completed but not yet claimed
+                    const canReceiveReward = status === USER_ACHIEVEMENT_STATUS.COMPLETED_NOT_CLAIMED && achievement.reward !== null;
 
                     const conditionDescription = (() => {
                         switch (achievement.conditionType) {
@@ -222,6 +284,8 @@ export default function AchievementsScreen() {
                         imageUrl: achievement.imageUrl,
                         badgeColors: getTierColors(achievement.achievementTierType),
                         rewardLabel: achievement.reward?.nameTranslation ?? achievement.reward?.nameKey ?? undefined,
+                        rewardId: achievement.reward?.id,
+                        userAchievementId: achievement.userAchievement?.id,
                         canReceiveReward,
                     } satisfies AchievementCardItem;
                 }),
