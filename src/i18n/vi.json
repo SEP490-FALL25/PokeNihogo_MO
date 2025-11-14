@@ -677,5 +677,17 @@
       "receive_success": "Đã nhận thưởng thành công!",
       "receive_error": "Nhận thưởng thất bại. Vui lòng thử lại."
     }
+  },
+  "subscription": {
+    "title": "Gói Dịch Vụ",
+    "subtitle": "Nâng cấp trải nghiệm học tập của bạn",
+    "balance": "Số dư",
+    "price": "Giá",
+    "purchase": "Mua ngay",
+    "lifetime": "Trọn đời",
+    "popular": "PHỔ BIẾN",
+    "purchase_success": "Mua gói dịch vụ thành công!",
+    "purchase_failed": "Mua gói dịch vụ thất bại",
+    "insufficient_balance": "Số dư không đủ để mua gói này"
   }
 }

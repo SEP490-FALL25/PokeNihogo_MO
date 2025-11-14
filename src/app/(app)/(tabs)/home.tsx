@@ -19,6 +19,8 @@ import { Starter } from "../../../types/starter.types";
 
 import { Button } from "@components/ui/Button";
 import { useCopilot } from "react-native-copilot";
+import { useRouter } from "expo-router";
+import { ROUTES } from "@routes/routes";
 
 /**
  * HomeScreen Component
@@ -29,6 +31,7 @@ import { useCopilot } from "react-native-copilot";
  */
 export default function HomeScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
 
   // Modal state management
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -76,6 +79,13 @@ export default function HomeScreen() {
    */
   const handleStartLesson = () => {
     // Navigate to lesson screen
+  };
+
+  /**
+   * Navigate to subscription screen
+   */
+  const handleOpenSubscription = () => {
+    router.push(ROUTES.APP.SUBSCRIPTION);
   };
 
   /**
@@ -188,6 +198,16 @@ export default function HomeScreen() {
               {t("home.start_new_lesson")}
             </ThemedText>
           </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.subscriptionButton}
+          onPress={handleOpenSubscription}
+          activeOpacity={0.85}
+        >
+          <ThemedText style={styles.subscriptionButtonText}>
+            {t("subscription.title")}
+          </ThemedText>
+        </TouchableOpacity>
         </ThemedView>
 
         {/* Learning Path Section */}
@@ -327,6 +347,20 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  subscriptionButton: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: "#f59e0b",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    backgroundColor: "rgba(245, 158, 11, 0.08)",
+  },
+  subscriptionButtonText: {
+    color: "#b45309",
     fontSize: 16,
     fontWeight: "600",
   },

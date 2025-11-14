@@ -5,6 +5,7 @@ enum APP {
   ARENA = "/(app)/(battle)/arena",
   DEMO = "/(app)/lesson-demo",
   AI_CONVERSATION = "/(app)/ai-conversation",
+  SUBSCRIPTION = "/(app)/subscription",
 }
 
 enum ME {
