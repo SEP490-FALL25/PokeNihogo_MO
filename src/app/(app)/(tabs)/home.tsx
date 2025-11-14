@@ -37,6 +37,10 @@ import * as Progress from "react-native-progress";
 import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
 
+import { Button } from "@components/ui/Button";
+import { useCopilot } from "react-native-copilot";
+import { useRouter } from "expo-router";
+import { ROUTES } from "@routes/routes";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 /**
@@ -309,6 +313,7 @@ const SuggestionCard: React.FC<{
  */
 export default function HomeScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
 
   // Modal state management
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -406,6 +411,21 @@ export default function HomeScreen() {
    */
   const handleWelcomeModalClose = () => {
     setShowWelcomeModal(false);
+  };
+
+  /**
+   * Handle start lesson button press
+   * TODO: Implement navigation to lesson screen
+   */
+  const handleStartLesson = () => {
+    // Navigate to lesson screen
+  };
+
+  /**
+   * Navigate to subscription screen
+   */
+  const handleOpenSubscription = () => {
+    router.push(ROUTES.APP.SUBSCRIPTION);
   };
 
   /**
@@ -524,6 +544,17 @@ export default function HomeScreen() {
             <ThemedText type="subtitle" style={styles.sectionTitle}>
               {t("home.weekly_progress")}
             </ThemedText>
+          </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.subscriptionButton}
+          onPress={handleOpenSubscription}
+          activeOpacity={0.85}
+        >
+          <ThemedText style={styles.subscriptionButtonText}>
+            {t("subscription.title")}
+          </ThemedText>
+        </TouchableOpacity>
             <Calendar size={18} color="#6b7280" />
           </View>
           <WeeklyProgressChart data={stats.weeklyData} />
@@ -805,6 +836,21 @@ const styles = StyleSheet.create({
   recentCardContent: {
     padding: 16,
   },
+  subscriptionButton: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: "#f59e0b",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    backgroundColor: "rgba(245, 158, 11, 0.08)",
+  },
+  subscriptionButtonText: {
+    color: "#b45309",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  pathItem: {
   recentCardHeader: {
     flexDirection: "row",
     alignItems: "center",
