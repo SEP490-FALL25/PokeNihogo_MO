@@ -3,6 +3,7 @@ import ResultValueCard from "@components/quiz/result/ResultValueCard";
 import BounceButton from "@components/ui/BounceButton";
 import { Button } from "@components/ui/Button";
 import { ConfirmModal } from "@components/ui/ConfirmModal";
+import { QuizCompletionStatus } from "@constants/quiz.enum";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useCheckReviewAccess } from "@hooks/useUserExerciseAttempt";
 import { useCheckReviewAccessTest } from "@hooks/useUserTestAttempt";
@@ -12,7 +13,7 @@ import { AxiosError } from "axios";
 import { ResizeMode, Video } from "expo-av";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function QuizResultScreen() {
   const { resultId, resultData, message, timeSpent, origin } = useLocalSearchParams<{
@@ -71,9 +72,7 @@ export default function QuizResultScreen() {
 
   const handleViewAnswers = useCallback(async () => {
     if (!resultId) return;
-console.log('origin: ', origin);
 const comingFromQuiz = origin === "quiz";
-console.log('comingFromQuiz: ', comingFromQuiz);
     if (comingFromQuiz) {
       // Check review access first (quiz flow)
       checkReviewAccess(resultId, {
@@ -133,7 +132,7 @@ console.log('comingFromQuiz: ', comingFromQuiz);
     if (!result) {
       return "Bài làm hoàn thành!";
     }
-    if (result.status === "FAIL") {
+    if (result.status === QuizCompletionStatus.FAILED) {
       return "Bài làm hoàn thành!";
     }
     if (result.allCorrect) {
@@ -146,7 +145,7 @@ console.log('comingFromQuiz: ', comingFromQuiz);
   const statusMessage = useMemo(() => {
     if (!result) return "Không tìm thấy kết quả quiz";
     if (message) return message;
-    if (result.status === "FAIL") {
+    if (result.status === QuizCompletionStatus.FAILED) {
       return "Bạn đã hoàn thành bài tập nhưng có một số câu trả lời sai";
     }
     if (result.allCorrect) {
@@ -267,7 +266,7 @@ console.log('comingFromQuiz: ', comingFromQuiz);
             value={
               result.allCorrect
                 ? "Hoàn hảo"
-                : result.status === "FAIL"
+                : result.status === QuizCompletionStatus.FAILED
                   ? "Có sai sót"
                   : "Đã hoàn thành"
             }
@@ -276,7 +275,7 @@ console.log('comingFromQuiz: ', comingFromQuiz);
                 name={
                   result.allCorrect
                     ? "trophy"
-                    : result.status === "FAIL"
+                    : result.status === QuizCompletionStatus.FAILED
                       ? "alert"
                       : "check"
                 }
@@ -284,7 +283,7 @@ console.log('comingFromQuiz: ', comingFromQuiz);
                 color={
                   result.allCorrect
                     ? "#f59e0b"
-                    : result.status === "FAIL"
+                    : result.status === QuizCompletionStatus.FAILED
                       ? "#ef4444"
                       : "#10b981"
                 }
@@ -293,7 +292,7 @@ console.log('comingFromQuiz: ', comingFromQuiz);
             headerGradientColors={
               result.allCorrect
                 ? ["#f59e0b", "#fbbf24"]
-                : result.status === "FAIL"
+                : result.status === QuizCompletionStatus.FAILED
                   ? ["#ef4444", "#f87171"]
                   : ["#10b981", "#34d399"]
             }

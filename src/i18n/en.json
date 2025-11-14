@@ -463,11 +463,19 @@
   "tabs": {
     "home": "Home",
     "learn": "Learn",
+    "abilities": "Abilities",
+    "abilities_subtitle": "Practice and improve your Japanese skills",
     "reading": "Reading",
     "listening": "Listening",
     "speaking": "Speaking",
     "battle": "Battle",
-    "quiz_demo": "Quiz Demo"
+    "quiz_demo": "Quiz Demo",
+    "ai_speaking": "AI",
+    "subtabs": {
+      "listening": "Listening",
+      "reading": "Reading",
+      "speaking": "Speaking"
+    }
   },
   "settings": {
     "title": "Settings",
@@ -634,13 +642,33 @@
   },
   "exercise_history": {
     "title": "Exercise History",
+    "subtitle": "Review your completed exercises and tests",
+    "exercises_tab": "Exercises",
+    "tests_tab": "Tests",
+    "statistics": "Statistics",
+    "total_attempts": "Total Attempts",
+    "total_time": "Total Time",
+    "completed": "Completed",
+    "failed": "Failed",
+    "skipped": "Skipped",
+    "abandoned": "Abandoned",
     "empty_title": "No exercises yet",
     "empty_description": "You haven't completed any exercises. Start learning to see your history here!",
+    "empty_exercises_title": "No exercises yet",
+    "empty_exercises_description": "You haven't completed any exercises. Start learning to see your history here!",
+    "empty_tests_title": "No tests yet",
+    "empty_tests_description": "You haven't completed any tests. Take a test to see your history here!",
     "load_error": "Unable to load exercise history",
     "retry": "Retry",
     "correct": "correct",
-    "completed": "Completed",
+    "incorrect": "incorrect",
+    "in_progress": "In Progress",
+    "not_started": "Not Started",
+    "review_requirement": "Need 80% to review",
+    "test": "Test",
+    "exercise": "Exercise",
     "unknown_exercise": "Unknown exercise",
+    "unknown_item": "Unknown",
     "filters": {
       "all_levels": "All levels",
       "all_types": "All types"
@@ -676,6 +704,35 @@
       "receive_button": "Receive Reward",
       "receive_success": "Reward received successfully!",
       "receive_error": "Failed to receive reward. Please try again."
+    "days_ago": "{{days}} days ago",
+    "status": {
+      "not_started": "Not Started",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "fail": "Failed",
+      "failed": "Failed",
+      "abandoned": "Abandoned",
+      "skipped": "Skipped"
+    }
+  },
+  "dictionary": {
+    "title": "Dictionary",
+    "search_placeholder": "Search for words, kanji, or phrases...",
+    "camera": "Camera",
+    "radical": "Radical",
+    "voice": "Voice",
+    "handwriting": "Write",
+    "no_results": "No results found",
+    "try_different_search": "Try searching with different keywords",
+    "start_searching": "Start searching",
+    "search_description": "Type Japanese or English to search for words, kanji, sentences, and more",
+    "recent_searches": "Recent Searches",
+    "tabs": {
+      "word": "Word",
+      "kanji": "Kanji",
+      "sentence": "Sentence",
+      "grammar": "Grammar",
+      "japan_japan": "Japan - Japan"
     }
   }
 }

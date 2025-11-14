@@ -1,3 +1,4 @@
+import { ExerciseAttemptStatus } from "@constants/exercise.enum";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -9,7 +10,7 @@ interface ReviewStatsSectionProps {
   answeredInCorrect: number;
   time: number;
   status: string;
-  questions: Array<{ id: number; isCorrect: boolean; hasUserAnswer: boolean }>;
+  questions: { id: number; isCorrect: boolean; hasUserAnswer: boolean }[];
   onQuestionPress: (questionId: string, offset: number) => void;
   questionOffsets: Record<string, number>;
 }
@@ -27,6 +28,13 @@ export const ReviewStatsSection: React.FC<ReviewStatsSectionProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
 
   const unansweredQuestions = totalQuestions - answeredCorrect - answeredInCorrect;
+
+  const isFailedStatus = useMemo(() => {
+    return (
+      status === ExerciseAttemptStatus.FAIL ||
+      status === ExerciseAttemptStatus.FAILED
+    );
+  }, [status]);
 
   const formatTime = (seconds: number): string => {
     const hrs = Math.floor(seconds / 3600);
@@ -113,16 +121,16 @@ export const ReviewStatsSection: React.FC<ReviewStatsSectionProps> = ({
             <View
               style={[
                 styles.statusBadge,
-                status === "FAIL" && styles.statusBadgeFail,
+                isFailedStatus && styles.statusBadgeFail,
               ]}
             >
               <Text
                 style={[
                   styles.statusText,
-                  status === "FAIL" && styles.statusTextFail,
+                  isFailedStatus && styles.statusTextFail,
                 ]}
               >
-                {status === "FAIL" ? "Không đạt" : "Đạt"}
+                {isFailedStatus ? "Không đạt" : "Đạt"}
               </Text>
             </View>
           </View>

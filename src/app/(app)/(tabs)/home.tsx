@@ -4,26 +4,306 @@ import MainNavigation from "@components/MainNavigation";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import WelcomeModal from "@components/ui/WelcomeModal";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useGlobalStore } from "@stores/global/global.config";
+import { useUserProgressInfinite } from "@hooks/useLessons";
+import { useRecentExercises } from "@hooks/useUserHistory";
+import { IRecentExerciseItem } from "@models/user-history/user-history.response";
+import { IUserProgress } from "@models/user-progress/user-progress.common";
+import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
-import React, { useEffect, useRef, useState } from "react";
+import { router } from "expo-router";
+import {
+  Award,
+  BookOpen,
+  BookText,
+  Calendar,
+  ChevronRight,
+  Clock,
+  Flame,
+  Languages,
+  Target,
+  TrendingUp,
+} from "lucide-react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  Dimensions,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useCopilot } from "react-native-copilot";
+import * as Progress from "react-native-progress";
 import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
 
-import { Button } from "@components/ui/Button";
-import { useCopilot } from "react-native-copilot";
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+/**
+ * Weekly Progress Chart Component
+ */
+const WeeklyProgressChart: React.FC<{ data: number[] }> = ({ data }) => {
+  const maxValue = Math.max(...data, 1);
+  const days = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+
+  return (
+    <View style={styles.chartContainer}>
+      <View style={styles.chartBars}>
+        {data.map((value, index) => {
+          const height = (value / maxValue) * 100;
+          return (
+            <View key={index} style={styles.chartBarWrapper}>
+              <View style={styles.chartBarContainer}>
+                <View
+                  style={[
+                    styles.chartBar,
+                    {
+                      height: `${Math.max(height, 10)}%`,
+                      backgroundColor: value > 0 ? "#3b82f6" : "#e5e7eb",
+                    },
+                  ]}
+                />
+              </View>
+              <ThemedText style={styles.chartLabel}>{days[index]}</ThemedText>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+};
+
+/**
+ * Stat Card Component
+ */
+const StatCard: React.FC<{
+  icon: React.ComponentType<{ size: number; color: string }>;
+  value: string | number;
+  label: string;
+  color: string;
+}> = ({ icon: Icon, value, label, color }) => (
+  <ThemedView style={styles.statCard}>
+    <View style={[styles.statIconContainer, { backgroundColor: `${color}15` }]}>
+      <Icon size={24} color={color} />
+    </View>
+    <ThemedText style={styles.statValue}>{value}</ThemedText>
+    <ThemedText style={styles.statLabel}>{label}</ThemedText>
+  </ThemedView>
+);
+
+/**
+ * Recent Activity Card Component
+ */
+const RecentActivityCard: React.FC<{
+  activity: IUserProgress;
+  onPress: () => void;
+}> = ({ activity, onPress }) => {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return "#10b981";
+      case "IN_PROGRESS":
+        return "#3b82f6";
+      case "TESTING_LAST":
+        return "#f59e0b";
+      default:
+        return "#6b7280";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return "Hoàn thành";
+      case "IN_PROGRESS":
+        return "Đang học";
+      case "TESTING_LAST":
+        return "Đang kiểm tra";
+      default:
+        return "Chưa bắt đầu";
+    }
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.recentCard}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.recentCardContent}>
+        <View style={styles.recentCardHeader}>
+          <View style={styles.recentCardIcon}>
+            <BookOpen size={20} color={getStatusColor(activity.status)} />
+          </View>
+          <View style={styles.recentCardInfo}>
+            <ThemedText style={styles.recentCardTitle} numberOfLines={1}>
+              {activity.lesson.titleJp}
+            </ThemedText>
+            <ThemedText style={styles.recentCardSubtitle}>
+              N{activity.lesson.levelJlpt}
+            </ThemedText>
+          </View>
+        </View>
+        <View style={styles.recentCardFooter}>
+          <View
+            style={[
+              styles.recentCardStatus,
+              { backgroundColor: `${getStatusColor(activity.status)}15` },
+            ]}
+          >
+            <ThemedText
+              style={[
+                styles.recentCardStatusText,
+                { color: getStatusColor(activity.status) },
+              ]}
+            >
+              {getStatusText(activity.status)}
+            </ThemedText>
+          </View>
+          <Progress.Bar
+            progress={activity.progressPercentage / 100}
+            width={60}
+            height={4}
+            color={getStatusColor(activity.status)}
+            unfilledColor="#e5e7eb"
+            borderWidth={0}
+          />
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+/**
+ * Exercise Card Component for Recent Exercises
+ */
+const ExerciseCard: React.FC<{
+  exercise: IRecentExerciseItem;
+  onPress: () => void;
+}> = ({ exercise, onPress }) => {
+  const getExerciseTypeInfo = (exerciseName: string) => {
+    const name = exerciseName.toLowerCase();
+    if (name.includes("vocabulary") || name.includes("vocab")) {
+      return {
+        icon: BookOpen,
+        color: "#3b82f6", // Blue
+        type: "Từ vựng",
+      };
+    } else if (name.includes("kanji")) {
+      return {
+        icon: Languages,
+        color: "#ef4444", // Red
+        type: "Kanji",
+      };
+    } else if (name.includes("grammar") || name.includes("gramma")) {
+      return {
+        icon: BookText,
+        color: "#f59e0b", // Amber
+        type: "Ngữ pháp",
+      };
+    } else {
+      return {
+        icon: BookOpen,
+        color: "#8b5cf6", // Purple
+        type: "Bài tập",
+      };
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return "#10b981";
+      case "FAILED":
+        return "#ef4444";
+      case "SKIPPED":
+        return "#f59e0b";
+      default:
+        return "#3b82f6";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return "Hoàn thành";
+      case "FAILED":
+        return "Chưa đạt";
+      case "SKIPPED":
+        return "Đã bỏ qua";
+      default:
+        return status;
+    }
+  };
+
+  const typeInfo = getExerciseTypeInfo(exercise.exerciseName);
+  const Icon = typeInfo.icon;
+  const statusColor = getStatusColor(exercise.status);
+
+  return (
+    <TouchableOpacity
+      style={styles.testCard}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={[styles.testCardIcon, { backgroundColor: typeInfo.color }]}>
+        <Icon size={24} color="#ffffff" />
+      </View>
+      <View style={styles.testCardContent}>
+        <ThemedText style={styles.testCardTitle} numberOfLines={1}>
+          {exercise.exerciseName}
+        </ThemedText>
+        <ThemedText style={styles.testCardSubtitle} numberOfLines={1}>
+          {exercise.lessonTitle}
+        </ThemedText>
+        <View
+          style={[
+            styles.testCardStatus,
+            { backgroundColor: `${statusColor}15` },
+          ]}
+        >
+          <ThemedText
+            style={[styles.testCardStatusText, { color: statusColor }]}
+          >
+            {getStatusText(exercise.status)}
+          </ThemedText>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+/**
+ * Suggestion Card Component
+ */
+const SuggestionCard: React.FC<{
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ size: number; color: string }>;
+  onPress: () => void;
+}> = ({ title, description, icon: Icon, onPress }) => (
+  <TouchableOpacity
+    style={styles.suggestionCard}
+    onPress={onPress}
+    activeOpacity={0.7}
+  >
+    <View style={styles.suggestionIcon}>
+      <Icon size={20} color="#3b82f6" />
+    </View>
+    <View style={styles.suggestionContent}>
+      <ThemedText style={styles.suggestionTitle}>{title}</ThemedText>
+      <ThemedText style={styles.suggestionDescription} numberOfLines={2}>
+        {description}
+      </ThemedText>
+    </View>
+    <ChevronRight size={20} color="#9ca3af" />
+  </TouchableOpacity>
+);
 
 /**
  * HomeScreen Component
  *
- * Main home screen displaying user progress, partner Pokemon, and learning content.
+ * Personalized home screen with statistics, charts, recent activities, and suggestions.
  *
  * @returns JSX.Element
  */
@@ -38,8 +318,68 @@ export default function HomeScreen() {
   // Global state from user store
   const { isFirstTimeLogin, starterId, email } = useUserStore();
 
-  // Global state for overlay position
-  const { resetOverlayPosition } = useGlobalStore();
+  // Fetch user progress overview (for future use)
+  // const { data: userProgressOverview } = useUserProgress();
+
+  // Fetch user progress list with pagination
+  const { data: userProgressData } = useUserProgressInfinite({
+    pageSize: 50,
+    sortBy: "lastAccessedAt",
+    sortOrder: "desc",
+  });
+
+  // Fetch recent exercises
+  const { data: recentExercisesData } = useRecentExercises({
+    currentPage: 1,
+    pageSize: 10,
+  });
+
+  // Get all activities from paginated data
+  const allActivities = useMemo(() => {
+    if (!userProgressData?.pages) return [];
+    return userProgressData.pages.flatMap((page) => page?.data?.results || []);
+  }, [userProgressData]);
+
+  // Get recent activities from user progress
+  const recentActivities = useMemo(() => {
+    return allActivities
+      .filter((item: IUserProgress) => item.status !== "NOT_STARTED")
+      .sort(
+        (a: IUserProgress, b: IUserProgress) =>
+          new Date(b.lastAccessedAt).getTime() -
+          new Date(a.lastAccessedAt).getTime()
+      )
+      .slice(0, 10);
+  }, [allActivities]);
+
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const activities = allActivities as IUserProgress[];
+    const completed = activities.filter(
+      (item: IUserProgress) => item.status === "COMPLETED"
+    ).length;
+    const inProgress = activities.filter(
+      (item: IUserProgress) => item.status === "IN_PROGRESS"
+    ).length;
+    const totalProgress =
+      activities.length > 0
+        ? activities.reduce(
+            (sum: number, item: IUserProgress) => sum + item.progressPercentage,
+            0
+          ) / activities.length
+        : 0;
+
+    // Mock weekly data (in real app, this would come from API)
+    const weeklyData = [45, 60, 30, 75, 50, 80, 65];
+
+    return {
+      completed,
+      inProgress,
+      totalProgress: Math.round(totalProgress),
+      weeklyData,
+      streak: 7, // Mock data - should come from user profile
+    };
+  }, [allActivities]);
 
   /**
    * Get user's selected starter Pokemon
@@ -52,10 +392,8 @@ export default function HomeScreen() {
     );
   }, [starterId]);
 
-
   /**
    * Show welcome modal for first-time users
-   * Triggers when isFirstTimeLogin is true
    */
   useEffect(() => {
     if (isFirstTimeLogin === true) {
@@ -71,61 +409,59 @@ export default function HomeScreen() {
   };
 
   /**
-   * Handle start lesson button press
-   * TODO: Implement navigation to lesson screen
-   */
-  const handleStartLesson = () => {
-    // Navigate to lesson screen
-  };
-
-  /**
    * Handle daily check-in action
-   * Updates user's streak and rewards
    */
   const handleDailyCheckin = () => {
     console.log("User checked in daily!");
-    // TODO: Implement actual check-in logic
-    // - Update user streak in backend
-    // - Add coins to user account
-    // - Update daily login status
   };
 
+  // Get recent exercises from API response
+  const recentExercises = useMemo(() => {
+    return recentExercisesData?.data?.results || [];
+  }, [recentExercisesData]);
 
   /**
-   * Test function to show daily login modal (for development/testing)
+   * Handle activity card press
    */
-  const handleTestDailyLogin = () => {
-    setShowDailyLogin(true);
+  const handleActivityPress = (activity: IUserProgress) => {
+    router.push(`${ROUTES.TABS.LEARN}?lessonId=${activity.lessonId}`);
   };
 
   /**
-   * Clear AsyncStorage for DraggableOverlay position
-   * Resets the overlay position to default center position
+   * Handle exercise card press
    */
-  const handleClearAsyncStorage = async () => {
-    try {
-      await AsyncStorage.removeItem("@DraggableOverlay:position");
-      // Reset global store position to default
-      resetOverlayPosition();
-      console.log(
-        "✅ Cleared DraggableOverlay position from AsyncStorage and global store"
-      );
-      // Optional: Show a success message or toast
-    } catch (error) {
-      console.error("❌ Error clearing AsyncStorage:", error);
+  const handleExercisePress = (exercise: IRecentExerciseItem) => {
+    router.push(`${ROUTES.TABS.LEARN}?lessonId=${exercise.lessonId}`);
+  };
+
+  /**
+   * Handle suggestion press
+   */
+  const handleSuggestionPress = (type: string) => {
+    switch (type) {
+      case "continue":
+        if (recentActivities.length > 0) {
+          handleActivityPress(recentActivities[0]);
+        }
+        break;
+      case "learn":
+        router.push(ROUTES.TABS.LEARN);
+        break;
+      case "practice":
+        router.push(ROUTES.TABS.LISTENING);
+        break;
     }
   };
-  const { start, copilotEvents } = useCopilot();
 
+  const { copilotEvents } = useCopilot();
 
   // Handle tour step changes for auto-scroll
   React.useEffect(() => {
     const handleStepChange = (step: any) => {
       if (step.name === "navigation" && homeLayoutRef.current) {
-        // Scroll to bottom to show the Learn button
         setTimeout(() => {
-          homeLayoutRef.current?.scrollTo(1000); // Scroll down to show navigation
-        }, 500); // Small delay to ensure the step is rendered
+          homeLayoutRef.current?.scrollTo(1000);
+        }, 500);
       }
     };
 
@@ -137,88 +473,158 @@ export default function HomeScreen() {
   }, [copilotEvents]);
   return (
     <HomeLayout ref={homeLayoutRef}>
-      {/* Main content container for home screen */}
-      <View style={styles.customContent}>
-        {/* Welcome message with username */}
-        <ThemedText type="subtitle" style={styles.welcomeTitle}>
-          {t("home.welcome_back", {
-            username: email.split("@")[0] || "Trainer",
-          })}
-        </ThemedText>
-        {/* Subtitle encouraging continued learning */}
-        <ThemedText style={styles.welcomeSubtitle}>
-          {t("home.ready_to_continue")}
-        </ThemedText>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Welcome Section */}
+        <View style={styles.welcomeSection}>
+          <ThemedText type="subtitle" style={styles.welcomeTitle}>
+            {t("home.welcome_back", {
+              username: email.split("@")[0] || "Trainer",
+            })}
+          </ThemedText>
+          <ThemedText style={styles.welcomeSubtitle}>
+            {t("home.ready_to_continue")}
+          </ThemedText>
+        </View>
 
-        {/* Development/Testing */}
-        <TouchableOpacity
-          style={styles.testButton}
-          onPress={handleClearAsyncStorage}
-        >
-          <ThemedText style={styles.testButtonText}>
-            {t("home.clear_overlay_position")}
-          </ThemedText>
-        </TouchableOpacity>
-        <Button onPress={() => start()}>
-          <ThemedText style={styles.testButtonText}>
-            {t("home.test_tour_guide")}
-          </ThemedText>
-        </Button>
-        <TouchableOpacity
-          style={styles.testButton}
-          onPress={handleTestDailyLogin}
-        >
-          <ThemedText style={styles.testButtonText}>
-            {t("home.test_daily_login_modal")}
-          </ThemedText>
-        </TouchableOpacity>
+        {/* Statistics Cards */}
+        <View style={styles.statsContainer}>
+          <StatCard
+            icon={Award}
+            value={stats.completed}
+            label={t("home.stats_completed")}
+            color="#10b981"
+          />
+          <StatCard
+            icon={BookOpen}
+            value={stats.inProgress}
+            label={t("home.stats_in_progress")}
+            color="#3b82f6"
+          />
+          <StatCard
+            icon={Flame}
+            value={stats.streak}
+            label={t("home.stats_streak")}
+            color="#f59e0b"
+          />
+          <StatCard
+            icon={TrendingUp}
+            value={`${stats.totalProgress}%`}
+            label={t("home.stats_progress")}
+            color="#8b5cf6"
+          />
+        </View>
 
-        {/* Quick Start Section - Main action card */}
-        <ThemedView style={styles.quickStartCard}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>
-            {t("home.quick_start")}
-          </ThemedText>
-
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={handleStartLesson}
-            activeOpacity={0.8}
-          >
-            <ThemedText style={styles.primaryButtonText}>
-              {t("home.start_new_lesson")}
+        {/* Weekly Progress Chart */}
+        <ThemedView style={styles.chartCard}>
+          <View style={styles.chartHeader}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              {t("home.weekly_progress")}
             </ThemedText>
-          </TouchableOpacity>
+            <Calendar size={18} color="#6b7280" />
+          </View>
+          <WeeklyProgressChart data={stats.weeklyData} />
         </ThemedView>
 
-        {/* Learning Path Section */}
-        <ThemedView style={styles.learningPathCard}>
-          <ThemedText type="subtitle" style={styles.cardTitle}>
-            {t("home.learning_path")}
-          </ThemedText>
-
-          <View style={styles.pathItem}>
-            <ThemedText style={styles.pathItemTitle}>
-              {t("home.current_level", { level: "N5" })}
-            </ThemedText>
-            <ThemedText style={styles.pathItemSubtitle}>
-              {t("home.basic_japanese")}
-            </ThemedText>
+        {/* Recent Activities */}
+        {recentActivities.length > 0 && (
+          <View style={styles.recentSection}>
+            <View style={styles.sectionHeader}>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                {t("home.recent_activities")}
+              </ThemedText>
+              <TouchableOpacity
+                onPress={() => router.push(ROUTES.TABS.LEARN)}
+                activeOpacity={0.7}
+              >
+                <ThemedText style={styles.seeAllText}>
+                  {t("home.see_all")}
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.recentScrollContent}
+            >
+              {recentActivities.map((activity: IUserProgress) => (
+                <RecentActivityCard
+                  key={activity.id}
+                  activity={activity}
+                  onPress={() => handleActivityPress(activity)}
+                />
+              ))}
+            </ScrollView>
           </View>
+        )}
 
-          <View style={styles.pathItem}>
-            <ThemedText style={styles.pathItemTitle}>
-              {t("home.next_goal", { level: "N4" })}
-            </ThemedText>
-            <ThemedText style={styles.pathItemSubtitle}>
-              {t("home.intermediate_japanese")}
-            </ThemedText>
+        {/* Recent Exercises */}
+        {recentExercises.length > 0 && (
+          <View style={styles.recentSection}>
+            <View style={styles.sectionHeader}>
+              <ThemedText type="subtitle" style={styles.sectionTitle}>
+                {t("home.recent_exercises")}
+              </ThemedText>
+              <TouchableOpacity
+                onPress={() => router.push(ROUTES.TABS.LEARN)}
+                activeOpacity={0.7}
+              >
+                <ThemedText style={styles.seeAllText}>
+                  {t("home.see_all")}
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.recentScrollContent}
+            >
+              {recentExercises.map((exercise: IRecentExerciseItem) => (
+                <ExerciseCard
+                  key={exercise.exerciseId}
+                  exercise={exercise}
+                  onPress={() => handleExercisePress(exercise)}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Personalized Suggestions */}
+        <ThemedView style={styles.suggestionsCard}>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>
+            {t("home.suggestions")}
+          </ThemedText>
+          <View style={styles.suggestionsList}>
+            {recentActivities.length > 0 && (
+              <SuggestionCard
+                title={t("home.suggestion_continue")}
+                description={t("home.suggestion_continue_desc")}
+                icon={Clock}
+                onPress={() => handleSuggestionPress("continue")}
+              />
+            )}
+            <SuggestionCard
+              title={t("home.suggestion_new_lesson")}
+              description={t("home.suggestion_new_lesson_desc")}
+              icon={BookOpen}
+              onPress={() => handleSuggestionPress("learn")}
+            />
+            <SuggestionCard
+              title={t("home.suggestion_practice")}
+              description={t("home.suggestion_practice_desc")}
+              icon={Target}
+              onPress={() => handleSuggestionPress("practice")}
+            />
           </View>
         </ThemedView>
 
-      
-          <MainNavigation />
- 
-      </View>
+        {/* Main Navigation */}
+        <MainNavigation />
+      </ScrollView>
 
       {/* Welcome Modal */}
       <WelcomeModal
@@ -234,188 +640,316 @@ export default function HomeScreen() {
         onClose={() => setShowDailyLogin(false)}
         onCheckIn={handleDailyCheckin}
       />
-      </HomeLayout>
+    </HomeLayout>
   );
 }
 
 /**
  * Styles for HomeScreen component
- *
- * Organized by component sections for better maintainability:
- * - Layout and content styles
- * - Welcome section styles
- * - Card and button styles
- * - Activity and text styles
  */
 const styles = StyleSheet.create({
-  // Layout and content styles
-  customContent: {
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 24,
     gap: 20,
   },
-
-  // Welcome section styles
-  welcomeTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1f2937",
+  // Welcome Section
+  welcomeSection: {
     marginBottom: 8,
   },
+  welcomeTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 6,
+    letterSpacing: -0.5,
+  },
   welcomeSubtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: "#6b7280",
-    marginBottom: 16,
+    lineHeight: 22,
   },
-  quickStartCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  learningPathCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  recentActivityCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1f2937",
-    marginBottom: 16,
-  },
-  primaryButton: {
-    backgroundColor: "#3b82f6",
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    shadowColor: "#3b82f6",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  primaryButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  pathItem: {
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  pathItemTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1f2937",
+  // Statistics
+  statsContainer: {
+    flexDirection: "row",
+    gap: 12,
     marginBottom: 4,
   },
-  pathItemSubtitle: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  activityItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  activityText: {
+  statCard: {
     flex: 1,
-    fontSize: 14,
-    color: "#1f2937",
-  },
-  activityTime: {
-    fontSize: 12,
-    color: "#9ca3af",
-    marginLeft: 12,
-  },
-  testButton: {
-    backgroundColor: "#10b981",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    padding: 16,
+    borderRadius: 16,
     alignItems: "center",
-    marginBottom: 16,
-    shadowColor: "#10b981",
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  testButtonText: {
-    color: "#ffffff",
+  statIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "#6b7280",
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  // Chart
+  chartCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    padding: 20,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  chartHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  chartContainer: {
+    marginTop: 8,
+  },
+  chartBars: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "flex-end",
+    height: 120,
+  },
+  chartBarWrapper: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+  chartBarContainer: {
+    width: "80%",
+    height: 100,
+    justifyContent: "flex-end",
+    marginBottom: 8,
+  },
+  chartBar: {
+    width: "100%",
+    borderRadius: 6,
+    minHeight: 4,
+  },
+  chartLabel: {
+    fontSize: 11,
+    color: "#6b7280",
+    fontWeight: "500",
+  },
+  // Recent Activities
+  recentSection: {
+    marginBottom: 4,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingHorizontal: 4,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#111827",
+    letterSpacing: -0.3,
+  },
+  seeAllText: {
     fontSize: 14,
+    color: "#3b82f6",
     fontWeight: "600",
   },
-  // Fake overlay styles (kept if needed elsewhere)
-  fakeOverlay: {
-    position: "absolute",
-    width: 150,
-    height: 150,
-    borderRadius: 10,
-    backgroundColor: "transparent",
-    elevation: 0,
-    shadowColor: "transparent",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    overflow: "hidden",
+  recentScrollContent: {
+    paddingRight: 16,
+    gap: 12,
   },
-  fakeOverlayContent: {
-    flex: 1,
-    justifyContent: "center",
+  recentCard: {
+    width: SCREEN_WIDTH * 0.75,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    marginRight: 12,
+  },
+  recentCardContent: {
+    padding: 16,
+  },
+  recentCardHeader: {
+    flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "red",
+    marginBottom: 12,
   },
-  fakeOverlayText: {
-    color: "transparent",
-    fontWeight: "bold",
+  recentCardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: "rgba(243, 244, 246, 0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  recentCardInfo: {
+    flex: 1,
+  },
+  recentCardTitle: {
     fontSize: 16,
-    textAlign: "center",
-    marginBottom: 5,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 4,
   },
-  fakeOverlaySubtext: {
-    color: "transparent",
+  recentCardSubtitle: {
+    fontSize: 13,
+    color: "#6b7280",
+  },
+  recentCardFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  recentCardStatus: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  recentCardStatusText: {
     fontSize: 12,
-    textAlign: "center",
+    fontWeight: "600",
+  },
+  // Suggestions
+  suggestionsCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    padding: 20,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  suggestionsList: {
+    gap: 12,
+    marginTop: 16,
+  },
+  suggestionCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#f9fafb",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  suggestionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: "rgba(239, 246, 255, 0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  suggestionContent: {
+    flex: 1,
+  },
+  suggestionTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  suggestionDescription: {
+    fontSize: 13,
+    color: "#6b7280",
+    lineHeight: 18,
+  },
+  // Test Card Styles
+  testCard: {
+    width: SCREEN_WIDTH * 0.6,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 12,
+    shadowColor: "#000",
+    padding: 8,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    marginRight: 12,
+    flexDirection: "row",
+    overflow: "hidden",
+    minHeight: 70,
+    height: 100,
+  },
+  testCardIcon: {
+    height: "100%",
+    width: 80,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    borderRadius: 12,
+    opacity: 0.6,
+  },
+  testCardContent: {
+    flex: 1,
+    padding: 12,
+    paddingLeft: 8,
+    justifyContent: "center",
+  },
+  testCardTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  testCardSubtitle: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginBottom: 8,
+  },
+  testCardStatus: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 16,
+    alignSelf: "flex-start",
+  },
+  testCardStatusText: {
+    fontSize: 12,
+    fontWeight: "600",
   },
 });

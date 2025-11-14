@@ -45,9 +45,11 @@ export default function TabLayout() {
       >
         <Tabs.Screen name="home" options={{ title: t("tabs.home") }} />
         <Tabs.Screen name="learn" options={{ title: t("tabs.learn") }} />
-        <Tabs.Screen name="reading" options={{ title: t("tabs.reading") }} />
-        <Tabs.Screen name="listening" options={{ title: t("tabs.listening") }} />
-        <Tabs.Screen name="speaking" options={{ title: t("tabs.speaking") }} />
+        <Tabs.Screen name="abilities" options={{ title: t("tabs.abilities") }} />
+        {/* Old separate tabs - now combined in abilities screen */}
+        <Tabs.Screen name="reading" options={{ title: t("tabs.reading"), href: null }} />
+        <Tabs.Screen name="listening" options={{ title: t("tabs.listening"), href: null }} />
+        <Tabs.Screen name="speaking" options={{ title: t("tabs.speaking"), href: null }} />
         <Tabs.Screen name="battle" options={{ title: t("tabs.battle") }} />
         <Tabs.Screen name="quiz-demo" options={{ title: t("tabs.quiz_demo") }} />
       </Tabs>

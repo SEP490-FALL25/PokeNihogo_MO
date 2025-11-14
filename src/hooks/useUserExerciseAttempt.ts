@@ -1,7 +1,8 @@
+import { ExerciseAttemptStatus } from "@constants/exercise.enum";
 import {
-  ICheckCompletionResponse,
-  IExerciseHistoryListResponse,
-  ISubmitCompletionResponse,
+    ICheckCompletionResponse,
+    IExerciseHistoryListResponse,
+    ISubmitCompletionResponse,
 } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import userExerciseAttemptService from "@services/user-exercise-attempt";
 import { useGlobalStore } from "@stores/global/global.config";
@@ -109,7 +110,7 @@ export const useAbandonExercise = () => {
 
 export const useContinueAndAbandonExercise = () => {
   return useMutation({
-    mutationFn: async ({ exerciseAttemptId, status }: { exerciseAttemptId: string, status: string }) => {
+    mutationFn: async ({ exerciseAttemptId, status }: { exerciseAttemptId: string; status: ExerciseAttemptStatus }) => {
       const res = await userExerciseAttemptService.continueAndAbandonExercise(exerciseAttemptId, status);
       return res.data;
     },

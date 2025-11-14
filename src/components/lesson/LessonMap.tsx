@@ -35,12 +35,12 @@ const DUO_IMAGE_SIZE = 170;
 const DUO_FIXED_Y_OFFSET = 0; // Điều chỉnh Duo lên trên một chút
 
 const STATUS_ICON_MAP: Record<string, ImageSource> = {
-  COMPLETED: require("@assets/images/COMPLETED.png"),
+  COMPLETED: require("@assets/images/bs22kn3drg52d4178tgfvnm663-abca8f3a9c536ffb58e0be18bd8384e2.png"),
   FAILED: require("@assets/images/FAILED.png"),
   IN_PROGRESS: require("@assets/images/IN_PROGRESS.png"),
   NOT_STARTED: require("@assets/images/NOT_STARTED.png"),
-  TESTING_LAST: require("@assets/images/TESTING_LAST.png"),
-  TESTING_LAST_FAILED: require("@assets/images/TESTING_LAST_FAILED.png"),
+  TESTING_LAST: require("@assets/images/7ja3kmossl1pqm5sei19pb81di-0a0cde698c977b5bb2f117ac0fc05605.png"),
+  TESTING_LAST_FAILED: require("@assets/images/FAILED.png"),
 };
 
 const STATUS_STYLE_MAP: Record<
