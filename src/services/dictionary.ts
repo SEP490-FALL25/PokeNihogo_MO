@@ -83,9 +83,9 @@ const dictionaryService = {
         };
     },
 
-    // Get word details
+    // Get word details by ID
     getWordDetails: async (wordId: string) => {
-        const response = await axiosPrivate.get(`/dictionary/word/${wordId}`);
+        const response = await axiosPrivate.get(`/vocabulary/search/${wordId}`);
         return response.data;
     },
 
