@@ -12,7 +12,8 @@ import {
 } from "@hooks/useFlashcard";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Clock, Lightbulb, Plus, Search, X } from "lucide-react-native";
+import * as Speech from "expo-speech";
+import { Clock, Lightbulb, Plus, Search, Volume2, X } from "lucide-react-native";
 import React, {
   useCallback,
   useEffect,
@@ -96,6 +97,7 @@ export default function DictionaryScreen() {
   const [showCreateFlashcardModal, setShowCreateFlashcardModal] =
     useState(false);
   const [newFlashcardName, setNewFlashcardName] = useState("");
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
   const searchContainerRef = useRef<View>(null);
 
@@ -267,6 +269,51 @@ export default function DictionaryScreen() {
     setSelectedWordId(wordId);
     setIsFocused(false);
     searchInputRef.current?.blur();
+  }, []);
+
+  // Handle TTS (Text-to-Speech)
+  const handleSpeak = useCallback(() => {
+    if (!wordDetailData?.data) return;
+
+    if (isSpeaking) {
+      Speech.stop();
+      setIsSpeaking(false);
+      return;
+    }
+
+    // Prefer reading over wordJp for more accurate pronunciation
+    const textToSpeak = wordDetailData.data.reading || wordDetailData.data.wordJp;
+    
+    if (!textToSpeak) return;
+
+    setIsSpeaking(true);
+    Speech.speak(textToSpeak, {
+      language: "ja-JP",
+      pitch: 1.0,
+      rate: 0.75,
+      onDone: () => {
+        setIsSpeaking(false);
+      },
+      onStopped: () => {
+        setIsSpeaking(false);
+      },
+      onError: () => {
+        setIsSpeaking(false);
+      },
+    });
+  }, [wordDetailData?.data, isSpeaking]);
+
+  // Stop speech when word changes
+  useEffect(() => {
+    Speech.stop();
+    setIsSpeaking(false);
+  }, [selectedWordId]);
+
+  // Cleanup speech when component unmounts
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
   }, []);
 
   // Handle open create flashcard modal
@@ -591,21 +638,44 @@ export default function DictionaryScreen() {
 
                 {/* Word Header */}
                 <View className="mb-6">
-                  <View className="flex-row items-center mb-2">
-                    <Text className="text-4xl font-bold text-gray-900 mr-3">
-                      {wordDetailData.data.wordJp}
-                    </Text>
+                  <View className="flex-row items-center justify-between mb-2">
+                    <View className="flex-1 flex-row items-center flex-wrap">
+                      <Text className="text-4xl font-bold text-gray-900 mr-3">
+                        {wordDetailData.data.wordJp}
+                      </Text>
+                      {/* TTS Icon Button */}
+                      <TouchableOpacity
+                        className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center mr-2"
+                        onPress={handleSpeak}
+                        activeOpacity={0.7}
+                      >
+                        <Volume2 
+                          size={20} 
+                          color={isSpeaking ? "#3b82f6" : "#6b7280"} 
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    {/* Add to Flashcard Icon Button */}
+                    <TouchableOpacity
+                      className="ml-3 w-10 h-10 bg-blue-600 rounded-full items-center justify-center"
+                      onPress={handleOpenFlashcardModal}
+                      activeOpacity={0.8}
+                    >
+                      <Plus size={22} color="white" />
+                    </TouchableOpacity>
+                  </View>
+                  <View className="flex-row items-center flex-wrap mb-2">
+                    {wordDetailData.data.reading && (
+                      <Text className="text-xl text-gray-600 mr-2">
+                        {wordDetailData.data.reading}
+                      </Text>
+                    )}
                     {wordDetailData.data.kanjiMeaning && (
                       <Text className="text-lg text-gray-500">
                         ({wordDetailData.data.kanjiMeaning})
                       </Text>
                     )}
                   </View>
-                  {wordDetailData.data.reading && (
-                    <Text className="text-xl text-gray-600 mb-2">
-                      {wordDetailData.data.reading}
-                    </Text>
-                  )}
                   {wordDetailData.data.levelN && (
                     <View className="self-start bg-blue-100 rounded-full px-3 py-1 mt-2">
                       <Text className="text-sm font-semibold text-blue-700">
@@ -614,18 +684,6 @@ export default function DictionaryScreen() {
                     </View>
                   )}
                 </View>
-
-                {/* Add to Flashcard Button */}
-                <TouchableOpacity
-                  className="bg-blue-600 rounded-xl px-4 py-3 flex-row items-center justify-center mb-6"
-                  onPress={handleOpenFlashcardModal}
-                  activeOpacity={0.8}
-                >
-                  <Text className="text-white font-semibold text-base mr-2">
-                    Thêm vào sổ tay
-                  </Text>
-                  <Plus size={20} color="white" />
-                </TouchableOpacity>
 
                 {/* Meanings */}
                 {wordDetailData.data.meanings &&
