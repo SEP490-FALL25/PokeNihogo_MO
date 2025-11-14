@@ -713,16 +713,17 @@
     "reward": {
       "receive_button": "Nhận thưởng",
       "receive_success": "Đã nhận thưởng thành công!",
-      "receive_error": "Nhận thưởng thất bại. Vui lòng thử lại."
-    "days_ago": "{{days}} ngày trước",
-    "status": {
-      "not_started": "Chưa bắt đầu",
-      "in_progress": "Đang làm",
-      "completed": "Hoàn thành",
-      "fail": "Thất bại",
-      "failed": "Thất bại",
-      "abandoned": "Bỏ dở",
-      "skipped": "Bỏ qua"
+      "receive_error": "Nhận thưởng thất bại. Vui lòng thử lại.",
+      "days_ago": "{{days}} ngày trước",
+      "status": {
+        "not_started": "Chưa bắt đầu",
+        "in_progress": "Đang làm",
+        "completed": "Hoàn thành",
+        "fail": "Thất bại",
+        "failed": "Thất bại",
+        "abandoned": "Bỏ dở",
+        "skipped": "Bỏ qua"
+      }
     }
   },
   "dictionary": {
