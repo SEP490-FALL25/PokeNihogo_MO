@@ -8,9 +8,7 @@ import { useUserProgressInfinite } from "@hooks/useLessons";
 import { useRecentExercises } from "@hooks/useUserHistory";
 import { IRecentExerciseItem } from "@models/user-history/user-history.response";
 import { IUserProgress } from "@models/user-progress/user-progress.common";
-import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
-import { router } from "expo-router";
 import {
   Award,
   BookOpen,
@@ -32,15 +30,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useCopilot } from "react-native-copilot";
 import * as Progress from "react-native-progress";
 import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
 
-import { Button } from "@components/ui/Button";
-import { useCopilot } from "react-native-copilot";
-import { useRouter } from "expo-router";
 import { ROUTES } from "@routes/routes";
+import { useRouter } from "expo-router";
+import { useCopilot } from "react-native-copilot";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 /**
@@ -414,14 +410,6 @@ export default function HomeScreen() {
   };
 
   /**
-   * Handle start lesson button press
-   * TODO: Implement navigation to lesson screen
-   */
-  const handleStartLesson = () => {
-    // Navigate to lesson screen
-  };
-
-  /**
    * Navigate to subscription screen
    */
   const handleOpenSubscription = () => {
@@ -544,8 +532,12 @@ export default function HomeScreen() {
             <ThemedText type="subtitle" style={styles.sectionTitle}>
               {t("home.weekly_progress")}
             </ThemedText>
-          </TouchableOpacity>
+            <Calendar size={18} color="#6b7280" />
+          </View>
+          <WeeklyProgressChart data={stats.weeklyData} />
+        </ThemedView>
 
+        {/* Subscription Button */}
         <TouchableOpacity
           style={styles.subscriptionButton}
           onPress={handleOpenSubscription}
@@ -555,10 +547,6 @@ export default function HomeScreen() {
             {t("subscription.title")}
           </ThemedText>
         </TouchableOpacity>
-            <Calendar size={18} color="#6b7280" />
-          </View>
-          <WeeklyProgressChart data={stats.weeklyData} />
-        </ThemedView>
 
         {/* Recent Activities */}
         {recentActivities.length > 0 && (
@@ -850,7 +838,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  pathItem: {
   recentCardHeader: {
     flexDirection: "row",
     alignItems: "center",
