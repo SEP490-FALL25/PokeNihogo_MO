@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import {
   BookOpen,
   Clock,
+  Lightbulb,
   Search,
   X
 } from 'lucide-react-native';
@@ -65,7 +66,7 @@ export default function DictionaryScreen() {
   // Get search history from API
   const { data: searchHistoryData, refetch: refetchHistory } = useSearchHistory({
     currentPage: 1,
-    pageSize: 10,
+    pageSize: 20, // Get more history items for display
   });
 
   // Get search results from API
@@ -323,15 +324,137 @@ export default function DictionaryScreen() {
               </Text>
             </View>
           ) : (
-            <View className="flex-1 items-center justify-center px-6">
-              <Search size={64} color="#d1d5db" />
-              <Text className="text-lg font-semibold text-gray-400 mt-4 text-center">
-                {t('dictionary.start_searching')}
-              </Text>
-              <Text className="text-sm text-gray-400 mt-2 text-center">
-                {t('dictionary.search_description')}
-              </Text>
-            </View>
+            <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+              <View className="px-4 py-6">
+                {/* Tips Section */}
+                <View className="mb-6">
+                  <View className="flex-row items-center mb-3">
+                    <Lightbulb size={20} color="#fbbf24" />
+                    <Text className="text-lg font-semibold text-gray-900 ml-2">
+                      Tips
+                    </Text>
+                  </View>
+                  <View className="pl-7">
+                    <Text className="text-sm text-gray-700 mb-2">
+                      • Đăng nhập tài khoản Mazii để được đồng bộ dữ liệu và sử dụng trên nhiều thiết bị.
+                    </Text>
+                    <Text className="text-sm text-gray-700 mb-2">
+                      • Mazii có thể chuyển thành te, ta, bị động... ở dạng nguyên thể, thử 食べた
+                    </Text>
+                    <Text className="text-sm text-gray-700">
+                      • Tra cứu katakana: viết hoa chữ đó, ví dụ: BETONAMU
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Search History Section */}
+                {searchHistory.length > 0 && (
+                  <View className="mb-6">
+                    <View className="flex-row items-center justify-between mb-3">
+                      <Text className="text-lg font-semibold text-gray-900">
+                        {t('dictionary.recent_searches')}
+                      </Text>
+                      <TouchableOpacity>
+                        <Text className="text-sm text-blue-600">
+                          {t('dictionary.see_more') || 'Xem thêm'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    <ScrollView 
+                      horizontal 
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.historyScrollContainer}
+                    >
+                      {searchHistory.map((item) => (
+                        <TouchableOpacity
+                          key={item.id}
+                          className="bg-gray-100 rounded-full px-4 py-2 mr-2"
+                          onPress={() => {
+                            setSearchQuery(item.searchKeyword);
+                            searchInputRef.current?.focus();
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <Text className="text-base text-gray-900">
+                            {item.searchKeyword}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+
+                {/* Hot Keywords Section */}
+                <View className="mb-6">
+                  <View className="flex-row items-center justify-between mb-3">
+                    <Text className="text-lg font-semibold text-gray-900">
+                      Từ khoá hot
+                    </Text>
+                    <TouchableOpacity>
+                      <Text className="text-sm text-blue-600">
+                        {t('dictionary.see_more') || 'Xem thêm'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View className="flex-row flex-wrap">
+                    {[
+                      '利用', '人', '偶然', '共有', '被害', '維持', '情報', 
+                      '後', 'ば', 'が', '空', 'を', '遠慮', '様子', 'に'
+                    ].map((keyword, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        className="bg-gray-100 rounded-full px-4 py-2 mr-2 mb-2"
+                        onPress={() => {
+                          setSearchQuery(keyword);
+                          searchInputRef.current?.focus();
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text className="text-base text-gray-900">
+                          {keyword}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {/* JLPT Section */}
+                <View className="mb-6">
+                  <Text className="text-lg font-semibold text-gray-900 mb-3">
+                    JLPT
+                  </Text>
+                  <View className="flex-row flex-wrap">
+                    {['N1', 'N2', 'N3', 'N4', 'N5'].map((level, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        className="bg-gray-100 rounded-full px-4 py-2 mr-2 mb-2"
+                        onPress={() => {
+                          // Could navigate to JLPT level or search for JLPT content
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text className="text-base text-gray-900">
+                          {level}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {/* Empty State when no history */}
+                {searchHistory.length === 0 && (
+                  <View className="items-center justify-center py-12">
+                    <Search size={64} color="#d1d5db" />
+                    <Text className="text-lg font-semibold text-gray-400 mt-4 text-center">
+                      {t('dictionary.start_searching')}
+                    </Text>
+                    <Text className="text-sm text-gray-400 mt-2 text-center">
+                      {t('dictionary.search_description')}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </ScrollView>
           )}
         </View>
       )}
@@ -361,6 +484,9 @@ const styles = StyleSheet.create({
   },
   dropdownScrollView: {
     maxHeight: 350,
+  },
+  historyScrollContainer: {
+    paddingRight: 16,
   },
 });
 
