@@ -47,6 +47,7 @@ const WeeklyProgressChart: React.FC<{ data: number[] }> = ({ data }) => {
   const days = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
   return (
+
     <View style={styles.chartContainer}>
       <View style={styles.chartBars}>
         {data.map((value, index) => {
@@ -365,9 +366,9 @@ export default function HomeScreen() {
     const totalProgress =
       activities.length > 0
         ? activities.reduce(
-            (sum: number, item: IUserProgress) => sum + item.progressPercentage,
-            0
-          ) / activities.length
+          (sum: number, item: IUserProgress) => sum + item.progressPercentage,
+          0
+        ) / activities.length
         : 0;
 
     // Mock weekly data (in real app, this would come from API)
