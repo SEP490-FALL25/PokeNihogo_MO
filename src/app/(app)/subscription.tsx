@@ -16,7 +16,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function SubscriptionScreen() {
     const { t } = useTranslation();
     const { data: packagesData, isLoading: isLoadingPackages } = useSubscriptionMarketplacePackages();
-    console.log('packagesData', packagesData);
     const { walletUser, isLoading: isLoadingWallet } = useWalletUser();
     const { mutate: purchasePackage, isPending: isPurchasing } = useSubscriptionPurchase();
 
