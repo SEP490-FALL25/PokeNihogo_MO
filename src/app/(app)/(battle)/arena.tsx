@@ -328,7 +328,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
 
         // Round started
         socket.on("round-started", (payload: any) => {
-            console.log("Round started:", payload);
             setRoundStarted(true);
 
             // --- THÊM ĐOẠN NÀY ---
@@ -388,8 +387,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 // NOT in questionData.id (which is questionBankId)
                 const roundQuestionId = questionData.roundQuestionId || questionData.id;
 
-                console.log("Final roundQuestionId to use:", roundQuestionId);
-
                 if (!roundQuestionId) {
                     console.error("ERROR: roundQuestionId not found in questionData:", questionData);
                 }
@@ -443,7 +440,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
 
         // Question answered - received after submitting answer (may contain next question or status update)
         socket.on("question-answered", (payload: any) => {
-            console.log("Question answered event:", payload);
 
             // Handle answer result if present
             if (payload?.answerResult) {
@@ -538,17 +534,10 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 setSelectedAnswer(null);
                 setIsAnswerSubmitted(false);
             }
-
-            // Handle status updates (e.g., opponent has answered)
-            if (payload?.status) {
-                console.log("Question answered status:", payload.status);
-                // Could update UI based on status
-            }
         });
 
         // Next question received (after submitting answer) - alternative event name
         socket.on("next-question", (payload: any) => {
-            console.log("Next question received:", payload);
             // Server sends next question after player answers (if not last question)
             if (payload?.question || payload?.data?.questionBank) {
                 const questionData = payload?.question || payload?.data;
@@ -642,7 +631,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
 
         // Waiting for opponent
         socket.on("waiting-for-opponent", (payload: any) => {
-            console.log("Waiting for opponent:", payload);
             setIsWaitingForOpponent(true);
 
             if (currentQuestion) {
@@ -652,7 +640,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
 
         // Round completed
         socket.on("round-completed", (payload: any) => {
-            console.log("Round completed:", payload);
             setRoundStarted(false);
             setCurrentQuestion(null);
             setSelectedAnswer(null);
@@ -672,7 +659,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         // Note: Navigation is handled by global listener in battle.tsx
         // This local handler only updates local state
         socket.on("match-completed", (payload: any) => {
-            console.log("Match completed (arena):", payload);
             const winnerId = payload?.match?.winnerId ?? null;
             const winnerName =
                 payload?.match?.winner?.name ||
