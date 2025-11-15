@@ -1,16 +1,19 @@
 import { axiosPrivate } from "@configs/axios";
-import { ISubscriptionPurchaseRequest } from "@models/subscription/subscription.request";
+import { ISubscriptionPurchaseRequest, SubscriptionPackageType } from "@models/subscription/subscription.request";
 import { ISubscriptionPackageResponse, ISubscriptionPurchaseResponse } from "@models/subscription/subscription.response";
-import { SubscriptionPackageType } from "@models/subscription/subscription.request";
 
 const subscriptionService = {
+    getMarketplacePackages: async () => {
+        return await axiosPrivate.get(`/subscription/marketplace/list`);
+    },
+
     /**
      * Get all available subscription packages
      */
     getPackages: async (): Promise<{ data: ISubscriptionPackageResponse[] }> => {
         // Mock API - simulate network latency
         await new Promise(res => setTimeout(res, 300));
-        
+
         const mockPackages: ISubscriptionPackageResponse[] = [
             {
                 id: 1,
@@ -76,12 +79,12 @@ const subscriptionService = {
     purchase: async (data: ISubscriptionPurchaseRequest): Promise<{ data: ISubscriptionPurchaseResponse }> => {
         // Mock API - simulate network latency
         await new Promise(res => setTimeout(res, 1000));
-        
+
         // Mock response
         const mockResponse: ISubscriptionPurchaseResponse = {
             message: "Mua gói dịch vụ thành công!",
             subscriptionId: Date.now(),
-            expiresAt: data.packageType === SubscriptionPackageType.ULTRA_EXPLORER 
+            expiresAt: data.packageType === SubscriptionPackageType.ULTRA_EXPLORER
                 ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 1 month from now
                 : null, // lifetime
         };

@@ -541,19 +541,18 @@
             "receive_success": "報酬を受け取りました！",
             "receive_error": "報酬の受け取りに失敗しました。もう一度お試しください。"
         }
-  },
-  "subscription": {
-    "title": "サービスプラン",
-    "subtitle": "学習体験をグレードアップしましょう",
-    "balance": "残高",
-    "price": "価格",
-    "purchase": "今すぐ購入",
-    "lifetime": "永久アクセス",
-    "popular": "人気",
-    "purchase_success": "プランの購入に成功しました！",
-    "purchase_failed": "プランの購入に失敗しました",
-    "insufficient_balance": "このプランを購入するには残高が不足しています",
-  }
+    },
+    "subscription": {
+        "title": "サービスプラン",
+        "subtitle": "学習体験をグレードアップしましょう",
+        "balance": "残高",
+        "price": "価格",
+        "purchase": "今すぐ購入",
+        "lifetime": "永久アクセス",
+        "popular": "人気",
+        "purchase_success": "プランの購入に成功しました！",
+        "purchase_failed": "プランの購入に失敗しました",
+        "insufficient_balance": "このプランを購入するには残高が不足しています"
     },
     "exercise_history": {
         "title": "練習履歴",
