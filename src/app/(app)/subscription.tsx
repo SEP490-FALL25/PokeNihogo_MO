@@ -1,4 +1,4 @@
-import InAppBrowser from "@components/atoms/InAppBrowser";
+import { openInAppBrowser } from "@components/atoms/InAppBrowser";
 import MinimalAlert from "@components/atoms/MinimalAlert";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { ThemedText } from "@components/ThemedText";
@@ -20,10 +20,9 @@ export default function SubscriptionScreen() {
     const { data: packagesData, isLoading: isLoadingPackages } = useSubscriptionMarketplacePackages();
     const { walletUser, isLoading: isLoadingWallet } = useWalletUser();
     const { mutate: createInvoice, isPending: isPurchasing } = useCreateInvoice();
-    console.log('mutate createInvoice: ', createInvoice);
 
-    const [alertVisible, setAlertVisible] = useState(false);
-    const [alertMessage, setAlertMessage] = useState('');
+    const [alertVisible, setAlertVisible] = useState<boolean>(false);
+    const [alertMessage, setAlertMessage] = useState<string>('');
     const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('error');
     const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
 
@@ -105,20 +104,22 @@ export default function SubscriptionScreen() {
         createInvoice(
             {
                 subscriptionPlanId: activePlan.id,
-                discountAmount: 0, // Can be updated if discount logic is needed
+                discountAmount: 0,
             },
             {
                 onSuccess: (response) => {
-                    // Get checkoutUrl from payosData
-                    // Response structure: response.data.data.payosData.checkoutUrl
-                    const responseData = response.data?.data || response.data;
+                    const responseData = response.data?.data;
                     console.log('responseData: ', responseData);
 
-                    const checkoutUrl = responseData?.payosData?.checkoutUrl;
+                    const checkoutUrl = responseData?.payment?.payosData?.checkoutUrl;
+                    console.log('checkoutUrl: ', checkoutUrl);
 
                     if (checkoutUrl) {
-                        // Open InAppBrowser with checkout URL
-                        setCheckoutUrl(checkoutUrl);
+                        // Open browser directly with the checkout URL
+                        openInAppBrowser(checkoutUrl, {
+                            onClose: handleBrowserClose,
+                            onError: handleBrowserError,
+                        });
                     } else {
                         setAlertMessage(responseData?.message || t('subscription.purchase_success'));
                         setAlertType('success');
@@ -343,14 +344,6 @@ export default function SubscriptionScreen() {
                     type={alertType}
                 />
 
-                {/* InAppBrowser */}
-                {checkoutUrl && (
-                    <InAppBrowser
-                        url={checkoutUrl}
-                        onClose={handleBrowserClose}
-                        onError={handleBrowserError}
-                    />
-                )}
             </ThemedView>
         </SafeAreaView>
     );
