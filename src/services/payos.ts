@@ -1,7 +1,7 @@
 import { axiosPrivate } from "@configs/axios";
 
 const payosService = {
-    recallPayment: async (invoiceId: string) => {
+    recallPayment: async (invoiceId: number) => {
         return await axiosPrivate.post(`/payments/payos`, { invoiceId });
     },
 }

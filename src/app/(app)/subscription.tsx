@@ -9,6 +9,7 @@ import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
 import { useWalletUser } from "@hooks/useWallet";
 import { ISubscriptionMarketplaceEntity } from "@models/subscription/subscription.entity";
 import { SubscriptionPackageType } from "@models/subscription/subscription.request";
+import payosService from "@services/payos";
 import { BookOpen, Check, Crown, Headphones, Sparkles } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -88,6 +89,18 @@ export default function SubscriptionScreen() {
         setAlertVisible(false);
     }, []);
 
+    const handleBrowserClose = useCallback(() => {
+        setCheckoutUrl(null);
+        // Refresh data after payment
+    }, []);
+
+    const handleBrowserError = useCallback((error: Error) => {
+        setCheckoutUrl(null);
+        setAlertMessage(error.message || t('subscription.purchase_failed'));
+        setAlertType('error');
+        setAlertVisible(true);
+    }, [t]);
+
     const handlePurchase = useCallback((packageItem: ISubscriptionMarketplaceEntity) => {
         const activePlan = getActivePlan(packageItem);
         if (!activePlan) {
@@ -125,26 +138,46 @@ export default function SubscriptionScreen() {
                     }
                 },
                 onError: (error: any) => {
-                    const errorMessage = error?.response?.data?.message || t('subscription.purchase_failed');
-                    setAlertMessage(errorMessage);
-                    setAlertType('error');
-                    setAlertVisible(true);
+                    const statusCode = error?.response?.status;
+                    const errorData = error?.response?.data;
+
+                    if (statusCode === 409 && errorData?.data?.invoiceId) {
+                        const invoiceId = errorData.data.invoiceId;
+
+                        // Recall payment to get checkout URL
+                        payosService.recallPayment(invoiceId)
+                            .then((response) => {
+                                const responseData = response.data?.data;
+                                const checkoutUrl = responseData?.payosData?.checkoutUrl;
+
+                                if (checkoutUrl) {
+                                    openInAppBrowser(checkoutUrl, {
+                                        onClose: handleBrowserClose,
+                                        onError: handleBrowserError,
+                                    });
+                                } else {
+                                    setAlertMessage(errorData?.message || t('subscription.purchase_failed'));
+                                    setAlertType('error');
+                                    setAlertVisible(true);
+                                }
+                            })
+                            .catch((recallError: any) => {
+                                const recallErrorMessage = recallError?.response?.data?.message || errorData?.message || t('subscription.purchase_failed');
+                                setAlertMessage(recallErrorMessage);
+                                setAlertType('error');
+                                setAlertVisible(true);
+                            });
+                    } else {
+                        // Handle other errors
+                        const errorMessage = errorData?.message || t('subscription.purchase_failed');
+                        setAlertMessage(errorMessage);
+                        setAlertType('error');
+                        setAlertVisible(true);
+                    }
                 },
             }
         );
-    }, [createInvoice, t, getActivePlan]);
-
-    const handleBrowserClose = useCallback(() => {
-        setCheckoutUrl(null);
-        // Refresh data after payment
-    }, []);
-
-    const handleBrowserError = useCallback((error: Error) => {
-        setCheckoutUrl(null);
-        setAlertMessage(error.message || t('subscription.purchase_failed'));
-        setAlertType('error');
-        setAlertVisible(true);
-    }, [t]);
+    }, [createInvoice, t, getActivePlan, handleBrowserClose, handleBrowserError]);
 
     const getPackageIcon = (packageType: SubscriptionPackageType) => {
         switch (packageType) {
