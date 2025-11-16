@@ -109,10 +109,8 @@ export default function SubscriptionScreen() {
             {
                 onSuccess: (response) => {
                     const responseData = response.data?.data;
-                    console.log('responseData: ', responseData);
 
                     const checkoutUrl = responseData?.payment?.payosData?.checkoutUrl;
-                    console.log('checkoutUrl: ', checkoutUrl);
 
                     if (checkoutUrl) {
                         // Open browser directly with the checkout URL
