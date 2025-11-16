@@ -1,3 +1,4 @@
+import { FlashcardContentType } from "@constants/flashcard.enum";
 import { z } from "zod";
 
 // Create Flashcard Deck Request Schema
@@ -7,8 +8,10 @@ export const CreateFlashcardDeckRequestSchema = z.object({
 
 // Add Word to Flashcard Deck Request Schema
 export const AddWordToFlashcardDeckRequestSchema = z.object({
-  flashcardDeckId: z.number().or(z.string().transform(Number)),
-  vocabularyId: z.number().or(z.string().transform(Number)),
+  deckId: z.number().or(z.string().transform(Number)),
+  id: z.number().or(z.string().transform(Number)),
+  contentType: z.nativeEnum(FlashcardContentType).optional(),
+  notes: z.string().optional(),
 });
 
 // Update Flashcard Deck Request Schema
