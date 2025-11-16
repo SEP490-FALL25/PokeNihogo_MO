@@ -1,4 +1,5 @@
 import { axiosPrivate } from "@configs/axios";
+import { FlashcardContentType } from "@constants/flashcard.enum";
 import { IQueryRequest } from "@models/common/common.request";
 import {
   IAddWordToFlashcardDeckRequest,
@@ -66,9 +67,25 @@ const flashcardService = {
   addWord: async (
     data: IAddWordToFlashcardDeckRequest
   ): Promise<IAddWordToFlashcardDeckResponse> => {
+    const requestBody: {
+      id: number;
+      contentType: FlashcardContentType;
+      notes?: string;
+    } = {
+      id: typeof data.id === "string" 
+        ? Number(data.id) 
+        : data.id,
+      contentType: data.contentType || FlashcardContentType.VOCABULARY,
+    };
+    
+    // Only include notes if provided
+    if (data.notes) {
+      requestBody.notes = data.notes;
+    }
+    
     const response = await axiosPrivate.post(
-      `/flashcards/decks/${data.flashcardDeckId}/words`,
-      { vocabularyId: data.vocabularyId }
+      `/flashcards/decks/${data.deckId}/cards`,
+      requestBody
     );
     return response.data;
   },
@@ -92,9 +109,9 @@ const flashcardService = {
   },
 
   // Remove word from flashcard deck
-  removeWord: async (deckId: number | string, vocabularyId: number | string) => {
+  removeWord: async (deckId: number | string, id: number | string) => {
     const response = await axiosPrivate.delete(
-      `/flashcards/decks/${deckId}/words/${vocabularyId}`
+      `/flashcards/decks/${deckId}/words/${id}`
     );
     return response.data;
   },

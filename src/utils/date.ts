@@ -46,5 +46,20 @@ export const formatHistoryTime = (date: Date, t: (key: string, options?: any) =>
 };
 //-------------------End-------------------//
 
+/**
+ * Format date to Vietnamese locale (dd/mm/yyyy or dd/mm)
+ * @param dateString - Date string to format
+ * @param includeYear - Whether to include year (default: false)
+ * @returns Formatted date string
+ */
+export const formatDateVN = (dateString: string, includeYear = false): string => {
+    return new Date(dateString).toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        ...(includeYear && { year: "numeric" }),
+    });
+};
+//-------------------End-------------------//
+
 
 

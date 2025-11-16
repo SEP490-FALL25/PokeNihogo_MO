@@ -1,4 +1,7 @@
 import BackScreen from "@components/molecules/Back";
+import { useToast } from "@components/ui/Toast";
+import { HOT_KEYWORDS, JLPT_LEVELS } from "@constants/dictionary.constants";
+import { FlashcardContentType } from "@constants/flashcard.enum";
 import { useDebounce } from "@hooks/useDebounce";
 import {
   useDictionarySearch,
@@ -10,10 +13,20 @@ import {
   useCreateFlashcardDeck,
   useFlashcardDecks,
 } from "@hooks/useFlashcard";
+import { DictionaryResult } from "@services/dictionary";
+import { formatDateVN } from "@utils/date";
+import { AxiosError } from "axios";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import * as Speech from "expo-speech";
-import { Clock, Lightbulb, Plus, Search, Volume2, X } from "lucide-react-native";
+import {
+  Clock,
+  Lightbulb,
+  Plus,
+  Search,
+  Volume2,
+  X,
+} from "lucide-react-native";
 import React, {
   useCallback,
   useEffect,
@@ -34,60 +47,15 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-// Dictionary result interface
-interface DictionaryResult {
-  id: string;
-  word: string;
-  reading?: string;
-  meaning: string;
-  type?: string;
-}
-
-// Word Detail interfaces
-interface WordMeaning {
-  meaning?: string;
-  exampleSentenceJp?: string;
-  exampleSentence?: string;
-}
-
-interface RelatedWord {
-  id: number | string;
-  wordJp: string;
-}
-
-// Constants
-const HOT_KEYWORDS = [
-  "利用",
-  "人",
-  "偶然",
-  "共有",
-  "被害",
-  "維持",
-  "情報",
-  "後",
-  "ば",
-  "が",
-  "空",
-  "を",
-  "遠慮",
-  "様子",
-  "に",
-];
-
-const JLPT_LEVELS = ["N1", "N2", "N3", "N4", "N5"];
-
-// Helper function to format date
-const formatDate = (dateString: string, includeYear = false) => {
-  return new Date(dateString).toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    ...(includeYear && { year: "numeric" }),
-  });
-};
+import {
+  RelatedWord,
+  SearchHistoryItem,
+  WordMeaning,
+} from "../../../types/dictionary.types";
 
 export default function DictionaryScreen() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [selectedWordId, setSelectedWordId] = useState<string | null>(null);
@@ -97,6 +65,7 @@ export default function DictionaryScreen() {
   const [showCreateFlashcardModal, setShowCreateFlashcardModal] =
     useState(false);
   const [newFlashcardName, setNewFlashcardName] = useState("");
+  const [flashcardNotes, setFlashcardNotes] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
   const searchContainerRef = useRef<View>(null);
@@ -140,9 +109,6 @@ export default function DictionaryScreen() {
     [apiData?.data?.results]
   );
 
-  // Memoize loading state
-  const isLoading = apiLoading;
-
   // Get search history results - memoized to prevent unnecessary re-renders
   const searchHistory = useMemo(
     () => searchHistoryData?.data?.results || [],
@@ -154,7 +120,7 @@ export default function DictionaryScreen() {
     if (debouncedQuery.trim() && searchResults.length > 0) {
       refetchHistory();
     }
-  }, [searchResults.length, debouncedQuery, refetchHistory]);
+  }, [debouncedQuery, searchResults.length, refetchHistory]);
 
   // Auto-select first result when search query is set from history
   useEffect(() => {
@@ -178,21 +144,19 @@ export default function DictionaryScreen() {
   // Close flashcard modal
   const closeFlashcardModal = useCallback(() => {
     setShowFlashcardModal(false);
+    setFlashcardNotes("");
   }, []);
 
   // Handle search from keyword/history
-  const handleSearch = useCallback(
-    (keyword: string, autoSelect = false) => {
-      setSearchQuery(keyword);
-      setSelectedWordId(null);
-      if (autoSelect) {
-        setShouldAutoSelect(true);
-      }
-      setIsFocused(false);
-      searchInputRef.current?.blur();
-    },
-    []
-  );
+  const handleSearch = useCallback((keyword: string, autoSelect = false) => {
+    setSearchQuery(keyword);
+    setSelectedWordId(null);
+    if (autoSelect) {
+      setShouldAutoSelect(true);
+    }
+    setIsFocused(false);
+    searchInputRef.current?.blur();
+  }, []);
 
   // Clear search
   const handleClearSearch = useCallback(() => {
@@ -217,15 +181,42 @@ export default function DictionaryScreen() {
 
       try {
         await addWordToFlashcardDeckMutation.mutateAsync({
-          flashcardDeckId: typeof deckId === "string" ? Number(deckId) : deckId,
-          vocabularyId: Number(selectedWordId),
+          deckId: typeof deckId === "string" ? Number(deckId) : deckId,
+          id: Number(selectedWordId),
+          contentType: FlashcardContentType.VOCABULARY,
+          notes: flashcardNotes.trim() || undefined,
+        });
+        toast({
+          variant: "Success",
+          title: t("dictionary.add_word_success_title"),
+          description: t("dictionary.add_word_success_description"),
         });
         closeFlashcardModal();
       } catch (error) {
         console.error("Error adding word to flashcard deck:", error);
+        
+        // Check if it's a 409 conflict error (content already exists)
+        const axiosError = error as AxiosError<{ statusCode?: number; message?: string }>;
+        const isConflictError = 
+          axiosError?.response?.status === 409 ||
+          axiosError?.response?.data?.statusCode === 409;
+        
+        if (isConflictError) {
+          toast({
+            variant: "destructive",
+            title: t("dictionary.add_word_conflict_title"),
+            description: t("dictionary.add_word_conflict_description"),
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: t("dictionary.add_word_error_title"),
+            description: t("dictionary.add_word_error_description"),
+          });
+        }
       }
     },
-    [selectedWordId, addWordToFlashcardDeckMutation, closeFlashcardModal]
+    [selectedWordId, flashcardNotes, addWordToFlashcardDeckMutation, closeFlashcardModal, toast, t]
   );
 
   // Handle create new flashcard deck
@@ -242,26 +233,66 @@ export default function DictionaryScreen() {
       if (newDeckId && selectedWordId) {
         try {
           await addWordToFlashcardDeckMutation.mutateAsync({
-            flashcardDeckId: newDeckId,
-            vocabularyId: Number(selectedWordId),
+            deckId: newDeckId,
+            id: Number(selectedWordId),
+            contentType: FlashcardContentType.VOCABULARY,
+            notes: flashcardNotes.trim() || undefined,
+          });
+          toast({
+            variant: "Success",
+            title: t("dictionary.add_word_success_title"),
+            description: t("dictionary.add_word_success_description"),
           });
         } catch (error) {
           console.error("Error adding word to new flashcard deck:", error);
+          
+          // Check if it's a 409 conflict error (content already exists)
+          const axiosError = error as AxiosError<{ statusCode?: number; message?: string }>;
+          const isConflictError = 
+            axiosError?.response?.status === 409 ||
+            axiosError?.response?.data?.statusCode === 409;
+          
+          if (isConflictError) {
+            toast({
+              variant: "destructive",
+              title: t("dictionary.add_word_conflict_title"),
+              description: t("dictionary.add_word_conflict_description"),
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: t("dictionary.add_word_error_title"),
+              description: t("dictionary.add_word_error_description"),
+            });
+          }
         }
       }
 
+      toast({
+        variant: "Success",
+        title: t("dictionary.create_deck_success_title"),
+        description: t("dictionary.create_deck_success_description"),
+      });
       closeCreateFlashcardModal();
       closeFlashcardModal();
     } catch (error) {
       console.error("Error creating flashcard deck:", error);
+      toast({
+        variant: "destructive",
+        title: t("dictionary.create_deck_error_title"),
+        description: t("dictionary.create_deck_error_description"),
+      });
     }
   }, [
     newFlashcardName,
     selectedWordId,
+    flashcardNotes,
     createFlashcardDeckMutation,
     addWordToFlashcardDeckMutation,
     closeCreateFlashcardModal,
     closeFlashcardModal,
+    toast,
+    t,
   ]);
 
   // Handle select word from result
@@ -282,8 +313,9 @@ export default function DictionaryScreen() {
     }
 
     // Prefer reading over wordJp for more accurate pronunciation
-    const textToSpeak = wordDetailData.data.reading || wordDetailData.data.wordJp;
-    
+    const textToSpeak =
+      wordDetailData.data.reading || wordDetailData.data.wordJp;
+
     if (!textToSpeak) return;
 
     setIsSpeaking(true);
@@ -323,7 +355,7 @@ export default function DictionaryScreen() {
   }, []);
 
   // Handle stop propagation - reusable for dropdown and modals
-  const handleStopPropagation = useCallback((e: any) => {
+  const handleStopPropagation = useCallback((e: { stopPropagation: () => void }) => {
     e.stopPropagation();
   }, []);
 
@@ -345,46 +377,49 @@ export default function DictionaryScreen() {
 
   // Handle search container layout
   const handleSearchContainerLayout = useCallback(() => {
-    searchContainerRef.current?.measure(
-      (x, y, width, height, pageX, pageY) => {
-        setSearchBarY(pageY + height + 8);
-      }
-    );
+    searchContainerRef.current?.measure((x, y, width, height, pageX, pageY) => {
+      setSearchBarY(pageY + height + 8);
+    });
   }, []);
 
-  // Render search result item (for dropdown)
-  const renderResultItem = useCallback(
-    (item: DictionaryResult) => (
-      <TouchableOpacity
-        key={item.id}
-        className="py-3 px-4 border-b border-gray-50 active:bg-gray-50"
-        onPress={() => handleSelectWord(item.id)}
-        activeOpacity={0.7}
-      >
-        <View className="flex-row items-center mb-1">
-          <Text className="text-lg font-bold text-gray-900 mr-2">
-            {item.word}
-          </Text>
-          {item.reading && (
-            <Text className="text-sm text-gray-500">「{item.reading}」</Text>
-          )}
-        </View>
-        {item.meaning && (
-          <Text className="text-sm text-gray-700 mt-1">{item.meaning}</Text>
+  // Render search result item (for dropdown) - memoized component
+  const SearchResultItem = React.memo(({ item, onSelect }: { item: DictionaryResult; onSelect: (id: string) => void }) => (
+    <TouchableOpacity
+      className="py-3 px-4 border-b border-gray-50 active:bg-gray-50"
+      onPress={() => onSelect(item.id)}
+      activeOpacity={0.7}
+    >
+      <View className="flex-row items-center mb-1">
+        <Text className="text-lg font-bold text-gray-900 mr-2">
+          {item.word}
+        </Text>
+        {item.reading && (
+          <Text className="text-sm text-gray-500">「{item.reading}」</Text>
         )}
-      </TouchableOpacity>
-    ),
-    [handleSelectWord]
-  );
+      </View>
+      {item.meaning && (
+        <Text className="text-sm text-gray-700 mt-1">{item.meaning}</Text>
+      )}
+    </TouchableOpacity>
+  ));
+  SearchResultItem.displayName = "SearchResultItem";
 
   // Handle open flashcard modal
   const handleOpenFlashcardModal = useCallback(() => {
     setShowFlashcardModal(true);
   }, []);
 
-  // Render home content (Tips, Hot Keywords, JLPT) - memoized
-  const renderHomeContent = useMemo(
-    () => (
+  // Memoized home content component
+  const DictionaryHomeContent = React.memo(({ 
+    searchHistory, 
+    onSearch 
+  }: { 
+    searchHistory: SearchHistoryItem[]; 
+    onSearch: (keyword: string, autoSelect?: boolean) => void;
+  }) => {
+    const { t } = useTranslation();
+    
+    return (
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="px-4 py-6">
           {/* Tips Section */}
@@ -392,20 +427,18 @@ export default function DictionaryScreen() {
             <View className="flex-row items-center mb-3">
               <Lightbulb size={20} color="#fbbf24" />
               <Text className="text-lg font-semibold text-gray-900 ml-2">
-                Tips
+                {t("dictionary.tips")}
               </Text>
             </View>
             <View className="pl-7">
               <Text className="text-sm text-gray-700 mb-2">
-                • Đăng nhập tài khoản PokeNihongo để được đồng bộ dữ liệu và sử
-                dụng trên nhiều thiết bị.
+                {t("dictionary.tips_sync_account")}
               </Text>
               <Text className="text-sm text-gray-700 mb-2">
-                • PokeNihongo có thể chuyển thành te, ta, bị động... ở dạng nguyên
-                thể, thử 食べた
+                {t("dictionary.tips_conjugation")}
               </Text>
               <Text className="text-sm text-gray-700">
-                • Tra cứu katakana: viết hoa chữ đó, ví dụ: BETONAMU
+                {t("dictionary.tips_katakana")}
               </Text>
             </View>
           </View>
@@ -423,11 +456,11 @@ export default function DictionaryScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.historyScrollContainer}
               >
-                {searchHistory.map((item: { id: number; searchKeyword: string; createdAt: string }) => (
+                {searchHistory.map((item) => (
                   <TouchableOpacity
                     key={item.id}
                     className="bg-gray-100 rounded-full px-4 py-2 mr-2"
-                    onPress={() => handleSearch(item.searchKeyword, true)}
+                    onPress={() => onSearch(item.searchKeyword, true)}
                     activeOpacity={0.7}
                   >
                     <Text className="text-base text-gray-900">
@@ -443,20 +476,20 @@ export default function DictionaryScreen() {
           <View className="mb-6">
             <View className="flex-row items-center justify-between mb-3">
               <Text className="text-lg font-semibold text-gray-900">
-                Từ khoá hot
+                {t("dictionary.hot_keywords")}
               </Text>
             </View>
             <View className="flex-row flex-wrap">
-            {HOT_KEYWORDS.map((keyword) => (
-              <TouchableOpacity
-                key={keyword}
-                className="bg-gray-100 rounded-full px-4 py-2 mr-2 mb-2"
-                onPress={() => handleSearch(keyword, true)}
-                activeOpacity={0.7}
-              >
-                <Text className="text-base text-gray-900">{keyword}</Text>
-              </TouchableOpacity>
-            ))}
+              {HOT_KEYWORDS.map((keyword) => (
+                <TouchableOpacity
+                  key={keyword}
+                  className="bg-gray-100 rounded-full px-4 py-2 mr-2 mb-2"
+                  onPress={() => onSearch(keyword, true)}
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-base text-gray-900">{keyword}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
 
@@ -466,15 +499,15 @@ export default function DictionaryScreen() {
               JLPT
             </Text>
             <View className="flex-row flex-wrap">
-            {JLPT_LEVELS.map((level) => (
-              <TouchableOpacity
-                key={level}
-                className="bg-gray-100 rounded-full px-4 py-2 mr-2 mb-2"
-                activeOpacity={0.7}
-              >
-                <Text className="text-base text-gray-900">{level}</Text>
-              </TouchableOpacity>
-            ))}
+              {JLPT_LEVELS.map((level) => (
+                <TouchableOpacity
+                  key={level}
+                  className="bg-gray-100 rounded-full px-4 py-2 mr-2 mb-2"
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-base text-gray-900">{level}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
 
@@ -492,9 +525,9 @@ export default function DictionaryScreen() {
           )}
         </View>
       </ScrollView>
-    ),
-    [searchHistory, handleSearch, t]
-  );
+    );
+  });
+  DictionaryHomeContent.displayName = "DictionaryHomeContent";
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -537,10 +570,7 @@ export default function DictionaryScreen() {
 
       {/* Overlay to detect outside clicks */}
       {isFocused && (
-          <Pressable
-          style={styles.overlay}
-          onPress={handleOverlayPress}
-        />
+        <Pressable style={styles.overlay} onPress={handleOverlayPress} />
       )}
 
       {/* Dropdown for search suggestions/history - absolute positioned overlay */}
@@ -556,7 +586,7 @@ export default function DictionaryScreen() {
             >
               {searchQuery.trim() ? (
                 <>
-                  {isLoading ? (
+                  {apiLoading ? (
                     <View className="py-8 items-center justify-center">
                       <ActivityIndicator size="small" color="#4A9FA2" />
                     </View>
@@ -567,7 +597,13 @@ export default function DictionaryScreen() {
                       keyboardShouldPersistTaps="handled"
                       nestedScrollEnabled={true}
                     >
-                      {searchResults.map(renderResultItem)}
+                      {searchResults.map((item) => (
+                        <SearchResultItem
+                          key={item.id}
+                          item={item}
+                          onSelect={handleSelectWord}
+                        />
+                      ))}
                     </ScrollView>
                   ) : (
                     <View className="py-6 px-4">
@@ -592,7 +628,7 @@ export default function DictionaryScreen() {
                       keyboardShouldPersistTaps="handled"
                       nestedScrollEnabled={true}
                     >
-                      {searchHistory.map((item: { id: number; searchKeyword: string; createdAt: string }) => (
+                      {searchHistory.map((item: SearchHistoryItem) => (
                         <TouchableOpacity
                           key={item.id}
                           className="flex-row items-center py-3 px-4 border-b border-gray-50 active:bg-gray-50"
@@ -606,7 +642,7 @@ export default function DictionaryScreen() {
                             {item.searchKeyword}
                           </Text>
                           <Text className="text-xs text-gray-400 ml-2">
-                            {formatDate(item.createdAt)}
+                            {formatDateVN(item.createdAt)}
                           </Text>
                         </TouchableOpacity>
                       ))}
@@ -618,7 +654,6 @@ export default function DictionaryScreen() {
           </Pressable>
         </View>
       )}
-
 
       {/* Results - show when not focused or when there's content to show */}
       {!isFocused && (
@@ -633,7 +668,9 @@ export default function DictionaryScreen() {
                   onPress={handleBackFromDetail}
                 >
                   <X size={20} color="#374151" />
-                  <Text className="text-base text-gray-700 ml-2">Quay lại</Text>
+                  <Text className="text-base text-gray-700 ml-2">
+                    {t("dictionary.back")}
+                  </Text>
                 </TouchableOpacity>
 
                 {/* Word Header */}
@@ -649,9 +686,9 @@ export default function DictionaryScreen() {
                         onPress={handleSpeak}
                         activeOpacity={0.7}
                       >
-                        <Volume2 
-                          size={20} 
-                          color={isSpeaking ? "#3b82f6" : "#6b7280"} 
+                        <Volume2
+                          size={20}
+                          color={isSpeaking ? "#3b82f6" : "#6b7280"}
                         />
                       </TouchableOpacity>
                     </View>
@@ -690,12 +727,12 @@ export default function DictionaryScreen() {
                   wordDetailData.data.meanings.length > 0 && (
                     <View className="mb-6">
                       <Text className="text-lg font-semibold text-gray-900 mb-3">
-                        Nghĩa
+                        {t("dictionary.meanings")}
                       </Text>
                       {wordDetailData.data.meanings.map(
                         (meaning: WordMeaning, index: number) => (
                           <View
-                            key={`meaning-${index}-${meaning.meaning?.slice(0, 20)}`}
+                            key={`meaning-${index}-${meaning.meaning || index}`}
                             className="mb-3 pb-3 border-b border-gray-100"
                           >
                             {meaning.meaning && (
@@ -706,7 +743,7 @@ export default function DictionaryScreen() {
                             {meaning.exampleSentenceJp && (
                               <View className="mt-2">
                                 <Text className="text-sm text-gray-500 mb-1">
-                                  Ví dụ:
+                                  {t("dictionary.example")}
                                 </Text>
                                 <Text className="text-base text-gray-900 mb-1">
                                   {meaning.exampleSentenceJp}
@@ -729,7 +766,7 @@ export default function DictionaryScreen() {
                   wordDetailData.data.relatedWords.length > 0 && (
                     <View className="mb-6">
                       <Text className="text-lg font-semibold text-gray-900 mb-3">
-                        Từ liên quan
+                        {t("dictionary.related_words")}
                       </Text>
                       <View className="flex-row flex-wrap">
                         {wordDetailData.data.relatedWords.map(
@@ -758,7 +795,10 @@ export default function DictionaryScreen() {
               <ActivityIndicator size="large" color="#4A9FA2" />
             </View>
           ) : (
-            renderHomeContent
+            <DictionaryHomeContent
+              searchHistory={searchHistory}
+              onSearch={handleSearch}
+            />
           )}
         </View>
       )}
@@ -770,10 +810,7 @@ export default function DictionaryScreen() {
         animationType="fade"
         onRequestClose={() => setShowFlashcardModal(false)}
       >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={closeFlashcardModal}
-        >
+        <Pressable style={styles.modalOverlay} onPress={closeFlashcardModal}>
           <Pressable
             style={styles.modalContent}
             onPress={handleStopPropagation}
@@ -781,7 +818,7 @@ export default function DictionaryScreen() {
             {/* Header */}
             <View className="flex-row items-center justify-between mb-4 pb-4 border-b border-gray-200">
               <Text className="text-xl font-bold text-gray-900">
-                Thêm từ vào sổ tay
+                {t("dictionary.add_to_flashcard")}
               </Text>
               <TouchableOpacity
                 onPress={closeFlashcardModal}
@@ -789,6 +826,23 @@ export default function DictionaryScreen() {
               >
                 <X size={20} color="#6b7280" />
               </TouchableOpacity>
+            </View>
+
+            {/* Notes Input */}
+            <View className="mb-4">
+              <Text className="text-sm font-semibold text-gray-700 mb-2">
+                {t("dictionary.notes_label")}
+              </Text>
+              <TextInput
+                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-900 min-h-[80px]"
+                placeholder={t("dictionary.notes_placeholder")}
+                value={flashcardNotes}
+                onChangeText={setFlashcardNotes}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+                returnKeyType="done"
+              />
             </View>
 
             {/* Create New Flashcard Button */}
@@ -801,7 +855,7 @@ export default function DictionaryScreen() {
                 <Plus size={18} color="white" />
               </View>
               <Text className="text-blue-600 font-semibold text-base">
-                Tạo sổ tay mới
+                {t("dictionary.create_flashcard_deck")}
               </Text>
             </TouchableOpacity>
 
@@ -827,11 +881,11 @@ export default function DictionaryScreen() {
                       {deck.name}
                     </Text>
                     <Text className="text-sm text-gray-500">
-                      Ngày tạo: {formatDate(deck.createdAt, true)}
+                      {t("dictionary.created_date")} {formatDateVN(deck.createdAt, true)}
                     </Text>
                     {deck.totalCards !== undefined && (
                       <Text className="text-sm text-gray-400 mt-1">
-                        {deck.totalCards} từ
+                        {deck.totalCards} {t("dictionary.words_count")}
                       </Text>
                     )}
                   </TouchableOpacity>
@@ -840,7 +894,7 @@ export default function DictionaryScreen() {
             ) : (
               <View className="py-8 items-center justify-center">
                 <Text className="text-sm text-gray-400 text-center">
-                  Bạn chưa có sổ tay nào. Tạo sổ tay mới để bắt đầu!
+                  {t("dictionary.no_flashcard_decks")} {t("dictionary.no_flashcard_decks_description")}
                 </Text>
               </View>
             )}
@@ -866,7 +920,7 @@ export default function DictionaryScreen() {
             {/* Header */}
             <View className="flex-row items-center justify-between mb-4 pb-4 border-b border-gray-200">
               <Text className="text-xl font-bold text-gray-900">
-                Tạo sổ tay mới
+                {t("dictionary.create_new_flashcard_deck")}
               </Text>
               <TouchableOpacity
                 onPress={closeCreateFlashcardModal}
@@ -879,11 +933,11 @@ export default function DictionaryScreen() {
             {/* Input */}
             <View className="mb-4">
               <Text className="text-sm font-semibold text-gray-700 mb-2">
-                Tên sổ tay
+                {t("dictionary.flashcard_name")}
               </Text>
               <TextInput
                 className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-900"
-                placeholder="Nhập tên sổ tay..."
+                placeholder={t("dictionary.flashcard_name_placeholder")}
                 value={newFlashcardName}
                 onChangeText={setNewFlashcardName}
                 autoFocus
@@ -900,7 +954,7 @@ export default function DictionaryScreen() {
                 activeOpacity={0.7}
               >
                 <Text className="text-gray-700 font-semibold text-base">
-                  Hủy
+                  {t("dictionary.cancel")}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -916,7 +970,7 @@ export default function DictionaryScreen() {
                   <ActivityIndicator size="small" color="white" />
                 ) : (
                   <Text className="text-white font-semibold text-base">
-                    Tạo
+                    {t("dictionary.create")}
                   </Text>
                 )}
               </TouchableOpacity>
