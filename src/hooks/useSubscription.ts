@@ -39,6 +39,7 @@ export const useSubscriptionPurchase = () => {
         onSuccess: () => {
             // Invalidate related queries after successful purchase
             queryClient.invalidateQueries({ queryKey: ['subscription-packages'] });
+            queryClient.invalidateQueries({ queryKey: ['subscription-marketplace-packages'] });
             queryClient.invalidateQueries({ queryKey: ['wallet-user'] });
         },
         onError: (error) => {

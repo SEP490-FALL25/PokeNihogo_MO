@@ -27,6 +27,7 @@ export default function AppLayout() {
             <Stack.Screen name="quiz" />
             <Stack.Screen name="gacha" />
             <Stack.Screen name="conversation" />
+            <Stack.Screen name="subscription" />
             <Stack.Screen name="bottom" />
             <Stack.Screen name="lesson-demo" />
             <Stack.Screen name="ai-conversation" />
