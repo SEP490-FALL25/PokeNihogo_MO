@@ -548,11 +548,13 @@
         "balance": "残高",
         "price": "価格",
         "purchase": "今すぐ購入",
+        "purchased": "購入済み",
         "lifetime": "永久アクセス",
         "popular": "人気",
         "purchase_success": "プランの購入に成功しました！",
         "purchase_failed": "プランの購入に失敗しました",
-        "insufficient_balance": "このプランを購入するには残高が不足しています"
+        "insufficient_balance": "このプランを購入するには残高が不足しています",
+        "data_refreshed": "データを更新しました"
     },
     "exercise_history": {
         "title": "練習履歴",

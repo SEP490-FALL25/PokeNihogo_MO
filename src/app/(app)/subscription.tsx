@@ -4,13 +4,13 @@ import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { WALLET } from "@constants/wallet.enum";
-import { useCreateInvoice } from "@hooks/useInvoice";
+import { useCreateInvoice, useRefetchUserData } from "@hooks/useInvoice";
 import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
 import { useWalletUser } from "@hooks/useWallet";
 import { ISubscriptionMarketplaceEntity } from "@models/subscription/subscription.entity";
 import { SubscriptionPackageType } from "@models/subscription/subscription.request";
 import payosService from "@services/payos";
-import { BookOpen, Check, Crown, Headphones, Sparkles } from "lucide-react-native";
+import { BookOpen, Check, Crown, Headphones, RefreshCw, Sparkles } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -21,11 +21,11 @@ export default function SubscriptionScreen() {
     const { data: packagesData, isLoading: isLoadingPackages } = useSubscriptionMarketplacePackages();
     const { walletUser, isLoading: isLoadingWallet } = useWalletUser();
     const { mutate: createInvoice, isPending: isPurchasing } = useCreateInvoice();
+    const { refetchAll } = useRefetchUserData();
 
     const [alertVisible, setAlertVisible] = useState<boolean>(false);
     const [alertMessage, setAlertMessage] = useState<string>('');
     const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('error');
-    const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
 
     const packages = packagesData?.data?.data || [];
     const userBalance = walletUser?.find((w: any) => w.type === WALLET.WALLET_TYPES.PAID_COINS)?.balance ?? 0;
@@ -90,12 +90,11 @@ export default function SubscriptionScreen() {
     }, []);
 
     const handleBrowserClose = useCallback(() => {
-        setCheckoutUrl(null);
-        // Refresh data after payment
-    }, []);
+        // Refetch data after payment (when browser closes)
+        refetchAll();
+    }, [refetchAll]);
 
     const handleBrowserError = useCallback((error: Error) => {
-        setCheckoutUrl(null);
         setAlertMessage(error.message || t('subscription.purchase_failed'));
         setAlertType('error');
         setAlertVisible(true);
@@ -110,10 +109,6 @@ export default function SubscriptionScreen() {
             return;
         }
 
-
-
-        // Always create invoice, regardless of balance
-        // Use activePlan.id as subscriptionPlanId
         createInvoice(
             {
                 subscriptionPlanId: activePlan.id,
@@ -126,7 +121,7 @@ export default function SubscriptionScreen() {
                     const checkoutUrl = responseData?.payment?.payosData?.checkoutUrl;
 
                     if (checkoutUrl) {
-                        // Open browser directly with the checkout URL
+                        // Open browser with checkout URL
                         openInAppBrowser(checkoutUrl, {
                             onClose: handleBrowserClose,
                             onError: handleBrowserError,
@@ -156,7 +151,6 @@ export default function SubscriptionScreen() {
                                         onError: handleBrowserError,
                                     });
                                 } else {
-                                    setAlertMessage(errorData?.message || t('subscription.purchase_failed'));
                                     setAlertType('error');
                                     setAlertVisible(true);
                                 }
@@ -178,6 +172,13 @@ export default function SubscriptionScreen() {
             }
         );
     }, [createInvoice, t, getActivePlan, handleBrowserClose, handleBrowserError]);
+
+    const handleRefetch = useCallback(() => {
+        refetchAll();
+        setAlertMessage(t('subscription.data_refreshed'));
+        setAlertType('success');
+        setAlertVisible(true);
+    }, [refetchAll, t]);
 
     const getPackageIcon = (packageType: SubscriptionPackageType) => {
         switch (packageType) {
@@ -257,9 +258,22 @@ export default function SubscriptionScreen() {
                                     {t('subscription.balance')}
                                 </Text>
                             </View>
-                            <Text className="text-amber-500 font-bold text-xl">
-                                {formatPrice(userBalance)}
-                            </Text>
+                            <View className="flex-row items-center gap-3">
+                                <Text className="text-amber-500 font-bold text-xl">
+                                    {formatPrice(userBalance)}
+                                </Text>
+                                <TouchableOpacity
+                                    onPress={handleRefetch}
+                                    className="p-2"
+                                    disabled={isLoadingPackages || isLoadingWallet}
+                                >
+                                    <RefreshCw
+                                        size={20}
+                                        color="#3b82f6"
+                                        style={isLoadingPackages || isLoadingWallet ? { opacity: 0.5 } : {}}
+                                    />
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
 
@@ -346,19 +360,29 @@ export default function SubscriptionScreen() {
                                                     <Text className="text-white/80 text-sm">₫</Text>
                                                 </View>
                                             </View>
-                                            <TouchableOpacity
-                                                onPress={() => handlePurchase(packageItem)}
-                                                disabled={!canBuy || isPurchasing}
-                                                className={`px-6 py-3 rounded-xl ${canBuy && !isPurchasing ? 'bg-white' : 'bg-white/50'}`}
-                                            >
-                                                {isPurchasing ? (
-                                                    <ActivityIndicator size="small" color="#3b82f6" />
-                                                ) : (
-                                                    <Text className={`font-bold ${canBuy ? 'text-slate-800' : 'text-slate-500'}`}>
-                                                        {t('subscription.purchase')}
+                                            {!canBuy ? (
+                                                // Already purchased - show "Đã mua" badge
+                                                <View className="px-6 py-3 rounded-xl bg-green-500/20 border border-green-400/30">
+                                                    <Text className="font-bold text-green-300 text-center">
+                                                        {t('subscription.purchased')}
                                                     </Text>
-                                                )}
-                                            </TouchableOpacity>
+                                                </View>
+                                            ) : (
+                                                // Can purchase - show purchase button
+                                                <TouchableOpacity
+                                                    onPress={() => handlePurchase(packageItem)}
+                                                    disabled={isPurchasing}
+                                                    className="px-6 py-3 rounded-xl bg-white"
+                                                >
+                                                    {isPurchasing ? (
+                                                        <ActivityIndicator size="small" color="#3b82f6" />
+                                                    ) : (
+                                                        <Text className="font-bold text-slate-800">
+                                                            {t('subscription.purchase')}
+                                                        </Text>
+                                                    )}
+                                                </TouchableOpacity>
+                                            )}
                                         </View>
                                     </TWLinearGradient>
                                 </View>
@@ -374,7 +398,6 @@ export default function SubscriptionScreen() {
                     onHide={handleHideAlert}
                     type={alertType}
                 />
-
             </ThemedView>
         </SafeAreaView>
     );

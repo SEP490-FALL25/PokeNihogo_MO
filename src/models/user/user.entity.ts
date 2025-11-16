@@ -48,6 +48,12 @@ export const UserEntity = z.object({
         }).nullable(),
     }),
     pokemonCount: z.number(),
+    subscription: z.object({
+        canRead: z.boolean(),
+        canListen: z.boolean(),
+        isUltra: z.boolean(),
+        ultraExpiresAt: z.string().nullable(),
+    }),
 });
 
 export type IUserEntity = z.infer<typeof UserEntity>;

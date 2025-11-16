@@ -752,10 +752,12 @@
     "balance": "Số dư",
     "price": "Giá",
     "purchase": "Mua ngay",
+    "purchased": "Đã mua",
     "lifetime": "Trọn đời",
     "popular": "PHỔ BIẾN",
     "purchase_success": "Mua gói dịch vụ thành công!",
     "purchase_failed": "Mua gói dịch vụ thất bại",
-    "insufficient_balance": "Số dư không đủ để mua gói này"
+    "insufficient_balance": "Số dư không đủ để mua gói này",
+    "data_refreshed": "Đã làm mới dữ liệu"
   }
 }
