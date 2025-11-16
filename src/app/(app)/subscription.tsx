@@ -1,9 +1,11 @@
+import InAppBrowser from "@components/atoms/InAppBrowser";
 import MinimalAlert from "@components/atoms/MinimalAlert";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { WALLET } from "@constants/wallet.enum";
-import { useSubscriptionMarketplacePackages, useSubscriptionPurchase } from "@hooks/useSubscription";
+import { useCreateInvoice } from "@hooks/useInvoice";
+import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
 import { useWalletUser } from "@hooks/useWallet";
 import { ISubscriptionMarketplaceEntity } from "@models/subscription/subscription.entity";
 import { SubscriptionPackageType } from "@models/subscription/subscription.request";
@@ -17,11 +19,13 @@ export default function SubscriptionScreen() {
     const { t } = useTranslation();
     const { data: packagesData, isLoading: isLoadingPackages } = useSubscriptionMarketplacePackages();
     const { walletUser, isLoading: isLoadingWallet } = useWalletUser();
-    const { mutate: purchasePackage, isPending: isPurchasing } = useSubscriptionPurchase();
+    const { mutate: createInvoice, isPending: isPurchasing } = useCreateInvoice();
+    console.log('mutate createInvoice: ', createInvoice);
 
     const [alertVisible, setAlertVisible] = useState(false);
     const [alertMessage, setAlertMessage] = useState('');
     const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('error');
+    const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
 
     const packages = packagesData?.data?.data || [];
     const userBalance = walletUser?.find((w: any) => w.type === WALLET.WALLET_TYPES.PAID_COINS)?.balance ?? 0;
@@ -94,21 +98,32 @@ export default function SubscriptionScreen() {
             return;
         }
 
-        if (userBalance < activePlan.price) {
-            setAlertMessage(t('subscription.insufficient_balance'));
-            setAlertType('error');
-            setAlertVisible(true);
-            return;
-        }
 
-        const packageType = getPackageType(packageItem);
-        purchasePackage(
-            { packageType },
+
+        // Always create invoice, regardless of balance
+        // Use activePlan.id as subscriptionPlanId
+        createInvoice(
             {
-                onSuccess: (data) => {
-                    setAlertMessage(data.data.message || t('subscription.purchase_success'));
-                    setAlertType('success');
-                    setAlertVisible(true);
+                subscriptionPlanId: activePlan.id,
+                discountAmount: 0, // Can be updated if discount logic is needed
+            },
+            {
+                onSuccess: (response) => {
+                    // Get checkoutUrl from payosData
+                    // Response structure: response.data.data.payosData.checkoutUrl
+                    const responseData = response.data?.data || response.data;
+                    console.log('responseData: ', responseData);
+
+                    const checkoutUrl = responseData?.payosData?.checkoutUrl;
+
+                    if (checkoutUrl) {
+                        // Open InAppBrowser with checkout URL
+                        setCheckoutUrl(checkoutUrl);
+                    } else {
+                        setAlertMessage(responseData?.message || t('subscription.purchase_success'));
+                        setAlertType('success');
+                        setAlertVisible(true);
+                    }
                 },
                 onError: (error: any) => {
                     const errorMessage = error?.response?.data?.message || t('subscription.purchase_failed');
@@ -118,7 +133,19 @@ export default function SubscriptionScreen() {
                 },
             }
         );
-    }, [userBalance, purchasePackage, t, getActivePlan, getPackageType]);
+    }, [createInvoice, t, getActivePlan]);
+
+    const handleBrowserClose = useCallback(() => {
+        setCheckoutUrl(null);
+        // Refresh data after payment
+    }, []);
+
+    const handleBrowserError = useCallback((error: Error) => {
+        setCheckoutUrl(null);
+        setAlertMessage(error.message || t('subscription.purchase_failed'));
+        setAlertType('error');
+        setAlertVisible(true);
+    }, [t]);
 
     const getPackageIcon = (packageType: SubscriptionPackageType) => {
         switch (packageType) {
@@ -289,13 +316,13 @@ export default function SubscriptionScreen() {
                                             </View>
                                             <TouchableOpacity
                                                 onPress={() => handlePurchase(packageItem)}
-                                                disabled={!canBuy || !canAfford || isPurchasing}
-                                                className={`px-6 py-3 rounded-xl ${canBuy && canAfford && !isPurchasing ? 'bg-white' : 'bg-white/50'}`}
+                                                disabled={!canBuy || isPurchasing}
+                                                className={`px-6 py-3 rounded-xl ${canBuy && !isPurchasing ? 'bg-white' : 'bg-white/50'}`}
                                             >
                                                 {isPurchasing ? (
                                                     <ActivityIndicator size="small" color="#3b82f6" />
                                                 ) : (
-                                                    <Text className={`font-bold ${canBuy && canAfford ? 'text-slate-800' : 'text-slate-500'}`}>
+                                                    <Text className={`font-bold ${canBuy ? 'text-slate-800' : 'text-slate-500'}`}>
                                                         {t('subscription.purchase')}
                                                     </Text>
                                                 )}
@@ -315,6 +342,15 @@ export default function SubscriptionScreen() {
                     onHide={handleHideAlert}
                     type={alertType}
                 />
+
+                {/* InAppBrowser */}
+                {checkoutUrl && (
+                    <InAppBrowser
+                        url={checkoutUrl}
+                        onClose={handleBrowserClose}
+                        onError={handleBrowserError}
+                    />
+                )}
             </ThemedView>
         </SafeAreaView>
     );
