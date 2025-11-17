@@ -11,10 +11,10 @@ import { useWalletUser } from "@hooks/useWallet";
 import { ISubscriptionMarketplaceEntity } from "@models/subscription/subscription.entity";
 import { SubscriptionPackageType } from "@models/subscription/subscription.request";
 import payosService from "@services/payos";
-import { BookOpen, Check, Crown, Headphones, RefreshCw, Sparkles } from "lucide-react-native";
+import { BookOpen, Check, Coins, Crown, Headphones, RefreshCw, Sparkles } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const MIN_POKECOIN_DEDUCTION = 10000;
@@ -113,29 +113,27 @@ export default function SubscriptionScreen() {
         return Math.floor(cap / POKECOIN_DEDUCTION_STEP) * POKECOIN_DEDUCTION_STEP;
     }, [userBalance]);
 
-    const getDeductionOptions = useCallback((price: number) => {
-        const max = getMaxDeductable(price);
-        if (!max) {
-            return [];
-        }
-
-        const options: number[] = [];
-        for (let amount = MIN_POKECOIN_DEDUCTION; amount <= max; amount += POKECOIN_DEDUCTION_STEP) {
-            options.push(amount);
-        }
-        return options;
-    }, [getMaxDeductable]);
-
-    const handleSelectDeduction = useCallback((packageId: number, amount: number) => {
+    const handleAdjustDeduction = useCallback((packageId: number, price: number, direction: 'increase' | 'decrease') => {
         setSelectedDiscounts((prev) => {
+            const max = getMaxDeductable(price);
+            if (!max) {
+                return {
+                    ...prev,
+                    [packageId]: 0,
+                };
+            }
+
             const current = prev[packageId] || 0;
-            const nextValue = current === amount ? 0 : amount;
+            const delta = direction === 'increase' ? POKECOIN_DEDUCTION_STEP : -POKECOIN_DEDUCTION_STEP;
+            const nextRaw = Math.min(Math.max(current + delta, 0), max);
+            const nextValue = Math.floor(nextRaw / POKECOIN_DEDUCTION_STEP) * POKECOIN_DEDUCTION_STEP;
+
             return {
                 ...prev,
                 [packageId]: nextValue,
             };
         });
-    }, []);
+    }, [getMaxDeductable]);
 
     const handlePurchase = useCallback((packageItem: ISubscriptionMarketplaceEntity) => {
         const activePlan = getActivePlan(packageItem);
@@ -282,6 +280,7 @@ export default function SubscriptionScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-white">
+            <StatusBar barStyle="dark-content"  />
             <ThemedView className="flex-1">
                 <BackScreen
                     color="black"
@@ -341,10 +340,11 @@ export default function SubscriptionScreen() {
                                 return null; // Skip packages without active plans
                             }
 
-                            const deductionOptions = activePlan ? getDeductionOptions(activePlan.price) : [];
                             const rawSelectedDiscount = selectedDiscounts[packageItem.id] || 0;
-                            const selectedDiscount = deductionOptions.includes(rawSelectedDiscount) ? rawSelectedDiscount : 0;
+                            const maxDeductable = activePlan ? getMaxDeductable(activePlan.price) : 0;
+                            const selectedDiscount = Math.min(rawSelectedDiscount, maxDeductable);
                             const finalPrice = activePlan ? Math.max(activePlan.price - selectedDiscount, 0) : 0;
+                            const usagePercent = maxDeductable ? selectedDiscount / maxDeductable : 0;
 
                             return (
                                 <View
@@ -401,40 +401,78 @@ export default function SubscriptionScreen() {
 
                                         {/* PokeCoin Deduction */}
                                         {canBuy && (
-                                            <View className="mb-4 bg-white/10 rounded-2xl p-4">
-                                                <View className="flex-row items-center justify-between mb-2">
-                                                    <Text className="text-white font-semibold">
-                                                        {t('subscription.poke_coin_title', { defaultValue: 'Sử dụng PokeCoin' })}
-                                                    </Text>
-                                                    <Text className="text-white/80 text-xs">
-                                                        {t('subscription.balance_short', { defaultValue: 'Số dư:' })} {formatPrice(userBalance)}₫
-                                                    </Text>
+                                            <View className="mb-4 rounded-3xl border border-white/15 bg-white/10 p-4">
+                                                <View className="flex-row items-center justify-between mb-3">
+                                                    <View className="flex-row items-center gap-2">
+                                                        <View className="w-10 h-10 rounded-2xl bg-white/15 items-center justify-center">
+                                                            <Coins size={22} color="#fcd34d" />
+                                                        </View>
+                                                        <View>
+                                                            <Text className="text-white font-semibold text-base">
+                                                                {t('subscription.poke_coin_title', { defaultValue: 'Sử dụng PokeCoin' })}
+                                                            </Text>
+                                                            <Text className="text-white/60 text-xs">
+                                                                {t('subscription.balance_short', { defaultValue: 'Số dư:' })} {formatPrice(userBalance)}₫
+                                                            </Text>
+                                                        </View>
+                                                    </View>
+                                                    {selectedDiscount > 0 && (
+                                                        <View className="px-3 py-1 rounded-full bg-emerald-400/20 border border-emerald-200/30">
+                                                            <Text className="text-emerald-100 text-xs font-semibold">
+                                                                -{formatPrice(selectedDiscount)}₫
+                                                            </Text>
+                                                        </View>
+                                                    )}
                                                 </View>
-                                                {deductionOptions.length === 0 ? (
+                                                {maxDeductable < MIN_POKECOIN_DEDUCTION ? (
                                                     <Text className="text-white/70 text-xs">
                                                         {t('subscription.poke_coin_insufficient', { defaultValue: 'Cần tối thiểu 10.000₫ để trừ PokeCoin.' })}
                                                     </Text>
                                                 ) : (
                                                     <>
-                                                        <View className="flex-row flex-wrap gap-2">
-                                                            {deductionOptions.map((amount) => {
-                                                                const isSelected = selectedDiscount === amount;
-                                                                return (
-                                                                    <TouchableOpacity
-                                                                        key={amount}
-                                                                        onPress={() => handleSelectDeduction(packageItem.id, amount)}
-                                                                        className={`px-3 py-2 rounded-xl border ${isSelected ? 'bg-white border-white' : 'bg-white/10 border-white/40'}`}
-                                                                    >
-                                                                        <Text className={`text-xs font-semibold ${isSelected ? 'text-slate-800' : 'text-white'}`}>
-                                                                            -{formatPrice(amount)}₫
-                                                                        </Text>
-                                                                    </TouchableOpacity>
-                                                                );
-                                                            })}
+                                                        <View className="mb-3">
+                                                            <View className="flex-row justify-between mb-1">
+                                                                <Text className="text-white/70 text-xs">
+                                                                    {t('subscription.poke_coin_hint', { defaultValue: 'Bội số 10.000₫' })}
+                                                                </Text>
+                                                                <Text className="text-white/80 text-xs">
+                                                                    {t('subscription.poke_coin_max', {
+                                                                        defaultValue: 'Tối đa {{amount}}₫',
+                                                                        amount: formatPrice(maxDeductable),
+                                                                    })}
+                                                                </Text>
+                                                            </View>
+                                                            <View className="h-1.5 rounded-full bg-white/15 overflow-hidden">
+                                                                <View
+                                                                    className="h-full bg-white"
+                                                                    style={{ width: `${Math.min(Math.max(usagePercent * 100, 0), 100)}%` }}
+                                                                />
+                                                            </View>
                                                         </View>
-                                                        <Text className="text-white/60 text-xs mt-2">
-                                                            {t('subscription.poke_coin_hint', { defaultValue: 'Mệnh giá bội số 10.000₫, tối thiểu 10.000₫.' })}
-                                                        </Text>
+                                                        <View className="flex-row items-center gap-3">
+                                                            <TouchableOpacity
+                                                                onPress={() => handleAdjustDeduction(packageItem.id, activePlan.price, 'decrease')}
+                                                                disabled={selectedDiscount === 0 || isPurchasing}
+                                                                className={`w-12 h-12 rounded-2xl items-center justify-center border ${selectedDiscount === 0 ? 'border-white/20 bg-white/5' : 'border-white/60 bg-white/15'}`}
+                                                            >
+                                                                <Text className="text-xl font-bold text-white">−</Text>
+                                                            </TouchableOpacity>
+                                                            <View className="flex-1 py-2 rounded-2xl bg-white/15 border border-white/20 items-center">
+                                                                <Text className="text-white text-xs uppercase tracking-wide">
+                                                                    {t('subscription.poke_coin_using', { defaultValue: 'Đang trừ' })}
+                                                                </Text>
+                                                                <Text className="text-white font-bold text-xl">
+                                                                    -{formatPrice(selectedDiscount)}₫
+                                                                </Text>
+                                                            </View>
+                                                            <TouchableOpacity
+                                                                onPress={() => handleAdjustDeduction(packageItem.id, activePlan.price, 'increase')}
+                                                                disabled={selectedDiscount >= maxDeductable || isPurchasing}
+                                                                className={`w-12 h-12 rounded-2xl items-center justify-center border ${selectedDiscount >= maxDeductable ? 'border-white/20 bg-white/5' : 'border-white/60 bg-white/15'}`}
+                                                            >
+                                                                <Text className="text-xl font-bold text-white">+</Text>
+                                                            </TouchableOpacity>
+                                                        </View>
                                                     </>
                                                 )}
                                             </View>

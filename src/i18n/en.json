@@ -748,6 +748,13 @@
     "purchase_success": "Subscription purchased successfully!",
     "purchase_failed": "Subscription purchase failed",
     "insufficient_balance": "Insufficient balance to buy this package",
-    "data_refreshed": "Data refreshed successfully"
+    "data_refreshed": "Data refreshed successfully",
+    "balance_short": "Balance",
+    "poke_coin_title": "Use PokeCoin",
+    "poke_coin_insufficient": "Need at least 10,000₫ to apply PokeCoin.",
+    "poke_coin_hint": "Multiples of 10,000₫",
+    "poke_coin_max": "Up to {{amount}}₫",
+    "poke_coin_using": "Applying",
+    "from_poke_coin": "from PokeCoin"
   }
 }
