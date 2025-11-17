@@ -121,7 +121,6 @@ export default function SubscriptionScreen() {
                     const checkoutUrl = responseData?.payment?.payosData?.checkoutUrl;
 
                     if (checkoutUrl) {
-                        // Open browser with checkout URL
                         openInAppBrowser(checkoutUrl, {
                             onClose: handleBrowserClose,
                             onError: handleBrowserError,
@@ -139,7 +138,6 @@ export default function SubscriptionScreen() {
                     if (statusCode === 409 && errorData?.data?.invoiceId) {
                         const invoiceId = errorData.data.invoiceId;
 
-                        // Recall payment to get checkout URL
                         payosService.recallPayment(invoiceId)
                             .then((response) => {
                                 const responseData = response.data?.data;
@@ -162,7 +160,6 @@ export default function SubscriptionScreen() {
                                 setAlertVisible(true);
                             });
                     } else {
-                        // Handle other errors
                         const errorMessage = errorData?.message || t('subscription.purchase_failed');
                         setAlertMessage(errorMessage);
                         setAlertType('error');
