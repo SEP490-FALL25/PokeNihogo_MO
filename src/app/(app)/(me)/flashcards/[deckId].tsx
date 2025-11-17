@@ -1,10 +1,12 @@
 import EmptyState from "@components/ui/EmptyState";
+import ImageUploader from "@components/ui/ImageUploader";
 import { EnhancedPagination } from "@components/ui/Pagination";
 import { Select } from "@components/ui/Select";
 import { useToast } from "@components/ui/Toast";
 import { FlashcardContentType } from "@constants/flashcard.enum";
 import { useDebounce } from "@hooks/useDebounce";
 import {
+    useCreateFlashcardDeckCard,
     useDeleteFlashcardDeckCards,
     useFlashcardDeckCards,
     useUpdateFlashcardDeckCardWithMetadata,
@@ -43,6 +45,14 @@ import {
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+
+const FLASHCARD_IMAGE_FOLDER = "flashcardVocabulary";
+const INITIAL_WORD_FORM_STATE = {
+  wordJp: "",
+  reading: "",
+  meanings: "",
+  imageUrl: "",
+};
 
 const FilterToggle = ({
   label,
@@ -148,14 +158,9 @@ const FlashcardDeckDetailScreen = () => {
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const [noteValue, setNoteValue] = useState("");
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [isCreateMode, setIsCreateMode] = useState(false);
   const [editingCard, setEditingCard] = useState<IFlashcardDeckCard | null>(null);
-  const [editFormData, setEditFormData] = useState({
-    wordJp: "",
-    reading: "",
-    meanings: "",
-    audioUrl: "",
-    imageUrl: "",
-  });
+  const [editFormData, setEditFormData] = useState({ ...INITIAL_WORD_FORM_STATE });
   const swipeableRefs = useRef<{ [key: number]: Swipeable | null }>({});
 
   const debouncedSearch = useDebounce(searchKeyword, 400);
@@ -163,6 +168,17 @@ const FlashcardDeckDetailScreen = () => {
   const insetBottom = Math.max(insets.bottom, 10);
   const { t } = useTranslation();
   const { toast } = useToast();
+
+  const resetEditForm = useCallback(() => {
+    setEditFormData({ ...INITIAL_WORD_FORM_STATE });
+  }, []);
+
+  const handleCloseEditModal = useCallback(() => {
+    setEditModalVisible(false);
+    setEditingCard(null);
+    setIsCreateMode(false);
+    resetEditForm();
+  }, [resetEditForm]);
 
   const queryParams = useMemo(
     () => ({
@@ -188,8 +204,12 @@ const FlashcardDeckDetailScreen = () => {
     queryParams
   );
 
+  const createDeckCardMutation = useCreateFlashcardDeckCard();
   const updateCardWithMetadataMutation = useUpdateFlashcardDeckCardWithMetadata();
   const deleteCardsMutation = useDeleteFlashcardDeckCards();
+  const isSavingCard =
+    updateCardWithMetadataMutation.isPending ||
+    createDeckCardMutation.isPending;
 
   const cards: IFlashcardDeckCard[] = useMemo(
     () => data?.data?.results ?? [],
@@ -282,6 +302,7 @@ const FlashcardDeckDetailScreen = () => {
   };
 
   const handleOpenEditModal = (card: IFlashcardDeckCard) => {
+    setIsCreateMode(false);
     const vocabulary = card?.vocabulary;
     let meaningsText = "";
     
@@ -302,7 +323,6 @@ const FlashcardDeckDetailScreen = () => {
       wordJp: vocabulary?.wordJp || "",
       reading: vocabulary?.reading || "",
       meanings: meaningsText,
-      audioUrl: vocabulary?.audioUrl || "",
       imageUrl: vocabulary?.imageUrl || "",
     });
     setEditModalVisible(true);
@@ -313,35 +333,118 @@ const FlashcardDeckDetailScreen = () => {
     }
   };
 
-  const handleSaveEdit = () => {
-    if (!numericDeckId || !editingCard) return;
+  const handleOpenCreateModal = () => {
+    resetEditForm();
+    setEditingCard(null);
+    setIsCreateMode(true);
+    setEditModalVisible(true);
+  };
+
+  const handleSubmitCard = () => {
+    if (!numericDeckId) return;
+
+    const metadataPayload: {
+      wordJp?: string;
+      reading?: string | null;
+      meanings?: string;
+      imageUrl?: string | null;
+    } = {};
+
+    const trimmedWord = editFormData.wordJp.trim();
+    const trimmedReading = editFormData.reading.trim();
+    const trimmedMeanings = editFormData.meanings.trim();
+    const trimmedImageUrl = editFormData.imageUrl.trim();
+
+    if (!trimmedWord) {
+      toast({
+        title: t("flashcard_detail.word_required_title", "Thiếu từ vựng"),
+        description: t(
+          "flashcard_detail.word_required_desc",
+          "Vui lòng nhập từ tiếng Nhật trước khi lưu."
+        ),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    metadataPayload.wordJp = trimmedWord;
+
+    if (trimmedReading) {
+      metadataPayload.reading = trimmedReading;
+    } else {
+      metadataPayload.reading = null;
+    }
+
+    if (trimmedMeanings) {
+      metadataPayload.meanings = trimmedMeanings;
+    }
+
+    if (trimmedImageUrl) {
+      metadataPayload.imageUrl = trimmedImageUrl;
+    } else {
+      metadataPayload.imageUrl = null;
+    }
+
+    if (isCreateMode) {
+      createDeckCardMutation.mutate(
+        {
+          deckId: numericDeckId,
+          contentType: FlashcardContentType.VOCABULARY,
+          metadata: metadataPayload,
+        },
+        {
+          onSuccess: () => {
+            toast({
+              title: t("flashcard_detail.create_success_title", "Đã thêm"),
+              description: t(
+                "flashcard_detail.create_success_desc",
+                "Từ mới đã được thêm vào bộ thẻ."
+              ),
+            });
+            handleCloseEditModal();
+          },
+          onError: () => {
+            toast({
+              title: t("flashcard_detail.create_error_title", "Có lỗi xảy ra"),
+              description: t(
+                "flashcard_detail.create_error_desc",
+                "Vui lòng thử lại sau."
+              ),
+              variant: "destructive",
+            });
+          },
+        }
+      );
+      return;
+    }
+
+    if (!editingCard) return;
 
     updateCardWithMetadataMutation.mutate(
       {
         deckId: numericDeckId,
         cardId: editingCard.id,
         status: editingCard.status as "ACTIVE" | "INACTIVE" | "ARCHIVED",
-        metadata: {
-          wordJp: editFormData.wordJp.trim() || undefined,
-          reading: editFormData.reading.trim() || null,
-          meanings: editFormData.meanings.trim() || undefined,
-          audioUrl: editFormData.audioUrl.trim() || null,
-          imageUrl: editFormData.imageUrl.trim() || null,
-        },
+        metadata: metadataPayload,
       },
       {
         onSuccess: () => {
           toast({
             title: t("flashcard_detail.edit_saved_title", "Đã lưu"),
-            description: t("flashcard_detail.edit_saved_desc", "Thông tin đã được cập nhật."),
+            description: t(
+              "flashcard_detail.edit_saved_desc",
+              "Thông tin đã được cập nhật."
+            ),
           });
-          setEditModalVisible(false);
-          setEditingCard(null);
+          handleCloseEditModal();
         },
         onError: () => {
           toast({
             title: t("flashcard_detail.edit_error_title", "Có lỗi xảy ra"),
-            description: t("flashcard_detail.edit_error_desc", "Vui lòng thử lại sau."),
+            description: t(
+              "flashcard_detail.edit_error_desc",
+              "Vui lòng thử lại sau."
+            ),
             variant: "destructive",
           });
         },
@@ -379,6 +482,10 @@ const FlashcardDeckDetailScreen = () => {
       }
     );
   };
+
+  const handleImageUrlChange = useCallback((url: string) => {
+    setEditFormData((prev) => ({ ...prev, imageUrl: url }));
+  }, []);
 
   const renderRightActions = (card: IFlashcardDeckCard, dragX: Animated.AnimatedInterpolation<number>) => {
     const scale = dragX.interpolate({
@@ -557,7 +664,11 @@ const FlashcardDeckDetailScreen = () => {
           <TouchableOpacity className="p-2 rounded-full bg-slate-100">
             <Search size={18} color="#0f172a" />
           </TouchableOpacity>
-          <TouchableOpacity className="p-2 rounded-full bg-slate-100">
+          <TouchableOpacity
+            className="p-2 rounded-full bg-slate-100"
+            onPress={handleOpenCreateModal}
+            disabled={isSavingCard}
+          >
             <Plus size={18} color="#0f172a" />
           </TouchableOpacity>
           <TouchableOpacity className="p-2 rounded-full bg-slate-100">
@@ -761,15 +872,19 @@ const FlashcardDeckDetailScreen = () => {
         visible={editModalVisible}
         animationType="fade"
         transparent
-        onRequestClose={() => setEditModalVisible(false)}
+        onRequestClose={handleCloseEditModal}
       >
         <View className="flex-1 bg-black/40 justify-center items-center px-6">
           <View className="w-full max-w-md rounded-3xl bg-white p-6">
             <View className="flex-row justify-between items-center mb-4">
               <Text style={{ fontSize: 18, fontWeight: "700", color: "#0f172a" }}>
-                {t("flashcard_detail.edit_word_title", "Edit word")}: &quot;{editingCard?.vocabulary?.wordJp || ""}&quot;
+                {isCreateMode
+                  ? t("flashcard_detail.create_word_title", "Thêm từ mới")
+                  : `${t("flashcard_detail.edit_word_title", "Edit word")}: "${
+                      editingCard?.vocabulary?.wordJp || ""
+                    }"`}
               </Text>
-              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+              <TouchableOpacity onPress={handleCloseEditModal} disabled={isSavingCard}>
                 <X size={20} color="#94a3b8" />
               </TouchableOpacity>
             </View>
@@ -821,42 +936,23 @@ const FlashcardDeckDetailScreen = () => {
                 </View>
               </View>
 
-              <View className="mb-4">
-                <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
-                  Audio URL (audioUrl)
-                </Text>
-                <View className="border border-slate-200 rounded-2xl bg-white">
-                  <TextInput
-                    value={editFormData.audioUrl}
-                    onChangeText={(text) => setEditFormData((prev) => ({ ...prev, audioUrl: text }))}
-                    placeholder="Nhập URL audio"
-                    placeholderTextColor="#94a3b8"
-                    style={{ padding: 16, fontSize: 15, color: "#0f172a" }}
-                  />
-                </View>
-              </View>
-
               <View className="mb-6">
-                <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
-                  Image URL (imageUrl)
-                </Text>
-                <View className="border border-slate-200 rounded-2xl bg-white">
-                  <TextInput
-                    value={editFormData.imageUrl}
-                    onChangeText={(text) => setEditFormData((prev) => ({ ...prev, imageUrl: text }))}
-                    placeholder="Nhập URL hình ảnh"
-                    placeholderTextColor="#94a3b8"
-                    style={{ padding: 16, fontSize: 15, color: "#0f172a" }}
-                  />
-                </View>
+                <ImageUploader
+                  value={editFormData.imageUrl}
+                  onChange={handleImageUrlChange}
+                  folderName={FLASHCARD_IMAGE_FOLDER}
+                  label="Image URL (imageUrl)"
+                  placeholder="URL sẽ tự động điền sau khi upload, hoặc nhập URL thủ công"
+                  disabled={isSavingCard}
+                />
               </View>
             </ScrollView>
 
             <View className="flex-row justify-end gap-3">
               <TouchableOpacity
                 className="px-4 py-3 rounded-2xl bg-slate-100"
-                onPress={() => setEditModalVisible(false)}
-                disabled={updateCardWithMetadataMutation.isPending}
+                onPress={handleCloseEditModal}
+                disabled={isSavingCard}
               >
                 <Text style={{ color: "#475569", fontWeight: "600" }}>
                   {t("flashcard_detail.edit_cancel", "Cancel")}
@@ -864,14 +960,16 @@ const FlashcardDeckDetailScreen = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 className="px-5 py-3 rounded-2xl bg-sky-500"
-                onPress={handleSaveEdit}
-                disabled={updateCardWithMetadataMutation.isPending}
+                onPress={handleSubmitCard}
+                disabled={isSavingCard}
               >
-                {updateCardWithMetadataMutation.isPending ? (
+                {isSavingCard ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <Text style={{ color: "#fff", fontWeight: "700" }}>
-                    {t("flashcard_detail.edit_done", "Done")}
+                    {isCreateMode
+                      ? t("flashcard_detail.create_done", "Add")
+                      : t("flashcard_detail.edit_done", "Done")}
                   </Text>
                 )}
               </TouchableOpacity>

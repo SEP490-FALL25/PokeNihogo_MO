@@ -2,6 +2,7 @@ import { FlashcardContentType } from "@constants/flashcard.enum";
 import { IQueryRequest } from "@models/common/common.request";
 import {
   IAddWordToFlashcardDeckRequest,
+  ICreateFlashcardDeckCardRequest,
   ICreateFlashcardDeckRequest,
   IDeleteFlashcardDeckCardsRequest,
   IUpdateFlashcardDeckCardRequest,
@@ -96,6 +97,27 @@ export const useAddWordToFlashcardDeck = () => {
       // Invalidate words in the deck
       queryClient.invalidateQueries({
         queryKey: ["flashcard-deck-words", variables.deckId],
+      });
+    },
+  });
+};
+
+// Hook to create a new flashcard deck card with metadata
+export const useCreateFlashcardDeckCard = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ICreateFlashcardDeckCardRequest) =>
+      flashcardService.createDeckCard(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck-cards", variables.deckId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck", variables.deckId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-decks"],
       });
     },
   });

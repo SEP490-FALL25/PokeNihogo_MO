@@ -6,12 +6,28 @@ export const CreateFlashcardDeckRequestSchema = z.object({
   name: z.string().min(1, "Tên sổ tay không được để trống"),
 });
 
+// Shared metadata schema for deck cards
+export const FlashcardDeckCardMetadataSchema = z.object({
+  wordJp: z.string().optional(),
+  reading: z.string().nullable().optional(),
+  audioUrl: z.string().nullable().optional(),
+  imageUrl: z.string().nullable().optional(),
+  meanings: z.string().optional(),
+});
+
 // Add Word to Flashcard Deck Request Schema
 export const AddWordToFlashcardDeckRequestSchema = z.object({
   deckId: z.number().or(z.string().transform(Number)),
   id: z.number().or(z.string().transform(Number)),
   contentType: z.nativeEnum(FlashcardContentType).optional(),
   notes: z.string().optional(),
+});
+
+// Create Flashcard Deck Card Request Schema
+export const CreateFlashcardDeckCardRequestSchema = z.object({
+  deckId: z.number().or(z.string().transform(Number)),
+  contentType: z.nativeEnum(FlashcardContentType).optional(),
+  metadata: FlashcardDeckCardMetadataSchema.optional(),
 });
 
 // Update Flashcard Deck Request Schema
@@ -21,13 +37,8 @@ export const UpdateFlashcardDeckRequestSchema = z.object({
 });
 
 // Update Flashcard Deck Card Metadata Schema
-export const UpdateFlashcardDeckCardMetadataSchema = z.object({
-  wordJp: z.string().optional(),
-  reading: z.string().nullable().optional(),
-  audioUrl: z.string().nullable().optional(),
-  imageUrl: z.string().nullable().optional(),
-  meanings: z.string().optional(),
-}).optional();
+export const UpdateFlashcardDeckCardMetadataSchema =
+  FlashcardDeckCardMetadataSchema.optional();
 
 // Update Flashcard Deck Card Request Schema
 export const UpdateFlashcardDeckCardRequestSchema = z.object({
@@ -51,6 +62,9 @@ export type ICreateFlashcardDeckRequest = z.infer<
 >;
 export type IAddWordToFlashcardDeckRequest = z.infer<
   typeof AddWordToFlashcardDeckRequestSchema
+>;
+export type ICreateFlashcardDeckCardRequest = z.infer<
+  typeof CreateFlashcardDeckCardRequestSchema
 >;
 export type IUpdateFlashcardDeckRequest = z.infer<
   typeof UpdateFlashcardDeckRequestSchema

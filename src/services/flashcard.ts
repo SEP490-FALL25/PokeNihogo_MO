@@ -3,6 +3,7 @@ import { FlashcardContentType } from "@constants/flashcard.enum";
 import { IQueryRequest } from "@models/common/common.request";
 import {
   IAddWordToFlashcardDeckRequest,
+  ICreateFlashcardDeckCardRequest,
   ICreateFlashcardDeckRequest,
   IDeleteFlashcardDeckCardsRequest,
   IUpdateFlashcardDeckCardRequest,
@@ -116,6 +117,49 @@ const flashcardService = {
     
     const response = await axiosPrivate.post(
       `/flashcards/decks/${data.deckId}/cards`,
+      requestBody
+    );
+    return response.data;
+  },
+
+  // Create a brand new deck card with metadata
+  createDeckCard: async (
+    data: ICreateFlashcardDeckCardRequest
+  ): Promise<IFlashcardDeckCardResponse> => {
+    const deckId =
+      typeof data.deckId === "string" ? Number(data.deckId) : data.deckId;
+
+    const requestBody: {
+      contentType: FlashcardContentType;
+      metadata?: {
+        wordJp?: string;
+        reading?: string | null;
+        audioUrl?: string | null;
+        imageUrl?: string | null;
+        meanings?: string;
+      };
+    } = {
+      contentType: data.contentType || FlashcardContentType.VOCABULARY,
+    };
+
+    if (data.metadata) {
+      requestBody.metadata = {
+        ...(data.metadata.wordJp && { wordJp: data.metadata.wordJp }),
+        ...(data.metadata.reading !== undefined && {
+          reading: data.metadata.reading || null,
+        }),
+        ...(data.metadata.audioUrl !== undefined && {
+          audioUrl: data.metadata.audioUrl || null,
+        }),
+        ...(data.metadata.imageUrl !== undefined && {
+          imageUrl: data.metadata.imageUrl || null,
+        }),
+        ...(data.metadata.meanings && { meanings: data.metadata.meanings }),
+      };
+    }
+
+    const response = await axiosPrivate.post(
+      `/flashcards/decks/${deckId}/cards`,
       requestBody
     );
     return response.data;
