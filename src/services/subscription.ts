@@ -1,6 +1,6 @@
 import { axiosPrivate } from "@configs/axios";
 import { SubscriptionPackageType } from "@models/subscription/subscription.request";
-import { ISubscriptionPackageResponse } from "@models/subscription/subscription.response";
+import { ISubscriptionPackageResponse, IUserSubscriptionFeaturesResponse } from "@models/subscription/subscription.response";
 
 const subscriptionService = {
     getMarketplacePackages: async () => {
@@ -71,6 +71,20 @@ const subscriptionService = {
         ];
 
         return { data: mockPackages };
+    },
+
+    /**
+     * Get user's subscription features (keys)
+     * Returns array of feature keys that user has access to
+     */
+    getUserFeatures: async (): Promise<{ features: string[] }> => {
+        const response = await axiosPrivate.get(`/user-subscription/user/features`);
+        const data: IUserSubscriptionFeaturesResponse = response.data;
+        
+        // Extract feature keys from result array
+        const features = data.data?.result?.map(item => item.featureKey) || [];
+        
+        return { features };
     },
 }
 

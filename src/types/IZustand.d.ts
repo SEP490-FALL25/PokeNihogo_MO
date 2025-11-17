@@ -11,6 +11,12 @@ declare namespace ZUSTAND {
         setOverlayPosition: (position: { x: number; y: number }) => void;
         setOverlayPositionLoaded: (loaded: boolean) => void;
         resetOverlayPosition: () => void;
+
+        // Subscription features management
+        subscriptionKeys: string[];
+        setSubscriptionKeys: (keys: string[]) => void;
+        clearSubscriptionKeys: () => void;
+        hasFeature: (featureKey: string) => boolean;
     }
 
     export interface IAuthState {

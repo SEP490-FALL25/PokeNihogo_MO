@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SubscriptionPackageType } from "./subscription.request";
+import { UserSubscriptionFeatureItemSchema } from "./subscription.entity";
 
 /**
  * Subscription Package Response Schema
@@ -27,5 +28,19 @@ export const SubscriptionPurchaseResponseSchema = z.object({
 });
 
 export type ISubscriptionPurchaseResponse = z.infer<typeof SubscriptionPurchaseResponseSchema>;
+
+/**
+ * User Subscription Features Response Schema
+ * Matches API response structure: { statusCode, data: { result: [...] }, message }
+ */
+export const UserSubscriptionFeaturesResponseSchema = z.object({
+    statusCode: z.number(),
+    data: z.object({
+        result: z.array(UserSubscriptionFeatureItemSchema),
+    }),
+    message: z.string(),
+});
+
+export type IUserSubscriptionFeaturesResponse = z.infer<typeof UserSubscriptionFeaturesResponseSchema>;
 //----------------------End----------------------//
 

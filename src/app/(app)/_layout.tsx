@@ -1,11 +1,16 @@
 import SplashScreen from '@app/splash';
 import useAuth from '@hooks/useAuth';
+import { useUserSubscriptionFeatures } from '@hooks/useSubscription';
 import { ROUTES } from '@routes/routes';
 import { Redirect, Stack } from 'expo-router';
 import React from 'react';
 
 export default function AppLayout() {
     const { isAuthenticated, isLoading } = useAuth();
+    
+    // Fetch user subscription features when authenticated
+    // This will automatically sync subscription keys to global state
+    useUserSubscriptionFeatures();
 
     if (isLoading) {
         return <SplashScreen />;
