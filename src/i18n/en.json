@@ -768,6 +768,49 @@
         "japan_japan": "Japan - Japan"
       }
   },
+  "flashcard_detail": {
+    "title": "Flashcard Deck",
+    "cards_label": "cards",
+    "filter_word": "Word",
+    "filter_mean": "Mean",
+    "filter_phonetic": "Phonetic",
+    "search_placeholder": "Search vocabulary...",
+    "practice_title": "Practice",
+    "practice_subtitle": "Review this deck now",
+    "empty_title": "No cards yet",
+    "empty_description": "Try adjusting filters or add more words into this deck.",
+    "loading_more": "Syncing latest changes...",
+    "items_per_page": "Items per page",
+    "note_button": "Note",
+    "note_modal_title": "Add note",
+    "note_modal_placeholder": "Add your notes here...",
+    "note_modal_cancel": "Cancel",
+    "note_modal_save": "Done",
+    "note_update_success_title": "Note saved",
+    "note_update_success_desc": "Your note has been updated.",
+    "note_update_error_title": "Something went wrong",
+    "note_update_error_desc": "Unable to update note. Please try again.",
+    "unknown_word": "Unknown"
+  },
+  "flashcard_list": {
+    "title": "Flashcard decks",
+    "search_placeholder": "Search flashcard decks...",
+    "hero_title": "Manage your flashcards",
+    "hero_subtitle": "Check progress quickly and jump into any deck.",
+    "empty_title": "No flashcard decks yet",
+    "empty_description": "Create your first deck to start learning.",
+    "loading_more": "Loading more decks...",
+    "items_per_page": "Items per page",
+    "cards_count": "cards",
+    "created_at": "Created",
+    "view_detail": "View detail",
+    "review_now": "Review now",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "archived": "Archived"
+    }
+  },
   "subscription": {
     "title": "Service Packages",
     "subtitle": "Upgrade your learning experience",

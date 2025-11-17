@@ -1,11 +1,15 @@
+import { FlashcardContentType } from "@constants/flashcard.enum";
 import { IQueryRequest } from "@models/common/common.request";
 import {
   IAddWordToFlashcardDeckRequest,
+  ICreateFlashcardDeckCardRequest,
   ICreateFlashcardDeckRequest,
+  IDeleteFlashcardDeckCardsRequest,
+  IUpdateFlashcardDeckCardRequest,
   IUpdateFlashcardDeckRequest,
 } from "@models/flashcard/flashcard.request";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import flashcardService from "@services/flashcard";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // Hook to get all flashcard decks
 export const useFlashcardDecks = (params?: IQueryRequest) => {
@@ -88,11 +92,32 @@ export const useAddWordToFlashcardDeck = () => {
       queryClient.invalidateQueries({ queryKey: ["flashcard-decks"] });
       // Invalidate specific deck
       queryClient.invalidateQueries({
-        queryKey: ["flashcard-deck", variables.flashcardDeckId],
+        queryKey: ["flashcard-deck", variables.deckId],
       });
       // Invalidate words in the deck
       queryClient.invalidateQueries({
-        queryKey: ["flashcard-deck-words", variables.flashcardDeckId],
+        queryKey: ["flashcard-deck-words", variables.deckId],
+      });
+    },
+  });
+};
+
+// Hook to create a new flashcard deck card with metadata
+export const useCreateFlashcardDeckCard = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: ICreateFlashcardDeckCardRequest) =>
+      flashcardService.createDeckCard(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck-cards", variables.deckId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck", variables.deckId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-decks"],
       });
     },
   });
@@ -106,6 +131,19 @@ export const useFlashcardDeckWords = (
   return useQuery({
     queryKey: ["flashcard-deck-words", deckId, params],
     queryFn: () => flashcardService.getWords(deckId!, params),
+    enabled: !!deckId,
+    staleTime: 1 * 60 * 1000,
+  });
+};
+
+// Hook to get cards of a flashcard deck (supports VOCABULARY/GRAMMAR/KANJI)
+export const useFlashcardDeckCards = (
+  deckId: number | string | null,
+  params?: IQueryRequest & { contentType?: FlashcardContentType }
+) => {
+  return useQuery({
+    queryKey: ["flashcard-deck-cards", deckId, params],
+    queryFn: () => flashcardService.getDeckCards(deckId!, params),
     enabled: !!deckId,
     staleTime: 1 * 60 * 1000,
   });
@@ -133,6 +171,70 @@ export const useRemoveWordFromFlashcardDeck = () => {
       // Invalidate words in the deck
       queryClient.invalidateQueries({
         queryKey: ["flashcard-deck-words", variables.deckId],
+      });
+    },
+  });
+};
+
+// Hook to update flashcard deck card (e.g. notes/read) - old PATCH endpoint
+export const useUpdateFlashcardDeckCard = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      deckId,
+      cardId,
+      data,
+    }: {
+      deckId: number | string;
+      cardId: number | string;
+      data: { notes?: string | null; read?: boolean };
+    }) => flashcardService.updateDeckCard(deckId, cardId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck-cards", variables.deckId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck", variables.deckId],
+      });
+    },
+  });
+};
+
+// Hook to update flashcard deck card with metadata (PUT /flashcards/decks/cards)
+export const useUpdateFlashcardDeckCardWithMetadata = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: IUpdateFlashcardDeckCardRequest) =>
+      flashcardService.updateDeckCardWithMetadata(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck-cards", variables.deckId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck", variables.deckId],
+      });
+    },
+  });
+};
+
+// Hook to delete multiple flashcard deck cards (DELETE /flashcards/decks/cards)
+export const useDeleteFlashcardDeckCards = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: IDeleteFlashcardDeckCardsRequest) =>
+      flashcardService.deleteDeckCards(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck-cards", variables.deckId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck", variables.deckId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-decks"],
       });
     },
   });

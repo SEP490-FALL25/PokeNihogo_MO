@@ -778,6 +778,49 @@
       "japan_japan": "Nhật - Nhật"
     }
   },
+  "flashcard_detail": {
+    "title": "Bộ flashcard",
+    "cards_label": "thẻ",
+    "filter_word": "Từ",
+    "filter_mean": "Nghĩa",
+    "filter_phonetic": "Phiên âm",
+    "search_placeholder": "Tìm kiếm từ vựng...",
+    "practice_title": "Luyện tập",
+    "practice_subtitle": "Ôn lại bộ thẻ này ngay",
+    "empty_title": "Chưa có thẻ nào",
+    "empty_description": "Hãy điều chỉnh bộ lọc hoặc thêm từ mới vào bộ thẻ này.",
+    "loading_more": "Đang đồng bộ...",
+    "items_per_page": "Số bản ghi mỗi trang",
+    "note_button": "Ghi chú",
+    "note_modal_title": "Ghi chú",
+    "note_modal_placeholder": "Thêm ghi chú tại đây...",
+    "note_modal_cancel": "Hủy",
+    "note_modal_save": "Lưu",
+    "note_update_success_title": "Đã lưu ghi chú",
+    "note_update_success_desc": "Ghi chú của bạn đã được cập nhật.",
+    "note_update_error_title": "Có lỗi xảy ra",
+    "note_update_error_desc": "Không thể cập nhật ghi chú. Vui lòng thử lại.",
+    "unknown_word": "Chưa rõ"
+  },
+  "flashcard_list": {
+    "title": "Bộ flashcard",
+    "search_placeholder": "Tìm kiếm bộ flashcard...",
+    "hero_title": "Quản lý bộ flashcard",
+    "hero_subtitle": "Xem tiến độ và mở nhanh bộ thẻ để ôn luyện.",
+    "empty_title": "Chưa có bộ flashcard",
+    "empty_description": "Tạo bộ flashcard đầu tiên để bắt đầu luyện tập.",
+    "loading_more": "Đang tải thêm...",
+    "items_per_page": "Số bản ghi mỗi trang",
+    "cards_count": "thẻ",
+    "created_at": "Ngày tạo",
+    "view_detail": "Xem chi tiết",
+    "review_now": "Ôn ngay",
+    "status": {
+      "active": "Đang hoạt động",
+      "inactive": "Tạm dừng",
+      "archived": "Đã lưu trữ"
+    }
+  },
   "subscription": {
     "title": "Gói Dịch Vụ",
     "subtitle": "Nâng cấp trải nghiệm học tập của bạn",

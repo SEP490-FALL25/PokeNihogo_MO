@@ -3,12 +3,17 @@ import { FlashcardContentType } from "@constants/flashcard.enum";
 import { IQueryRequest } from "@models/common/common.request";
 import {
   IAddWordToFlashcardDeckRequest,
+  ICreateFlashcardDeckCardRequest,
   ICreateFlashcardDeckRequest,
+  IDeleteFlashcardDeckCardsRequest,
+  IUpdateFlashcardDeckCardRequest,
   IUpdateFlashcardDeckRequest,
 } from "@models/flashcard/flashcard.request";
 import {
   IAddWordToFlashcardDeckResponse,
   ICreateFlashcardDeckResponse,
+  IFlashcardDeckCardListResponse,
+  IFlashcardDeckCardResponse,
   IFlashcardDeckDetailResponse,
   IFlashcardDeckListResponse,
 } from "@models/flashcard/flashcard.response";
@@ -37,6 +42,33 @@ const flashcardService = {
   // Get flashcard deck by ID
   getDeckById: async (deckId: number | string): Promise<IFlashcardDeckDetailResponse> => {
     const response = await axiosPrivate.get(`/flashcards/decks/${deckId}`);
+    return response.data;
+  },
+
+  // Get cards inside a flashcard deck
+  getDeckCards: async (
+    deckId: number | string,
+    params?: IQueryRequest & { contentType?: FlashcardContentType }
+  ): Promise<IFlashcardDeckCardListResponse> => {
+    const queryParams = new URLSearchParams();
+
+    if (params?.currentPage) {
+      queryParams.append("currentPage", params.currentPage.toString());
+    }
+    if (params?.pageSize) {
+      queryParams.append("pageSize", params.pageSize.toString());
+    }
+    if (params?.contentType) {
+      queryParams.append("contentType", params.contentType);
+    }
+    if (params?.search) {
+      queryParams.append("search", params.search);
+    }
+
+    const queryString = queryParams.toString();
+    const response = await axiosPrivate.get(
+      `/flashcards/decks/${deckId}/cards${queryString ? `?${queryString}` : ""}`
+    );
     return response.data;
   },
 
@@ -90,6 +122,49 @@ const flashcardService = {
     return response.data;
   },
 
+  // Create a brand new deck card with metadata
+  createDeckCard: async (
+    data: ICreateFlashcardDeckCardRequest
+  ): Promise<IFlashcardDeckCardResponse> => {
+    const deckId =
+      typeof data.deckId === "string" ? Number(data.deckId) : data.deckId;
+
+    const requestBody: {
+      contentType: FlashcardContentType;
+      metadata?: {
+        wordJp?: string;
+        reading?: string | null;
+        audioUrl?: string | null;
+        imageUrl?: string | null;
+        meanings?: string;
+      };
+    } = {
+      contentType: data.contentType || FlashcardContentType.VOCABULARY,
+    };
+
+    if (data.metadata) {
+      requestBody.metadata = {
+        ...(data.metadata.wordJp && { wordJp: data.metadata.wordJp }),
+        ...(data.metadata.reading !== undefined && {
+          reading: data.metadata.reading || null,
+        }),
+        ...(data.metadata.audioUrl !== undefined && {
+          audioUrl: data.metadata.audioUrl || null,
+        }),
+        ...(data.metadata.imageUrl !== undefined && {
+          imageUrl: data.metadata.imageUrl || null,
+        }),
+        ...(data.metadata.meanings && { meanings: data.metadata.meanings }),
+      };
+    }
+
+    const response = await axiosPrivate.post(
+      `/flashcards/decks/${deckId}/cards`,
+      requestBody
+    );
+    return response.data;
+  },
+
   // Get words in a flashcard deck
   getWords: async (deckId: number | string, params?: IQueryRequest) => {
     const queryParams = new URLSearchParams();
@@ -113,6 +188,70 @@ const flashcardService = {
     const response = await axiosPrivate.delete(
       `/flashcards/decks/${deckId}/words/${id}`
     );
+    return response.data;
+  },
+
+  // Update deck card (e.g. notes/read status) - old PATCH endpoint
+  updateDeckCard: async (
+    deckId: number | string,
+    cardId: number | string,
+    data: { notes?: string | null; read?: boolean }
+  ): Promise<IFlashcardDeckCardResponse> => {
+    const response = await axiosPrivate.patch(
+      `/flashcards/decks/${deckId}/cards/${cardId}`,
+      data
+    );
+    return response.data;
+  },
+
+  // Update deck card with metadata (PUT /flashcards/decks/cards)
+  updateDeckCardWithMetadata: async (
+    data: IUpdateFlashcardDeckCardRequest
+  ): Promise<IFlashcardDeckCardResponse> => {
+    const requestBody: any = {
+      deckId: typeof data.deckId === "string" ? Number(data.deckId) : data.deckId,
+      cardId: typeof data.cardId === "string" ? Number(data.cardId) : data.cardId,
+    };
+
+    if (data.status) {
+      requestBody.status = data.status;
+    }
+
+    if (data.notes !== undefined) {
+      requestBody.notes = data.notes;
+    }
+
+    if (data.read !== undefined) {
+      requestBody.read = data.read;
+    }
+
+    if (data.metadata) {
+      requestBody.metadata = {
+        ...(data.metadata.wordJp && { wordJp: data.metadata.wordJp }),
+        ...(data.metadata.reading !== undefined && { reading: data.metadata.reading || null }),
+        ...(data.metadata.audioUrl !== undefined && { audioUrl: data.metadata.audioUrl || null }),
+        ...(data.metadata.imageUrl !== undefined && { imageUrl: data.metadata.imageUrl || null }),
+        ...(data.metadata.meanings && { meanings: data.metadata.meanings }),
+      };
+    }
+
+    const response = await axiosPrivate.put("/flashcards/decks/cards", requestBody);
+    return response.data;
+  },
+
+  // Delete multiple deck cards (DELETE /flashcards/decks/cards)
+  deleteDeckCards: async (
+    data: IDeleteFlashcardDeckCardsRequest
+  ) => {
+    const requestBody = {
+      deckId: typeof data.deckId === "string" ? Number(data.deckId) : data.deckId,
+      cardIds: data.cardIds.map((id) =>
+        typeof id === "string" ? Number(id) : id
+      ),
+    };
+    const response = await axiosPrivate.delete("/flashcards/decks/cards", {
+      data: requestBody,
+    });
     return response.data;
   },
 };
