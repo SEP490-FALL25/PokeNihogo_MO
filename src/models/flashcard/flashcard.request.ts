@@ -20,6 +20,12 @@ export const UpdateFlashcardDeckRequestSchema = z.object({
   status: z.enum(["ACTIVE", "INACTIVE", "ARCHIVED"]).optional(),
 });
 
+// Update Flashcard Deck Card Request Schema
+export const UpdateFlashcardDeckCardRequestSchema = z.object({
+  notes: z.string().nullable().optional(),
+  read: z.boolean().optional(),
+});
+
 // Export types
 export type ICreateFlashcardDeckRequest = z.infer<
   typeof CreateFlashcardDeckRequestSchema
@@ -29,5 +35,8 @@ export type IAddWordToFlashcardDeckRequest = z.infer<
 >;
 export type IUpdateFlashcardDeckRequest = z.infer<
   typeof UpdateFlashcardDeckRequestSchema
+>;
+export type IUpdateFlashcardDeckCardRequest = z.infer<
+  typeof UpdateFlashcardDeckCardRequestSchema
 >;
 

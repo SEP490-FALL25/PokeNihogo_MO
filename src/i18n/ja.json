@@ -660,5 +660,48 @@
             "grammar": "文法",
             "japan_japan": "日本 - 日本"
         }
+    },
+    "flashcard_detail": {
+        "title": "フラッシュカード",
+        "cards_label": "枚",
+        "filter_word": "単語",
+        "filter_mean": "意味",
+        "filter_phonetic": "読み方",
+        "search_placeholder": "語彙を検索...",
+        "practice_title": "練習",
+        "practice_subtitle": "このデッキをすぐ復習",
+        "empty_title": "カードがありません",
+        "empty_description": "フィルターを調整するか、新しい単語を追加してください。",
+        "loading_more": "最新の変更を同期中...",
+        "items_per_page": "1ページあたり",
+        "note_button": "メモ",
+        "note_modal_title": "メモ",
+        "note_modal_placeholder": "ここにメモを追加...",
+        "note_modal_cancel": "キャンセル",
+        "note_modal_save": "保存",
+        "note_update_success_title": "メモを保存しました",
+        "note_update_success_desc": "メモが更新されました。",
+        "note_update_error_title": "エラーが発生しました",
+        "note_update_error_desc": "メモを更新できませんでした。もう一度お試しください。",
+        "unknown_word": "未設定"
+    },
+    "flashcard_list": {
+        "title": "フラッシュカード",
+        "search_placeholder": "フラッシュカードデッキを検索...",
+        "hero_title": "フラッシュカード管理",
+        "hero_subtitle": "進捗を確認してすぐに学習を再開しましょう。",
+        "empty_title": "デッキがありません",
+        "empty_description": "最初のデッキを作成して学習を始めましょう。",
+        "loading_more": "さらに読み込み中...",
+        "items_per_page": "1ページあたり",
+        "cards_count": "枚",
+        "created_at": "作成日",
+        "view_detail": "詳細を見る",
+        "review_now": "今すぐ復習",
+        "status": {
+            "active": "アクティブ",
+            "inactive": "停止中",
+            "archived": "アーカイブ済み"
+        }
     }
 }

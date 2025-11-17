@@ -4,11 +4,14 @@ import { IQueryRequest } from "@models/common/common.request";
 import {
   IAddWordToFlashcardDeckRequest,
   ICreateFlashcardDeckRequest,
+  IUpdateFlashcardDeckCardRequest,
   IUpdateFlashcardDeckRequest,
 } from "@models/flashcard/flashcard.request";
 import {
   IAddWordToFlashcardDeckResponse,
   ICreateFlashcardDeckResponse,
+  IFlashcardDeckCardListResponse,
+  IFlashcardDeckCardResponse,
   IFlashcardDeckDetailResponse,
   IFlashcardDeckListResponse,
 } from "@models/flashcard/flashcard.response";
@@ -37,6 +40,33 @@ const flashcardService = {
   // Get flashcard deck by ID
   getDeckById: async (deckId: number | string): Promise<IFlashcardDeckDetailResponse> => {
     const response = await axiosPrivate.get(`/flashcards/decks/${deckId}`);
+    return response.data;
+  },
+
+  // Get cards inside a flashcard deck
+  getDeckCards: async (
+    deckId: number | string,
+    params?: IQueryRequest & { contentType?: FlashcardContentType }
+  ): Promise<IFlashcardDeckCardListResponse> => {
+    const queryParams = new URLSearchParams();
+
+    if (params?.currentPage) {
+      queryParams.append("currentPage", params.currentPage.toString());
+    }
+    if (params?.pageSize) {
+      queryParams.append("pageSize", params.pageSize.toString());
+    }
+    if (params?.contentType) {
+      queryParams.append("contentType", params.contentType);
+    }
+    if (params?.search) {
+      queryParams.append("search", params.search);
+    }
+
+    const queryString = queryParams.toString();
+    const response = await axiosPrivate.get(
+      `/flashcards/decks/${deckId}/cards${queryString ? `?${queryString}` : ""}`
+    );
     return response.data;
   },
 
@@ -112,6 +142,19 @@ const flashcardService = {
   removeWord: async (deckId: number | string, id: number | string) => {
     const response = await axiosPrivate.delete(
       `/flashcards/decks/${deckId}/words/${id}`
+    );
+    return response.data;
+  },
+
+  // Update deck card (e.g. notes/read status)
+  updateDeckCard: async (
+    deckId: number | string,
+    cardId: number | string,
+    data: IUpdateFlashcardDeckCardRequest
+  ): Promise<IFlashcardDeckCardResponse> => {
+    const response = await axiosPrivate.patch(
+      `/flashcards/decks/${deckId}/cards/${cardId}`,
+      data
     );
     return response.data;
   },

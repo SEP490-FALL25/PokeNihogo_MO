@@ -19,6 +19,7 @@ import {
   Shield,
   Sparkles,
   Star,
+  StickyNote,
   Trophy
 } from 'lucide-react-native';
 import React from 'react';
@@ -430,6 +431,44 @@ export default function ProfileScreen() {
 
                 <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center">
                   <ChevronRight size={20} color="#64748b" strokeWidth={2.8} />
+                </View>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Flashcard Decks Card */}
+          <TouchableOpacity
+            onPress={() => router.push(ROUTES.ME.FLASHCARDS)}
+            activeOpacity={0.7}
+            className="mb-6"
+          >
+            <LinearGradient
+              colors={['#e0f2fe', '#bae6fd']}
+              style={styles.collectionCard}
+              className="p-6 rounded-3xl overflow-hidden shadow-lg"
+            >
+              <View className="absolute -top-10 -right-10 w-35 h-35 rounded-full bg-sky-50 opacity-40" />
+
+              <View className="flex-row items-center mb-5">
+                <LinearGradient
+                  colors={['#0ea5e9', '#0284c7']}
+                  style={styles.collectionIconContainer}
+                  className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
+                >
+                  <StickyNote size={24} color="white" strokeWidth={2.5} />
+                </LinearGradient>
+
+                <View className="flex-1">
+                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">
+                    {t('flashcard_list.title')}
+                  </Text>
+                  <Text className="text-sm font-semibold text-slate-600 tracking-wide">
+                    {t('flashcard_list.hero_subtitle')}
+                  </Text>
+                </View>
+
+                <View className="w-10 h-10 bg-white/80 rounded-xl items-center justify-center">
+                  <ChevronRight size={20} color="#0284c7" strokeWidth={2.8} />
                 </View>
               </View>
             </LinearGradient>

@@ -1,11 +1,13 @@
+import { FlashcardContentType } from "@constants/flashcard.enum";
 import { IQueryRequest } from "@models/common/common.request";
 import {
   IAddWordToFlashcardDeckRequest,
   ICreateFlashcardDeckRequest,
+  IUpdateFlashcardDeckCardRequest,
   IUpdateFlashcardDeckRequest,
 } from "@models/flashcard/flashcard.request";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import flashcardService from "@services/flashcard";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // Hook to get all flashcard decks
 export const useFlashcardDecks = (params?: IQueryRequest) => {
@@ -88,11 +90,11 @@ export const useAddWordToFlashcardDeck = () => {
       queryClient.invalidateQueries({ queryKey: ["flashcard-decks"] });
       // Invalidate specific deck
       queryClient.invalidateQueries({
-        queryKey: ["flashcard-deck", variables.flashcardDeckId],
+        queryKey: ["flashcard-deck", variables.deckId],
       });
       // Invalidate words in the deck
       queryClient.invalidateQueries({
-        queryKey: ["flashcard-deck-words", variables.flashcardDeckId],
+        queryKey: ["flashcard-deck-words", variables.deckId],
       });
     },
   });
@@ -106,6 +108,19 @@ export const useFlashcardDeckWords = (
   return useQuery({
     queryKey: ["flashcard-deck-words", deckId, params],
     queryFn: () => flashcardService.getWords(deckId!, params),
+    enabled: !!deckId,
+    staleTime: 1 * 60 * 1000,
+  });
+};
+
+// Hook to get cards of a flashcard deck (supports VOCABULARY/GRAMMAR/KANJI)
+export const useFlashcardDeckCards = (
+  deckId: number | string | null,
+  params?: IQueryRequest & { contentType?: FlashcardContentType }
+) => {
+  return useQuery({
+    queryKey: ["flashcard-deck-cards", deckId, params],
+    queryFn: () => flashcardService.getDeckCards(deckId!, params),
     enabled: !!deckId,
     staleTime: 1 * 60 * 1000,
   });
@@ -133,6 +148,31 @@ export const useRemoveWordFromFlashcardDeck = () => {
       // Invalidate words in the deck
       queryClient.invalidateQueries({
         queryKey: ["flashcard-deck-words", variables.deckId],
+      });
+    },
+  });
+};
+
+// Hook to update flashcard deck card (e.g. notes/read)
+export const useUpdateFlashcardDeckCard = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      deckId,
+      cardId,
+      data,
+    }: {
+      deckId: number | string;
+      cardId: number | string;
+      data: IUpdateFlashcardDeckCardRequest;
+    }) => flashcardService.updateDeckCard(deckId, cardId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck-cards", variables.deckId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck", variables.deckId],
       });
     },
   });

@@ -1,4 +1,8 @@
-import { FlashcardDeckSchema, PaginationSchema } from "@models/flashcard/flashcard.common";
+import {
+    FlashcardDeckCardSchema,
+    FlashcardDeckSchema,
+    PaginationSchema,
+} from "@models/flashcard/flashcard.common";
 import { z } from "zod";
 
 // Flashcard Deck Response Data Schema (single item)
@@ -15,6 +19,26 @@ export const FlashcardDeckListResponseSchema = z.object({
   statusCode: z.number(),
   message: z.string(),
   data: FlashcardDeckListResponseDataSchema,
+});
+
+// Flashcard Deck Card List Response Data Schema
+export const FlashcardDeckCardListResponseDataSchema = z.object({
+  results: z.array(FlashcardDeckCardSchema),
+  pagination: PaginationSchema,
+});
+
+// Flashcard Deck Card List Response Schema
+export const FlashcardDeckCardListResponseSchema = z.object({
+  statusCode: z.number(),
+  message: z.string(),
+  data: FlashcardDeckCardListResponseDataSchema,
+});
+
+// Flashcard Deck Card Response Schema
+export const FlashcardDeckCardResponseSchema = z.object({
+  statusCode: z.number(),
+  message: z.string(),
+  data: FlashcardDeckCardSchema.optional(),
 });
 
 // Flashcard Deck Detail Response Schema
@@ -50,6 +74,12 @@ export type IFlashcardDeckListResponse = z.infer<
 >;
 export type IFlashcardDeckDetailResponse = z.infer<
   typeof FlashcardDeckDetailResponseSchema
+>;
+export type IFlashcardDeckCardListResponse = z.infer<
+  typeof FlashcardDeckCardListResponseSchema
+>;
+export type IFlashcardDeckCardResponse = z.infer<
+  typeof FlashcardDeckCardResponseSchema
 >;
 export type ICreateFlashcardDeckResponse = z.infer<
   typeof CreateFlashcardDeckResponseSchema
