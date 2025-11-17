@@ -56,6 +56,13 @@ export const DeleteFlashcardDeckCardsRequestSchema = z.object({
   cardIds: z.array(z.number().or(z.string().transform(Number))),
 });
 
+// Mark flashcard card read/unread schema
+export const MarkFlashcardReadRequestSchema = z.object({
+  deckId: z.number().or(z.string().transform(Number)),
+  cardId: z.number().or(z.string().transform(Number)),
+  read: z.boolean(),
+});
+
 // Export types
 export type ICreateFlashcardDeckRequest = z.infer<
   typeof CreateFlashcardDeckRequestSchema
@@ -74,5 +81,8 @@ export type IUpdateFlashcardDeckCardRequest = z.infer<
 >;
 export type IDeleteFlashcardDeckCardsRequest = z.infer<
   typeof DeleteFlashcardDeckCardsRequestSchema
+>;
+export type IMarkFlashcardReadRequest = z.infer<
+  typeof MarkFlashcardReadRequestSchema
 >;
 

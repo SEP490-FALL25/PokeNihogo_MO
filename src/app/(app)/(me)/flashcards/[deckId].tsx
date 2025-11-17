@@ -6,42 +6,40 @@ import { useToast } from "@components/ui/Toast";
 import { FlashcardContentType } from "@constants/flashcard.enum";
 import { useDebounce } from "@hooks/useDebounce";
 import {
-    useCreateFlashcardDeckCard,
-    useDeleteFlashcardDeckCards,
-    useFlashcardDeckCards,
-    useUpdateFlashcardDeckCardWithMetadata,
+  useCreateFlashcardDeckCard,
+  useDeleteFlashcardDeckCards,
+  useFlashcardDeckCards,
+  useUpdateFlashcardDeckCardWithMetadata,
 } from "@hooks/useFlashcard";
 import { IFlashcardDeckCard } from "@models/flashcard/flashcard.common";
 import { Audio } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import {
-    Check,
-    ChevronLeft,
-    ChevronUp,
-    Edit,
-    Loader2,
-    MoreVertical,
-    Plus,
-    Search,
-    Shuffle,
-    StickyNote,
-    Trash2,
-    Volume2,
-    X,
+  Check,
+  ChevronLeft,
+  Edit,
+  Loader2,
+  Plus,
+  Search,
+  Shuffle,
+  StickyNote,
+  Trash2,
+  Volume2,
+  X,
 } from "lucide-react-native";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    ActivityIndicator,
-    Animated,
-    Modal,
-    RefreshControl,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Animated,
+  Modal,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -215,6 +213,7 @@ const FlashcardDeckDetailScreen = () => {
     () => data?.data?.results ?? [],
     [data]
   );
+  const isPracticeDisabled = cards.length === 0;
   const pagination = data?.data?.pagination;
   const totalItems = pagination?.totalItem ?? 0;
   const totalPages = Math.max(pagination?.totalPage ?? 1, 1);
@@ -339,6 +338,19 @@ const FlashcardDeckDetailScreen = () => {
     setIsCreateMode(true);
     setEditModalVisible(true);
   };
+
+  const handlePractice = useCallback(() => {
+    if (!numericDeckId) return;
+
+    router.push({
+      pathname: "/(app)/content-list/flashcard",
+      params: {
+        deckId: String(numericDeckId),
+        practiceSource: "deck",
+        contentType: "vocabulary",
+      },
+    });
+  }, [numericDeckId]);
 
   const handleSubmitCard = () => {
     if (!numericDeckId) return;
@@ -661,18 +673,12 @@ const FlashcardDeckDetailScreen = () => {
           </Text>
         </View>
         <View className="flex-row items-center gap-2">
-          <TouchableOpacity className="p-2 rounded-full bg-slate-100">
-            <Search size={18} color="#0f172a" />
-          </TouchableOpacity>
           <TouchableOpacity
             className="p-2 rounded-full bg-slate-100"
             onPress={handleOpenCreateModal}
             disabled={isSavingCard}
           >
             <Plus size={18} color="#0f172a" />
-          </TouchableOpacity>
-          <TouchableOpacity className="p-2 rounded-full bg-slate-100">
-            <MoreVertical size={18} color="#0f172a" />
           </TouchableOpacity>
         </View>
       </View>
@@ -719,10 +725,10 @@ const FlashcardDeckDetailScreen = () => {
 
         <TouchableOpacity
           className="mb-6 rounded-3xl overflow-hidden"
-          activeOpacity={0.9}
-          onPress={() => {
-            // TODO: wire up practice flow for flashcard decks
-          }}
+          activeOpacity={isPracticeDisabled ? 1 : 0.9}
+          onPress={isPracticeDisabled ? undefined : handlePractice}
+          disabled={isPracticeDisabled}
+          style={{ opacity: isPracticeDisabled ? 0.5 : 1 }}
         >
           <LinearGradient colors={["#0ea5e9", "#2563eb"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
             <View className="flex-row items-center justify-between px-5 py-4">
@@ -731,11 +737,10 @@ const FlashcardDeckDetailScreen = () => {
                   {t("flashcard_detail.practice_title", "Practice")}
                 </Text>
                 <Text style={{ color: "#e0f2fe", fontSize: 13, marginTop: 2 }}>
-                  {t("flashcard_detail.practice_subtitle", "Xem lại bộ thẻ này ngay")}
+                  {isPracticeDisabled
+                    ? t("flashcard_detail.practice_disabled_subtitle", "Cần ít nhất 1 thẻ để luyện tập")
+                    : t("flashcard_detail.practice_subtitle", "Xem lại bộ thẻ này ngay")}
                 </Text>
-              </View>
-              <View className="h-10 w-10 rounded-full bg-white/20 items-center justify-center">
-                <ChevronUp size={20} color="#fff" />
               </View>
             </View>
           </LinearGradient>

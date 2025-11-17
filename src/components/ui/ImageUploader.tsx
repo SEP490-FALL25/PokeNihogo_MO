@@ -5,11 +5,11 @@ import * as ImagePicker from "expo-image-picker";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    ActivityIndicator,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export interface ImageUploaderProps {
@@ -52,7 +52,7 @@ export default function ImageUploader({
       }
 
       const pickerResult = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"] as unknown as ImagePicker.MediaTypeOptions,
         quality: 0.9,
         allowsMultipleSelection: false,
       });
