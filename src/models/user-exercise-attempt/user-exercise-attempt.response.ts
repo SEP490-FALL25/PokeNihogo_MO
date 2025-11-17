@@ -34,6 +34,7 @@ export const SubmitCompletionDataSchema = z.object({
   unansweredQuestions: z.number(),
   allCorrect: z.boolean(),
   status: z.nativeEnum(QuizCompletionStatus),
+  correctPercentage: z.number().optional(),
 });
 
 export const SubmitCompletionResponseSchema = z.object({

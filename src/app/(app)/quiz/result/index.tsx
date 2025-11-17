@@ -127,6 +127,18 @@ const comingFromQuiz = origin === "quiz";
     });
   }, [checkReviewAccess, checkReviewAccessTest, openErrorModal, origin, parseAxiosErrorMessage, resultId]);
 
+  const answeredSummary = useMemo(() => {
+    if (!result) return "-";
+    return `${result.answeredQuestions}/${result.totalQuestions}`;
+  }, [result]);
+
+  const formattedAccuracy = useMemo(() => {
+    if (!result) return "0%";
+    const percentage =
+      typeof result.correctPercentage === "number" ? Math.round(result.correctPercentage) : 0;
+    return `${percentage}%`;
+  }, [result]);
+
   // Determine title based on status
   const titleText = useMemo(() => {
     if (!result) {
@@ -198,31 +210,16 @@ const comingFromQuiz = origin === "quiz";
 
         <View style={styles.tileRow}>
           <ResultValueCard
-            title="Tổng câu hỏi"
-            value={result.totalQuestions}
-            icon={
-              <MaterialCommunityIcons
-                name="help-circle"
-                size={18}
-                color="#6366f1"
-              />
-            }
-            headerGradientColors={["#6366f1", "#8b5cf6"]}
-            style={styles.tile}
-            size="compact"
-          />
-
-          <ResultValueCard
             title="Đã trả lời"
-            value={result.answeredQuestions}
+            value={answeredSummary}
             icon={
               <MaterialCommunityIcons
                 name="check-circle"
                 size={18}
-                color="#10b981"
+                color="#2563eb"
               />
             }
-            headerGradientColors={["#10b981", "#34d399"]}
+            headerGradientColors={["#2563eb", "#4f46e5"]}
             style={styles.tile}
             size="compact"
           />
@@ -253,49 +250,25 @@ const comingFromQuiz = origin === "quiz";
               <MaterialCommunityIcons
                 name="timer-outline"
                 size={18}
-                color="#065f46"
+                color="#047857"
               />
             }
-            headerGradientColors={["#10b981", "#34d399"]}
+            headerGradientColors={["#059669", "#34d399"]}
             style={styles.tile}
             size="compact"
           />
 
           <ResultValueCard
-            title="Kết quả"
-            value={
-              result.allCorrect
-                ? "Hoàn hảo"
-                : result.status === QuizCompletionStatus.FAILED
-                  ? "Có sai sót"
-                  : "Đã hoàn thành"
-            }
+            title="Tỉ lệ đúng"
+            value={formattedAccuracy}
             icon={
               <MaterialCommunityIcons
-                name={
-                  result.allCorrect
-                    ? "trophy"
-                    : result.status === QuizCompletionStatus.FAILED
-                      ? "alert"
-                      : "check"
-                }
+                name="percent-outline"
                 size={18}
-                color={
-                  result.allCorrect
-                    ? "#f59e0b"
-                    : result.status === QuizCompletionStatus.FAILED
-                      ? "#ef4444"
-                      : "#10b981"
-                }
+                color="#7c3aed"
               />
             }
-            headerGradientColors={
-              result.allCorrect
-                ? ["#f59e0b", "#fbbf24"]
-                : result.status === QuizCompletionStatus.FAILED
-                  ? ["#ef4444", "#f87171"]
-                  : ["#10b981", "#34d399"]
-            }
+            headerGradientColors={["#7c3aed", "#a855f7"]}
             style={styles.tile}
             size="compact"
           />
