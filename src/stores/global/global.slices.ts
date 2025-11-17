@@ -3,12 +3,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LANGUAGE_STORAGE_KEY = 'app_language';
 
-export const createGlobalSlice = (set: any): ZUSTAND.IGlobalState => ({
+export const createGlobalSlice = (set: any, get: any): ZUSTAND.IGlobalState => ({
   language: "en", // Default language
 
   // DraggableOverlay position state
   overlayPosition: { x: 0, y: 0 },
   isOverlayPositionLoaded: false,
+
+  // Subscription features state
+  subscriptionKeys: [],
 
   setLanguage: async (language: string) => {
     try {
@@ -65,6 +68,14 @@ export const createGlobalSlice = (set: any): ZUSTAND.IGlobalState => ({
       y: screenHeight / 2 - OVERLAY_SIZE / 2,
     };
     set({ overlayPosition: defaultPosition, isOverlayPositionLoaded: true });
+  },
+
+  // Subscription features management
+  setSubscriptionKeys: (keys: string[]) => set({ subscriptionKeys: keys }),
+  clearSubscriptionKeys: () => set({ subscriptionKeys: [] }),
+  hasFeature: (featureKey: string) => {
+    const { subscriptionKeys } = get();
+    return subscriptionKeys.includes(featureKey);
   },
 });
 
