@@ -4,25 +4,12 @@ import MainNavigation from "@components/MainNavigation";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import WelcomeModal from "@components/ui/WelcomeModal";
-import { useUserProgressInfinite } from "@hooks/useLessons";
 import { useRecentExercises } from "@hooks/useUserHistory";
 import { IRecentExerciseItem } from "@models/user-history/user-history.response";
-import { IUserProgress } from "@models/user-progress/user-progress.common";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
 import { router } from "expo-router";
-import {
-  Award,
-  BookOpen,
-  BookText,
-  Calendar,
-  ChevronRight,
-  Clock,
-  Flame,
-  Languages,
-  Target,
-  TrendingUp,
-} from "lucide-react-native";
+import { BookOpen, BookText, ChevronRight, Languages, Target } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -33,147 +20,10 @@ import {
   View,
 } from "react-native";
 import { useCopilot } from "react-native-copilot";
-import * as Progress from "react-native-progress";
 import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
-/**
- * Weekly Progress Chart Component
- */
-const WeeklyProgressChart: React.FC<{ data: number[] }> = ({ data }) => {
-  const maxValue = Math.max(...data, 1);
-  const days = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
-
-  return (
-
-    <View style={styles.chartContainer}>
-      <View style={styles.chartBars}>
-        {data.map((value, index) => {
-          const height = (value / maxValue) * 100;
-          return (
-            <View key={index} style={styles.chartBarWrapper}>
-              <View style={styles.chartBarContainer}>
-                <View
-                  style={[
-                    styles.chartBar,
-                    {
-                      height: `${Math.max(height, 10)}%`,
-                      backgroundColor: value > 0 ? "#3b82f6" : "#e5e7eb",
-                    },
-                  ]}
-                />
-              </View>
-              <ThemedText style={styles.chartLabel}>{days[index]}</ThemedText>
-            </View>
-          );
-        })}
-      </View>
-    </View>
-  );
-};
-
-/**
- * Stat Card Component
- */
-const StatCard: React.FC<{
-  icon: React.ComponentType<{ size: number; color: string }>;
-  value: string | number;
-  label: string;
-  color: string;
-}> = ({ icon: Icon, value, label, color }) => (
-  <ThemedView style={styles.statCard}>
-    <View style={[styles.statIconContainer, { backgroundColor: `${color}15` }]}>
-      <Icon size={24} color={color} />
-    </View>
-    <ThemedText style={styles.statValue}>{value}</ThemedText>
-    <ThemedText style={styles.statLabel}>{label}</ThemedText>
-  </ThemedView>
-);
-
-/**
- * Recent Activity Card Component
- */
-const RecentActivityCard: React.FC<{
-  activity: IUserProgress;
-  onPress: () => void;
-}> = ({ activity, onPress }) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "COMPLETED":
-        return "#10b981";
-      case "IN_PROGRESS":
-        return "#3b82f6";
-      case "TESTING_LAST":
-        return "#f59e0b";
-      default:
-        return "#6b7280";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "COMPLETED":
-        return "Hoàn thành";
-      case "IN_PROGRESS":
-        return "Đang học";
-      case "TESTING_LAST":
-        return "Đang kiểm tra";
-      default:
-        return "Chưa bắt đầu";
-    }
-  };
-
-  return (
-    <TouchableOpacity
-      style={styles.recentCard}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <View style={styles.recentCardContent}>
-        <View style={styles.recentCardHeader}>
-          <View style={styles.recentCardIcon}>
-            <BookOpen size={20} color={getStatusColor(activity.status)} />
-          </View>
-          <View style={styles.recentCardInfo}>
-            <ThemedText style={styles.recentCardTitle} numberOfLines={1}>
-              {activity.lesson.titleJp}
-            </ThemedText>
-            <ThemedText style={styles.recentCardSubtitle}>
-              N{activity.lesson.levelJlpt}
-            </ThemedText>
-          </View>
-        </View>
-        <View style={styles.recentCardFooter}>
-          <View
-            style={[
-              styles.recentCardStatus,
-              { backgroundColor: `${getStatusColor(activity.status)}15` },
-            ]}
-          >
-            <ThemedText
-              style={[
-                styles.recentCardStatusText,
-                { color: getStatusColor(activity.status) },
-              ]}
-            >
-              {getStatusText(activity.status)}
-            </ThemedText>
-          </View>
-          <Progress.Bar
-            progress={activity.progressPercentage / 100}
-            width={60}
-            height={4}
-            color={getStatusColor(activity.status)}
-            unfilledColor="#e5e7eb"
-            borderWidth={0}
-          />
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
 
 /**
  * Exercise Card Component for Recent Exercises
@@ -322,13 +172,6 @@ export default function HomeScreen() {
   // Fetch user progress overview (for future use)
   // const { data: userProgressOverview } = useUserProgress();
 
-  // Fetch user progress list with pagination
-  const { data: userProgressData } = useUserProgressInfinite({
-    pageSize: 50,
-    sortBy: "lastAccessedAt",
-    sortOrder: "desc",
-  });
-
   // Fetch recent exercises
   const { data: recentExercisesData } = useRecentExercises({
     currentPage: 1,
@@ -336,52 +179,6 @@ export default function HomeScreen() {
   });
 
   // Get all activities from paginated data
-  const allActivities = useMemo(() => {
-    if (!userProgressData?.pages) return [];
-    return userProgressData.pages.flatMap((page) => page?.data?.results || []);
-  }, [userProgressData]);
-
-  // Get recent activities from user progress
-  const recentActivities = useMemo(() => {
-    return allActivities
-      .filter((item: IUserProgress) => item.status !== "NOT_STARTED")
-      .sort(
-        (a: IUserProgress, b: IUserProgress) =>
-          new Date(b.lastAccessedAt).getTime() -
-          new Date(a.lastAccessedAt).getTime()
-      )
-      .slice(0, 10);
-  }, [allActivities]);
-
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const activities = allActivities as IUserProgress[];
-    const completed = activities.filter(
-      (item: IUserProgress) => item.status === "COMPLETED"
-    ).length;
-    const inProgress = activities.filter(
-      (item: IUserProgress) => item.status === "IN_PROGRESS"
-    ).length;
-    const totalProgress =
-      activities.length > 0
-        ? activities.reduce(
-          (sum: number, item: IUserProgress) => sum + item.progressPercentage,
-          0
-        ) / activities.length
-        : 0;
-
-    // Mock weekly data (in real app, this would come from API)
-    const weeklyData = [45, 60, 30, 75, 50, 80, 65];
-
-    return {
-      completed,
-      inProgress,
-      totalProgress: Math.round(totalProgress),
-      weeklyData,
-      streak: 7, // Mock data - should come from user profile
-    };
-  }, [allActivities]);
-
   /**
    * Get user's selected starter Pokemon
    * Falls back to first starter if none selected
@@ -422,13 +219,6 @@ export default function HomeScreen() {
   }, [recentExercisesData]);
 
   /**
-   * Handle activity card press
-   */
-  const handleActivityPress = (activity: IUserProgress) => {
-    router.push(`${ROUTES.TABS.LEARN}?lessonId=${activity.lessonId}`);
-  };
-
-  /**
    * Handle exercise card press
    */
   const handleExercisePress = (exercise: IRecentExerciseItem) => {
@@ -439,18 +229,12 @@ export default function HomeScreen() {
    * Handle suggestion press
    */
   const handleSuggestionPress = (type: string) => {
-    switch (type) {
-      case "continue":
-        if (recentActivities.length > 0) {
-          handleActivityPress(recentActivities[0]);
-        }
-        break;
-      case "learn":
-        router.push(ROUTES.TABS.LEARN);
-        break;
-      case "practice":
-        router.push(ROUTES.TABS.LISTENING);
-        break;
+    if (type === "learn") {
+      router.push(ROUTES.TABS.LEARN);
+      return;
+    }
+    if (type === "practice") {
+      router.push(ROUTES.TABS.LISTENING);
     }
   };
 
@@ -491,77 +275,6 @@ export default function HomeScreen() {
           </ThemedText>
         </View>
 
-        {/* Statistics Cards */}
-        <View style={styles.statsContainer}>
-          <StatCard
-            icon={Award}
-            value={stats.completed}
-            label={t("home.stats_completed")}
-            color="#10b981"
-          />
-          <StatCard
-            icon={BookOpen}
-            value={stats.inProgress}
-            label={t("home.stats_in_progress")}
-            color="#3b82f6"
-          />
-          <StatCard
-            icon={Flame}
-            value={stats.streak}
-            label={t("home.stats_streak")}
-            color="#f59e0b"
-          />
-          <StatCard
-            icon={TrendingUp}
-            value={`${stats.totalProgress}%`}
-            label={t("home.stats_progress")}
-            color="#8b5cf6"
-          />
-        </View>
-
-        {/* Weekly Progress Chart */}
-        <ThemedView style={styles.chartCard}>
-          <View style={styles.chartHeader}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              {t("home.weekly_progress")}
-            </ThemedText>
-            <Calendar size={18} color="#6b7280" />
-          </View>
-          <WeeklyProgressChart data={stats.weeklyData} />
-        </ThemedView>
-
-        {/* Recent Activities */}
-        {recentActivities.length > 0 && (
-          <View style={styles.recentSection}>
-            <View style={styles.sectionHeader}>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
-                {t("home.recent_activities")}
-              </ThemedText>
-              <TouchableOpacity
-                onPress={() => router.push(ROUTES.TABS.LEARN)}
-                activeOpacity={0.7}
-              >
-                <ThemedText style={styles.seeAllText}>
-                  {t("home.see_all")}
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.recentScrollContent}
-            >
-              {recentActivities.map((activity: IUserProgress) => (
-                <RecentActivityCard
-                  key={activity.id}
-                  activity={activity}
-                  onPress={() => handleActivityPress(activity)}
-                />
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
         {/* Recent Exercises */}
         {recentExercises.length > 0 && (
           <View style={styles.recentSection}>
@@ -600,14 +313,6 @@ export default function HomeScreen() {
             {t("home.suggestions")}
           </ThemedText>
           <View style={styles.suggestionsList}>
-            {recentActivities.length > 0 && (
-              <SuggestionCard
-                title={t("home.suggestion_continue")}
-                description={t("home.suggestion_continue_desc")}
-                icon={Clock}
-                onPress={() => handleSuggestionPress("continue")}
-              />
-            )}
             <SuggestionCard
               title={t("home.suggestion_new_lesson")}
               description={t("home.suggestion_new_lesson_desc")}
