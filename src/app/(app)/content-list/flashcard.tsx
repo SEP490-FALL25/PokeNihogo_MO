@@ -1,4 +1,9 @@
 import { ThemedText } from "@components/ThemedText";
+import { FlashcardContentType } from "@constants/flashcard.enum";
+import {
+  useFlashcardDeckCards,
+  useMarkFlashcardCardRead,
+} from "@hooks/useFlashcard";
 import { useLesson } from "@hooks/useLessons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -6,6 +11,7 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { ChevronLeft, Repeat, Settings2 } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   Dimensions,
   Easing,
@@ -21,13 +27,79 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const { width } = Dimensions.get("window");
 const SWIPE_THRESHOLD = 120;
 
+const normalizeVocabularyMeanings = (meanings?: any): string[] => {
+  if (!meanings) return [];
+
+  if (typeof meanings === "string") {
+    return meanings
+      .split(/[\n;,]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  if (Array.isArray(meanings)) {
+    return meanings
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (item && typeof item === "object") {
+          return item.meaning || item.text || "";
+        }
+        return "";
+      })
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
 const VocabularyFlashcardScreen = () => {
-  const { id, contentType } = useLocalSearchParams<{
+  const { id, deckId: deckIdParam, contentType, practiceSource } = useLocalSearchParams<{
     id?: string;
+    deckId?: string;
     contentType?: string;
+    practiceSource?: string;
   }>();
 
-  const { data: lessonData } = useLesson(id || "");
+  const isDeckPractice = !!deckIdParam || practiceSource === "deck";
+  const deckId = deckIdParam || undefined;
+  const numericDeckId = deckId ? Number(deckId) : undefined;
+  const lessonId = !isDeckPractice ? (id || "") : "";
+
+  const {
+    data: lessonData,
+    isLoading: isLessonLoading,
+  } = useLesson(lessonId);
+
+  const {
+    data: deckCardsData,
+    isLoading: isDeckCardsLoading,
+  } = useFlashcardDeckCards(
+    isDeckPractice && deckId ? deckId : null,
+    {
+      currentPage: 1,
+      pageSize: 9999,
+      contentType: FlashcardContentType.VOCABULARY,
+    }
+  );
+  
+  const deckFromPractice = useMemo(() => {
+    if (!isDeckPractice) return [];
+    const cards = deckCardsData?.data?.results ?? [];
+
+    return cards
+      .map((card) => {
+        const vocabulary =
+          card.vocabulary || (card as any).metadata || undefined;
+        if (!vocabulary) return null;
+        return {
+          ...vocabulary,
+          __cardId: card.id,
+          __deckId: card.deckId,
+          __read: card.read ?? false,
+        };
+      })
+      .filter(Boolean);
+  }, [deckCardsData, isDeckPractice]);
 
   const contentTypeValue = (contentType as string) || "vocabulary";
   const isVocabulary = contentTypeValue === "vocabulary";
@@ -35,6 +107,10 @@ const VocabularyFlashcardScreen = () => {
   const isKanji = contentTypeValue === "kanji";
 
   const deck = useMemo(() => {
+    if (isDeckPractice) {
+      return deckFromPractice;
+    }
+
     const lesson: any = lessonData?.data || {};
 
     switch (contentTypeValue) {
@@ -45,7 +121,7 @@ const VocabularyFlashcardScreen = () => {
       default:
         return lesson.voca || lesson.vocabulary || [];
     }
-  }, [lessonData, contentTypeValue]);
+  }, [deckFromPractice, isDeckPractice, lessonData, contentTypeValue]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [knownCount, setKnownCount] = useState(0);
@@ -78,6 +154,7 @@ const VocabularyFlashcardScreen = () => {
   const translateY = useRef(new Animated.Value(0)).current;
   const cardOpacity = useRef(new Animated.Value(1)).current;
   const backScrollRef = useRef(null);
+  const markCardReadMutation = useMarkFlashcardCardRead();
 
   useEffect(() => {
     translateX.setValue(0);
@@ -101,6 +178,79 @@ const VocabularyFlashcardScreen = () => {
     )
   ).current;
 
+  const handleSwipe = useCallback(
+    (result: "known" | "unknown") => {
+      const direction = result === "known" ? 1 : -1;
+
+      stackReveal.setValue(0);
+
+      const practiceCard = deck[currentIndex] as any;
+      if (
+        isDeckPractice &&
+        numericDeckId &&
+        practiceCard?.__cardId &&
+        !markCardReadMutation.isPending
+      ) {
+        markCardReadMutation.mutate({
+          deckId: numericDeckId,
+          cardId: practiceCard.__cardId,
+          read: result === "known",
+        });
+      }
+
+      Animated.parallel([
+        Animated.timing(translateX, {
+          toValue: direction * (width + 80),
+          duration: 220,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(stackReveal, {
+          toValue: 1,
+          duration: 220,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
+      ]).start(() => {
+        translateX.setValue(0);
+        translateY.setValue(0);
+        cardOpacity.setValue(1);
+        stackReveal.setValue(0);
+        setIsFrontSide(true);
+
+        Haptics.notificationAsync(
+          result === "known"
+            ? Haptics.NotificationFeedbackType.Success
+            : Haptics.NotificationFeedbackType.Warning
+        );
+
+        if (result === "known") {
+          setKnownCount((prev) => prev + 1);
+        } else {
+          setUnknownCount((prev) => prev + 1);
+        }
+
+        setCurrentIndex((prev) => prev + 1);
+      });
+    },
+    [
+      cardOpacity,
+      currentIndex,
+      deck,
+      isDeckPractice,
+      markCardReadMutation,
+      numericDeckId,
+      stackReveal,
+      translateX,
+      translateY,
+    ]
+  );
+
   const onPanEnded = useCallback((event: any) => {
     const dx = event?.nativeEvent?.translationX ?? 0;
     if (dx > SWIPE_THRESHOLD) {
@@ -123,53 +273,7 @@ const VocabularyFlashcardScreen = () => {
       tension: 150,
       friction: 12,
     }).start();
-  }, [translateX, translateY]);
-
-  const handleSwipe = (result: "known" | "unknown") => {
-    const direction = result === "known" ? 1 : -1;
-
-    stackReveal.setValue(0);
-
-    Animated.parallel([
-      Animated.timing(translateX, {
-        toValue: direction * (width + 80),
-        duration: 220,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.timing(cardOpacity, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(stackReveal, {
-        toValue: 1,
-        duration: 220,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }),
-    ]).start(() => {
-      translateX.setValue(0);
-      translateY.setValue(0);
-      cardOpacity.setValue(1);
-      stackReveal.setValue(0);
-      setIsFrontSide(true);
-
-      Haptics.notificationAsync(
-        result === "known"
-          ? Haptics.NotificationFeedbackType.Success
-          : Haptics.NotificationFeedbackType.Warning
-      );
-
-      if (result === "known") {
-        setKnownCount((prev) => prev + 1);
-      } else {
-        setUnknownCount((prev) => prev + 1);
-      }
-
-      setCurrentIndex((prev) => prev + 1);
-    });
-  };
+  }, [handleSwipe, translateX, translateY]);
 
   const resetDeck = () => {
     setCurrentIndex(0);
@@ -197,6 +301,10 @@ const VocabularyFlashcardScreen = () => {
 
   const progress = totalCount === 0 ? 0 : (reviewedCount / totalCount) * 100;
   const progressLabel = useMemo(() => {
+    if (isDeckPractice) {
+      return `${reviewedCount}/${totalCount} thẻ trong bộ flashcard`;
+    }
+
     const labelMap: Record<string, string> = {
       vocabulary: "thẻ từ vựng đã xem",
       grammar: "thẻ ngữ pháp đã xem",
@@ -204,7 +312,9 @@ const VocabularyFlashcardScreen = () => {
     };
 
     return `${reviewedCount}/${totalCount} ${labelMap[contentTypeValue] || "thẻ đã xem"}`;
-  }, [reviewedCount, totalCount, contentTypeValue]);
+  }, [reviewedCount, totalCount, contentTypeValue, isDeckPractice]);
+
+  const isDataLoading = isDeckPractice ? isDeckCardsLoading : isLessonLoading;
 
   const previewIndices = useMemo(() => {
     const remaining = totalCount - currentIndex - 1;
@@ -226,11 +336,7 @@ const VocabularyFlashcardScreen = () => {
     const card: any = deck[cardIndex];
     if (!card) return null;
 
-    const meanings = isVocabulary
-      ? (card.meanings || [])
-          .map((m: any) => (typeof m === "string" ? m : m.meaning || m.text || ""))
-          .filter(Boolean)
-      : [];
+    const meanings = isVocabulary ? normalizeVocabularyMeanings(card?.meanings) : [];
 
     const kanjiExplanation = isKanji
       ? (typeof card?.explanationMeaning === "string" ? card.explanationMeaning : "")
@@ -337,6 +443,7 @@ const VocabularyFlashcardScreen = () => {
     };
 
     const cardIsFrontSide = isActive ? isFrontSide : true;
+    const cardPositionLabel = totalCount > 0 ? `${Math.min(cardIndex + 1, totalCount)}/${totalCount}` : "0/0";
 
     return (
       <Animated.View
@@ -416,6 +523,20 @@ const VocabularyFlashcardScreen = () => {
                     )}
                   </View>
                 )}
+              </View>
+              <View
+                style={{
+                  position: "absolute",
+                  bottom: 24,
+                  left: 0,
+                  right: 0,
+                  paddingHorizontal: 28,
+                  alignItems: "center",
+                }}
+              >
+                <ThemedText style={{ fontSize: 16, color: "#94a3b8", textAlign: "center", width: "100%" }}>
+                  {cardPositionLabel}
+                </ThemedText>
               </View>
             </Animated.View>
 
@@ -526,6 +647,20 @@ const VocabularyFlashcardScreen = () => {
                     </ThemedText>
                   )}
                 </ScrollView>
+                <View
+                  style={{
+                    position: "absolute",
+                    bottom: 24,
+                    left: 0,
+                    right: 0,
+                    paddingHorizontal: 28,
+                    alignItems: "center",
+                  }}
+                >
+                  <ThemedText style={{ fontSize: 16, color: "#94a3b8", textAlign: "center", width: "100%" }}>
+                    {cardPositionLabel}
+                  </ThemedText>
+                </View>
               </Animated.View>
             )}
           </View>
@@ -573,7 +708,11 @@ const VocabularyFlashcardScreen = () => {
         </View>
 
         <View className="flex-1 justify-center items-center px-6">
-          {totalCount === 0 ? (
+          {isDataLoading ? (
+            <View className="bg-white/80 rounded-3xl p-8 items-center">
+              <ActivityIndicator color="#0ea5e9" />
+            </View>
+          ) : totalCount === 0 ? (
             <View className="bg-white/70 rounded-3xl p-8 items-center">
               <ThemedText style={{ fontSize: 18, color: "#4b5563", textAlign: "center" }}>
                 Không có dữ liệu để hiển thị

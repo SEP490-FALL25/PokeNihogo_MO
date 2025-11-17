@@ -6,6 +6,7 @@ import {
   ICreateFlashcardDeckCardRequest,
   ICreateFlashcardDeckRequest,
   IDeleteFlashcardDeckCardsRequest,
+  IMarkFlashcardReadRequest,
   IUpdateFlashcardDeckCardRequest,
   IUpdateFlashcardDeckRequest,
 } from "@models/flashcard/flashcard.request";
@@ -252,6 +253,20 @@ const flashcardService = {
     const response = await axiosPrivate.delete("/flashcards/decks/cards", {
       data: requestBody,
     });
+    return response.data;
+  },
+
+  // Mark flashcard card read/unread
+  markCardRead: async (
+    data: IMarkFlashcardReadRequest
+  ): Promise<IFlashcardDeckCardResponse> => {
+    const payload = {
+      deckId: typeof data.deckId === "string" ? Number(data.deckId) : data.deckId,
+      cardId: typeof data.cardId === "string" ? Number(data.cardId) : data.cardId,
+      read: data.read,
+    };
+
+    const response = await axiosPrivate.put("/flashcards/read", payload);
     return response.data;
   },
 };

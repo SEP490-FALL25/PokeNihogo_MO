@@ -5,6 +5,7 @@ import {
   ICreateFlashcardDeckCardRequest,
   ICreateFlashcardDeckRequest,
   IDeleteFlashcardDeckCardsRequest,
+  IMarkFlashcardReadRequest,
   IUpdateFlashcardDeckCardRequest,
   IUpdateFlashcardDeckRequest,
 } from "@models/flashcard/flashcard.request";
@@ -235,6 +236,21 @@ export const useDeleteFlashcardDeckCards = () => {
       });
       queryClient.invalidateQueries({
         queryKey: ["flashcard-decks"],
+      });
+    },
+  });
+};
+
+// Hook to mark flashcard card read/unread
+export const useMarkFlashcardCardRead = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: IMarkFlashcardReadRequest) =>
+      flashcardService.markCardRead(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck-cards", variables.deckId],
       });
     },
   });
