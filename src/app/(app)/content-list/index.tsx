@@ -986,19 +986,6 @@ const VocabularyListScreen = () => {
     return map;
   }, [latestExerciseAttempt]);
 
-  // Map status by category from latestExerciseAttempt
-  const statusByCategory = React.useMemo(() => {
-    const list: any[] = latestExerciseAttempt?.data || [];
-    const map: Record<string, string | undefined> = {};
-    for (const item of list) {
-      const type = (item.exerciseType || "").toString().toLowerCase();
-      if (type === "vocabulary") map.vocabulary = item.status;
-      if (type === "grammar") map.grammar = item.status;
-      if (type === "kanji") map.kanji = item.status;
-    }
-    return map;
-  }, [latestExerciseAttempt]);
-
   // State for Kanji Writer Modal
   const [showKanjiWriterModal, setShowKanjiWriterModal] = useState(false);
   const [selectedKanji, setSelectedKanji] = useState<string>("");
@@ -1131,7 +1118,6 @@ const VocabularyListScreen = () => {
   // Start exercise function
   const startExercise = async (category: ExerciseCategory) => {
     try {
-      const status = statusByCategory[category];
       const exerciseAttemptId = attemptIdByCategory[category];
 
       if (!exerciseAttemptId) {
@@ -1152,19 +1138,7 @@ const VocabularyListScreen = () => {
         });
       };
 
-      if (status === "COMPLETED") {
-        Alert.alert(
-          t("common.confirm") || "Confirm",
-          t("lessons.retake_warning") ||
-            "Bạn đã hoàn thành bài này. Lần làm lại chỉ nhận 90% phần thưởng. Tiếp tục?",
-          [
-            { text: t("common.cancel") || "Hủy", style: "cancel" },
-            { text: t("common.continue") || "Tiếp tục", onPress: proceed },
-          ]
-        );
-      } else {
-        proceed();
-      }
+      proceed();
     } catch (e) {
       console.warn("Failed to start exercise", e);
       Alert.alert(

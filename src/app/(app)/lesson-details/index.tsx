@@ -1,6 +1,7 @@
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
 import { useLesson } from "@hooks/useLessons";
+import { useUserExerciseAttempt } from "@hooks/useUserExerciseAttempt";
 import { ROUTES } from "@routes/routes";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -27,6 +28,11 @@ interface DashboardCardProps {
   darkColor: string;
   items: any[];
   onPress: () => void;
+  statusMeta?: {
+    label: string;
+    bgColor: string;
+    textColor: string;
+  } | null;
 }
 
 const DashboardCard = ({
@@ -39,6 +45,7 @@ const DashboardCard = ({
   darkColor,
   items,
   onPress,
+  statusMeta,
 }: DashboardCardProps) => {
   return (
     <TouchableOpacity
@@ -105,23 +112,46 @@ const DashboardCard = ({
         </View>
 
         {/* Count Badge */}
-        <View
-          style={{
-            backgroundColor: bgColor,
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-            borderRadius: 12,
-          }}
-        >
-          <ThemedText
+        <View style={{ alignItems: "flex-end" }}>
+          <View
             style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              color: darkColor,
+              backgroundColor: bgColor,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 12,
             }}
           >
-            {count}
-          </ThemedText>
+            <ThemedText
+              style={{
+                fontSize: 20,
+                fontWeight: "bold",
+                color: darkColor,
+              }}
+            >
+              {count}
+            </ThemedText>
+          </View>
+          {statusMeta ? (
+            <View
+              style={{
+                marginTop: 8,
+                backgroundColor: statusMeta.bgColor,
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                borderRadius: 999,
+              }}
+            >
+              <ThemedText
+                style={{
+                  fontSize: 11,
+                  fontWeight: "700",
+                  color: statusMeta.textColor,
+                }}
+              >
+                {statusMeta.label}
+              </ThemedText>
+            </View>
+          ) : null}
         </View>
       </View>
 
@@ -217,10 +247,16 @@ const DashboardCard = ({
 };
 
 // --- Main Screen ---
+type ExerciseCategory = "vocabulary" | "grammar" | "kanji";
+
 const LessonDetailScreen = () => {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { data: lessonData, isLoading } = useLesson(id || "");
+  const {
+    data: exerciseAttemptData,
+    isLoading: isExerciseAttemptLoading,
+  } = useUserExerciseAttempt(id || "");
   const lesson: any = lessonData?.data || {};
 
   // Try multiple property names in case of mock/real difference, fallback to []
@@ -229,6 +265,80 @@ const LessonDetailScreen = () => {
   const kanji: any[] = lesson.kanji || [];
   const testId = lesson.testId;
   const checkLastTest = lesson.checkLastTest !== false; // Default to true if not specified
+
+  const exerciseAttemptList = React.useMemo(() => {
+    if (Array.isArray(exerciseAttemptData?.data)) {
+      return exerciseAttemptData.data;
+    }
+    if (Array.isArray(exerciseAttemptData)) {
+      return exerciseAttemptData;
+    }
+    return [];
+  }, [exerciseAttemptData]);
+
+  const exerciseAttemptMap = React.useMemo(() => {
+    const map: Record<string, any> = {};
+    exerciseAttemptList.forEach((attempt: any) => {
+      if (!attempt || !attempt.exerciseType) return;
+      const key = attempt.exerciseType.toString().toLowerCase();
+      map[key] = attempt;
+    });
+    return map;
+  }, [exerciseAttemptList]);
+
+  const getStatusMeta = React.useCallback(
+    (type: ExerciseCategory) => {
+      if (isExerciseAttemptLoading) return null;
+      const attempt = exerciseAttemptMap[type];
+      if (!attempt) return null;
+      const normalized = (attempt.status || "").toUpperCase();
+
+      const statusStyles: Record<
+        string,
+        { label: string; bgColor: string; textColor: string }
+      > = {
+        COMPLETED: {
+          label: t("lesson_detail.status.completed", "Hoàn thành"),
+          bgColor: "#dcfce7",
+          textColor: "#15803d",
+        },
+        FAILED: {
+          label: t("lesson_detail.status.failed", "Chưa đạt"),
+          bgColor: "#fee2e2",
+          textColor: "#b91c1c",
+        },
+        FAIL: {
+          label: t("lesson_detail.status.failed", "Chưa đạt"),
+          bgColor: "#fee2e2",
+          textColor: "#b91c1c",
+        },
+        IN_PROGRESS: {
+          label: t("lesson_detail.status.in_progress", "Đang làm"),
+          bgColor: "#fef3c7",
+          textColor: "#b45309",
+        },
+        ABANDONED: {
+          label: t("lesson_detail.status.abandoned", "Đã bỏ"),
+          bgColor: "#e2e8f0",
+          textColor: "#475569",
+        },
+        PENDING: {
+          label: t("lesson_detail.status.pending", "Đang chờ"),
+          bgColor: "#e0f2fe",
+          textColor: "#0369a1",
+        },
+      };
+
+      return (
+        statusStyles[normalized] || {
+          label: t("lesson_detail.status.unknown", "Chưa có dữ liệu"),
+          bgColor: "#e2e8f0",
+          textColor: "#475569",
+        }
+      );
+    },
+    [exerciseAttemptMap, isExerciseAttemptLoading, t]
+  );
 
   if (isLoading) {
     return (
@@ -475,6 +585,7 @@ const LessonDetailScreen = () => {
               darkColor="#312e81"
               items={voca}
               onPress={() => navigateToContent("vocabulary")}
+              statusMeta={getStatusMeta("vocabulary")}
             />
           )}
 
@@ -490,6 +601,7 @@ const LessonDetailScreen = () => {
               darkColor="#164e63"
               items={grammar}
               onPress={() => navigateToContent("grammar")}
+              statusMeta={getStatusMeta("grammar")}
             />
           )}
 
@@ -505,6 +617,7 @@ const LessonDetailScreen = () => {
               darkColor="#92400e"
               items={kanji}
               onPress={() => navigateToContent("kanji")}
+              statusMeta={getStatusMeta("kanji")}
             />
           )}
 
