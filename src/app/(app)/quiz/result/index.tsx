@@ -134,9 +134,8 @@ const comingFromQuiz = origin === "quiz";
 
   const formattedAccuracy = useMemo(() => {
     if (!result) return "0%";
-    const percentage =
-      typeof result.correctPercentage === "number" ? Math.round(result.correctPercentage) : 0;
-    return `${percentage}%`;
+    const score = typeof result.score === "number" ? Math.round(result.score) : 0;
+    return `${score}%`;
   }, [result]);
 
   // Determine title based on status
