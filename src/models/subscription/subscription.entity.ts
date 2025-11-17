@@ -15,6 +15,13 @@ export const SubscriptionMarketplaceEntitySchema = z.object({
         type: z.string(),
         durationInDays: z.number().nullable(),
         isActive: z.boolean(),
+        pendingInvoice: z.object({
+            id: z.number(),
+            subtotalAmount: z.number(),
+            discountAmount: z.number(),
+            totalAmount: z.number(),
+            status: z.string(),
+        }).nullable(),
     })),
     features: z.array(z.object({
         id: z.number(),

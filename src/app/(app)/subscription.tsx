@@ -11,7 +11,7 @@ import { useWalletUser } from "@hooks/useWallet";
 import { ISubscriptionMarketplaceEntity } from "@models/subscription/subscription.entity";
 import { SubscriptionPackageType } from "@models/subscription/subscription.request";
 import payosService from "@services/payos";
-import { BookOpen, Check, Coins, Crown, Headphones, RefreshCw, Sparkles } from "lucide-react-native";
+import { BookOpen, Check, Coins, Crown, Headphones, RefreshCw } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -280,7 +280,7 @@ export default function SubscriptionScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-white">
-            <StatusBar barStyle="dark-content"  />
+            <StatusBar barStyle="dark-content" />
             <ThemedView className="flex-1">
                 <BackScreen
                     color="black"
@@ -300,7 +300,7 @@ export default function SubscriptionScreen() {
                     <View className="mx-6 mb-6">
                         <View className="bg-slate-100 dark:bg-slate-800 rounded-2xl p-4 flex-row items-center justify-between">
                             <View className="flex-row items-center gap-2">
-                                <Sparkles size={24} color="#f59e0b" />
+                                <Coins size={24} color="#f59e0b" />
                                 <Text className="text-slate-700 dark:text-slate-300 font-semibold text-lg">
                                     {t('subscription.balance')}
                                 </Text>
