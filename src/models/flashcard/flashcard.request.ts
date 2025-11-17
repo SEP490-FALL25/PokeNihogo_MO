@@ -39,6 +39,12 @@ export const UpdateFlashcardDeckCardRequestSchema = z.object({
   metadata: UpdateFlashcardDeckCardMetadataSchema,
 });
 
+// Delete Flashcard Deck Cards Request Schema
+export const DeleteFlashcardDeckCardsRequestSchema = z.object({
+  deckId: z.number().or(z.string().transform(Number)),
+  cardIds: z.array(z.number().or(z.string().transform(Number))),
+});
+
 // Export types
 export type ICreateFlashcardDeckRequest = z.infer<
   typeof CreateFlashcardDeckRequestSchema
@@ -51,5 +57,8 @@ export type IUpdateFlashcardDeckRequest = z.infer<
 >;
 export type IUpdateFlashcardDeckCardRequest = z.infer<
   typeof UpdateFlashcardDeckCardRequestSchema
+>;
+export type IDeleteFlashcardDeckCardsRequest = z.infer<
+  typeof DeleteFlashcardDeckCardsRequestSchema
 >;
 

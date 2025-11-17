@@ -3,6 +3,7 @@ import { IQueryRequest } from "@models/common/common.request";
 import {
   IAddWordToFlashcardDeckRequest,
   ICreateFlashcardDeckRequest,
+  IDeleteFlashcardDeckCardsRequest,
   IUpdateFlashcardDeckCardRequest,
   IUpdateFlashcardDeckRequest,
 } from "@models/flashcard/flashcard.request";
@@ -191,6 +192,27 @@ export const useUpdateFlashcardDeckCardWithMetadata = () => {
       });
       queryClient.invalidateQueries({
         queryKey: ["flashcard-deck", variables.deckId],
+      });
+    },
+  });
+};
+
+// Hook to delete multiple flashcard deck cards (DELETE /flashcards/decks/cards)
+export const useDeleteFlashcardDeckCards = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: IDeleteFlashcardDeckCardsRequest) =>
+      flashcardService.deleteDeckCards(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck-cards", variables.deckId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck", variables.deckId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-decks"],
       });
     },
   });

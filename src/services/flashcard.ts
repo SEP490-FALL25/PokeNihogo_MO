@@ -4,6 +4,7 @@ import { IQueryRequest } from "@models/common/common.request";
 import {
   IAddWordToFlashcardDeckRequest,
   ICreateFlashcardDeckRequest,
+  IDeleteFlashcardDeckCardsRequest,
   IUpdateFlashcardDeckCardRequest,
   IUpdateFlashcardDeckRequest,
 } from "@models/flashcard/flashcard.request";
@@ -191,6 +192,22 @@ const flashcardService = {
     }
 
     const response = await axiosPrivate.put("/flashcards/decks/cards", requestBody);
+    return response.data;
+  },
+
+  // Delete multiple deck cards (DELETE /flashcards/decks/cards)
+  deleteDeckCards: async (
+    data: IDeleteFlashcardDeckCardsRequest
+  ) => {
+    const requestBody = {
+      deckId: typeof data.deckId === "string" ? Number(data.deckId) : data.deckId,
+      cardIds: data.cardIds.map((id) =>
+        typeof id === "string" ? Number(id) : id
+      ),
+    };
+    const response = await axiosPrivate.delete("/flashcards/decks/cards", {
+      data: requestBody,
+    });
     return response.data;
   },
 };

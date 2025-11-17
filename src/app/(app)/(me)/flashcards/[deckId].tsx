@@ -5,8 +5,8 @@ import { useToast } from "@components/ui/Toast";
 import { FlashcardContentType } from "@constants/flashcard.enum";
 import { useDebounce } from "@hooks/useDebounce";
 import {
+    useDeleteFlashcardDeckCards,
     useFlashcardDeckCards,
-    useRemoveWordFromFlashcardDeck,
     useUpdateFlashcardDeckCardWithMetadata,
 } from "@hooks/useFlashcard";
 import { IFlashcardDeckCard } from "@models/flashcard/flashcard.common";
@@ -189,7 +189,7 @@ const FlashcardDeckDetailScreen = () => {
   );
 
   const updateCardWithMetadataMutation = useUpdateFlashcardDeckCardWithMetadata();
-  const removeWordMutation = useRemoveWordFromFlashcardDeck();
+  const deleteCardsMutation = useDeleteFlashcardDeckCards();
 
   const cards: IFlashcardDeckCard[] = useMemo(
     () => data?.data?.results ?? [],
@@ -350,17 +350,17 @@ const FlashcardDeckDetailScreen = () => {
   };
 
   const handleDelete = (card: IFlashcardDeckCard) => {
-    if (!numericDeckId || !card.vocabularyId) return;
+    if (!numericDeckId) return;
     
     // Close swipeable
     if (swipeableRefs.current[card.id]) {
       swipeableRefs.current[card.id]?.close();
     }
 
-    removeWordMutation.mutate(
+    deleteCardsMutation.mutate(
       {
         deckId: numericDeckId,
-        vocabularyId: card.vocabularyId,
+        cardIds: [card.id],
       },
       {
         onSuccess: () => {
