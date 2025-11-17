@@ -146,16 +146,51 @@ const flashcardService = {
     return response.data;
   },
 
-  // Update deck card (e.g. notes/read status)
+  // Update deck card (e.g. notes/read status) - old PATCH endpoint
   updateDeckCard: async (
     deckId: number | string,
     cardId: number | string,
-    data: IUpdateFlashcardDeckCardRequest
+    data: { notes?: string | null; read?: boolean }
   ): Promise<IFlashcardDeckCardResponse> => {
     const response = await axiosPrivate.patch(
       `/flashcards/decks/${deckId}/cards/${cardId}`,
       data
     );
+    return response.data;
+  },
+
+  // Update deck card with metadata (PUT /flashcards/decks/cards)
+  updateDeckCardWithMetadata: async (
+    data: IUpdateFlashcardDeckCardRequest
+  ): Promise<IFlashcardDeckCardResponse> => {
+    const requestBody: any = {
+      deckId: typeof data.deckId === "string" ? Number(data.deckId) : data.deckId,
+      cardId: typeof data.cardId === "string" ? Number(data.cardId) : data.cardId,
+    };
+
+    if (data.status) {
+      requestBody.status = data.status;
+    }
+
+    if (data.notes !== undefined) {
+      requestBody.notes = data.notes;
+    }
+
+    if (data.read !== undefined) {
+      requestBody.read = data.read;
+    }
+
+    if (data.metadata) {
+      requestBody.metadata = {
+        ...(data.metadata.wordJp && { wordJp: data.metadata.wordJp }),
+        ...(data.metadata.reading !== undefined && { reading: data.metadata.reading || null }),
+        ...(data.metadata.audioUrl !== undefined && { audioUrl: data.metadata.audioUrl || null }),
+        ...(data.metadata.imageUrl !== undefined && { imageUrl: data.metadata.imageUrl || null }),
+        ...(data.metadata.meanings && { meanings: data.metadata.meanings }),
+      };
+    }
+
+    const response = await axiosPrivate.put("/flashcards/decks/cards", requestBody);
     return response.data;
   },
 };

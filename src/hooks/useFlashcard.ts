@@ -153,7 +153,7 @@ export const useRemoveWordFromFlashcardDeck = () => {
   });
 };
 
-// Hook to update flashcard deck card (e.g. notes/read)
+// Hook to update flashcard deck card (e.g. notes/read) - old PATCH endpoint
 export const useUpdateFlashcardDeckCard = () => {
   const queryClient = useQueryClient();
 
@@ -165,8 +165,26 @@ export const useUpdateFlashcardDeckCard = () => {
     }: {
       deckId: number | string;
       cardId: number | string;
-      data: IUpdateFlashcardDeckCardRequest;
+      data: { notes?: string | null; read?: boolean };
     }) => flashcardService.updateDeckCard(deckId, cardId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck-cards", variables.deckId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["flashcard-deck", variables.deckId],
+      });
+    },
+  });
+};
+
+// Hook to update flashcard deck card with metadata (PUT /flashcards/decks/cards)
+export const useUpdateFlashcardDeckCardWithMetadata = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: IUpdateFlashcardDeckCardRequest) =>
+      flashcardService.updateDeckCardWithMetadata(data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["flashcard-deck-cards", variables.deckId],

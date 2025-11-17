@@ -7,7 +7,7 @@ import { useDebounce } from "@hooks/useDebounce";
 import {
     useFlashcardDeckCards,
     useRemoveWordFromFlashcardDeck,
-    useUpdateFlashcardDeckCard,
+    useUpdateFlashcardDeckCardWithMetadata,
 } from "@hooks/useFlashcard";
 import { IFlashcardDeckCard } from "@models/flashcard/flashcard.common";
 import { Audio } from "expo-av";
@@ -150,10 +150,11 @@ const FlashcardDeckDetailScreen = () => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingCard, setEditingCard] = useState<IFlashcardDeckCard | null>(null);
   const [editFormData, setEditFormData] = useState({
-    word: "",
-    phonetic: "",
-    mean: "",
-    wordType: "",
+    wordJp: "",
+    reading: "",
+    meanings: "",
+    audioUrl: "",
+    imageUrl: "",
   });
   const swipeableRefs = useRef<{ [key: number]: Swipeable | null }>({});
 
@@ -187,7 +188,7 @@ const FlashcardDeckDetailScreen = () => {
     queryParams
   );
 
-  const updateCardMutation = useUpdateFlashcardDeckCard();
+  const updateCardWithMetadataMutation = useUpdateFlashcardDeckCardWithMetadata();
   const removeWordMutation = useRemoveWordFromFlashcardDeck();
 
   const cards: IFlashcardDeckCard[] = useMemo(
@@ -250,13 +251,16 @@ const FlashcardDeckDetailScreen = () => {
 
   const handleSaveNote = () => {
     if (!numericDeckId || !selectedCardId) return;
-    updateCardMutation.mutate(
+    
+    const selectedCard = cards.find((card) => card.id === selectedCardId);
+    if (!selectedCard) return;
+
+    updateCardWithMetadataMutation.mutate(
       {
         deckId: numericDeckId,
         cardId: selectedCardId,
-        data: {
-          notes: noteValue.trim() ? noteValue.trim() : null,
-        },
+        status: selectedCard.status as "ACTIVE" | "INACTIVE" | "ARCHIVED",
+        notes: noteValue.trim() ? noteValue.trim() : null,
       },
       {
         onSuccess: () => {
@@ -295,10 +299,11 @@ const FlashcardDeckDetailScreen = () => {
     
     setEditingCard(card);
     setEditFormData({
-      word: vocabulary?.wordJp || "",
-      phonetic: vocabulary?.reading || "",
-      mean: meaningsText,
-      wordType: vocabulary?.levelN ? `N${vocabulary.levelN}` : "",
+      wordJp: vocabulary?.wordJp || "",
+      reading: vocabulary?.reading || "",
+      meanings: meaningsText,
+      audioUrl: vocabulary?.audioUrl || "",
+      imageUrl: vocabulary?.imageUrl || "",
     });
     setEditModalVisible(true);
     
@@ -309,13 +314,39 @@ const FlashcardDeckDetailScreen = () => {
   };
 
   const handleSaveEdit = () => {
-    // TODO: Implement save edit functionality when API is ready
-    toast({
-      title: t("flashcard_detail.edit_saved_title", "Đã lưu"),
-      description: t("flashcard_detail.edit_saved_desc", "Thông tin đã được cập nhật."),
-    });
-    setEditModalVisible(false);
-    setEditingCard(null);
+    if (!numericDeckId || !editingCard) return;
+
+    updateCardWithMetadataMutation.mutate(
+      {
+        deckId: numericDeckId,
+        cardId: editingCard.id,
+        status: editingCard.status as "ACTIVE" | "INACTIVE" | "ARCHIVED",
+        metadata: {
+          wordJp: editFormData.wordJp.trim() || undefined,
+          reading: editFormData.reading.trim() || null,
+          meanings: editFormData.meanings.trim() || undefined,
+          audioUrl: editFormData.audioUrl.trim() || null,
+          imageUrl: editFormData.imageUrl.trim() || null,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast({
+            title: t("flashcard_detail.edit_saved_title", "Đã lưu"),
+            description: t("flashcard_detail.edit_saved_desc", "Thông tin đã được cập nhật."),
+          });
+          setEditModalVisible(false);
+          setEditingCard(null);
+        },
+        onError: () => {
+          toast({
+            title: t("flashcard_detail.edit_error_title", "Có lỗi xảy ra"),
+            description: t("flashcard_detail.edit_error_desc", "Vui lòng thử lại sau."),
+            variant: "destructive",
+          });
+        },
+      }
+    );
   };
 
   const handleDelete = (card: IFlashcardDeckCard) => {
@@ -702,7 +733,7 @@ const FlashcardDeckDetailScreen = () => {
               <TouchableOpacity
                 className="px-4 py-3 rounded-2xl bg-slate-100"
                 onPress={() => setNoteModalVisible(false)}
-                disabled={updateCardMutation.isPending}
+                disabled={updateCardWithMetadataMutation.isPending}
               >
                 <Text style={{ color: "#475569", fontWeight: "600" }}>
                   {t("flashcard_detail.note_modal_cancel", "Hủy")}
@@ -711,9 +742,9 @@ const FlashcardDeckDetailScreen = () => {
               <TouchableOpacity
                 className="px-5 py-3 rounded-2xl bg-sky-500"
                 onPress={handleSaveNote}
-                disabled={updateCardMutation.isPending}
+                disabled={updateCardWithMetadataMutation.isPending}
               >
-                {updateCardMutation.isPending ? (
+                {updateCardWithMetadataMutation.isPending ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <Text style={{ color: "#fff", fontWeight: "700" }}>
@@ -743,78 +774,89 @@ const FlashcardDeckDetailScreen = () => {
               </TouchableOpacity>
             </View>
 
-            <View className="mb-4">
-              <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
-                {t("flashcard_detail.edit_word_field", "Word")}
-              </Text>
-              <View className="border border-slate-200 rounded-2xl bg-white">
-                <TextInput
-                  value={editFormData.word}
-                  onChangeText={(text) => setEditFormData((prev) => ({ ...prev, word: text }))}
-                  placeholder={t("flashcard_detail.edit_word_placeholder", "Nhập từ")}
-                  placeholderTextColor="#94a3b8"
-                  style={{ padding: 16, fontSize: 15, color: "#0f172a" }}
-                />
+            <ScrollView style={{ maxHeight: 500 }}>
+              <View className="mb-4">
+                <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
+                  {t("flashcard_detail.edit_word_field", "Word")} (wordJp)
+                </Text>
+                <View className="border border-slate-200 rounded-2xl bg-white">
+                  <TextInput
+                    value={editFormData.wordJp}
+                    onChangeText={(text) => setEditFormData((prev) => ({ ...prev, wordJp: text }))}
+                    placeholder={t("flashcard_detail.edit_word_placeholder", "Nhập từ")}
+                    placeholderTextColor="#94a3b8"
+                    style={{ padding: 16, fontSize: 15, color: "#0f172a" }}
+                  />
+                </View>
               </View>
-            </View>
 
-            <View className="mb-4">
-              <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
-                {t("flashcard_detail.edit_phonetic_field", "Phonetic")}
-              </Text>
-              <View className="border border-slate-200 rounded-2xl bg-white">
-                <TextInput
-                  value={editFormData.phonetic}
-                  onChangeText={(text) => setEditFormData((prev) => ({ ...prev, phonetic: text }))}
-                  placeholder={t("flashcard_detail.edit_phonetic_placeholder", "Nhập phiên âm")}
-                  placeholderTextColor="#94a3b8"
-                  style={{ padding: 16, fontSize: 15, color: "#0f172a" }}
-                />
+              <View className="mb-4">
+                <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
+                  {t("flashcard_detail.edit_phonetic_field", "Phonetic")} (reading)
+                </Text>
+                <View className="border border-slate-200 rounded-2xl bg-white">
+                  <TextInput
+                    value={editFormData.reading}
+                    onChangeText={(text) => setEditFormData((prev) => ({ ...prev, reading: text }))}
+                    placeholder={t("flashcard_detail.edit_phonetic_placeholder", "Nhập phiên âm")}
+                    placeholderTextColor="#94a3b8"
+                    style={{ padding: 16, fontSize: 15, color: "#0f172a" }}
+                  />
+                </View>
               </View>
-            </View>
 
-            <View className="mb-4">
-              <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
-                {t("flashcard_detail.edit_mean_field", "Mean")}
-              </Text>
-              <View className="border border-slate-200 rounded-2xl bg-white">
-                <TextInput
-                  value={editFormData.mean}
-                  onChangeText={(text) => setEditFormData((prev) => ({ ...prev, mean: text }))}
-                  placeholder={t("flashcard_detail.edit_mean_placeholder", "Nhập nghĩa")}
-                  placeholderTextColor="#94a3b8"
-                  multiline
-                  style={{ minHeight: 80, padding: 16, fontSize: 15, color: "#0f172a", textAlignVertical: "top" }}
-                />
+              <View className="mb-4">
+                <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
+                  {t("flashcard_detail.edit_mean_field", "Mean")} (meanings)
+                </Text>
+                <View className="border border-slate-200 rounded-2xl bg-white">
+                  <TextInput
+                    value={editFormData.meanings}
+                    onChangeText={(text) => setEditFormData((prev) => ({ ...prev, meanings: text }))}
+                    placeholder={t("flashcard_detail.edit_mean_placeholder", "Nhập nghĩa")}
+                    placeholderTextColor="#94a3b8"
+                    multiline
+                    style={{ minHeight: 80, padding: 16, fontSize: 15, color: "#0f172a", textAlignVertical: "top" }}
+                  />
+                </View>
               </View>
-            </View>
 
-            <View className="mb-6">
-              <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
-                {t("flashcard_detail.edit_word_type_field", "Word")}
-              </Text>
-              <Select
-                options={[
-                  { label: t("flashcard_detail.word_type_n5", "N5"), value: "N5" },
-                  { label: t("flashcard_detail.word_type_n4", "N4"), value: "N4" },
-                  { label: t("flashcard_detail.word_type_n3", "N3"), value: "N3" },
-                  { label: t("flashcard_detail.word_type_n2", "N2"), value: "N2" },
-                  { label: t("flashcard_detail.word_type_n1", "N1"), value: "N1" },
-                ]}
-                value={editFormData.wordType}
-                onValueChange={(value) => setEditFormData((prev) => ({ ...prev, wordType: value }))}
-                placeholder={t("flashcard_detail.word_type_placeholder", "Chọn loại từ")}
-                style={{
-                  backgroundColor: "#fff",
-                  borderColor: "#cbd5e1",
-                }}
-              />
-            </View>
+              <View className="mb-4">
+                <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
+                  Audio URL (audioUrl)
+                </Text>
+                <View className="border border-slate-200 rounded-2xl bg-white">
+                  <TextInput
+                    value={editFormData.audioUrl}
+                    onChangeText={(text) => setEditFormData((prev) => ({ ...prev, audioUrl: text }))}
+                    placeholder="Nhập URL audio"
+                    placeholderTextColor="#94a3b8"
+                    style={{ padding: 16, fontSize: 15, color: "#0f172a" }}
+                  />
+                </View>
+              </View>
+
+              <View className="mb-6">
+                <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
+                  Image URL (imageUrl)
+                </Text>
+                <View className="border border-slate-200 rounded-2xl bg-white">
+                  <TextInput
+                    value={editFormData.imageUrl}
+                    onChangeText={(text) => setEditFormData((prev) => ({ ...prev, imageUrl: text }))}
+                    placeholder="Nhập URL hình ảnh"
+                    placeholderTextColor="#94a3b8"
+                    style={{ padding: 16, fontSize: 15, color: "#0f172a" }}
+                  />
+                </View>
+              </View>
+            </ScrollView>
 
             <View className="flex-row justify-end gap-3">
               <TouchableOpacity
                 className="px-4 py-3 rounded-2xl bg-slate-100"
                 onPress={() => setEditModalVisible(false)}
+                disabled={updateCardWithMetadataMutation.isPending}
               >
                 <Text style={{ color: "#475569", fontWeight: "600" }}>
                   {t("flashcard_detail.edit_cancel", "Cancel")}
@@ -823,10 +865,15 @@ const FlashcardDeckDetailScreen = () => {
               <TouchableOpacity
                 className="px-5 py-3 rounded-2xl bg-sky-500"
                 onPress={handleSaveEdit}
+                disabled={updateCardWithMetadataMutation.isPending}
               >
-                <Text style={{ color: "#fff", fontWeight: "700" }}>
-                  {t("flashcard_detail.edit_done", "Done")}
-                </Text>
+                {updateCardWithMetadataMutation.isPending ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={{ color: "#fff", fontWeight: "700" }}>
+                    {t("flashcard_detail.edit_done", "Done")}
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
