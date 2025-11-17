@@ -6,6 +6,7 @@ import { FlashcardContentType } from "@constants/flashcard.enum";
 import { useDebounce } from "@hooks/useDebounce";
 import {
     useFlashcardDeckCards,
+    useRemoveWordFromFlashcardDeck,
     useUpdateFlashcardDeckCard,
 } from "@hooks/useFlashcard";
 import { IFlashcardDeckCard } from "@models/flashcard/flashcard.common";
@@ -16,19 +17,22 @@ import {
     Check,
     ChevronLeft,
     ChevronUp,
+    Edit,
     Loader2,
     MoreVertical,
     Plus,
     Search,
     Shuffle,
     StickyNote,
+    Trash2,
     Volume2,
     X,
 } from "lucide-react-native";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
+    Animated,
     Modal,
     RefreshControl,
     ScrollView,
@@ -37,6 +41,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const FilterToggle = ({
@@ -142,6 +147,15 @@ const FlashcardDeckDetailScreen = () => {
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<number | null>(null);
   const [noteValue, setNoteValue] = useState("");
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingCard, setEditingCard] = useState<IFlashcardDeckCard | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    word: "",
+    phonetic: "",
+    mean: "",
+    wordType: "",
+  });
+  const swipeableRefs = useRef<{ [key: number]: Swipeable | null }>({});
 
   const debouncedSearch = useDebounce(searchKeyword, 400);
   const insets = useSafeAreaInsets();
@@ -174,6 +188,7 @@ const FlashcardDeckDetailScreen = () => {
   );
 
   const updateCardMutation = useUpdateFlashcardDeckCard();
+  const removeWordMutation = useRemoveWordFromFlashcardDeck();
 
   const cards: IFlashcardDeckCard[] = useMemo(
     () => data?.data?.results ?? [],
@@ -262,17 +277,141 @@ const FlashcardDeckDetailScreen = () => {
     );
   };
 
+  const handleOpenEditModal = (card: IFlashcardDeckCard) => {
+    const vocabulary = card?.vocabulary;
+    let meaningsText = "";
+    
+    // Handle meanings - could be translation key or actual array/string
+    if (vocabulary?.meanings) {
+      if (typeof vocabulary.meanings === "string" && vocabulary.meanings.startsWith("vocabulary.")) {
+        // Try to translate, fallback to empty if translation key doesn't exist
+        const translated = t(vocabulary.meanings, { defaultValue: "" });
+        meaningsText = translated || "";
+      } else {
+        const meanings = parseMeanings(vocabulary.meanings);
+        meaningsText = meanings.join("; ");
+      }
+    }
+    
+    setEditingCard(card);
+    setEditFormData({
+      word: vocabulary?.wordJp || "",
+      phonetic: vocabulary?.reading || "",
+      mean: meaningsText,
+      wordType: vocabulary?.levelN ? `N${vocabulary.levelN}` : "",
+    });
+    setEditModalVisible(true);
+    
+    // Close swipeable
+    if (swipeableRefs.current[card.id]) {
+      swipeableRefs.current[card.id]?.close();
+    }
+  };
+
+  const handleSaveEdit = () => {
+    // TODO: Implement save edit functionality when API is ready
+    toast({
+      title: t("flashcard_detail.edit_saved_title", "Đã lưu"),
+      description: t("flashcard_detail.edit_saved_desc", "Thông tin đã được cập nhật."),
+    });
+    setEditModalVisible(false);
+    setEditingCard(null);
+  };
+
+  const handleDelete = (card: IFlashcardDeckCard) => {
+    if (!numericDeckId || !card.vocabularyId) return;
+    
+    // Close swipeable
+    if (swipeableRefs.current[card.id]) {
+      swipeableRefs.current[card.id]?.close();
+    }
+
+    removeWordMutation.mutate(
+      {
+        deckId: numericDeckId,
+        vocabularyId: card.vocabularyId,
+      },
+      {
+        onSuccess: () => {
+          toast({
+            title: t("flashcard_detail.delete_success_title", "Đã xóa"),
+            description: t("flashcard_detail.delete_success_desc", "Từ đã được xóa khỏi bộ thẻ."),
+          });
+        },
+        onError: () => {
+          toast({
+            title: t("flashcard_detail.delete_error_title", "Có lỗi xảy ra"),
+            description: t("flashcard_detail.delete_error_desc", "Vui lòng thử lại sau."),
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
+
+  const renderRightActions = (card: IFlashcardDeckCard, dragX: Animated.AnimatedInterpolation<number>) => {
+    const scale = dragX.interpolate({
+      inputRange: [-100, 0],
+      outputRange: [1, 0.8],
+      extrapolate: "clamp",
+    });
+
+    return (
+      <View 
+        className="flex-row items-stretch" 
+        style={{ 
+          width: 160,
+          borderRadius: 16,
+          overflow: "hidden",
+        }}
+      >
+        <TouchableOpacity
+          className="flex-1 items-center justify-center bg-red-500"
+          onPress={() => handleDelete(card)}
+          style={{ paddingHorizontal: 20 }}
+        >
+          <Animated.View style={{ transform: [{ scale }] }}>
+            <Trash2 size={24} color="#fff" />
+          </Animated.View>
+          <Text style={{ color: "#fff", fontSize: 12, marginTop: 4, fontWeight: "600" }}>
+            {t("flashcard_detail.delete", "Delete")}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="flex-1 items-center justify-center bg-green-500"
+          onPress={() => handleOpenEditModal(card)}
+          style={{ paddingHorizontal: 20 }}
+        >
+          <Animated.View style={{ transform: [{ scale }] }}>
+            <Edit size={24} color="#fff" />
+          </Animated.View>
+          <Text style={{ color: "#fff", fontSize: 12, marginTop: 4, fontWeight: "600" }}>
+            {t("flashcard_detail.edit", "Edit")}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   const renderCardItem = (card: IFlashcardDeckCard, index: number) => {
     const vocabulary = card?.vocabulary;
     const meanings = parseMeanings(vocabulary?.meanings);
     return (
-      <View
-        key={card.id}
-        className="mb-4 rounded-2xl bg-white shadow-sm border border-slate-100"
-        style={{
-          padding: 16,
-        }}
-      >
+      <View className="mb-4" key={card.id}>
+        <Swipeable
+          ref={(ref) => {
+            swipeableRefs.current[card.id] = ref;
+          }}
+          renderRightActions={(progress, dragX) => renderRightActions(card, dragX)}
+          overshootRight={false}
+        >
+          <View
+            className="rounded-2xl bg-white shadow-sm border border-slate-100"
+            style={{
+              padding: 16,
+            }}
+          >
         <View className="flex-row justify-between items-start mb-3">
           <View className="flex-row items-center gap-2">
             <View className="h-8 w-8 rounded-full bg-sky-100 items-center justify-center">
@@ -351,6 +490,8 @@ const FlashcardDeckDetailScreen = () => {
             #{card.id}
           </Text>
         </View>
+          </View>
+        </Swipeable>
       </View>
     );
   };
@@ -568,6 +709,113 @@ const FlashcardDeckDetailScreen = () => {
                     {t("flashcard_detail.note_modal_save", "Lưu")}
                   </Text>
                 )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={editModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View className="flex-1 bg-black/40 justify-center items-center px-6">
+          <View className="w-full max-w-md rounded-3xl bg-white p-6">
+            <View className="flex-row justify-between items-center mb-4">
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#0f172a" }}>
+                {t("flashcard_detail.edit_word_title", "Edit word")}: &quot;{editingCard?.vocabulary?.wordJp || ""}&quot;
+              </Text>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                <X size={20} color="#94a3b8" />
+              </TouchableOpacity>
+            </View>
+
+            <View className="mb-4">
+              <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
+                {t("flashcard_detail.edit_word_field", "Word")}
+              </Text>
+              <View className="border border-slate-200 rounded-2xl bg-white">
+                <TextInput
+                  value={editFormData.word}
+                  onChangeText={(text) => setEditFormData((prev) => ({ ...prev, word: text }))}
+                  placeholder={t("flashcard_detail.edit_word_placeholder", "Nhập từ")}
+                  placeholderTextColor="#94a3b8"
+                  style={{ padding: 16, fontSize: 15, color: "#0f172a" }}
+                />
+              </View>
+            </View>
+
+            <View className="mb-4">
+              <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
+                {t("flashcard_detail.edit_phonetic_field", "Phonetic")}
+              </Text>
+              <View className="border border-slate-200 rounded-2xl bg-white">
+                <TextInput
+                  value={editFormData.phonetic}
+                  onChangeText={(text) => setEditFormData((prev) => ({ ...prev, phonetic: text }))}
+                  placeholder={t("flashcard_detail.edit_phonetic_placeholder", "Nhập phiên âm")}
+                  placeholderTextColor="#94a3b8"
+                  style={{ padding: 16, fontSize: 15, color: "#0f172a" }}
+                />
+              </View>
+            </View>
+
+            <View className="mb-4">
+              <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
+                {t("flashcard_detail.edit_mean_field", "Mean")}
+              </Text>
+              <View className="border border-slate-200 rounded-2xl bg-white">
+                <TextInput
+                  value={editFormData.mean}
+                  onChangeText={(text) => setEditFormData((prev) => ({ ...prev, mean: text }))}
+                  placeholder={t("flashcard_detail.edit_mean_placeholder", "Nhập nghĩa")}
+                  placeholderTextColor="#94a3b8"
+                  multiline
+                  style={{ minHeight: 80, padding: 16, fontSize: 15, color: "#0f172a", textAlignVertical: "top" }}
+                />
+              </View>
+            </View>
+
+            <View className="mb-6">
+              <Text style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
+                {t("flashcard_detail.edit_word_type_field", "Word")}
+              </Text>
+              <Select
+                options={[
+                  { label: t("flashcard_detail.word_type_n5", "N5"), value: "N5" },
+                  { label: t("flashcard_detail.word_type_n4", "N4"), value: "N4" },
+                  { label: t("flashcard_detail.word_type_n3", "N3"), value: "N3" },
+                  { label: t("flashcard_detail.word_type_n2", "N2"), value: "N2" },
+                  { label: t("flashcard_detail.word_type_n1", "N1"), value: "N1" },
+                ]}
+                value={editFormData.wordType}
+                onValueChange={(value) => setEditFormData((prev) => ({ ...prev, wordType: value }))}
+                placeholder={t("flashcard_detail.word_type_placeholder", "Chọn loại từ")}
+                style={{
+                  backgroundColor: "#fff",
+                  borderColor: "#cbd5e1",
+                }}
+              />
+            </View>
+
+            <View className="flex-row justify-end gap-3">
+              <TouchableOpacity
+                className="px-4 py-3 rounded-2xl bg-slate-100"
+                onPress={() => setEditModalVisible(false)}
+              >
+                <Text style={{ color: "#475569", fontWeight: "600" }}>
+                  {t("flashcard_detail.edit_cancel", "Cancel")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="px-5 py-3 rounded-2xl bg-sky-500"
+                onPress={handleSaveEdit}
+              >
+                <Text style={{ color: "#fff", fontWeight: "700" }}>
+                  {t("flashcard_detail.edit_done", "Done")}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
