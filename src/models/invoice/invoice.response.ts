@@ -1,3 +1,4 @@
+import { at } from "@models/common/common.request";
 import { z } from "zod";
 
 /**
@@ -13,30 +14,40 @@ export const createInvoiceResponse = z.object({
         discountAmount: z.number(),
         totalAmount: z.number(),
         status: z.string(),
-        createdAt: z.string(),
-        updatedAt: z.string(),
-        deletedAt: z.string().nullable(),
+        ...at
     }),
     payment: z.object({
-        id: z.number(),
-        userId: z.number(),
-        invoiceId: z.number(),
-        paymentMethod: z.string(),
-        amount: z.number(),
-        status: z.string(),
-        createdAt: z.string(),
-        updatedAt: z.string(),
-        deletedAt: z.string().nullable(),
+        payment: z.object({
+            id: z.number(),
+            userId: z.number(),
+            invoiceId: z.number(),
+            changeAmount: z.number().nullable(),
+            expiredAt: z.string(),
+            failureReason: z.string().nullable(),
+            gatewayResponse: z.string().nullable(),
+            paymentMethod: z.string(),
+            amount: z.number(),
+            status: z.string(),
+            paidAt: z.string().nullable(),
+            payosCheckoutUrl: z.string(),
+            payosOrderId: z.string(),
+            payosPaymentLinkId: z.string(),
+            payosQrCode: z.string(),
+            payosTransactionId: z.string().nullable(),
+            processedById: z.number(),
+            receivedAmount: z.number().nullable(),
+            ...at
+        }),
+        payosData: z.object({
+            amount: z.number(),
+            checkoutUrl: z.string(),
+            expiredAt: z.number(),
+            orderCode: z.number(),
+            paymentLinkId: z.string(),
+            qrCode: z.string(),
+        }),
     }),
-    payosData: z.object({
-        orderCode: z.number(),
-        checkoutUrl: z.string(),
-        qrCode: z.string(),
-        paymentLinkId: z.string(),
-        expiredAt: z.number(),
-        amount: z.number(),
-    }),
-});
+})
 
 export type ICreateInvoiceResponse = z.infer<typeof createInvoiceResponse>;
 //----------------------End----------------------//

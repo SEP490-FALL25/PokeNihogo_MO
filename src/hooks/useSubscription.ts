@@ -27,24 +27,3 @@ export const useSubscriptionPackages = () => {
         queryFn: () => subscriptionService.getPackages(),
     });
 };
-
-/**
- * Hook to purchase a subscription package
- * @returns Mutation object with mutate function
- */
-export const useSubscriptionPurchase = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (body: ISubscriptionPurchaseRequest) => subscriptionService.purchase(body),
-        onSuccess: () => {
-            // Invalidate related queries after successful purchase
-            queryClient.invalidateQueries({ queryKey: ['subscription-packages'] });
-            queryClient.invalidateQueries({ queryKey: ['subscription-marketplace-packages'] });
-            queryClient.invalidateQueries({ queryKey: ['wallet-user'] });
-        },
-        onError: (error) => {
-            console.error('Subscription purchase error:', error);
-        },
-    });
-};
-

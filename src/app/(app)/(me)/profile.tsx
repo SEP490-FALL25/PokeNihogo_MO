@@ -273,7 +273,7 @@ export default function ProfileScreen() {
               className="flex-row items-center px-4.5 py-2.5 rounded-2xl gap-1.5 mb-3"
             >
               <Trophy size={16} color="white" strokeWidth={2.5} />
-              <Text className="text-base font-bold text-white tracking-wide">{userProfile?.level.levelNumber}</Text>
+              <Text className="text-base font-bold text-white tracking-wide">{userProfile?.rankName}</Text>
             </LinearGradient>
 
             <View className="flex-row items-center gap-1.5">

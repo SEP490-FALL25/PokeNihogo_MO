@@ -1,27 +1,37 @@
+import { openInAppBrowser } from "@components/atoms/InAppBrowser";
 import MinimalAlert from "@components/atoms/MinimalAlert";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
+import BackScreen from "@components/molecules/Back";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { WALLET } from "@constants/wallet.enum";
-import { useSubscriptionMarketplacePackages, useSubscriptionPurchase } from "@hooks/useSubscription";
+import { useCreateInvoice, useRefetchUserData } from "@hooks/useInvoice";
+import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
 import { useWalletUser } from "@hooks/useWallet";
 import { ISubscriptionMarketplaceEntity } from "@models/subscription/subscription.entity";
 import { SubscriptionPackageType } from "@models/subscription/subscription.request";
-import { BookOpen, Check, Crown, Headphones, Sparkles } from "lucide-react-native";
+import payosService from "@services/payos";
+import { BookOpen, Check, Coins, Crown, Headphones, RefreshCw } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const MIN_POKECOIN_DEDUCTION = 10000;
+const POKECOIN_DEDUCTION_STEP = 10000;
 
 export default function SubscriptionScreen() {
     const { t } = useTranslation();
     const { data: packagesData, isLoading: isLoadingPackages } = useSubscriptionMarketplacePackages();
     const { walletUser, isLoading: isLoadingWallet } = useWalletUser();
-    const { mutate: purchasePackage, isPending: isPurchasing } = useSubscriptionPurchase();
+    const { mutate: createInvoice, isPending: isPurchasing } = useCreateInvoice();
+    const { refetchAll } = useRefetchUserData();
 
-    const [alertVisible, setAlertVisible] = useState(false);
-    const [alertMessage, setAlertMessage] = useState('');
+    const [alertVisible, setAlertVisible] = useState<boolean>(false);
+    const [alertMessage, setAlertMessage] = useState<string>('');
     const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('error');
+    const [selectedDiscounts, setSelectedDiscounts] = useState<Record<number, number>>({});
+    const [isResolvingInvoice, setIsResolvingInvoice] = useState<boolean>(false);
 
     const packages = packagesData?.data?.data || [];
     const userBalance = walletUser?.find((w: any) => w.type === WALLET.WALLET_TYPES.PAID_COINS)?.balance ?? 0;
@@ -85,6 +95,80 @@ export default function SubscriptionScreen() {
         setAlertVisible(false);
     }, []);
 
+    const handleBrowserClose = useCallback(() => {
+        // Refetch data after payment (when browser closes)
+        refetchAll();
+    }, [refetchAll]);
+
+    const handleBrowserError = useCallback((error: Error) => {
+        setAlertMessage(error.message || t('subscription.purchase_failed'));
+        setAlertType('error');
+        setAlertVisible(true);
+    }, [t]);
+
+    const getMaxDeductable = useCallback((price: number) => {
+        const cap = Math.min(price, userBalance);
+        if (cap < MIN_POKECOIN_DEDUCTION) {
+            return 0;
+        }
+        return Math.floor(cap / POKECOIN_DEDUCTION_STEP) * POKECOIN_DEDUCTION_STEP;
+    }, [userBalance]);
+
+    const handleAdjustDeduction = useCallback((packageId: number, price: number, direction: 'increase' | 'decrease') => {
+        setSelectedDiscounts((prev) => {
+            const max = getMaxDeductable(price);
+            if (!max) {
+                return {
+                    ...prev,
+                    [packageId]: 0,
+                };
+            }
+
+            const current = prev[packageId] || 0;
+            const delta = direction === 'increase' ? POKECOIN_DEDUCTION_STEP : -POKECOIN_DEDUCTION_STEP;
+            const nextRaw = Math.min(Math.max(current + delta, 0), max);
+            const nextValue = Math.floor(nextRaw / POKECOIN_DEDUCTION_STEP) * POKECOIN_DEDUCTION_STEP;
+
+            return {
+                ...prev,
+                [packageId]: nextValue,
+            };
+        });
+    }, [getMaxDeductable]);
+
+    const handleContinuePayment = useCallback(async (invoiceId?: number | null) => {
+        if (!invoiceId) {
+            setAlertMessage(t('subscription.purchase_failed'));
+            setAlertType('error');
+            setAlertVisible(true);
+            return;
+        }
+
+        setIsResolvingInvoice(true);
+        try {
+            const response = await payosService.recallPayment(invoiceId);
+            const responseData = response.data?.data;
+            const checkoutUrl = responseData?.payosData?.checkoutUrl;
+
+            if (checkoutUrl) {
+                openInAppBrowser(checkoutUrl, {
+                    onClose: handleBrowserClose,
+                    onError: handleBrowserError,
+                });
+            } else {
+                setAlertType('error');
+                setAlertVisible(true);
+            }
+        } catch (error: any) {
+            const errorMessage = error?.response?.data?.message || t('subscription.purchase_failed');
+            setAlertMessage(errorMessage);
+            setAlertType('error');
+            setAlertVisible(true);
+        } finally {
+            setIsResolvingInvoice(false);
+        }
+    }, [handleBrowserClose, handleBrowserError, t]);
+
     const handlePurchase = useCallback((packageItem: ISubscriptionMarketplaceEntity) => {
         const activePlan = getActivePlan(packageItem);
         if (!activePlan) {
@@ -94,31 +178,89 @@ export default function SubscriptionScreen() {
             return;
         }
 
-        if (userBalance < activePlan.price) {
-            setAlertMessage(t('subscription.insufficient_balance'));
-            setAlertType('error');
-            setAlertVisible(true);
+        if (activePlan.pendingInvoice) {
+            handleContinuePayment(activePlan.pendingInvoice.id);
             return;
         }
 
-        const packageType = getPackageType(packageItem);
-        purchasePackage(
-            { packageType },
+        const maxDeductable = getMaxDeductable(activePlan.price);
+        const selectedDiscount = selectedDiscounts[packageItem.id] || 0;
+        const discountAmount = Math.min(selectedDiscount, maxDeductable);
+        const normalizedDiscount = discountAmount >= MIN_POKECOIN_DEDUCTION
+            ? Math.floor(discountAmount / POKECOIN_DEDUCTION_STEP) * POKECOIN_DEDUCTION_STEP
+            : 0;
+
+        createInvoice(
             {
-                onSuccess: (data) => {
-                    setAlertMessage(data.data.message || t('subscription.purchase_success'));
-                    setAlertType('success');
-                    setAlertVisible(true);
+                subscriptionPlanId: activePlan.id,
+                discountAmount: normalizedDiscount,
+            },
+            {
+                onSuccess: (response) => {
+                    setSelectedDiscounts((prev) => ({
+                        ...prev,
+                        [packageItem.id]: 0,
+                    }));
+                    const responseData = response.data?.data;
+
+                    const checkoutUrl = responseData?.payment?.payosData?.checkoutUrl;
+
+                    if (checkoutUrl) {
+                        openInAppBrowser(checkoutUrl, {
+                            onClose: handleBrowserClose,
+                            onError: handleBrowserError,
+                        });
+                    } else {
+                        setAlertMessage(responseData?.message || t('subscription.purchase_success'));
+                        setAlertType('success');
+                        setAlertVisible(true);
+                    }
                 },
                 onError: (error: any) => {
-                    const errorMessage = error?.response?.data?.message || t('subscription.purchase_failed');
-                    setAlertMessage(errorMessage);
-                    setAlertType('error');
-                    setAlertVisible(true);
+                    const statusCode = error?.response?.status;
+                    const errorData = error?.response?.data;
+
+                    if (statusCode === 409 && errorData?.data?.invoiceId) {
+                        const invoiceId = errorData.data.invoiceId;
+
+                        payosService.recallPayment(invoiceId)
+                            .then((response) => {
+                                const responseData = response.data?.data;
+                                const checkoutUrl = responseData?.payosData?.checkoutUrl;
+
+                                if (checkoutUrl) {
+                                    openInAppBrowser(checkoutUrl, {
+                                        onClose: handleBrowserClose,
+                                        onError: handleBrowserError,
+                                    });
+                                } else {
+                                    setAlertType('error');
+                                    setAlertVisible(true);
+                                }
+                            })
+                            .catch((recallError: any) => {
+                                const recallErrorMessage = recallError?.response?.data?.message || errorData?.message || t('subscription.purchase_failed');
+                                setAlertMessage(recallErrorMessage);
+                                setAlertType('error');
+                                setAlertVisible(true);
+                            });
+                    } else {
+                        const errorMessage = errorData?.message || t('subscription.purchase_failed');
+                        setAlertMessage(errorMessage);
+                        setAlertType('error');
+                        setAlertVisible(true);
+                    }
                 },
             }
         );
-    }, [userBalance, purchasePackage, t, getActivePlan, getPackageType]);
+    }, [createInvoice, t, getActivePlan, handleBrowserClose, handleBrowserError, selectedDiscounts, getMaxDeductable, handleContinuePayment]);
+
+    const handleRefetch = useCallback(() => {
+        refetchAll();
+        setAlertMessage(t('subscription.data_refreshed'));
+        setAlertType('success');
+        setAlertVisible(true);
+    }, [refetchAll, t]);
 
     const getPackageIcon = (packageType: SubscriptionPackageType) => {
         switch (packageType) {
@@ -177,7 +319,11 @@ export default function SubscriptionScreen() {
 
     return (
         <SafeAreaView className="flex-1 bg-white">
+            <StatusBar barStyle="dark-content" />
             <ThemedView className="flex-1">
+                <BackScreen
+                    color="black"
+                />
                 <ScrollView className="flex-1" contentContainerStyle={styles.scrollContent}>
                     {/* Header */}
                     <View className="px-6 pt-12 pb-6">
@@ -193,14 +339,27 @@ export default function SubscriptionScreen() {
                     <View className="mx-6 mb-6">
                         <View className="bg-slate-100 dark:bg-slate-800 rounded-2xl p-4 flex-row items-center justify-between">
                             <View className="flex-row items-center gap-2">
-                                <Sparkles size={24} color="#f59e0b" />
+                                <Coins size={24} color="#f59e0b" />
                                 <Text className="text-slate-700 dark:text-slate-300 font-semibold text-lg">
                                     {t('subscription.balance')}
                                 </Text>
                             </View>
-                            <Text className="text-amber-500 font-bold text-xl">
-                                {formatPrice(userBalance)}
-                            </Text>
+                            <View className="flex-row items-center gap-3">
+                                <Text className="text-amber-500 font-bold text-xl">
+                                    {formatPrice(userBalance)}
+                                </Text>
+                                <TouchableOpacity
+                                    onPress={handleRefetch}
+                                    className="p-2"
+                                    disabled={isLoadingPackages || isLoadingWallet}
+                                >
+                                    <RefreshCw
+                                        size={20}
+                                        color="#3b82f6"
+                                        style={isLoadingPackages || isLoadingWallet ? { opacity: 0.5 } : {}}
+                                    />
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
 
@@ -212,7 +371,6 @@ export default function SubscriptionScreen() {
                             const isUltra = packageType === SubscriptionPackageType.ULTRA_EXPLORER;
                             const isPopular = packageItem.isPopular;
                             const canBuy = packageItem.canBuy;
-                            const canAfford = activePlan ? userBalance >= activePlan.price : false;
                             const gradientColors = getPackageGradient(packageType);
                             const benefits = getBenefits(packageItem);
                             const duration = activePlan ? formatDuration(activePlan) : null;
@@ -220,6 +378,27 @@ export default function SubscriptionScreen() {
                             if (!activePlan) {
                                 return null; // Skip packages without active plans
                             }
+
+                            const pendingInvoice = activePlan.pendingInvoice;
+                            const hasPendingInvoice = Boolean(pendingInvoice);
+                            const rawSelectedDiscount = selectedDiscounts[packageItem.id] || 0;
+                            const maxDeductable = activePlan ? getMaxDeductable(activePlan.price) : 0;
+                            const selectableDiscount = Math.min(rawSelectedDiscount, maxDeductable);
+                            const selectedDiscount = hasPendingInvoice
+                                ? pendingInvoice?.discountAmount ?? 0
+                                : selectableDiscount;
+                            const finalPrice = hasPendingInvoice
+                                ? pendingInvoice?.totalAmount ?? activePlan.price
+                                : activePlan
+                                    ? Math.max(activePlan.price - selectedDiscount, 0)
+                                    : 0;
+                            const usagePercent = !hasPendingInvoice && maxDeductable
+                                ? selectedDiscount / maxDeductable
+                                : 0;
+                            const buttonLabel = hasPendingInvoice
+                                ? t('subscription.continue_payment', { defaultValue: 'Tiếp tục thanh toán' })
+                                : t('subscription.purchase');
+                            const isActionBusy = hasPendingInvoice ? isResolvingInvoice : isPurchasing;
 
                             return (
                                 <View
@@ -274,32 +453,160 @@ export default function SubscriptionScreen() {
                                             </View>
                                         )}
 
+                                        {/* PokeCoin Deduction */}
+                                        {canBuy && hasPendingInvoice && (
+                                            <View className="mb-4 rounded-3xl border border-amber-200/40 bg-white/10 p-4">
+                                                <Text className="text-white font-semibold text-base">
+                                                    {t('subscription.pending_invoice_title', { defaultValue: 'Bạn có hóa đơn đang chờ' })}
+                                                </Text>
+                                                <Text className="text-white/70 text-xs mt-1">
+                                                    {t('subscription.pending_invoice_desc', { defaultValue: 'Hoàn tất thanh toán để kích hoạt quyền lợi.' })}
+                                                </Text>
+                                                <View className="mt-3 rounded-2xl bg-white/10 border border-white/15 p-3">
+                                                    <Text className="text-white text-sm font-semibold">
+                                                        {t('subscription.pending_invoice_amount', {
+                                                            defaultValue: 'Tổng cần thanh toán: {{amount}}₫',
+                                                            amount: formatPrice(finalPrice),
+                                                        })}
+                                                    </Text>
+                                                    {selectedDiscount > 0 && (
+                                                        <Text className="text-white/70 text-xs mt-1">
+                                                            {t('subscription.pending_invoice_discount', {
+                                                                defaultValue: 'Đã trừ PokeCoin: -{{amount}}₫',
+                                                                amount: formatPrice(selectedDiscount),
+                                                            })}
+                                                        </Text>
+                                                    )}
+                                                </View>
+                                            </View>
+                                        )}
+                                        {canBuy && !hasPendingInvoice && (
+                                            <View className="mb-4 rounded-3xl border border-white/15 bg-white/10 p-4">
+                                                <View className="flex-row items-center justify-between mb-3">
+                                                    <View className="flex-row items-center gap-2">
+                                                        <View className="w-10 h-10 rounded-2xl bg-white/15 items-center justify-center">
+                                                            <Coins size={22} color="#fcd34d" />
+                                                        </View>
+                                                        <View>
+                                                            <Text className="text-white font-semibold text-base">
+                                                                {t('subscription.poke_coin_title', { defaultValue: 'Sử dụng PokeCoin' })}
+                                                            </Text>
+                                                            <Text className="text-white/60 text-xs">
+                                                                {t('subscription.balance_short', { defaultValue: 'Số dư:' })} {formatPrice(userBalance)}₫
+                                                            </Text>
+                                                        </View>
+                                                    </View>
+                                                    {selectedDiscount > 0 && (
+                                                        <View className="px-3 py-1 rounded-full bg-emerald-400/20 border border-emerald-200/30">
+                                                            <Text className="text-emerald-100 text-xs font-semibold">
+                                                                -{formatPrice(selectedDiscount)}₫
+                                                            </Text>
+                                                        </View>
+                                                    )}
+                                                </View>
+                                                {maxDeductable < MIN_POKECOIN_DEDUCTION ? (
+                                                    <Text className="text-white/70 text-xs">
+                                                        {t('subscription.poke_coin_insufficient', { defaultValue: 'Cần tối thiểu 10.000₫ để trừ PokeCoin.' })}
+                                                    </Text>
+                                                ) : (
+                                                    <>
+                                                        <View className="mb-3">
+                                                            <View className="flex-row justify-between mb-1">
+                                                                <Text className="text-white/70 text-xs">
+                                                                    {t('subscription.poke_coin_hint', { defaultValue: 'Bội số 10.000₫' })}
+                                                                </Text>
+                                                                <Text className="text-white/80 text-xs">
+                                                                    {t('subscription.poke_coin_max', {
+                                                                        defaultValue: 'Tối đa {{amount}}₫',
+                                                                        amount: formatPrice(maxDeductable),
+                                                                    })}
+                                                                </Text>
+                                                            </View>
+                                                            <View className="h-1.5 rounded-full bg-white/15 overflow-hidden">
+                                                                <View
+                                                                    className="h-full bg-white"
+                                                                    style={{ width: `${Math.min(Math.max(usagePercent * 100, 0), 100)}%` }}
+                                                                />
+                                                            </View>
+                                                        </View>
+                                                        <View className="flex-row items-center gap-3">
+                                                            <TouchableOpacity
+                                                                onPress={() => handleAdjustDeduction(packageItem.id, activePlan.price, 'decrease')}
+                                                                disabled={selectedDiscount === 0 || isPurchasing}
+                                                                className={`w-12 h-12 rounded-2xl items-center justify-center border ${selectedDiscount === 0 ? 'border-white/20 bg-white/5' : 'border-white/60 bg-white/15'}`}
+                                                            >
+                                                                <Text className="text-xl font-bold text-white">−</Text>
+                                                            </TouchableOpacity>
+                                                            <View className="flex-1 py-2 rounded-2xl bg-white/15 border border-white/20 items-center">
+                                                                <Text className="text-white text-xs uppercase tracking-wide">
+                                                                    {t('subscription.poke_coin_using', { defaultValue: 'Đang trừ' })}
+                                                                </Text>
+                                                                <Text className="text-white font-bold text-xl">
+                                                                    -{formatPrice(selectedDiscount)}₫
+                                                                </Text>
+                                                            </View>
+                                                            <TouchableOpacity
+                                                                onPress={() => handleAdjustDeduction(packageItem.id, activePlan.price, 'increase')}
+                                                                disabled={selectedDiscount >= maxDeductable || isPurchasing}
+                                                                className={`w-12 h-12 rounded-2xl items-center justify-center border ${selectedDiscount >= maxDeductable ? 'border-white/20 bg-white/5' : 'border-white/60 bg-white/15'}`}
+                                                            >
+                                                                <Text className="text-xl font-bold text-white">+</Text>
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    </>
+                                                )}
+                                            </View>
+                                        )}
+
                                         {/* Price and Purchase Button */}
                                         <View className="flex-row items-center justify-between mt-2">
                                             <View>
                                                 <Text className="text-white/80 text-sm">
                                                     {t('subscription.price')}
                                                 </Text>
+                                                {selectedDiscount > 0 && (
+                                                    <Text
+                                                        className="text-white/60 text-xs mt-1"
+                                                        style={{ textDecorationLine: 'line-through' }}
+                                                    >
+                                                        {formatPrice(activePlan.price)} ₫
+                                                    </Text>
+                                                )}
                                                 <View className="flex-row items-center gap-1 mt-1">
                                                     <Text className="text-white font-bold text-2xl">
-                                                        {formatPrice(activePlan.price)}
+                                                        {formatPrice(finalPrice)}
                                                     </Text>
                                                     <Text className="text-white/80 text-sm">₫</Text>
                                                 </View>
-                                            </View>
-                                            <TouchableOpacity
-                                                onPress={() => handlePurchase(packageItem)}
-                                                disabled={!canBuy || !canAfford || isPurchasing}
-                                                className={`px-6 py-3 rounded-xl ${canBuy && canAfford && !isPurchasing ? 'bg-white' : 'bg-white/50'}`}
-                                            >
-                                                {isPurchasing ? (
-                                                    <ActivityIndicator size="small" color="#3b82f6" />
-                                                ) : (
-                                                    <Text className={`font-bold ${canBuy && canAfford ? 'text-slate-800' : 'text-slate-500'}`}>
-                                                        {t('subscription.purchase')}
+                                                {selectedDiscount > 0 && (
+                                                    <Text className="text-emerald-200 text-xs mt-1">
+                                                        -{formatPrice(selectedDiscount)}₫ {t('subscription.from_poke_coin', { defaultValue: 'từ PokeCoin' })}
                                                     </Text>
                                                 )}
-                                            </TouchableOpacity>
+                                            </View>
+                                            {!canBuy ? (
+                                                // Already purchased - show "Đã mua" badge
+                                                <View className="px-6 py-3 rounded-xl bg-green-500/20 border border-green-400/30">
+                                                    <Text className="font-bold text-green-300 text-center">
+                                                        {t('subscription.purchased')}
+                                                    </Text>
+                                                </View>
+                                            ) : (
+                                                // Can purchase - show purchase button
+                                                <TouchableOpacity
+                                                    onPress={() => handlePurchase(packageItem)}
+                                                    disabled={isActionBusy}
+                                                    className="px-6 py-3 rounded-xl bg-white"
+                                                >
+                                                    {isActionBusy ? (
+                                                        <ActivityIndicator size="small" color="#3b82f6" />
+                                                    ) : (
+                                                        <Text className="font-bold text-slate-800">
+                                                            {buttonLabel}
+                                                        </Text>
+                                                    )}
+                                                </TouchableOpacity>
+                                            )}
                                         </View>
                                     </TWLinearGradient>
                                 </View>
