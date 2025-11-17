@@ -1,32 +1,38 @@
 import EmptyState from "@components/ui/EmptyState";
 import { EnhancedPagination } from "@components/ui/Pagination";
 import { Select } from "@components/ui/Select";
+import { useToast } from "@components/ui/Toast";
 import { useDebounce } from "@hooks/useDebounce";
-import { useFlashcardDecks } from "@hooks/useFlashcard";
+import {
+  useCreateFlashcardDeck,
+  useFlashcardDecks,
+} from "@hooks/useFlashcard";
 import { IFlashcardDeck } from "@models/flashcard/flashcard.common";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import {
-    ChevronLeft,
-    Loader2,
-    Plus,
-    Search,
-    Sparkles,
+  ChevronLeft,
+  Loader2,
+  Plus,
+  Search,
+  Sparkles,
 } from "lucide-react-native";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    ActivityIndicator,
-    RefreshControl,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Modal,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import {
-    SafeAreaView,
-    useSafeAreaInsets,
+  SafeAreaView,
+  useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
 const ITEMS_PER_PAGE_OPTIONS = [
@@ -60,10 +66,14 @@ const statusBadgeStyles: Record<
 const FlashcardDeckListScreen = () => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+  const [newDeckName, setNewDeckName] = useState("");
+  const [createDeckError, setCreateDeckError] = useState<string | null>(null);
   const debouncedSearch = useDebounce(search, 400);
 
   const queryParams = useMemo(
@@ -86,6 +96,7 @@ const FlashcardDeckListScreen = () => {
 
   const { data, isLoading, isFetching, refetch } =
     useFlashcardDecks(queryParams);
+  const createDeckMutation = useCreateFlashcardDeck();
 
   const decks: IFlashcardDeck[] = data?.data?.results ?? [];
   const pagination = data?.data?.pagination;
@@ -199,6 +210,56 @@ const FlashcardDeckListScreen = () => {
 
   const insetBottom = Math.max(insets.bottom, 10);
 
+  const handleOpenCreateModal = () => {
+    setCreateDeckError(null);
+    setNewDeckName("");
+    setIsCreateModalVisible(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    if (createDeckMutation.isPending) return;
+    setIsCreateModalVisible(false);
+  };
+
+  const handleCreateDeck = () => {
+    const trimmedName = newDeckName.trim();
+    if (!trimmedName) {
+      setCreateDeckError(
+        t("flashcard_list.create_error_required", "Tên bộ flashcard không được để trống")
+      );
+      return;
+    }
+
+    setCreateDeckError(null);
+    createDeckMutation.mutate(
+      { name: trimmedName },
+      {
+        onSuccess: () => {
+          toast({
+            title: t("flashcard_list.create_success_title", "Tạo bộ flashcard thành công"),
+            description: t(
+              "flashcard_list.create_success_desc",
+              "Bạn có thể thêm từ mới ngay bây giờ."
+            ),
+          });
+          setIsCreateModalVisible(false);
+          setNewDeckName("");
+        },
+        onError: (error: any) => {
+          const message =
+            error?.response?.data?.message ||
+            error?.message ||
+            t("flashcard_list.create_error_desc", "Không thể tạo bộ flashcard. Vui lòng thử lại.");
+          toast({
+            title: t("flashcard_list.create_error_title", "Tạo bộ flashcard thất bại"),
+            description: message,
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f8fafc" }}>
       <View className="flex-1 bg-slate-50">
@@ -212,7 +273,11 @@ const FlashcardDeckListScreen = () => {
           <Text style={{ fontSize: 18, fontWeight: "700", color: "#0f172a" }}>
             {t("flashcard_list.title", "Flashcard decks")}
           </Text>
-          <TouchableOpacity className="p-2 rounded-full bg-slate-100">
+          <TouchableOpacity
+            className="p-2 rounded-full bg-slate-100"
+            onPress={handleOpenCreateModal}
+            disabled={createDeckMutation.isPending}
+          >
             <Plus size={20} color="#0f172a" />
           </TouchableOpacity>
         </View>
@@ -340,6 +405,112 @@ const FlashcardDeckListScreen = () => {
           />
         </View>
       </View>
+
+      <Modal
+        visible={isCreateModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCloseCreateModal}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(15, 23, 42, 0.5)",
+            justifyContent: "center",
+            padding: 24,
+          }}
+        >
+          <TouchableWithoutFeedback onPress={handleCloseCreateModal}>
+            <View
+              style={{
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
+              }}
+            />
+          </TouchableWithoutFeedback>
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 24,
+              padding: 24,
+              gap: 16,
+            }}
+          >
+            <Text style={{ fontSize: 18, fontWeight: "700", color: "#0f172a" }}>
+              {t("flashcard_list.create_modal_title", "Tạo bộ flashcard mới")}
+            </Text>
+            <TextInput
+              placeholder={t(
+                "flashcard_list.create_modal_placeholder",
+                "Nhập tên bộ flashcard"
+              )}
+              placeholderTextColor="#94a3b8"
+              value={newDeckName}
+              onChangeText={setNewDeckName}
+              style={{
+                borderWidth: 1,
+                borderColor: createDeckError ? "#f87171" : "#e2e8f0",
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                fontSize: 15,
+                color: "#0f172a",
+              }}
+              editable={!createDeckMutation.isPending}
+              autoFocus
+            />
+            {createDeckError ? (
+              <Text style={{ color: "#dc2626", fontSize: 13 }}>
+                {createDeckError}
+              </Text>
+            ) : null}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                gap: 12,
+              }}
+            >
+              <TouchableOpacity
+                onPress={handleCloseCreateModal}
+                disabled={createDeckMutation.isPending}
+                style={{
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                }}
+              >
+                <Text style={{ color: "#64748b", fontWeight: "600" }}>
+                  {t("common.cancel", "Hủy")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleCreateDeck}
+                disabled={createDeckMutation.isPending}
+                style={{
+                  backgroundColor: "#0ea5e9",
+                  borderRadius: 16,
+                  paddingHorizontal: 18,
+                  paddingVertical: 12,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                  opacity: createDeckMutation.isPending ? 0.7 : 1,
+                }}
+              >
+                {createDeckMutation.isPending && (
+                  <ActivityIndicator size="small" color="#fff" />
+                )}
+                <Text style={{ color: "#fff", fontWeight: "700" }}>
+                  {t("flashcard_list.create_modal_submit", "Tạo mới")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
