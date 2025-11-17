@@ -1,6 +1,7 @@
 import { openInAppBrowser } from "@components/atoms/InAppBrowser";
 import MinimalAlert from "@components/atoms/MinimalAlert";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
+import BackScreen from "@components/molecules/Back";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { WALLET } from "@constants/wallet.enum";
@@ -282,6 +283,9 @@ export default function SubscriptionScreen() {
     return (
         <SafeAreaView className="flex-1 bg-white">
             <ThemedView className="flex-1">
+                <BackScreen
+                    color="black"
+                />
                 <ScrollView className="flex-1" contentContainerStyle={styles.scrollContent}>
                     {/* Header */}
                     <View className="px-6 pt-12 pb-6">

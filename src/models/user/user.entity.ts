@@ -48,6 +48,7 @@ export const UserEntity = z.object({
         }).nullable(),
     }),
     pokemonCount: z.number(),
+    rankName: z.string(),
     subscription: z.object({
         canRead: z.boolean(),
         canListen: z.boolean(),
