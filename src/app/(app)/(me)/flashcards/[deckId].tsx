@@ -394,6 +394,16 @@ const FlashcardDeckDetailScreen = () => {
     );
   };
 
+  const handleSwipeableWillOpen = useCallback((cardId: number) => {
+    // Close all other swipeable items immediately when a new one starts to open
+    Object.keys(swipeableRefs.current).forEach((id) => {
+      const idNum = Number(id);
+      if (idNum !== cardId && swipeableRefs.current[idNum]) {
+        swipeableRefs.current[idNum]?.close();
+      }
+    });
+  }, []);
+
   const renderCardItem = (card: IFlashcardDeckCard, index: number) => {
     const vocabulary = card?.vocabulary;
     const meanings = parseMeanings(vocabulary?.meanings);
@@ -405,6 +415,7 @@ const FlashcardDeckDetailScreen = () => {
           }}
           renderRightActions={(progress, dragX) => renderRightActions(card, dragX)}
           overshootRight={false}
+          onSwipeableWillOpen={() => handleSwipeableWillOpen(card.id)}
         >
           <View
             className="rounded-2xl bg-white shadow-sm border border-slate-100"
@@ -419,13 +430,13 @@ const FlashcardDeckDetailScreen = () => {
                 {index + 1 + (currentPage - 1) * pageSize}
               </Text>
             </View>
-            <View>
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#0f172a" }}>
+            <View className="flex-row items-center gap-2 flex-wrap">
+              <Text style={{ fontSize: 18, fontWeight: "700", color: "#0ea5e9" }}>
                 {vocabulary?.wordJp || t("flashcard_detail.unknown_word", "Chưa rõ")}
               </Text>
               {filters.phonetic && !!vocabulary?.reading && (
-                <Text style={{ color: "#0ea5e9", marginTop: 2 }}>
-                  {vocabulary?.reading}
+                    <Text style={{ color: "#64748b", fontSize: 12, alignSelf: "flex-end" }}>
+                    {vocabulary?.reading}
                 </Text>
               )}
             </View>
@@ -451,13 +462,13 @@ const FlashcardDeckDetailScreen = () => {
           </View>
         </View>
 
-        {filters.word && !!vocabulary?.wordJp && (
+        {/* {filters.word && !!vocabulary?.wordJp && (
           <View className="mb-3">
             <Text style={{ fontSize: 32, fontWeight: "700", color: "#0369a1" }}>
               {vocabulary?.wordJp}
             </Text>
           </View>
-        )}
+        )} */}
 
         {filters.meaning && meanings.length > 0 && (
           <View className="mb-3">
@@ -482,13 +493,13 @@ const FlashcardDeckDetailScreen = () => {
           </View>
         )}
 
-        <View className="mt-4 flex-row items-center justify-between">
+        <View className="mt-4 flex-row items-center justify-end">
           <Text style={{ fontSize: 12, color: "#94a3b8" }}>
             {formatDate(card.updatedAt || card.createdAt)}
           </Text>
-          <Text style={{ fontSize: 12, color: "#0284c7" }}>
+          {/* <Text style={{ fontSize: 12, color: "#0284c7" }}>
             #{card.id}
-          </Text>
+          </Text> */}
         </View>
           </View>
         </Swipeable>
