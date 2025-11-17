@@ -755,6 +755,11 @@
     "poke_coin_hint": "Multiples of 10,000₫",
     "poke_coin_max": "Up to {{amount}}₫",
     "poke_coin_using": "Applying",
-    "from_poke_coin": "from PokeCoin"
+    "from_poke_coin": "from PokeCoin",
+    "continue_payment": "Continue payment",
+    "pending_invoice_title": "You have a pending invoice",
+    "pending_invoice_desc": "Complete the payment to activate your benefits.",
+    "pending_invoice_amount": "Amount due: {{amount}}₫",
+    "pending_invoice_discount": "PokeCoin applied: -{{amount}}₫"
   }
 }

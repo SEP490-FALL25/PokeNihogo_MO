@@ -561,7 +561,12 @@
         "poke_coin_hint": "10,000₫ の倍数",
         "poke_coin_max": "上限 {{amount}}₫",
         "poke_coin_using": "使用額",
-        "from_poke_coin": "PokeCoin から"
+        "from_poke_coin": "PokeCoin から",
+        "continue_payment": "支払いを続ける",
+        "pending_invoice_title": "保留中の請求書があります",
+        "pending_invoice_desc": "支払いを完了して特典を有効化してください。",
+        "pending_invoice_amount": "お支払い金額: {{amount}}₫",
+        "pending_invoice_discount": "適用済みPokeCoin: -{{amount}}₫"
     },
     "exercise_history": {
         "title": "練習履歴",

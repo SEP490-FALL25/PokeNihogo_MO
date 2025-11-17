@@ -31,6 +31,7 @@ export default function SubscriptionScreen() {
     const [alertMessage, setAlertMessage] = useState<string>('');
     const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('error');
     const [selectedDiscounts, setSelectedDiscounts] = useState<Record<number, number>>({});
+    const [isResolvingInvoice, setIsResolvingInvoice] = useState<boolean>(false);
 
     const packages = packagesData?.data?.data || [];
     const userBalance = walletUser?.find((w: any) => w.type === WALLET.WALLET_TYPES.PAID_COINS)?.balance ?? 0;
@@ -135,12 +136,50 @@ export default function SubscriptionScreen() {
         });
     }, [getMaxDeductable]);
 
+    const handleContinuePayment = useCallback(async (invoiceId?: number | null) => {
+        if (!invoiceId) {
+            setAlertMessage(t('subscription.purchase_failed'));
+            setAlertType('error');
+            setAlertVisible(true);
+            return;
+        }
+
+        setIsResolvingInvoice(true);
+        try {
+            const response = await payosService.recallPayment(invoiceId);
+            const responseData = response.data?.data;
+            const checkoutUrl = responseData?.payosData?.checkoutUrl;
+
+            if (checkoutUrl) {
+                openInAppBrowser(checkoutUrl, {
+                    onClose: handleBrowserClose,
+                    onError: handleBrowserError,
+                });
+            } else {
+                setAlertType('error');
+                setAlertVisible(true);
+            }
+        } catch (error: any) {
+            const errorMessage = error?.response?.data?.message || t('subscription.purchase_failed');
+            setAlertMessage(errorMessage);
+            setAlertType('error');
+            setAlertVisible(true);
+        } finally {
+            setIsResolvingInvoice(false);
+        }
+    }, [handleBrowserClose, handleBrowserError, t]);
+
     const handlePurchase = useCallback((packageItem: ISubscriptionMarketplaceEntity) => {
         const activePlan = getActivePlan(packageItem);
         if (!activePlan) {
             setAlertMessage(t('subscription.purchase_failed'));
             setAlertType('error');
             setAlertVisible(true);
+            return;
+        }
+
+        if (activePlan.pendingInvoice) {
+            handleContinuePayment(activePlan.pendingInvoice.id);
             return;
         }
 
@@ -214,7 +253,7 @@ export default function SubscriptionScreen() {
                 },
             }
         );
-    }, [createInvoice, t, getActivePlan, handleBrowserClose, handleBrowserError, selectedDiscounts, getMaxDeductable]);
+    }, [createInvoice, t, getActivePlan, handleBrowserClose, handleBrowserError, selectedDiscounts, getMaxDeductable, handleContinuePayment]);
 
     const handleRefetch = useCallback(() => {
         refetchAll();
@@ -340,11 +379,26 @@ export default function SubscriptionScreen() {
                                 return null; // Skip packages without active plans
                             }
 
+                            const pendingInvoice = activePlan.pendingInvoice;
+                            const hasPendingInvoice = Boolean(pendingInvoice);
                             const rawSelectedDiscount = selectedDiscounts[packageItem.id] || 0;
                             const maxDeductable = activePlan ? getMaxDeductable(activePlan.price) : 0;
-                            const selectedDiscount = Math.min(rawSelectedDiscount, maxDeductable);
-                            const finalPrice = activePlan ? Math.max(activePlan.price - selectedDiscount, 0) : 0;
-                            const usagePercent = maxDeductable ? selectedDiscount / maxDeductable : 0;
+                            const selectableDiscount = Math.min(rawSelectedDiscount, maxDeductable);
+                            const selectedDiscount = hasPendingInvoice
+                                ? pendingInvoice?.discountAmount ?? 0
+                                : selectableDiscount;
+                            const finalPrice = hasPendingInvoice
+                                ? pendingInvoice?.totalAmount ?? activePlan.price
+                                : activePlan
+                                    ? Math.max(activePlan.price - selectedDiscount, 0)
+                                    : 0;
+                            const usagePercent = !hasPendingInvoice && maxDeductable
+                                ? selectedDiscount / maxDeductable
+                                : 0;
+                            const buttonLabel = hasPendingInvoice
+                                ? t('subscription.continue_payment', { defaultValue: 'Tiếp tục thanh toán' })
+                                : t('subscription.purchase');
+                            const isActionBusy = hasPendingInvoice ? isResolvingInvoice : isPurchasing;
 
                             return (
                                 <View
@@ -400,7 +454,33 @@ export default function SubscriptionScreen() {
                                         )}
 
                                         {/* PokeCoin Deduction */}
-                                        {canBuy && (
+                                        {canBuy && hasPendingInvoice && (
+                                            <View className="mb-4 rounded-3xl border border-amber-200/40 bg-white/10 p-4">
+                                                <Text className="text-white font-semibold text-base">
+                                                    {t('subscription.pending_invoice_title', { defaultValue: 'Bạn có hóa đơn đang chờ' })}
+                                                </Text>
+                                                <Text className="text-white/70 text-xs mt-1">
+                                                    {t('subscription.pending_invoice_desc', { defaultValue: 'Hoàn tất thanh toán để kích hoạt quyền lợi.' })}
+                                                </Text>
+                                                <View className="mt-3 rounded-2xl bg-white/10 border border-white/15 p-3">
+                                                    <Text className="text-white text-sm font-semibold">
+                                                        {t('subscription.pending_invoice_amount', {
+                                                            defaultValue: 'Tổng cần thanh toán: {{amount}}₫',
+                                                            amount: formatPrice(finalPrice),
+                                                        })}
+                                                    </Text>
+                                                    {selectedDiscount > 0 && (
+                                                        <Text className="text-white/70 text-xs mt-1">
+                                                            {t('subscription.pending_invoice_discount', {
+                                                                defaultValue: 'Đã trừ PokeCoin: -{{amount}}₫',
+                                                                amount: formatPrice(selectedDiscount),
+                                                            })}
+                                                        </Text>
+                                                    )}
+                                                </View>
+                                            </View>
+                                        )}
+                                        {canBuy && !hasPendingInvoice && (
                                             <View className="mb-4 rounded-3xl border border-white/15 bg-white/10 p-4">
                                                 <View className="flex-row items-center justify-between mb-3">
                                                     <View className="flex-row items-center gap-2">
@@ -515,14 +595,14 @@ export default function SubscriptionScreen() {
                                                 // Can purchase - show purchase button
                                                 <TouchableOpacity
                                                     onPress={() => handlePurchase(packageItem)}
-                                                    disabled={isPurchasing}
+                                                    disabled={isActionBusy}
                                                     className="px-6 py-3 rounded-xl bg-white"
                                                 >
-                                                    {isPurchasing ? (
+                                                    {isActionBusy ? (
                                                         <ActivityIndicator size="small" color="#3b82f6" />
                                                     ) : (
                                                         <Text className="font-bold text-slate-800">
-                                                            {t('subscription.purchase')}
+                                                            {buttonLabel}
                                                         </Text>
                                                     )}
                                                 </TouchableOpacity>
