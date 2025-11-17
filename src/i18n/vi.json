@@ -784,10 +784,24 @@
     "balance": "Số dư",
     "price": "Giá",
     "purchase": "Mua ngay",
+    "purchased": "Đã mua",
     "lifetime": "Trọn đời",
     "popular": "PHỔ BIẾN",
     "purchase_success": "Mua gói dịch vụ thành công!",
     "purchase_failed": "Mua gói dịch vụ thất bại",
-    "insufficient_balance": "Số dư không đủ để mua gói này"
+    "insufficient_balance": "Số dư không đủ để mua gói này",
+    "data_refreshed": "Đã làm mới dữ liệu",
+    "balance_short": "Số dư",
+    "poke_coin_title": "Sử dụng PokeCoin",
+    "poke_coin_insufficient": "Cần tối thiểu 10.000₫ để trừ PokeCoin.",
+    "poke_coin_hint": "Bội số 10.000₫",
+    "poke_coin_max": "Tối đa {{amount}}₫",
+    "poke_coin_using": "Đang trừ",
+    "from_poke_coin": "từ PokeCoin",
+    "continue_payment": "Tiếp tục thanh toán",
+    "pending_invoice_title": "Bạn có hóa đơn đang chờ",
+    "pending_invoice_desc": "Hoàn tất thanh toán để kích hoạt quyền lợi.",
+    "pending_invoice_amount": "Tổng cần thanh toán: {{amount}}₫",
+    "pending_invoice_discount": "Đã trừ PokeCoin: -{{amount}}₫"
   }
 }
