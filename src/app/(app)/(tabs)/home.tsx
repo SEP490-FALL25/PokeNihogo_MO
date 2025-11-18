@@ -4,13 +4,14 @@ import MainNavigation from "@components/MainNavigation";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import WelcomeModal from "@components/ui/WelcomeModal";
+import { SubscriptionFeatureKey } from "@constants/subscription.enum";
 import { useSrsReview } from "@hooks/useSrsReview";
+import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
 import { useRecentExercises } from "@hooks/useUserHistory";
 import { ISrsReviewItem } from "@models/srs/srs-review.response";
 import { IRecentExerciseItem } from "@models/user-history/user-history.response";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
-import { AxiosError } from "axios";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import {
@@ -307,12 +308,15 @@ export default function HomeScreen() {
     pageSize: 10,
   });
 
+  // Check if user has personalized recommendations feature
+  const hasPersonalizedRecommendations = useCheckFeature(
+    SubscriptionFeatureKey.PERSONALIZED_RECOMMENDATIONS
+  );
+
   // Personalized SRS review insights
   const {
     data: srsReviewData,
     isLoading: isSrsLoading,
-    isError: isSrsError,
-    error: srsError,
   } = useSrsReview({
     currentPage: 1,
     pageSize: 6,
@@ -362,13 +366,11 @@ export default function HomeScreen() {
     return srsReviewData?.data?.data?.results || [];
   }, [srsReviewData]);
 
+  // Check if personalization is locked based on subscription feature
   const isPersonalizationLocked = useMemo(() => {
-    if (!isSrsError) return false;
-    const axiosError = srsError as AxiosError | undefined;
-    const status = axiosError?.response?.status;
-    if (!status) return false;
-    return [402, 403, 451].includes(status);
-  }, [isSrsError, srsError]);
+    // If user doesn't have the feature, it's locked
+    return !hasPersonalizedRecommendations;
+  }, [hasPersonalizedRecommendations]);
 
   const shouldRenderPersonalization = isSrsLoading || !!srsReviewData || isPersonalizationLocked;
 
@@ -468,78 +470,80 @@ export default function HomeScreen() {
 
         {shouldRenderPersonalization && (
           <View style={styles.aiSection}>
-            <LinearGradient
-              colors={["#eef2ff", "#fdf2f8"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.aiHeroCard}
-            >
-              <View style={styles.aiHeroHeader}>
-                <View style={styles.aiHeroBadge}>
-                  <Sparkles size={16} color="#7c3aed" />
-                  <ThemedText style={styles.aiHeroBadgeText}>
-                    Trợ lý AI
-                  </ThemedText>
+            <View style={isPersonalizationLocked && styles.lockedContainer}>
+              <LinearGradient
+                colors={isPersonalizationLocked ? ["#f3f4f6", "#e5e7eb"] : ["#eef2ff", "#fdf2f8"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={[styles.aiHeroCard, isPersonalizationLocked && styles.aiHeroCardLocked]}
+              >
+                <View style={styles.aiHeroHeader}>
+                  <View style={[styles.aiHeroBadge, isPersonalizationLocked && styles.aiHeroBadgeLocked]}>
+                    <Sparkles size={16} color={isPersonalizationLocked ? "#9ca3af" : "#7c3aed"} />
+                    <ThemedText style={[styles.aiHeroBadgeText, isPersonalizationLocked && styles.aiHeroBadgeTextLocked]}>
+                      Trợ lý AI
+                    </ThemedText>
+                  </View>
+                  {srsInsights.length > 0 && !isPersonalizationLocked && (
+                    <ThemedText style={styles.aiHeroCount}>
+                      {srsInsights.length} mục cần ôn
+                    </ThemedText>
+                  )}
                 </View>
-                {srsInsights.length > 0 && (
-                  <ThemedText style={styles.aiHeroCount}>
-                    {srsInsights.length} mục cần ôn
-                  </ThemedText>
+                <ThemedText style={[styles.aiHeroTitle, isPersonalizationLocked && styles.aiHeroTitleLocked]} numberOfLines={2}>
+                  {isPersonalizationLocked
+                    ? "Nâng cấp để mở khóa"
+                    : "Cá nhân hoá cho hôm nay"}
+                </ThemedText>
+                <ThemedText style={[styles.aiHeroSubtitle, isPersonalizationLocked && styles.aiHeroSubtitleLocked]} numberOfLines={3}>
+                  {isPersonalizationLocked
+                    ? "Mua gói AI Coach để nhận gợi ý học tập riêng cho bạn."
+                    : dominantInsightType
+                    ? `Bạn đang cần củng cố ${dominantInsightType.label.toLowerCase()} nhiều nhất.`
+                    : "Hệ thống sẽ theo dõi tiến trình để gửi thêm gợi ý khi có."}
+                </ThemedText>
+                {dominantInsightType && HighlightIcon && !isPersonalizationLocked && (
+                  <View style={styles.aiHeroHighlight}>
+                    <HighlightIcon size={18} color={dominantInsightType.color} />
+                    <View style={{ flex: 1 }}>
+                      <ThemedText style={styles.aiHeroHighlightText} numberOfLines={1}>
+                        {dominantInsightType.count} mục {dominantInsightType.label.toLowerCase()}
+                      </ThemedText>
+                      <ThemedText style={styles.aiHeroHighlightSub} numberOfLines={2}>
+                        Tập trung trong 5 phút để nhớ lâu hơn
+                      </ThemedText>
+                    </View>
+                  </View>
                 )}
-              </View>
-              <ThemedText style={styles.aiHeroTitle}>
-                {isPersonalizationLocked
-                  ? "Nâng cấp để mở khóa"
-                  : "Cá nhân hoá cho hôm nay"}
-              </ThemedText>
-              <ThemedText style={styles.aiHeroSubtitle}>
-                {isPersonalizationLocked
-                  ? "Mua gói AI Coach để nhận gợi ý học tập riêng cho bạn."
-                  : dominantInsightType
-                  ? `Bạn đang cần củng cố ${dominantInsightType.label.toLowerCase()} nhiều nhất.`
-                  : "Hệ thống sẽ theo dõi tiến trình để gửi thêm gợi ý khi có."}
-              </ThemedText>
-              {dominantInsightType && HighlightIcon && !isPersonalizationLocked && (
-                <View style={styles.aiHeroHighlight}>
-                  <HighlightIcon size={18} color={dominantInsightType.color} />
-                  <View>
-                    <ThemedText style={styles.aiHeroHighlightText}>
-                      {dominantInsightType.count} mục {dominantInsightType.label.toLowerCase()}
-                    </ThemedText>
-                    <ThemedText style={styles.aiHeroHighlightSub}>
-                      Tập trung trong 5 phút để nhớ lâu hơn
-                    </ThemedText>
+                {isPersonalizationLocked && (
+                  <View style={[styles.aiHeroHighlight, styles.aiHeroHighlightLocked]}>
+                    <Lock size={18} color="#9ca3af" />
+                    <View style={{ flex: 1 }}>
+                      <ThemedText style={styles.aiHeroHighlightTextLocked} numberOfLines={1}>
+                        Quyền lợi dành riêng cho hội viên
+                      </ThemedText>
+                      <ThemedText style={styles.aiHeroHighlightSubLocked} numberOfLines={2}>
+                        Mở khoá để xem roadmap học và nhắc nhở thông minh
+                      </ThemedText>
+                    </View>
                   </View>
-                </View>
-              )}
-              {isPersonalizationLocked && (
-                <View style={[styles.aiHeroHighlight, styles.aiHeroHighlightLocked]}>
-                  <Lock size={18} color="#7c3aed" />
-                  <View>
-                    <ThemedText style={styles.aiHeroHighlightText}>
-                      Quyền lợi dành riêng cho hội viên
-                    </ThemedText>
-                    <ThemedText style={styles.aiHeroHighlightSub}>
-                      Mở khoá để xem roadmap học và nhắc nhở thông minh
-                    </ThemedText>
-                  </View>
-                </View>
-              )}
-            </LinearGradient>
+                )}
+              </LinearGradient>
+            </View>
 
             <View style={styles.insightList}>
               {isPersonalizationLocked && (
                 <View style={styles.insightLockedState}>
                   <View style={styles.insightLockedBadge}>
-                    <Lock size={18} color="#7c3aed" />
+                    <Lock size={18} color="#9ca3af" />
                     <ThemedText style={styles.insightLockedBadgeText}>
                       Tính năng cao cấp
                     </ThemedText>
                   </View>
-                  <ThemedText style={styles.insightLockedTitle}>
+                  <ThemedText style={styles.insightLockedTitle} numberOfLines={2}>
                     Mở khóa trợ lý cá nhân hóa
                   </ThemedText>
-                  <ThemedText style={styles.insightLockedDescription}>
+                  <ThemedText style={styles.insightLockedDescription} numberOfLines={3}>
                     Tự động phân tích sai sót, đề xuất flashcard cần ôn và nhắc bạn luyện tập mỗi ngày.
                   </ThemedText>
                   <TouchableOpacity
@@ -694,6 +698,9 @@ const styles = StyleSheet.create({
   aiSection: {
     gap: 16,
   },
+  lockedContainer: {
+    opacity: 0.6,
+  },
   aiHeroCard: {
     borderRadius: 24,
     padding: 20,
@@ -702,6 +709,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 20,
     elevation: 6,
+  },
+  aiHeroCardLocked: {
+    shadowColor: "#9ca3af",
+    shadowOpacity: 0.05,
   },
   aiHeroHeader: {
     flexDirection: "row",
@@ -718,10 +729,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 999,
   },
+  aiHeroBadgeLocked: {
+    backgroundColor: "rgba(156, 163, 175, 0.15)",
+  },
   aiHeroBadgeText: {
     fontSize: 13,
     fontWeight: "600",
     color: "#7c3aed",
+  },
+  aiHeroBadgeTextLocked: {
+    color: "#9ca3af",
   },
   aiHeroCount: {
     fontSize: 13,
@@ -734,11 +751,17 @@ const styles = StyleSheet.create({
     color: "#111827",
     marginBottom: 6,
   },
+  aiHeroTitleLocked: {
+    color: "#6b7280",
+  },
   aiHeroSubtitle: {
     fontSize: 15,
     color: "#4b5563",
     lineHeight: 22,
     marginBottom: 16,
+  },
+  aiHeroSubtitleLocked: {
+    color: "#9ca3af",
   },
   aiHeroHighlight: {
     flexDirection: "row",
@@ -749,16 +772,22 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(67, 56, 202, 0.08)",
   },
   aiHeroHighlightLocked: {
-    backgroundColor: "rgba(124, 58, 237, 0.08)",
+    backgroundColor: "rgba(156, 163, 175, 0.08)",
   },
   aiHeroHighlightText: {
     fontSize: 15,
     fontWeight: "600",
     color: "#312e81",
   },
+  aiHeroHighlightTextLocked: {
+    color: "#6b7280",
+  },
   aiHeroHighlightSub: {
     fontSize: 13,
     color: "#4c1d95",
+  },
+  aiHeroHighlightSubLocked: {
+    color: "#9ca3af",
   },
   insightList: {
     gap: 12,
@@ -858,10 +887,11 @@ const styles = StyleSheet.create({
   insightLockedState: {
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#ddd6fe",
+    borderColor: "#e5e7eb",
     padding: 20,
-    backgroundColor: "#faf5ff",
+    backgroundColor: "#f9fafb",
     gap: 12,
+    opacity: 0.7,
   },
   insightLockedBadge: {
     alignSelf: "flex-start",
@@ -871,21 +901,21 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 999,
-    backgroundColor: "rgba(124, 58, 237, 0.12)",
+    backgroundColor: "rgba(156, 163, 175, 0.12)",
   },
   insightLockedBadgeText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#6d28d9",
+    color: "#6b7280",
   },
   insightLockedTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#4c1d95",
+    color: "#6b7280",
   },
   insightLockedDescription: {
     fontSize: 14,
-    color: "#6b21a8",
+    color: "#9ca3af",
     lineHeight: 22,
   },
   unlockButton: {
