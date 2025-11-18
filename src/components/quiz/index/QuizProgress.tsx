@@ -2,6 +2,7 @@ import { Progress } from "@components/ui/Progress";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import { useTranslation } from "react-i18next";
 
 interface QuizProgressProps {
   currentQuestion: number;
@@ -27,6 +28,7 @@ export const QuizProgress: React.FC<QuizProgressProps> = ({
   score,
   style,
 }) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const progress =
     totalQuestions > 0 ? (currentQuestion / totalQuestions) * 100 : 0;
@@ -42,7 +44,11 @@ export const QuizProgress: React.FC<QuizProgressProps> = ({
       {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <Text style={styles.progressText}>
-          Hoàn thành {currentQuestion}/{totalQuestions}
+          {t("quiz_progress.label", {
+            current: currentQuestion,
+            total: totalQuestions,
+            defaultValue: "Hoàn thành {{current}}/{{total}}",
+          })}
         </Text>
         <Progress value={progress} style={styles.progressBar} />
       </View>
@@ -64,7 +70,9 @@ export const QuizProgress: React.FC<QuizProgressProps> = ({
             style={styles.expandButton}
           >
             <Text style={styles.expandText}>
-              {isExpanded ? "Thu gọn" : "Mở rộng"}
+              {isExpanded
+                ? t("quiz_progress.collapse", "Thu gọn")
+                : t("quiz_progress.expand", "Mở rộng")}
             </Text>
             <Text style={styles.expandChevron}>{isExpanded ? "▴" : "▾"}</Text>
           </TouchableOpacity>

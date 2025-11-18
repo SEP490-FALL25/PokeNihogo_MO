@@ -10,6 +10,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { ChevronLeft, Repeat, Settings2 } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Animated,
@@ -53,6 +54,7 @@ const normalizeVocabularyMeanings = (meanings?: any): string[] => {
 };
 
 const VocabularyFlashcardScreen = () => {
+  const { t } = useTranslation();
   const { id, deckId: deckIdParam, contentType, practiceSource } = useLocalSearchParams<{
     id?: string;
     deckId?: string;
@@ -301,18 +303,32 @@ const VocabularyFlashcardScreen = () => {
 
   const progress = totalCount === 0 ? 0 : (reviewedCount / totalCount) * 100;
   const progressLabel = useMemo(() => {
+    const typeKey =
+      contentTypeValue === "grammar" ||
+      contentTypeValue === "kanji" ||
+      contentTypeValue === "vocabulary"
+        ? contentTypeValue
+        : "vocabulary";
+
     if (isDeckPractice) {
-      return `${reviewedCount}/${totalCount} thẻ trong bộ flashcard`;
+      return t("content_list.flashcard.progress.deck", {
+        reviewed: reviewedCount,
+        total: totalCount,
+        defaultValue: `${reviewedCount}/${totalCount} cards in flashcard deck`,
+      });
     }
 
-    const labelMap: Record<string, string> = {
-      vocabulary: "thẻ từ vựng đã xem",
-      grammar: "thẻ ngữ pháp đã xem",
-      kanji: "thẻ Kanji đã xem",
-    };
-
-    return `${reviewedCount}/${totalCount} ${labelMap[contentTypeValue] || "thẻ đã xem"}`;
-  }, [reviewedCount, totalCount, contentTypeValue, isDeckPractice]);
+    return t(`content_list.flashcard.progress.${typeKey}`, {
+      reviewed: reviewedCount,
+      total: totalCount,
+      defaultValue:
+        typeKey === "grammar"
+          ? `${reviewedCount}/${totalCount} grammar cards reviewed`
+          : typeKey === "kanji"
+            ? `${reviewedCount}/${totalCount} kanji cards reviewed`
+            : `${reviewedCount}/${totalCount} vocabulary cards reviewed`,
+    });
+  }, [contentTypeValue, isDeckPractice, reviewedCount, t, totalCount]);
 
   const isDataLoading = isDeckPractice ? isDeckCardsLoading : isLessonLoading;
 
@@ -587,16 +603,21 @@ const VocabularyFlashcardScreen = () => {
                         </View>
                       ) : (
                         <ThemedText style={{ fontSize: 24, color: "#d97706", textAlign: "center", width: width - 160, lineHeight: 36 }}>
-                          Không có phần giải thích
+                          {t(
+                            "content_list.flashcard.no_explanation",
+                            "No explanation available"
+                          )}
                         </ThemedText>
                       )}
                       {(card?.onReading || card?.kunReading) && (
                         <View className="mt-4" style={{ width: width - 160 }}>
                           <ThemedText style={{ fontSize: 20, color: "#d97706", textAlign: "center", lineHeight: 28 }}>
-                            Âm On: {card?.onReading || "-"}
+                            {t("content_list.flashcard.on_label", "On reading")}:{" "}
+                            {card?.onReading || "-"}
                           </ThemedText>
                           <ThemedText style={{ fontSize: 20, color: "#d97706", textAlign: "center", marginTop: 8, lineHeight: 28 }}>
-                            Âm Kun: {card?.kunReading || "-"}
+                            {t("content_list.flashcard.kun_label", "Kun reading")}:{" "}
+                            {card?.kunReading || "-"}
                           </ThemedText>
                         </View>
                       )}
@@ -619,13 +640,22 @@ const VocabularyFlashcardScreen = () => {
                           style={{ width: width - 160, alignSelf: "center" }}
                         >
                           <ThemedText style={{ fontSize: 26, color: "#0e7490", textAlign: "center", lineHeight: 38 }}>
-                            <ThemedText style={{ fontWeight: "bold" }}>Cách dùng:</ThemedText> {card.usage}
+                            <ThemedText style={{ fontWeight: "bold" }}>
+                              {t(
+                                "content_list.flashcard.usage_label",
+                                "Usage:"
+                              )}
+                            </ThemedText>{" "}
+                            {card.usage}
                           </ThemedText>
                         </View>
                       )}
                       {!card?.description && !card?.usage && (
                         <ThemedText style={{ fontSize: 26, color: "#0891b2", textAlign: "center", width: width - 160, lineHeight: 38 }}>
-                          Chưa có mô tả chi tiết
+                          {t(
+                            "content_list.flashcard.no_details",
+                            "No detailed description"
+                          )}
                         </ThemedText>
                       )}
                     </View>
@@ -643,7 +673,7 @@ const VocabularyFlashcardScreen = () => {
                     ))
                   ) : (
                     <ThemedText style={{ fontSize: 32, color: "#0369a1", textAlign: "center", width: width - 160, lineHeight: 46 }}>
-                      Không có nghĩa
+                      {t("lessons.no_meaning", "No meaning")}
                     </ThemedText>
                   )}
                 </ScrollView>
@@ -715,16 +745,22 @@ const VocabularyFlashcardScreen = () => {
           ) : totalCount === 0 ? (
             <View className="bg-white/70 rounded-3xl p-8 items-center">
               <ThemedText style={{ fontSize: 18, color: "#4b5563", textAlign: "center" }}>
-                Không có dữ liệu để hiển thị
+                {t(
+                  "content_list.flashcard.empty_state",
+                  "No data to display"
+                )}
               </ThemedText>
             </View>
           ) : reviewedCount >= totalCount ? (
             <View className="bg-white/80 rounded-3xl p-8 items-center">
               <ThemedText style={{ fontSize: 24, fontWeight: "bold", color: "#0284c7", textAlign: "center", marginBottom: 8 }}>
-                Hoàn thành!
+                {t("content_list.flashcard.complete_title", "Completed!")}
               </ThemedText>
               <ThemedText style={{ fontSize: 16, color: "#4b5563", textAlign: "center" }}>
-                Bạn có thể xem lại bằng cách nhấn biểu tượng làm mới.
+                {t(
+                  "content_list.flashcard.complete_subtitle",
+                  "You can review again by tapping the refresh icon."
+                )}
               </ThemedText>
             </View>
           ) : (
@@ -773,7 +809,7 @@ const VocabularyFlashcardScreen = () => {
           <View className="flex-row justify-between">
             <View className="flex-1 mr-3 rounded-3xl bg-rose-500/90 py-4 items-center shadow-lg">
               <ThemedText style={{ color: "#ffffff", fontSize: 14, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                Chưa thuộc
+                {t("content_list.flashcard.unknown_label", "Unknown")}
               </ThemedText>
               <ThemedText style={{ fontSize: 24, color: "#ffffff", fontWeight: "bold", marginTop: 4 }}>
                 {unknownCount}
@@ -781,7 +817,7 @@ const VocabularyFlashcardScreen = () => {
             </View>
             <View className="flex-1 ml-3 rounded-3xl bg-sky-500/90 py-4 items-center shadow-lg">
               <ThemedText style={{ color: "#ffffff", fontSize: 14, textTransform: "uppercase", letterSpacing: 0.5 }}>
-                Đã thuộc
+                {t("content_list.flashcard.known_label", "Known")}
               </ThemedText>
               <ThemedText style={{ fontSize: 24, color: "#ffffff", fontWeight: "bold", marginTop: 4 }}>
                 {knownCount}
@@ -796,7 +832,10 @@ const VocabularyFlashcardScreen = () => {
               <TouchableWithoutFeedback>
                 <View className="w-full max-w-md rounded-3xl bg-white p-6">
                   <ThemedText style={{ fontSize: 18, fontWeight: "bold", color: "#1f2937", marginBottom: 16, textAlign: "center" }}>
-                    Tùy chỉnh hiển thị thẻ
+                    {t(
+                      "content_list.flashcard.options.title",
+                      "Customize card display"
+                    )}
                   </ThemedText>
                   <View className="space-y-4">
                     <TouchableOpacity
@@ -807,10 +846,16 @@ const VocabularyFlashcardScreen = () => {
                       }}
                     >
                       <ThemedText style={{ fontSize: 16, fontWeight: "600", color: "#1f2937" }}>
-                        Hiển thị hở
+                        {t(
+                          "content_list.flashcard.options.offset_title",
+                          "Offset stack"
+                        )}
                       </ThemedText>
                       <ThemedText style={{ fontSize: 14, color: "#6b7280", marginTop: 4 }}>
-                        Các thẻ phía sau lệch nhẹ để thấy còn bao nhiêu thẻ.
+                        {t(
+                          "content_list.flashcard.options.offset_description",
+                          "Cards behind are slightly offset to show how many remain."
+                        )}
                       </ThemedText>
                     </TouchableOpacity>
 
@@ -822,10 +867,16 @@ const VocabularyFlashcardScreen = () => {
                       }}
                     >
                       <ThemedText style={{ fontSize: 16, fontWeight: "600", color: "#1f2937" }}>
-                        Chồng lên nhau
+                        {t(
+                          "content_list.flashcard.options.overlap_title",
+                          "Overlap stack"
+                        )}
                       </ThemedText>
                       <ThemedText style={{ fontSize: 14, color: "#6b7280", marginTop: 4 }}>
-                        Các thẻ phía sau trùng nhau để tập trung vào thẻ hiện tại.
+                        {t(
+                          "content_list.flashcard.options.overlap_description",
+                          "Cards behind overlap to stay focused on the current card."
+                        )}
                       </ThemedText>
                     </TouchableOpacity>
                   </View>
@@ -835,7 +886,7 @@ const VocabularyFlashcardScreen = () => {
                     onPress={() => setShowOptions(false)}
                   >
                     <ThemedText style={{ textAlign: "center", color: "#374151", fontWeight: "500" }}>
-                      Đóng
+                      {t("content_list.flashcard.options.close", "Close")}
                     </ThemedText>
                   </TouchableOpacity>
                 </View>

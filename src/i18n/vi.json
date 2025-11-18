@@ -20,9 +20,12 @@
     "simple_dialog": "Hộp thoại đơn giản",
     "simple_dialog_test": "Đây là test hộp thoại đơn giản",
     "close": "Đóng",
+    "cancel": "Hủy",
+    "exit": "Thoát",
     "shop": "Cửa hàng",
     "open-shop": "Mở cửa hàng",
-    "error": "Lỗi"
+    "error": "Lỗi",
+    "something_wrong": "Có lỗi xảy ra, vui lòng thử lại."
   },
   "auth": {
     "email": "Email",
@@ -392,11 +395,181 @@
     "hide_meaning": "Ẩn nghĩa",
     "press_to_see_meaning": "Nhấn để xem nghĩa",
     "no_meaning": "Chưa có nghĩa",
+    "no_description": "Không có mô tả",
     "stroke": "nét",
     "do_vocab_exercise": "Luyện tập từ vựng",
     "do_grammar_exercise": "Luyện tập ngữ pháp",
     "do_kanji_exercise": "Luyện tập kanji",
     "usage": "Ví dụ"
+  },
+  "lesson_detail": {
+    "about_title": "Về bài học này",
+    "stats": {
+      "total_content": "Tổng nội dung",
+      "sections": "Phần học"
+    },
+    "content_list": {
+      "title": "Danh sách nội dung",
+      "subtitle": "Chọn phần muốn học"
+    },
+    "cards": {
+      "start_learning": "Bắt đầu học",
+      "vocabulary": {
+        "title": "Từ vựng",
+        "subtitle": "Học từ mới tiếng Nhật"
+      },
+      "grammar": {
+        "title": "Ngữ pháp",
+        "subtitle": "Cấu trúc câu và mẫu câu"
+      },
+      "kanji": {
+        "title": "Kanji",
+        "subtitle": "Chữ Hán trong tiếng Nhật"
+      }
+    },
+    "test": {
+      "button": "Bắt đầu kiểm tra",
+      "locked_hint": "Hoàn thành tất cả các phần học để bắt đầu kiểm tra"
+    },
+    "status": {
+      "completed": "Hoàn thành",
+      "failed": "Chưa đạt",
+      "in_progress": "Đang làm",
+      "abandoned": "Đã bỏ",
+      "pending": "Đang chờ",
+      "unknown": "Chưa có dữ liệu"
+    }
+  },
+  "content_list": {
+    "activity": {
+      "learn": {
+        "vocabulary": "Học từ mới",
+        "kanji": "Học Kanji",
+        "grammar": "Học ngữ pháp"
+      },
+      "match": "Trò chơi ghép thẻ",
+      "test": {
+        "vocabulary": "Kiểm tra từ mới",
+        "kanji": "Kiểm tra Kanji",
+        "grammar": "Kiểm tra ngữ pháp"
+      },
+      "reflex": "Luyện phản xạ",
+      "default_in_lesson": "{{title}} trong bài"
+    },
+    "banner": {
+      "vocabulary": "Từ vựng trong bài",
+      "kanji": "Kanji trong bài",
+      "grammar": "Ngữ pháp trong bài"
+    },
+    "empty_states": {
+      "vocabulary": "Không có từ vựng nào",
+      "kanji": "Không có Kanji nào",
+      "grammar": "Không có ngữ pháp nào"
+    },
+    "kanji_modal": {
+      "title": "Giải thích Kanji",
+      "on_reading": "Âm Onyomi",
+      "kun_reading": "Âm Kunyomi",
+      "stroke_count": "Số nét",
+      "stroke_value": "{{count}} nét",
+      "details_heading": "📖 Giải thích chi tiết"
+    },
+    "flashcard": {
+      "progress": {
+        "deck": "{{reviewed}}/{{total}} thẻ trong bộ flashcard",
+        "vocabulary": "{{reviewed}}/{{total}} thẻ từ vựng đã xem",
+        "grammar": "{{reviewed}}/{{total}} thẻ ngữ pháp đã xem",
+        "kanji": "{{reviewed}}/{{total}} thẻ Kanji đã xem"
+      },
+      "no_explanation": "Không có phần giải thích",
+      "on_label": "Âm On",
+      "kun_label": "Âm Kun",
+      "usage_label": "Cách dùng:",
+      "no_details": "Chưa có mô tả chi tiết",
+      "empty_state": "Không có dữ liệu để hiển thị",
+      "complete_title": "Hoàn thành!",
+      "complete_subtitle": "Bạn có thể xem lại bằng cách nhấn biểu tượng làm mới.",
+      "unknown_label": "Chưa thuộc",
+      "known_label": "Đã thuộc",
+      "options": {
+        "title": "Tùy chỉnh hiển thị thẻ",
+        "offset_title": "Hiển thị hở",
+        "offset_description": "Các thẻ phía sau lệch nhẹ để thấy còn bao nhiêu thẻ.",
+        "overlap_title": "Chồng lên nhau",
+        "overlap_description": "Các thẻ phía sau trùng nhau để tập trung vào thẻ hiện tại.",
+        "close": "Đóng"
+      }
+    }
+  },
+  "quiz_screen": {
+    "title": "Làm bài kiểm tra",
+    "loading": "Đang tải...",
+    "alerts": {
+      "load_quiz_failed": "Không thể tải quiz. Vui lòng thử lại.",
+      "load_questions_failed": "Không thể tải câu hỏi. Vui lòng thử lại.",
+      "missing_attempt_retry": "Không tìm thấy bài tập. Vui lòng thử lại.",
+      "missing_attempt": "Không tìm thấy bài tập.",
+      "check_status_failed": "Không thể kiểm tra trạng thái bài làm.",
+      "submit_missing_result": "Không nhận được dữ liệu kết quả.",
+      "submit_failed": "Không thể nộp bài.",
+      "save_failed": "Không thể lưu bài tập. Vui lòng thử lại.",
+      "continue_failed": "Không thể tiếp tục bài tập. Vui lòng thử lại.",
+      "new_attempt_failed": "Không thể tạo bài tập mới.",
+      "new_attempt_retry_failed": "Không thể tạo bài tập mới. Vui lòng thử lại."
+    },
+    "modals": {
+      "exit": {
+        "title": "Thoát bài làm?",
+        "message": "Bạn có muốn lưu lại phần câu trả lời đã làm không?",
+        "discard": "Không lưu",
+        "save": "Lưu và thoát",
+        "saving": "Đang lưu..."
+      },
+      "resume": {
+        "title": "Tiếp tục bài làm?",
+        "message": "Bạn có bài làm đã lưu trước đó. Bạn muốn tiếp tục bài làm cũ hay làm lại bài mới?",
+        "new_attempt": "Làm lại bài mới",
+        "creating": "Đang tạo...",
+        "continue": "Tiếp tục bài cũ",
+        "loading": "Đang tải..."
+      }
+    }
+  },
+  "quiz_completion": {
+    "title": "Thông tin bài làm",
+    "labels": {
+      "total_questions": "Tổng số câu hỏi:",
+      "answered": "Đã trả lời:",
+      "unanswered": "Chưa trả lời:",
+      "unanswered_list": "Câu hỏi chưa trả lời:",
+      "question_number": "Câu {{number}}",
+      "status": "Trạng thái:"
+    },
+    "status": {
+      "completed": "Hoàn thành",
+      "in_progress": "Đang làm",
+      "failed": "Không đạt",
+      "not_started": "Chưa bắt đầu"
+    },
+    "buttons": {
+      "continue": "Làm tiếp",
+      "submit": "Nộp bài"
+    }
+  },
+  "quiz_progress": {
+    "label": "Hoàn thành {{current}}/{{total}}",
+    "expand": "Mở rộng",
+    "collapse": "Thu gọn"
+  },
+  "review_stats": {
+    "correct_count": "Số câu đúng:",
+    "unanswered_count": "Số câu không làm:",
+    "incorrect_count": "Số câu sai:",
+    "status_label": "Trạng thái:",
+    "status_failed": "Không đạt",
+    "status_passed": "Đạt",
+    "expand": "Mở rộng",
+    "collapse": "Thu gọn"
   },
   "home": {
     "welcome_back": "Chào mừng trở lại, {{username}}! 👋",
@@ -429,7 +602,57 @@
     "suggestion_new_lesson_desc": "Khám phá các bài học mới phù hợp với trình độ của bạn",
     "suggestion_practice": "Luyện tập",
     "suggestion_practice_desc": "Cải thiện kỹ năng nghe và phát âm",
-    "recent_exercises": "Bài tập gần đây"
+    "recent_exercises": "Bài tập gần đây",
+    "exercise_types": {
+      "vocabulary": "Từ vựng",
+      "kanji": "Kanji",
+      "grammar": "Ngữ pháp",
+      "exercise": "Bài tập"
+    },
+    "exercise_status": {
+      "completed": "Hoàn thành",
+      "failed": "Chưa đạt",
+      "skipped": "Đã bỏ qua"
+    },
+    "srs_types": {
+      "vocabulary": "Từ vựng",
+      "vocabulary_lower": "từ vựng",
+      "kanji": "Kanji",
+      "kanji_lower": "kanji",
+      "grammar": "Ngữ pháp",
+      "grammar_lower": "ngữ pháp"
+    },
+    "srs_insights": {
+      "review_now": "Ôn tập ngay",
+      "vocabulary_title": "Từ mới",
+      "kanji_title": "Kanji",
+      "grammar_title": "Ngữ pháp",
+      "grammar_level": "Trình độ {{level}}",
+      "action": "Ôn ngay"
+    },
+    "ai": {
+      "assistant_badge": "Trợ lý AI",
+      "items_to_review": "{{count}} mục cần ôn",
+      "locked_title": "Nâng cấp để mở khóa",
+      "unlocked_title": "Cá nhân hoá cho hôm nay",
+      "locked_subtitle": "Mua gói AI Coach để nhận gợi ý học tập riêng cho bạn.",
+      "focus_message": "Bạn đang cần củng cố {{topic}} nhiều nhất.",
+      "no_insight_message": "Hệ thống sẽ theo dõi tiến trình để gửi thêm gợi ý khi có.",
+      "highlight_count": "{{count}} mục {{topic}}",
+      "highlight_hint": "Tập trung trong 5 phút để nhớ lâu hơn",
+      "locked_highlight_title": "Quyền lợi dành riêng cho hội viên",
+      "locked_highlight_subtitle": "Mở khoá để xem roadmap học và nhắc nhở thông minh"
+    },
+    "insight_locked": {
+      "badge": "Tính năng cao cấp",
+      "title": "Mở khóa trợ lý cá nhân hóa",
+      "description": "Tự động phân tích sai sót, đề xuất flashcard cần ôn và nhắc bạn luyện tập mỗi ngày.",
+      "button": "Mua gói ngay"
+    },
+    "insight_empty": {
+      "title": "Mọi thứ đang rất tốt!",
+      "description": "Khi bạn luyện tập thêm, trợ lý AI sẽ dựa vào lịch sử để đề xuất các nội dung cần ưu tiên."
+    }
   },
   "quiz": {
     "question_types": {
@@ -446,6 +669,31 @@
     "image_placeholder": "🖼️ Hình ảnh câu hỏi",
     "explanation_label": "Giải thích:",
     "points_label": "điểm"
+  },
+  "test_screen": {
+    "loading": "Đang tải...",
+    "config": {
+      "reading_test": {
+        "title": "Bài đọc",
+        "exit_title": "Thoát bài đọc?",
+        "exit_message": "Bạn có muốn quay lại danh sách bài đọc?"
+      },
+      "listening_test": {
+        "title": "Bài nghe",
+        "exit_title": "Thoát bài nghe?",
+        "exit_message": "Bạn có muốn quay lại danh sách bài nghe?"
+      },
+      "lesson_test": {
+        "title": "Kiểm tra bài học",
+        "exit_title": "Thoát bài kiểm tra?",
+        "exit_message": "Bạn có muốn quay lại bài học?"
+      },
+      "default": {
+        "title": "Bài test",
+        "exit_title": "Thoát bài test?",
+        "exit_message": "Bạn có muốn quay lại?"
+      }
+    }
   },
   "daily_login": {
     "title": "Điểm danh hàng ngày",
@@ -819,7 +1067,25 @@
       "active": "Đang hoạt động",
       "inactive": "Tạm dừng",
       "archived": "Đã lưu trữ"
-    }
+    },
+    "pagination": {
+      "10": "10",
+      "20": "20",
+      "50": "50"
+    },
+    "create_modal_title": "Tạo bộ flashcard mới",
+    "create_modal_placeholder": "Nhập tên bộ flashcard",
+    "create_modal_submit": "Tạo mới",
+    "create_error_required": "Tên bộ flashcard không được để trống",
+    "create_success_title": "Tạo bộ flashcard thành công",
+    "create_success_desc": "Bạn có thể thêm từ mới ngay bây giờ.",
+    "create_error_title": "Tạo bộ flashcard thất bại",
+    "create_error_desc": "Không thể tạo bộ flashcard. Vui lòng thử lại."
+  },
+  "empty_state": {
+    "default_title": "Không có dữ liệu",
+    "default_description": "Hiện tại chưa có dữ liệu để hiển thị",
+    "footer_message": "🎮 Hãy tiếp tục hành trình học tập của bạn!"
   },
   "subscription": {
     "title": "Gói Dịch Vụ",

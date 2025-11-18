@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 
 interface QuizCompletionModalProps {
   visible: boolean;
@@ -27,6 +28,7 @@ export function QuizCompletionModal({
   data,
   questions,
 }: QuizCompletionModalProps) {
+  const { t } = useTranslation();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -76,21 +78,21 @@ export function QuizCompletionModal({
 
   const statusLabel = useMemo(() => {
     if (!data) {
-      return "Chưa bắt đầu";
+      return t("quiz_completion.status.not_started", "Chưa bắt đầu");
     }
 
     switch (data.status) {
       case QuizCompletionStatus.COMPLETED:
-        return "Hoàn thành";
+        return t("quiz_completion.status.completed", "Hoàn thành");
       case QuizCompletionStatus.IN_PROGRESS:
-        return "Đang làm";
+        return t("quiz_completion.status.in_progress", "Đang làm");
       case QuizCompletionStatus.FAILED:
-        return "Không đạt";
+        return t("quiz_completion.status.failed", "Không đạt");
       case QuizCompletionStatus.PENDING:
       default:
-        return "Chưa bắt đầu";
+        return t("quiz_completion.status.not_started", "Chưa bắt đầu");
     }
-  }, [data]);
+  }, [data, t]);
 
   if (!visible || !data) return null;
 
@@ -125,25 +127,33 @@ export function QuizCompletionModal({
             <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
               {/* Header */}
               <View style={styles.header}>
-                <Text style={styles.title}>Thông tin bài làm</Text>
+                <Text style={styles.title}>
+                  {t("quiz_completion.title", "Thông tin bài làm")}
+                </Text>
               </View>
 
               {/* Content */}
               <View style={styles.content}>
                 <View style={styles.infoRow}>
-                  <Text style={styles.label}>Tổng số câu hỏi:</Text>
+                  <Text style={styles.label}>
+                    {t("quiz_completion.labels.total_questions", "Tổng số câu hỏi:")}
+                  </Text>
                   <Text style={styles.value}>{data.totalQuestions}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
-                  <Text style={styles.label}>Đã trả lời:</Text>
+                  <Text style={styles.label}>
+                    {t("quiz_completion.labels.answered", "Đã trả lời:")}
+                  </Text>
                   <Text style={[styles.value, styles.answeredValue]}>
                     {data.answeredQuestions}
                   </Text>
                 </View>
 
                 <View style={styles.infoRow}>
-                  <Text style={styles.label}>Chưa trả lời:</Text>
+                  <Text style={styles.label}>
+                    {t("quiz_completion.labels.unanswered", "Chưa trả lời:")}
+                  </Text>
                   <Text style={[styles.value, styles.unansweredValue]}>
                     {data.unansweredQuestions}
                   </Text>
@@ -152,12 +162,20 @@ export function QuizCompletionModal({
                 {data.unansweredQuestions > 0 && (
                   <View style={styles.unansweredSection}>
                     <Text style={styles.unansweredTitle}>
-                      Câu hỏi chưa trả lời:
+                      {t(
+                        "quiz_completion.labels.unanswered_list",
+                        "Câu hỏi chưa trả lời:"
+                      )}
                     </Text>
                     <View style={styles.unansweredList}>
                       <Text style={styles.unansweredText}>
                         {unansweredQuestionNumbers
-                          .map((num) => `Câu ${num}`)
+                          .map((num) =>
+                            t("quiz_completion.labels.question_number", {
+                              number: num,
+                              defaultValue: `Câu ${num}`,
+                            })
+                          )
                           .join(", ")}
                       </Text>
                     </View>
@@ -165,7 +183,9 @@ export function QuizCompletionModal({
                 )}
 
                 <View style={styles.statusRow}>
-                  <Text style={styles.label}>Trạng thái:</Text>
+                  <Text style={styles.label}>
+                    {t("quiz_completion.labels.status", "Trạng thái:")}
+                  </Text>
                   <View
                     style={[
                       styles.statusBadge,
@@ -195,7 +215,9 @@ export function QuizCompletionModal({
                   onPress={onClose}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.cancelButtonText}>Làm tiếp</Text>
+                  <Text style={styles.cancelButtonText}>
+                    {t("quiz_completion.buttons.continue", "Làm tiếp")}
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -203,7 +225,9 @@ export function QuizCompletionModal({
                   onPress={onSubmit}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.submitButtonText}>Nộp bài</Text>
+                  <Text style={styles.submitButtonText}>
+                    {t("quiz_completion.buttons.submit", "Nộp bài")}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>

@@ -33,6 +33,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 
 // Simple types matching BE response structure
 type ExerciseQuestion = {
@@ -54,12 +55,19 @@ export default function QuizScreen() {
   const { exerciseAttemptId: exerciseAttemptIdParam } = useLocalSearchParams<{
     exerciseAttemptId?: string;
   }>();
+  const { t } = useTranslation();
 
   // Parse exerciseAttemptId từ params (chắc chắn có khi vào màn hình này)
   const exerciseAttemptId = exerciseAttemptIdParam || "";
   const exerciseAttemptIdNumber = useMemo(() => {
     return exerciseAttemptId ? parseInt(exerciseAttemptId, 10) : null;
   }, [exerciseAttemptId]);
+  const showError = useCallback(
+    (key: string, fallback: string) => {
+      Alert.alert(t("common.error", "Error"), t(key, fallback));
+    },
+    [t]
+  );
 
   // Fetch exercise data using exerciseAttemptId
   const { data: exerciseData, isLoading: isLoadingQuestions } =
@@ -105,7 +113,10 @@ export default function QuizScreen() {
   // Use BE response directly without unnecessary transformation
   useEffect(() => {
     if (!exerciseAttemptId) {
-      Alert.alert("Lỗi", "Không tìm thấy bài tập. Vui lòng thử lại.");
+      showError(
+        "quiz_screen.alerts.missing_attempt_retry",
+        "Không tìm thấy bài tập. Vui lòng thử lại."
+      );
       router.back();
       return;
     }
@@ -199,12 +210,18 @@ export default function QuizScreen() {
         }
       } catch (error) {
         console.error("Error loading exercise data:", error);
-        Alert.alert("Lỗi", "Không thể tải quiz. Vui lòng thử lại.");
+        showError(
+          "quiz_screen.alerts.load_quiz_failed",
+          "Không thể tải quiz. Vui lòng thử lại."
+        );
         router.back();
       }
     } else if (!isLoadingQuestions && !exerciseData) {
       // If data failed to load, show error
-      Alert.alert("Lỗi", "Không thể tải câu hỏi. Vui lòng thử lại.");
+      showError(
+        "quiz_screen.alerts.load_questions_failed",
+        "Không thể tải câu hỏi. Vui lòng thử lại."
+      );
       router.back();
     }
   }, [
@@ -213,6 +230,7 @@ export default function QuizScreen() {
     exerciseAttemptId,
     exerciseAttemptIdNumber,
     hasCheckedResume,
+    showError,
   ]);
 
   // Timer (count-up, no limit) - pause when modal is shown
@@ -278,7 +296,7 @@ export default function QuizScreen() {
 
   const handleCheckCompletion = () => {
     if (!currentExerciseAttemptId) {
-      Alert.alert("Lỗi", "Không tìm thấy bài tập.");
+      showError("quiz_screen.alerts.missing_attempt", "Không tìm thấy bài tập.");
       return;
     }
 
@@ -292,14 +310,17 @@ export default function QuizScreen() {
       },
       onError: (error) => {
         console.error("Error checking completion:", error);
-        Alert.alert("Lỗi", "Không thể kiểm tra trạng thái bài làm.");
+        showError(
+          "quiz_screen.alerts.check_status_failed",
+          "Không thể kiểm tra trạng thái bài làm."
+        );
       },
     });
   };
 
   const handleSubmitCompletion = () => {
     if (!currentExerciseAttemptId) {
-      Alert.alert("Lỗi", "Không tìm thấy bài tập.");
+      showError("quiz_screen.alerts.missing_attempt", "Không tìm thấy bài tập.");
       return;
     }
 
@@ -326,12 +347,18 @@ export default function QuizScreen() {
               },
             });
           } else {
-            Alert.alert("Lỗi", "Không nhận được dữ liệu kết quả.");
+            showError(
+              "quiz_screen.alerts.submit_missing_result",
+              "Không nhận được dữ liệu kết quả."
+            );
           }
         },
         onError: (error) => {
           console.error("Error submitting completion:", error);
-          Alert.alert("Lỗi", "Không thể nộp bài.");
+          showError(
+            "quiz_screen.alerts.submit_failed",
+            "Không thể nộp bài."
+          );
         },
       }
     );
@@ -344,7 +371,7 @@ export default function QuizScreen() {
 
   const handleSaveAndExit = () => {
     if (!currentExerciseAttemptId) {
-      Alert.alert("Lỗi", "Không tìm thấy bài tập.");
+      showError("quiz_screen.alerts.missing_attempt", "Không tìm thấy bài tập.");
       setShowExitConfirmModal(false);
       return;
     }
@@ -361,7 +388,10 @@ export default function QuizScreen() {
         },
         onError: (error) => {
           console.error("Error abandoning exercise:", error);
-          Alert.alert("Lỗi", "Không thể lưu bài tập. Vui lòng thử lại.");
+          showError(
+            "quiz_screen.alerts.save_failed",
+            "Không thể lưu bài tập. Vui lòng thử lại."
+          );
         },
       }
     );
@@ -369,7 +399,7 @@ export default function QuizScreen() {
 
   const handleExitWithoutSaving = () => {
     if (!currentExerciseAttemptId) {
-      Alert.alert("Lỗi", "Không tìm thấy bài tập.");
+      showError("quiz_screen.alerts.missing_attempt", "Không tìm thấy bài tập.");
       return;
     }
 
@@ -385,7 +415,10 @@ export default function QuizScreen() {
         },
         onError: (error) => {
           console.error("Error continuing exercise:", error);
-          Alert.alert("Lỗi", "Không thể tiếp tục bài tập. Vui lòng thử lại.");
+          showError(
+            "quiz_screen.alerts.continue_failed",
+            "Không thể tiếp tục bài tập. Vui lòng thử lại."
+          );
         },
       }
     );
@@ -393,7 +426,7 @@ export default function QuizScreen() {
 
   const handleContinuePreviousExercise = () => {
     if (!currentExerciseAttemptId) {
-      Alert.alert("Lỗi", "Không tìm thấy bài tập.");
+      showError("quiz_screen.alerts.missing_attempt", "Không tìm thấy bài tập.");
       return;
     }
 
@@ -410,7 +443,10 @@ export default function QuizScreen() {
         },
         onError: (error) => {
           console.error("Error continuing exercise:", error);
-          Alert.alert("Lỗi", "Không thể tiếp tục bài tập. Vui lòng thử lại.");
+          showError(
+            "quiz_screen.alerts.continue_failed",
+            "Không thể tiếp tục bài tập. Vui lòng thử lại."
+          );
         },
       }
     );
@@ -418,7 +454,7 @@ export default function QuizScreen() {
 
   const handleStartNewExercise = () => {
     if (!exerciseId) {
-      Alert.alert("Lỗi", "Không tìm thấy bài tập.");
+      showError("quiz_screen.alerts.missing_attempt", "Không tìm thấy bài tập.");
       return;
     }
 
@@ -442,12 +478,18 @@ export default function QuizScreen() {
           // Clear current session to force reload
           setSession(null);
         } else {
-          Alert.alert("Lỗi", "Không thể tạo bài tập mới.");
+          showError(
+            "quiz_screen.alerts.new_attempt_failed",
+            "Không thể tạo bài tập mới."
+          );
         }
       },
       onError: (error) => {
         console.error("Error creating new exercise:", error);
-        Alert.alert("Lỗi", "Không thể tạo bài tập mới. Vui lòng thử lại.");
+        showError(
+          "quiz_screen.alerts.new_attempt_retry_failed",
+          "Không thể tạo bài tập mới. Vui lòng thử lại."
+        );
       },
     });
   };
@@ -460,7 +502,9 @@ export default function QuizScreen() {
     return (
       <QuizLayout>
         <View style={styles.center}>
-          <Text style={styles.loadingText}>Đang tải...</Text>
+          <Text style={styles.loadingText}>
+            {t("quiz_screen.loading", t("common.loading", "Đang tải..."))}
+          </Text>
         </View>
       </QuizLayout>
     );
@@ -474,7 +518,7 @@ export default function QuizScreen() {
       progressComponent={
         <View>
           <QuizHeader
-            title="Làm bài kiểm tra"
+            title={t("quiz_screen.title", "Làm bài kiểm tra")}
             onBackPress={handleBackPress}
             onSubmitPress={handleCheckCompletion}
             submitDisabled={isSubmitting}
@@ -568,21 +612,27 @@ export default function QuizScreen() {
       {/* Exit Confirm Modal */}
       <ConfirmModal
         visible={showExitConfirmModal}
-        title="Thoát bài làm?"
-        message="Bạn có muốn lưu lại phần câu trả lời đã làm không?"
+        title={t("quiz_screen.modals.exit.title", "Thoát bài làm?")}
+        message={t(
+          "quiz_screen.modals.exit.message",
+          "Bạn có muốn lưu lại phần câu trả lời đã làm không?"
+        )}
         onRequestClose={() => setShowExitConfirmModal(false)}
         buttons={[
           {
-            label: "Không lưu",
+            label: t("quiz_screen.modals.exit.discard", "Không lưu"),
             onPress: handleExitWithoutSaving,
             variant: "secondary",
           },
           {
-            label: "Lưu và thoát",
+            label: t("quiz_screen.modals.exit.save", "Lưu và thoát"),
             onPress: handleSaveAndExit,
             variant: "primary",
             disabled: isAbandoning,
-            loadingText: "Đang lưu...",
+            loadingText: t(
+              "quiz_screen.modals.exit.saving",
+              "Đang lưu..."
+            ),
           },
         ]}
       />
@@ -590,23 +640,38 @@ export default function QuizScreen() {
       {/* Resume Exercise Modal */}
       <ConfirmModal
         visible={showResumeModal}
-        title="Tiếp tục bài làm?"
-        message="Bạn có bài làm đã lưu trước đó. Bạn muốn tiếp tục bài làm cũ hay làm lại bài mới?"
+        title={t("quiz_screen.modals.resume.title", "Tiếp tục bài làm?")}
+        message={t(
+          "quiz_screen.modals.resume.message",
+          "Bạn có bài làm đã lưu trước đó. Bạn muốn tiếp tục bài làm cũ hay làm lại bài mới?"
+        )}
         onRequestClose={() => {}}
         buttons={[
           {
-            label: "Làm lại bài mới",
+            label: t(
+              "quiz_screen.modals.resume.new_attempt",
+              "Làm lại bài mới"
+            ),
             onPress: handleStartNewExercise,
             variant: "secondary",
             disabled: isCreatingNew,
-            loadingText: "Đang tạo...",
+            loadingText: t(
+              "quiz_screen.modals.resume.creating",
+              "Đang tạo..."
+            ),
           },
           {
-            label: "Tiếp tục bài cũ",
+            label: t(
+              "quiz_screen.modals.resume.continue",
+              "Tiếp tục bài cũ"
+            ),
             onPress: handleContinuePreviousExercise,
             variant: "primary",
             disabled: isContinuing,
-            loadingText: "Đang tải...",
+            loadingText: t(
+              "quiz_screen.modals.resume.loading",
+              "Đang tải..."
+            ),
           },
         ]}
       />

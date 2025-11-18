@@ -20,9 +20,12 @@
     "simple_dialog": "Simple Dialog",
     "simple_dialog_test": "This is a simple dialog test",
     "close": "Close",
+    "cancel": "Cancel",
+    "exit": "Exit",
     "shop": "Shop",
     "open-shop": "Open Shop",
-    "error": "Error"
+    "error": "Error",
+    "something_wrong": "Something went wrong. Please try again."
   },
   "auth": {
     "email": "Email",
@@ -392,11 +395,181 @@
     "hide_meaning": "Hide meaning",
     "press_to_see_meaning": "Press to see meaning",
     "no_meaning": "No meaning",
+    "no_description": "No description available",
     "stroke": "stroke",
     "do_vocab_exercise": "Do vocabulary exercise",
     "do_grammar_exercise": "Do grammar exercise",
     "do_kanji_exercise": "Do kanji exercise",
     "usage": "Usage example"
+  },
+  "lesson_detail": {
+    "about_title": "About this lesson",
+    "stats": {
+      "total_content": "Total content",
+      "sections": "Learning sections"
+    },
+    "content_list": {
+      "title": "Content list",
+      "subtitle": "Pick a section to study"
+    },
+    "cards": {
+      "start_learning": "Start learning",
+      "vocabulary": {
+        "title": "Vocabulary",
+        "subtitle": "Learn new Japanese words"
+      },
+      "grammar": {
+        "title": "Grammar",
+        "subtitle": "Sentence structures and patterns"
+      },
+      "kanji": {
+        "title": "Kanji",
+        "subtitle": "Japanese Chinese characters"
+      }
+    },
+    "test": {
+      "button": "Start test",
+      "locked_hint": "Complete every section before starting the test"
+    },
+    "status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "in_progress": "In progress",
+      "abandoned": "Abandoned",
+      "pending": "Pending",
+      "unknown": "No data yet"
+    }
+  },
+  "content_list": {
+    "activity": {
+      "learn": {
+        "vocabulary": "Learn vocabulary",
+        "kanji": "Learn kanji",
+        "grammar": "Learn grammar"
+      },
+      "match": "Card matching game",
+      "test": {
+        "vocabulary": "Vocabulary test",
+        "kanji": "Kanji test",
+        "grammar": "Grammar test"
+      },
+      "reflex": "Reflex practice",
+      "default_in_lesson": "{{title}} in lesson"
+    },
+    "banner": {
+      "vocabulary": "Lesson vocabulary",
+      "kanji": "Lesson kanji",
+      "grammar": "Lesson grammar"
+    },
+    "empty_states": {
+      "vocabulary": "No vocabulary available",
+      "kanji": "No kanji available",
+      "grammar": "No grammar available"
+    },
+    "kanji_modal": {
+      "title": "Kanji explanation",
+      "on_reading": "On reading",
+      "kun_reading": "Kun reading",
+      "stroke_count": "Stroke count",
+      "stroke_value": "{{count}} strokes",
+      "details_heading": "📖 Detailed explanation"
+    },
+    "flashcard": {
+      "progress": {
+        "deck": "{{reviewed}}/{{total}} cards in flashcard deck",
+        "vocabulary": "{{reviewed}}/{{total}} vocabulary cards reviewed",
+        "grammar": "{{reviewed}}/{{total}} grammar cards reviewed",
+        "kanji": "{{reviewed}}/{{total}} kanji cards reviewed"
+      },
+      "no_explanation": "No explanation available",
+      "on_label": "On reading",
+      "kun_label": "Kun reading",
+      "usage_label": "Usage:",
+      "no_details": "No detailed description",
+      "empty_state": "No data to display",
+      "complete_title": "Completed!",
+      "complete_subtitle": "You can review again by tapping the refresh icon.",
+      "unknown_label": "Unknown",
+      "known_label": "Known",
+      "options": {
+        "title": "Customize card display",
+        "offset_title": "Offset stack",
+        "offset_description": "Cards behind are slightly offset to show how many remain.",
+        "overlap_title": "Overlap stack",
+        "overlap_description": "Cards behind overlap to stay focused on the current card.",
+        "close": "Close"
+      }
+    }
+  },
+  "quiz_screen": {
+    "title": "Take the quiz",
+    "loading": "Loading...",
+    "alerts": {
+      "load_quiz_failed": "Unable to load the quiz. Please try again.",
+      "load_questions_failed": "Unable to load questions. Please try again.",
+      "missing_attempt_retry": "Could not find this exercise. Please try again.",
+      "missing_attempt": "Exercise not found.",
+      "check_status_failed": "Unable to check submission status.",
+      "submit_missing_result": "Result data was not received.",
+      "submit_failed": "Could not submit.",
+      "save_failed": "Unable to save your progress. Please try again.",
+      "continue_failed": "Unable to resume your exercise. Please try again.",
+      "new_attempt_failed": "Could not create a new exercise.",
+      "new_attempt_retry_failed": "Could not create a new exercise. Please try again."
+    },
+    "modals": {
+      "exit": {
+        "title": "Leave this quiz?",
+        "message": "Do you want to save your answered questions?",
+        "discard": "Don't save",
+        "save": "Save and exit",
+        "saving": "Saving..."
+      },
+      "resume": {
+        "title": "Resume your quiz?",
+        "message": "You have saved progress. Continue where you left off or start over?",
+        "new_attempt": "Start a new quiz",
+        "creating": "Creating...",
+        "continue": "Continue saved quiz",
+        "loading": "Loading..."
+      }
+    }
+  },
+  "quiz_completion": {
+    "title": "Submission summary",
+    "labels": {
+      "total_questions": "Total questions:",
+      "answered": "Answered:",
+      "unanswered": "Unanswered:",
+      "unanswered_list": "Unanswered questions:",
+      "question_number": "Question {{number}}",
+      "status": "Status:"
+    },
+    "status": {
+      "completed": "Completed",
+      "in_progress": "In progress",
+      "failed": "Failed",
+      "not_started": "Not started"
+    },
+    "buttons": {
+      "continue": "Keep working",
+      "submit": "Submit"
+    }
+  },
+  "quiz_progress": {
+    "label": "Completed {{current}}/{{total}}",
+    "expand": "Expand",
+    "collapse": "Collapse"
+  },
+  "review_stats": {
+    "correct_count": "Correct answers:",
+    "unanswered_count": "Unanswered questions:",
+    "incorrect_count": "Incorrect answers:",
+    "status_label": "Status:",
+    "status_failed": "Failed",
+    "status_passed": "Passed",
+    "expand": "Expand",
+    "collapse": "Collapse"
   },
   "home": {
     "welcome_back": "Welcome back, {{username}}! 👋",
@@ -414,7 +587,57 @@
     "partner_pokemon": "Your Partner Pokémon",
     "take_care_description": "Take care of your partner Pokémon and evolve together!",
     "take_care_me": "Take care of me!",
-    "partner_pokemon_short": "Partner Pokémon"
+    "partner_pokemon_short": "Partner Pokémon",
+    "exercise_types": {
+      "vocabulary": "Vocabulary",
+      "kanji": "Kanji",
+      "grammar": "Grammar",
+      "exercise": "Exercise"
+    },
+    "exercise_status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "srs_types": {
+      "vocabulary": "Vocabulary",
+      "vocabulary_lower": "vocabulary",
+      "kanji": "Kanji",
+      "kanji_lower": "kanji",
+      "grammar": "Grammar",
+      "grammar_lower": "grammar"
+    },
+    "srs_insights": {
+      "review_now": "Review now",
+      "vocabulary_title": "New word",
+      "kanji_title": "Kanji",
+      "grammar_title": "Grammar",
+      "grammar_level": "Level {{level}}",
+      "action": "Start review"
+    },
+    "ai": {
+      "assistant_badge": "AI Assistant",
+      "items_to_review": "{{count}} items to review",
+      "locked_title": "Upgrade to unlock",
+      "unlocked_title": "Personalized for today",
+      "locked_subtitle": "Upgrade to AI Coach for personalized study tips.",
+      "focus_message": "You need to focus on {{topic}} the most.",
+      "no_insight_message": "Keep studying and the assistant will recommend what to improve next.",
+      "highlight_count": "{{count}} {{topic}} items",
+      "highlight_hint": "Focus for 5 minutes to remember longer",
+      "locked_highlight_title": "Members-only benefit",
+      "locked_highlight_subtitle": "Unlock the roadmap and smart reminders"
+    },
+    "insight_locked": {
+      "badge": "Premium feature",
+      "title": "Unlock personalized assistant",
+      "description": "Automatically analyzes mistakes, suggests flashcards to review, and reminds you daily.",
+      "button": "Upgrade now"
+    },
+    "insight_empty": {
+      "title": "You’re doing great!",
+      "description": "As you practice more, the AI assistant will highlight what to focus on next."
+    }
   },
   "quiz": {
     "question_types": {
@@ -431,6 +654,31 @@
     "image_placeholder": "🖼️ Question image",
     "explanation_label": "Explanation:",
     "points_label": "points"
+  },
+  "test_screen": {
+    "loading": "Loading...",
+    "config": {
+      "reading_test": {
+        "title": "Reading test",
+        "exit_title": "Leave reading test?",
+        "exit_message": "Do you want to return to the reading list?"
+      },
+      "listening_test": {
+        "title": "Listening test",
+        "exit_title": "Leave listening test?",
+        "exit_message": "Do you want to return to the listening list?"
+      },
+      "lesson_test": {
+        "title": "Lesson test",
+        "exit_title": "Leave lesson test?",
+        "exit_message": "Do you want to return to the lesson?"
+      },
+      "default": {
+        "title": "Test",
+        "exit_title": "Leave test?",
+        "exit_message": "Do you want to go back?"
+      }
+    }
   },
   "daily_login": {
     "title": "Daily Check-in",
@@ -809,7 +1057,25 @@
       "active": "Active",
       "inactive": "Inactive",
       "archived": "Archived"
-    }
+    },
+    "pagination": {
+      "10": "10",
+      "20": "20",
+      "50": "50"
+    },
+    "create_modal_title": "Create a new flashcard deck",
+    "create_modal_placeholder": "Enter deck name",
+    "create_modal_submit": "Create",
+    "create_error_required": "Deck name cannot be empty",
+    "create_success_title": "Deck created",
+    "create_success_desc": "You can start adding new cards now.",
+    "create_error_title": "Failed to create deck",
+    "create_error_desc": "Could not create the deck. Please try again."
+  },
+  "empty_state": {
+    "default_title": "No data available",
+    "default_description": "There is currently no data to display",
+    "footer_message": "🎮 Keep going on your learning journey!"
   },
   "subscription": {
     "title": "Service Packages",

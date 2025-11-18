@@ -10,6 +10,7 @@ import { useGetTestAttempt } from "@hooks/useUserTestAttempt";
 import { getTestConfig, transformTestSets } from "@utils/test.utils";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function TestScreen() {
@@ -17,10 +18,35 @@ export default function TestScreen() {
     testId?: string;
     testType?: string;
   }>();
+  const { t } = useTranslation();
   const testId = testIdParam || "";
 
   const { data, isLoading } = useGetTestAttempt(testId, testType);
   const testConfig = useMemo(() => getTestConfig(testType), [testType]);
+  const localizedTestConfig = useMemo(() => {
+    const keyMap: Record<string, string> = {
+      READING_TEST: "reading_test",
+      LISTENING_TEST: "listening_test",
+      LESSON_TEST: "lesson_test",
+    };
+    const translationKey =
+      keyMap[(testType || "").toUpperCase()] || "default";
+    return {
+      ...testConfig,
+      title: t(
+        `test_screen.config.${translationKey}.title`,
+        testConfig.title
+      ),
+      exitTitle: t(
+        `test_screen.config.${translationKey}.exit_title`,
+        testConfig.exitTitle
+      ),
+      exitMessage: t(
+        `test_screen.config.${translationKey}.exit_message`,
+        testConfig.exitMessage
+      ),
+    };
+  }, [testConfig, testType, t]);
 
   const [userTestAttemptId, setUserTestAttemptId] = useState<number | null>(null);
 
@@ -66,7 +92,9 @@ export default function TestScreen() {
     return (
       <QuizLayout>
         <View style={styles.center}>
-          <Text style={styles.loadingText}>Đang tải...</Text>
+          <Text style={styles.loadingText}>
+            {t("test_screen.loading", t("common.loading", "Đang tải..."))}
+          </Text>
         </View>
       </QuizLayout>
     );
@@ -157,9 +185,9 @@ export default function TestScreen() {
       progressComponent={
         <View>
           <TestHeader
-            title={data?.data?.name || testConfig.title}
-            icon={testConfig.icon}
-            iconColor={testConfig.color}
+            title={data?.data?.name || localizedTestConfig.title}
+            icon={localizedTestConfig.icon}
+            iconColor={localizedTestConfig.color}
             onBackPress={() => setShowExitConfirmModal(true)}
             onSubmitPress={handleSubmitPress}
           />
@@ -184,17 +212,17 @@ export default function TestScreen() {
 
       <ConfirmModal
         visible={showExitConfirmModal}
-        title={testConfig.exitTitle}
-        message={testConfig.exitMessage}
+        title={localizedTestConfig.exitTitle}
+        message={localizedTestConfig.exitMessage}
         onRequestClose={() => setShowExitConfirmModal(false)}
         buttons={[
           {
-            label: "Hủy",
+            label: t("common.cancel", "Cancel"),
             onPress: () => setShowExitConfirmModal(false),
             variant: "secondary",
           },
           {
-            label: "Thoát",
+            label: t("common.exit", "Exit"),
             onPress: handleExitConfirm,
             variant: "primary",
           },

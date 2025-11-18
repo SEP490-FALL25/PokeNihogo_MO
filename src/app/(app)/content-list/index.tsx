@@ -334,7 +334,7 @@ const ExpandableVocabularyCard = ({
                         lineHeight: 44,
                       }}
                     >
-                      {t("lessons.no_meaning") || "Không có nghĩa"}
+                      {t("lessons.no_meaning", "No meaning")}
                     </ThemedText>
                   )}
                 </View>
@@ -509,7 +509,7 @@ const ExpandableGrammarCard = ({
                         lineHeight: 42,
                       }}
                     >
-                      {t("lessons.no_description") || "Không có mô tả"}
+                      {t("lessons.no_description", "No description available")}
                     </ThemedText>
                   )}
                 </View>
@@ -1039,58 +1039,82 @@ const VocabularyListScreen = () => {
   });
 
   // Get activity type title
-  const getActivityTitle = () => {
-    const baseTitle =
-      contentTypeValue === "grammar"
-        ? "Ngữ pháp"
-        : contentTypeValue === "kanji"
-          ? "Kanji"
-          : "Từ vựng";
+  const getContentTypeLabel = React.useCallback(
+    (type: ExerciseCategory | string) => {
+      switch (type) {
+        case "grammar":
+          return t("lessons.lesson_types.grammar", "Grammar");
+        case "kanji":
+          return t("lessons.lesson_types.kanji", "Kanji");
+        default:
+          return t("lessons.lesson_types.vocabulary", "Vocabulary");
+      }
+    },
+    [t]
+  );
 
-    switch (activityType) {
-      case "learn":
-        return contentTypeValue === "grammar"
-          ? "Học ngữ pháp"
-          : contentTypeValue === "kanji"
-            ? "Học Kanji"
-            : "Học từ mới";
-      case "match":
-        return "Trò chơi ghép thẻ";
-      case "test":
-        return contentTypeValue === "grammar"
-          ? "Kiểm tra ngữ pháp"
-          : contentTypeValue === "kanji"
-            ? "Kiểm tra Kanji"
-            : "Kiểm tra từ mới";
-      case "reflex":
-        return "Luyện phản xạ";
-      default:
-        return `${baseTitle} trong bài`;
+  const getActivityTitle = () => {
+    const typeKey = (contentTypeValue as ExerciseCategory) || "vocabulary";
+
+    if (activityType === "learn") {
+      return t(
+        `content_list.activity.learn.${typeKey}`,
+        typeKey === "grammar"
+          ? "Learn grammar"
+          : typeKey === "kanji"
+            ? "Learn kanji"
+            : "Learn vocabulary"
+      );
     }
+
+    if (activityType === "test") {
+      return t(
+        `content_list.activity.test.${typeKey}`,
+        typeKey === "grammar"
+          ? "Grammar test"
+          : typeKey === "kanji"
+            ? "Kanji test"
+            : "Vocabulary test"
+      );
+    }
+
+    if (activityType === "match" || activityType === "reflex") {
+      return t(
+        `content_list.activity.${activityType}`,
+        activityType === "match" ? "Card matching game" : "Reflex practice"
+      );
+    }
+
+    return t("content_list.activity.default_in_lesson", {
+      defaultValue: `${getContentTypeLabel(typeKey)} in lesson`,
+      title: getContentTypeLabel(typeKey),
+    });
   };
 
   // Get banner text
   const getBannerText = () => {
-    switch (contentTypeValue) {
-      case "grammar":
-        return "Ngữ pháp trong bài";
-      case "kanji":
-        return "Kanji trong bài";
-      default:
-        return "Từ vựng trong bài";
-    }
+    const typeKey = (contentTypeValue as ExerciseCategory) || "vocabulary";
+    return t(
+      `content_list.banner.${typeKey}`,
+      typeKey === "grammar"
+        ? "Lesson grammar"
+        : typeKey === "kanji"
+          ? "Lesson kanji"
+          : "Lesson vocabulary"
+    );
   };
 
   // Get empty message
   const getEmptyMessage = () => {
-    switch (contentTypeValue) {
-      case "grammar":
-        return t("lessons.no_grammar") || "Không có ngữ pháp nào";
-      case "kanji":
-        return t("lessons.no_kanji") || "Không có Kanji nào";
-      default:
-        return t("lessons.no_vocabulary") || "Không có từ vựng nào";
-    }
+    const typeKey = (contentTypeValue as ExerciseCategory) || "vocabulary";
+    return t(
+      `content_list.empty_states.${typeKey}`,
+      typeKey === "grammar"
+        ? "No grammar available"
+        : typeKey === "kanji"
+          ? "No kanji available"
+          : "No vocabulary available"
+    );
   };
 
   // Handle Kanji writing
@@ -1123,7 +1147,7 @@ const VocabularyListScreen = () => {
       if (!exerciseAttemptId) {
         Alert.alert(
           t("common.error") || "Error",
-          t("common.something_wrong") || "Có lỗi xảy ra, vui lòng thử lại."
+          t("common.something_wrong", "Something went wrong. Please try again.")
         );
         return;
       }
@@ -1143,7 +1167,7 @@ const VocabularyListScreen = () => {
       console.warn("Failed to start exercise", e);
       Alert.alert(
         t("common.error") || "Error",
-        t("common.something_wrong") || "Có lỗi xảy ra, vui lòng thử lại."
+        t("common.something_wrong", "Something went wrong. Please try again.")
       );
     }
   };
@@ -1385,9 +1409,14 @@ const VocabularyListScreen = () => {
                       color: "#1e40af",
                     }}
                   >
-                    {contentTypeValue === "kanji"
-                      ? "Học Kanji"
-                      : "Học từ mới"}
+                    {t(
+                      contentTypeValue === "kanji"
+                        ? "content_list.activity.learn.kanji"
+                        : "content_list.activity.learn.vocabulary",
+                      contentTypeValue === "kanji"
+                        ? "Learn kanji"
+                        : "Learn vocabulary"
+                    )}
                   </ThemedText>
                 </TouchableOpacity>
               )}
@@ -1435,11 +1464,20 @@ const VocabularyListScreen = () => {
                       color: "#92400e",
                     }}
                   >
-                    {contentTypeValue === "grammar"
-                      ? "Kiểm tra ngữ pháp"
-                      : contentTypeValue === "kanji"
-                        ? "Kiểm tra Kanji"
-                        : "Kiểm tra từ mới"}
+                    {t(
+                      `content_list.activity.test.${
+                        contentTypeValue === "grammar"
+                          ? "grammar"
+                          : contentTypeValue === "kanji"
+                            ? "kanji"
+                            : "vocabulary"
+                      }`,
+                      contentTypeValue === "grammar"
+                        ? "Grammar test"
+                        : contentTypeValue === "kanji"
+                          ? "Kanji test"
+                          : "Vocabulary test"
+                    )}
                   </ThemedText>
                 </TouchableOpacity>
               </View>
@@ -1668,7 +1706,10 @@ const VocabularyListScreen = () => {
                         textShadowRadius: 3,
                       }}
                     >
-                      {t("lessons.kanji_explanation") || "Giải thích Kanji"}
+                      {t(
+                        "content_list.kanji_modal.title",
+                        "Kanji explanation"
+                      )}
                     </ThemedText>
                   </View>
                   <TouchableOpacity
@@ -1808,7 +1849,10 @@ const VocabularyListScreen = () => {
                                     marginBottom: 4,
                                   }}
                                 >
-                                  Âm Onyomi
+                                  {t(
+                                    "content_list.kanji_modal.on_reading",
+                                    "On reading"
+                                  )}
                                 </ThemedText>
                                 <ThemedText
                                   style={{
@@ -1840,7 +1884,10 @@ const VocabularyListScreen = () => {
                                     marginBottom: 4,
                                   }}
                                 >
-                                  Âm Kunyomi
+                                  {t(
+                                    "content_list.kanji_modal.kun_reading",
+                                    "Kun reading"
+                                  )}
                                 </ThemedText>
                                 <ThemedText
                                   style={{
@@ -1888,7 +1935,10 @@ const VocabularyListScreen = () => {
                                   marginBottom: 2,
                                 }}
                               >
-                                Số nét
+                                {t(
+                                  "content_list.kanji_modal.stroke_count",
+                                  "Stroke count"
+                                )}
                               </ThemedText>
                               <ThemedText
                                 style={{
@@ -1897,7 +1947,13 @@ const VocabularyListScreen = () => {
                                   color: "#166534",
                                 }}
                               >
-                                {selectedKanjiItem.strokeCount} nét
+                                {t(
+                                  "content_list.kanji_modal.stroke_value",
+                                  {
+                                    count: selectedKanjiItem.strokeCount,
+                                    defaultValue: `${selectedKanjiItem.strokeCount} strokes`,
+                                  }
+                                )}
                               </ThemedText>
                             </View>
                           </View>
@@ -1982,7 +2038,10 @@ const VocabularyListScreen = () => {
                                   letterSpacing: 0.5,
                                 }}
                               >
-                                📖 Giải thích chi tiết
+                                {t(
+                                  "content_list.kanji_modal.details_heading",
+                                  "📖 Detailed explanation"
+                                )}
                               </ThemedText>
                             </LinearGradient>
                             <View style={{ padding: 20 }}>
