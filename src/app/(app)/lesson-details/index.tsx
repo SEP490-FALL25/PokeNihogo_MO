@@ -28,6 +28,7 @@ interface DashboardCardProps {
   darkColor: string;
   items: any[];
   onPress: () => void;
+  ctaLabel: string;
   statusMeta?: {
     label: string;
     bgColor: string;
@@ -45,6 +46,7 @@ const DashboardCard = ({
   darkColor,
   items,
   onPress,
+  ctaLabel,
   statusMeta,
 }: DashboardCardProps) => {
   return (
@@ -238,7 +240,7 @@ const DashboardCard = ({
             marginRight: 6,
           }}
         >
-          Bắt đầu học
+          {ctaLabel}
         </ThemedText>
         <ChevronRight size={18} color="white" strokeWidth={3} />
       </View>
@@ -467,16 +469,16 @@ const LessonDetailScreen = () => {
                 }}
               >
                 <BookOpen size={20} color="#3b82f6" />
-                <ThemedText
-                  style={{
-                    fontSize: 16,
-                    fontWeight: "bold",
-                    color: "#1f2937",
-                    marginLeft: 8,
-                  }}
-                >
-                  Về bài học này
-                </ThemedText>
+              <ThemedText
+                style={{
+                  fontSize: 16,
+                  fontWeight: "bold",
+                  color: "#1f2937",
+                  marginLeft: 8,
+                }}
+              >
+                {t("lesson_detail.about_title", "Về bài học này")}
+              </ThemedText>
               </View>
               <ThemedText
                 style={{
@@ -519,7 +521,7 @@ const LessonDetailScreen = () => {
                   marginTop: 4,
                 }}
               >
-                Tổng nội dung
+                {t("lesson_detail.stats.total_content", "Tổng nội dung")}
               </ThemedText>
             </View>
             <View
@@ -546,7 +548,7 @@ const LessonDetailScreen = () => {
                   marginTop: 4,
                 }}
               >
-                Phần học
+                {t("lesson_detail.stats.sections", "Phần học")}
               </ThemedText>
             </View>
           </View>
@@ -560,7 +562,7 @@ const LessonDetailScreen = () => {
                 color: "#1f2937",
               }}
             >
-              Danh sách nội dung
+              {t("lesson_detail.content_list.title", "Danh sách nội dung")}
             </ThemedText>
             <ThemedText
               style={{
@@ -569,15 +571,21 @@ const LessonDetailScreen = () => {
                 marginTop: 4,
               }}
             >
-              Chọn phần muốn học
+              {t(
+                "lesson_detail.content_list.subtitle",
+                "Chọn phần muốn học"
+              )}
             </ThemedText>
           </View>
 
           {/* Vocabulary Section */}
           {voca.length > 0 && (
             <DashboardCard
-              title="Từ vựng"
-              subtitle="Học từ mới tiếng Nhật"
+              title={t("lesson_detail.cards.vocabulary.title", "Từ vựng")}
+              subtitle={t(
+                "lesson_detail.cards.vocabulary.subtitle",
+                "Học từ mới tiếng Nhật"
+              )}
               count={voca.length}
               emoji="📚"
               bgColor="#EEF2FF"
@@ -585,6 +593,7 @@ const LessonDetailScreen = () => {
               darkColor="#312e81"
               items={voca}
               onPress={() => navigateToContent("vocabulary")}
+              ctaLabel={t("lesson_detail.cards.start_learning", "Bắt đầu học")}
               statusMeta={getStatusMeta("vocabulary")}
             />
           )}
@@ -592,8 +601,11 @@ const LessonDetailScreen = () => {
           {/* Grammar Section */}
           {grammar.length > 0 && (
             <DashboardCard
-              title="Ngữ pháp"
-              subtitle="Cấu trúc câu và mẫu câu"
+              title={t("lesson_detail.cards.grammar.title", "Ngữ pháp")}
+              subtitle={t(
+                "lesson_detail.cards.grammar.subtitle",
+                "Cấu trúc câu và mẫu câu"
+              )}
               count={grammar.length}
               emoji="✏️"
               bgColor="#ECFEFF"
@@ -601,6 +613,7 @@ const LessonDetailScreen = () => {
               darkColor="#164e63"
               items={grammar}
               onPress={() => navigateToContent("grammar")}
+              ctaLabel={t("lesson_detail.cards.start_learning", "Bắt đầu học")}
               statusMeta={getStatusMeta("grammar")}
             />
           )}
@@ -608,8 +621,11 @@ const LessonDetailScreen = () => {
           {/* Kanji Section */}
           {kanji.length > 0 && (
             <DashboardCard
-              title="Kanji"
-              subtitle="Chữ Hán trong tiếng Nhật"
+              title={t("lesson_detail.cards.kanji.title", "Kanji")}
+              subtitle={t(
+                "lesson_detail.cards.kanji.subtitle",
+                "Chữ Hán trong tiếng Nhật"
+              )}
               count={kanji.length}
               emoji="🈯"
               bgColor="#FEF3C7"
@@ -617,6 +633,7 @@ const LessonDetailScreen = () => {
               darkColor="#92400e"
               items={kanji}
               onPress={() => navigateToContent("kanji")}
+              ctaLabel={t("lesson_detail.cards.start_learning", "Bắt đầu học")}
               statusMeta={getStatusMeta("kanji")}
             />
           )}
@@ -624,9 +641,9 @@ const LessonDetailScreen = () => {
           {/* Start Button */}
           {testId && (
             <View style={{ marginTop: 8 }}>
-              <BounceButton 
-                variant="solid" 
-                size="full" 
+              <BounceButton
+                variant="solid"
+                size="full"
                 onPress={handleStartTest}
                 disabled={!checkLastTest}
               >
@@ -637,10 +654,10 @@ const LessonDetailScreen = () => {
                     justifyContent: "center",
                   }}
                 >
-                  <Sparkles 
-                    size={20} 
-                    color={checkLastTest ? "white" : "#9ca3af"} 
-                    style={{ marginRight: 8 }} 
+                  <Sparkles
+                    size={20}
+                    color={checkLastTest ? "white" : "#9ca3af"}
+                    style={{ marginRight: 8 }}
                   />
                   <ThemedText
                     style={{
@@ -649,7 +666,7 @@ const LessonDetailScreen = () => {
                       fontWeight: "bold",
                     }}
                   >
-                    Bắt đầu kiểm tra
+                    {t("lesson_detail.test.button", "Bắt đầu kiểm tra")}
                   </ThemedText>
                 </View>
               </BounceButton>
@@ -663,7 +680,10 @@ const LessonDetailScreen = () => {
                     fontStyle: "italic",
                   }}
                 >
-                  Hoàn thành tất cả các phần học để bắt đầu kiểm tra
+                  {t(
+                    "lesson_detail.test.locked_hint",
+                    "Hoàn thành tất cả các phần học để bắt đầu kiểm tra"
+                  )}
                 </ThemedText>
               )}
             </View>

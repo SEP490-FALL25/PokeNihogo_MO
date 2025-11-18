@@ -22,7 +22,8 @@
     "close": "Close",
     "shop": "Shop",
     "open-shop": "Open Shop",
-    "error": "Error"
+    "error": "Error",
+    "something_wrong": "Something went wrong. Please try again."
   },
   "auth": {
     "email": "Email",
@@ -392,11 +393,111 @@
     "hide_meaning": "Hide meaning",
     "press_to_see_meaning": "Press to see meaning",
     "no_meaning": "No meaning",
+    "no_description": "No description available",
     "stroke": "stroke",
     "do_vocab_exercise": "Do vocabulary exercise",
     "do_grammar_exercise": "Do grammar exercise",
     "do_kanji_exercise": "Do kanji exercise",
     "usage": "Usage example"
+  },
+  "lesson_detail": {
+    "about_title": "About this lesson",
+    "stats": {
+      "total_content": "Total content",
+      "sections": "Learning sections"
+    },
+    "content_list": {
+      "title": "Content list",
+      "subtitle": "Pick a section to study"
+    },
+    "cards": {
+      "start_learning": "Start learning",
+      "vocabulary": {
+        "title": "Vocabulary",
+        "subtitle": "Learn new Japanese words"
+      },
+      "grammar": {
+        "title": "Grammar",
+        "subtitle": "Sentence structures and patterns"
+      },
+      "kanji": {
+        "title": "Kanji",
+        "subtitle": "Japanese Chinese characters"
+      }
+    },
+    "test": {
+      "button": "Start test",
+      "locked_hint": "Complete every section before starting the test"
+    },
+    "status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "in_progress": "In progress",
+      "abandoned": "Abandoned",
+      "pending": "Pending",
+      "unknown": "No data yet"
+    }
+  },
+  "content_list": {
+    "activity": {
+      "learn": {
+        "vocabulary": "Learn vocabulary",
+        "kanji": "Learn kanji",
+        "grammar": "Learn grammar"
+      },
+      "match": "Card matching game",
+      "test": {
+        "vocabulary": "Vocabulary test",
+        "kanji": "Kanji test",
+        "grammar": "Grammar test"
+      },
+      "reflex": "Reflex practice",
+      "default_in_lesson": "{{title}} in lesson"
+    },
+    "banner": {
+      "vocabulary": "Lesson vocabulary",
+      "kanji": "Lesson kanji",
+      "grammar": "Lesson grammar"
+    },
+    "empty_states": {
+      "vocabulary": "No vocabulary available",
+      "kanji": "No kanji available",
+      "grammar": "No grammar available"
+    },
+    "kanji_modal": {
+      "title": "Kanji explanation",
+      "on_reading": "On reading",
+      "kun_reading": "Kun reading",
+      "stroke_count": "Stroke count",
+      "stroke_value": "{{count}} strokes",
+      "details_heading": "📖 Detailed explanation"
+    },
+    "flashcard": {
+      "progress": {
+        "deck": "{{reviewed}}/{{total}} cards in flashcard deck",
+        "vocabulary": "{{reviewed}}/{{total}} vocabulary cards reviewed",
+        "grammar": "{{reviewed}}/{{total}} grammar cards reviewed",
+        "kanji": "{{reviewed}}/{{total}} kanji cards reviewed"
+      },
+      "no_explanation": "No explanation available",
+      "on_label": "On reading",
+      "kun_label": "Kun reading",
+      "usage_label": "Usage:",
+      "no_details": "No detailed description",
+      "empty_state": "No data to display",
+      "complete_title": "Completed!",
+      "complete_subtitle": "You can review again by tapping the refresh icon.",
+      "unknown_label": "Unknown",
+      "known_label": "Known",
+      "options": {
+        "title": "Customize card display",
+        "offset_title": "Offset stack",
+        "offset_description": "Cards behind are slightly offset to show how many remain.",
+        "overlap_title": "Overlap stack",
+        "overlap_description": "Cards behind overlap to stay focused on the current card.",
+        "close": "Close"
+      }
+    }
   },
   "home": {
     "welcome_back": "Welcome back, {{username}}! 👋",

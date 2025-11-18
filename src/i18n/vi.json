@@ -22,7 +22,8 @@
     "close": "Đóng",
     "shop": "Cửa hàng",
     "open-shop": "Mở cửa hàng",
-    "error": "Lỗi"
+    "error": "Lỗi",
+    "something_wrong": "Có lỗi xảy ra, vui lòng thử lại."
   },
   "auth": {
     "email": "Email",
@@ -392,11 +393,111 @@
     "hide_meaning": "Ẩn nghĩa",
     "press_to_see_meaning": "Nhấn để xem nghĩa",
     "no_meaning": "Chưa có nghĩa",
+    "no_description": "Không có mô tả",
     "stroke": "nét",
     "do_vocab_exercise": "Luyện tập từ vựng",
     "do_grammar_exercise": "Luyện tập ngữ pháp",
     "do_kanji_exercise": "Luyện tập kanji",
     "usage": "Ví dụ"
+  },
+  "lesson_detail": {
+    "about_title": "Về bài học này",
+    "stats": {
+      "total_content": "Tổng nội dung",
+      "sections": "Phần học"
+    },
+    "content_list": {
+      "title": "Danh sách nội dung",
+      "subtitle": "Chọn phần muốn học"
+    },
+    "cards": {
+      "start_learning": "Bắt đầu học",
+      "vocabulary": {
+        "title": "Từ vựng",
+        "subtitle": "Học từ mới tiếng Nhật"
+      },
+      "grammar": {
+        "title": "Ngữ pháp",
+        "subtitle": "Cấu trúc câu và mẫu câu"
+      },
+      "kanji": {
+        "title": "Kanji",
+        "subtitle": "Chữ Hán trong tiếng Nhật"
+      }
+    },
+    "test": {
+      "button": "Bắt đầu kiểm tra",
+      "locked_hint": "Hoàn thành tất cả các phần học để bắt đầu kiểm tra"
+    },
+    "status": {
+      "completed": "Hoàn thành",
+      "failed": "Chưa đạt",
+      "in_progress": "Đang làm",
+      "abandoned": "Đã bỏ",
+      "pending": "Đang chờ",
+      "unknown": "Chưa có dữ liệu"
+    }
+  },
+  "content_list": {
+    "activity": {
+      "learn": {
+        "vocabulary": "Học từ mới",
+        "kanji": "Học Kanji",
+        "grammar": "Học ngữ pháp"
+      },
+      "match": "Trò chơi ghép thẻ",
+      "test": {
+        "vocabulary": "Kiểm tra từ mới",
+        "kanji": "Kiểm tra Kanji",
+        "grammar": "Kiểm tra ngữ pháp"
+      },
+      "reflex": "Luyện phản xạ",
+      "default_in_lesson": "{{title}} trong bài"
+    },
+    "banner": {
+      "vocabulary": "Từ vựng trong bài",
+      "kanji": "Kanji trong bài",
+      "grammar": "Ngữ pháp trong bài"
+    },
+    "empty_states": {
+      "vocabulary": "Không có từ vựng nào",
+      "kanji": "Không có Kanji nào",
+      "grammar": "Không có ngữ pháp nào"
+    },
+    "kanji_modal": {
+      "title": "Giải thích Kanji",
+      "on_reading": "Âm Onyomi",
+      "kun_reading": "Âm Kunyomi",
+      "stroke_count": "Số nét",
+      "stroke_value": "{{count}} nét",
+      "details_heading": "📖 Giải thích chi tiết"
+    },
+    "flashcard": {
+      "progress": {
+        "deck": "{{reviewed}}/{{total}} thẻ trong bộ flashcard",
+        "vocabulary": "{{reviewed}}/{{total}} thẻ từ vựng đã xem",
+        "grammar": "{{reviewed}}/{{total}} thẻ ngữ pháp đã xem",
+        "kanji": "{{reviewed}}/{{total}} thẻ Kanji đã xem"
+      },
+      "no_explanation": "Không có phần giải thích",
+      "on_label": "Âm On",
+      "kun_label": "Âm Kun",
+      "usage_label": "Cách dùng:",
+      "no_details": "Chưa có mô tả chi tiết",
+      "empty_state": "Không có dữ liệu để hiển thị",
+      "complete_title": "Hoàn thành!",
+      "complete_subtitle": "Bạn có thể xem lại bằng cách nhấn biểu tượng làm mới.",
+      "unknown_label": "Chưa thuộc",
+      "known_label": "Đã thuộc",
+      "options": {
+        "title": "Tùy chỉnh hiển thị thẻ",
+        "offset_title": "Hiển thị hở",
+        "offset_description": "Các thẻ phía sau lệch nhẹ để thấy còn bao nhiêu thẻ.",
+        "overlap_title": "Chồng lên nhau",
+        "overlap_description": "Các thẻ phía sau trùng nhau để tập trung vào thẻ hiện tại.",
+        "close": "Đóng"
+      }
+    }
   },
   "home": {
     "welcome_back": "Chào mừng trở lại, {{username}}! 👋",
