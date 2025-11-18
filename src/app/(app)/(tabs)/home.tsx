@@ -45,31 +45,33 @@ const ExerciseCard: React.FC<{
   exercise: IRecentExerciseItem;
   onPress: () => void;
 }> = ({ exercise, onPress }) => {
+  const { t } = useTranslation();
+
   const getExerciseTypeInfo = (exerciseName: string) => {
     const name = exerciseName.toLowerCase();
     if (name.includes("vocabulary") || name.includes("vocab")) {
       return {
         icon: BookOpen,
         color: "#3b82f6", // Blue
-        type: "Từ vựng",
+        type: t("home.exercise_types.vocabulary", "Từ vựng"),
       };
     } else if (name.includes("kanji")) {
       return {
         icon: Languages,
         color: "#ef4444", // Red
-        type: "Kanji",
+        type: t("home.exercise_types.kanji", "Kanji"),
       };
     } else if (name.includes("grammar") || name.includes("gramma")) {
       return {
         icon: BookText,
         color: "#f59e0b", // Amber
-        type: "Ngữ pháp",
+        type: t("home.exercise_types.grammar", "Ngữ pháp"),
       };
     } else {
       return {
         icon: BookOpen,
         color: "#8b5cf6", // Purple
-        type: "Bài tập",
+        type: t("home.exercise_types.exercise", "Bài tập"),
       };
     }
   };
@@ -90,11 +92,11 @@ const ExerciseCard: React.FC<{
   const getStatusText = (status: string) => {
     switch (status) {
       case "COMPLETED":
-        return "Hoàn thành";
+        return t("home.exercise_status.completed", "Hoàn thành");
       case "FAILED":
-        return "Chưa đạt";
+        return t("home.exercise_status.failed", "Chưa đạt");
       case "SKIPPED":
-        return "Đã bỏ qua";
+        return t("home.exercise_status.skipped", "Đã bỏ qua");
       default:
         return status;
     }
@@ -167,37 +169,39 @@ const SuggestionCard: React.FC<{
 /**
  * Personalized SRS insight card
  */
-const SRS_TYPE_CONFIG: Record<
-  ISrsReviewItem["contentType"],
-  {
-    label: string;
-    color: string;
-    icon: React.ComponentType<{ size: number; color: string }>;
-  }
-> = {
-  VOCABULARY: {
-    label: "Từ vựng",
-    color: "#6366f1",
-    icon: BookOpen,
-  },
-  KANJI: {
-    label: "Kanji",
-    color: "#f97316",
-    icon: Languages,
-  },
-  GRAMMAR: {
-    label: "Ngữ pháp",
-    color: "#10b981",
-    icon: BookText,
-  },
+const useSrsTypeConfig = () => {
+  const { t } = useTranslation();
+  return useMemo(
+    () => ({
+      VOCABULARY: {
+        label: t("home.srs_types.vocabulary", "Từ vựng"),
+        labelLower: t("home.srs_types.vocabulary_lower", "từ vựng"),
+        color: "#6366f1",
+        icon: BookOpen,
+      },
+      KANJI: {
+        label: t("home.srs_types.kanji", "Kanji"),
+        labelLower: t("home.srs_types.kanji_lower", "kanji"),
+        color: "#f97316",
+        icon: Languages,
+      },
+      GRAMMAR: {
+        label: t("home.srs_types.grammar", "Ngữ pháp"),
+        labelLower: t("home.srs_types.grammar_lower", "ngữ pháp"),
+        color: "#10b981",
+        icon: BookText,
+      },
+    }),
+    [t]
+  );
 };
 
-const getInsightContentCopy = (insight: ISrsReviewItem) => {
+const getInsightContentCopy = (insight: ISrsReviewItem, t: ReturnType<typeof useTranslation>["t"]) => {
   const content = insight.content as any;
 
   if (!content) {
     return {
-      primary: "Ôn tập ngay",
+      primary: t("home.srs_insights.review_now", "Ôn tập ngay"),
       secondary: "",
     };
   }
@@ -205,26 +209,31 @@ const getInsightContentCopy = (insight: ISrsReviewItem) => {
   switch (content.type) {
     case "vocabulary":
       return {
-        primary: content.wordJp ?? "Từ mới",
+        primary: content.wordJp ?? t("home.srs_insights.vocabulary_title", "Từ mới"),
         secondary: [content.reading, content.meaning]
           .filter(Boolean)
           .join(" · "),
       };
     case "kanji":
       return {
-        primary: content.character ?? "Kanji",
+        primary: content.character ?? t("home.srs_insights.kanji_title", "Kanji"),
         secondary: [content.meaning, content.jlptLevel && `JLPT N${content.jlptLevel}`]
           .filter(Boolean)
           .join(" · "),
       };
     case "grammar":
       return {
-        primary: content.structure ?? "Ngữ pháp",
-        secondary: content.level ? `Trình độ ${content.level}` : "",
+        primary: content.structure ?? t("home.srs_insights.grammar_title", "Ngữ pháp"),
+        secondary: content.level
+          ? t("home.srs_insights.grammar_level", {
+              level: content.level,
+              defaultValue: `Trình độ ${content.level}`,
+            })
+          : "",
       };
     default:
       return {
-        primary: "Ôn tập ngay",
+        primary: t("home.srs_insights.review_now", "Ôn tập ngay"),
         secondary: "",
       };
   }
@@ -233,9 +242,11 @@ const getInsightContentCopy = (insight: ISrsReviewItem) => {
 const InsightCard: React.FC<{
   insight: ISrsReviewItem;
   onPress: (insight: ISrsReviewItem) => void;
-}> = ({ insight, onPress }) => {
-  const meta = SRS_TYPE_CONFIG[insight.contentType] || SRS_TYPE_CONFIG.VOCABULARY;
-  const { primary, secondary } = getInsightContentCopy(insight);
+  metaConfig: ReturnType<typeof useSrsTypeConfig>;
+}> = ({ insight, onPress, metaConfig }) => {
+  const { t } = useTranslation();
+  const meta = metaConfig[insight.contentType] || metaConfig.VOCABULARY;
+  const { primary, secondary } = getInsightContentCopy(insight, t);
   const Icon = meta.icon;
 
   return (
@@ -273,7 +284,7 @@ const InsightCard: React.FC<{
 
       <View style={styles.insightAction}>
         <ThemedText style={[styles.insightActionText, { color: meta.color }]}>
-          Ôn ngay
+          {t("home.srs_insights.action", "Ôn ngay")}
         </ThemedText>
         <ChevronRight size={16} color={meta.color} />
       </View>
@@ -290,6 +301,7 @@ const InsightCard: React.FC<{
  */
 export default function HomeScreen() {
   const { t } = useTranslation();
+  const srsTypeConfig = useSrsTypeConfig();
 
   // Modal state management
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -384,13 +396,13 @@ export default function HomeScreen() {
     if (!sorted.length) return null;
     const [type, count] = sorted[0];
     const meta =
-      SRS_TYPE_CONFIG[type as ISrsReviewItem["contentType"]] ??
-      SRS_TYPE_CONFIG.VOCABULARY;
+      srsTypeConfig[type as ISrsReviewItem["contentType"]] ??
+      srsTypeConfig.VOCABULARY;
     return {
       ...meta,
       count,
     };
-  }, [srsInsights]);
+  }, [srsInsights, srsTypeConfig]);
 
   const HighlightIcon = dominantInsightType?.icon;
 
@@ -481,36 +493,55 @@ export default function HomeScreen() {
                   <View style={[styles.aiHeroBadge, isPersonalizationLocked && styles.aiHeroBadgeLocked]}>
                     <Sparkles size={16} color={isPersonalizationLocked ? "#9ca3af" : "#7c3aed"} />
                     <ThemedText style={[styles.aiHeroBadgeText, isPersonalizationLocked && styles.aiHeroBadgeTextLocked]}>
-                      Trợ lý AI
+                      {t("home.ai.assistant_badge", "Trợ lý AI")}
                     </ThemedText>
                   </View>
                   {srsInsights.length > 0 && !isPersonalizationLocked && (
                     <ThemedText style={styles.aiHeroCount}>
-                      {srsInsights.length} mục cần ôn
+                      {t("home.ai.items_to_review", {
+                        count: srsInsights.length,
+                        defaultValue: "{{count}} mục cần ôn",
+                      })}
                     </ThemedText>
                   )}
                 </View>
                 <ThemedText style={[styles.aiHeroTitle, isPersonalizationLocked && styles.aiHeroTitleLocked]} numberOfLines={2}>
                   {isPersonalizationLocked
-                    ? "Nâng cấp để mở khóa"
-                    : "Cá nhân hoá cho hôm nay"}
+                    ? t("home.ai.locked_title", "Nâng cấp để mở khóa")
+                    : t("home.ai.unlocked_title", "Cá nhân hoá cho hôm nay")}
                 </ThemedText>
                 <ThemedText style={[styles.aiHeroSubtitle, isPersonalizationLocked && styles.aiHeroSubtitleLocked]} numberOfLines={3}>
                   {isPersonalizationLocked
-                    ? "Mua gói AI Coach để nhận gợi ý học tập riêng cho bạn."
+                    ? t(
+                        "home.ai.locked_subtitle",
+                        "Mua gói AI Coach để nhận gợi ý học tập riêng cho bạn."
+                      )
                     : dominantInsightType
-                    ? `Bạn đang cần củng cố ${dominantInsightType.label.toLowerCase()} nhiều nhất.`
-                    : "Hệ thống sẽ theo dõi tiến trình để gửi thêm gợi ý khi có."}
+                    ? t("home.ai.focus_message", {
+                        topic: dominantInsightType.labelLower,
+                        defaultValue: `Bạn đang cần củng cố ${dominantInsightType.labelLower} nhiều nhất.`,
+                      })
+                    : t(
+                        "home.ai.no_insight_message",
+                        "Hệ thống sẽ theo dõi tiến trình để gửi thêm gợi ý khi có."
+                      )}
                 </ThemedText>
                 {dominantInsightType && HighlightIcon && !isPersonalizationLocked && (
                   <View style={styles.aiHeroHighlight}>
                     <HighlightIcon size={18} color={dominantInsightType.color} />
                     <View style={{ flex: 1 }}>
                       <ThemedText style={styles.aiHeroHighlightText} numberOfLines={1}>
-                        {dominantInsightType.count} mục {dominantInsightType.label.toLowerCase()}
+                        {t("home.ai.highlight_count", {
+                          count: dominantInsightType.count,
+                          topic: dominantInsightType.labelLower,
+                          defaultValue: "{{count}} mục {{topic}}",
+                        })}
                       </ThemedText>
                       <ThemedText style={styles.aiHeroHighlightSub} numberOfLines={2}>
-                        Tập trung trong 5 phút để nhớ lâu hơn
+                        {t(
+                          "home.ai.highlight_hint",
+                          "Tập trung trong 5 phút để nhớ lâu hơn"
+                        )}
                       </ThemedText>
                     </View>
                   </View>
@@ -520,10 +551,16 @@ export default function HomeScreen() {
                     <Lock size={18} color="#9ca3af" />
                     <View style={{ flex: 1 }}>
                       <ThemedText style={styles.aiHeroHighlightTextLocked} numberOfLines={1}>
-                        Quyền lợi dành riêng cho hội viên
+                        {t(
+                          "home.ai.locked_highlight_title",
+                          "Quyền lợi dành riêng cho hội viên"
+                        )}
                       </ThemedText>
                       <ThemedText style={styles.aiHeroHighlightSubLocked} numberOfLines={2}>
-                        Mở khoá để xem roadmap học và nhắc nhở thông minh
+                        {t(
+                          "home.ai.locked_highlight_subtitle",
+                          "Mở khoá để xem roadmap học và nhắc nhở thông minh"
+                        )}
                       </ThemedText>
                     </View>
                   </View>
@@ -537,14 +574,17 @@ export default function HomeScreen() {
                   <View style={styles.insightLockedBadge}>
                     <Lock size={18} color="#9ca3af" />
                     <ThemedText style={styles.insightLockedBadgeText}>
-                      Tính năng cao cấp
+                      {t("home.insight_locked.badge", "Tính năng cao cấp")}
                     </ThemedText>
                   </View>
                   <ThemedText style={styles.insightLockedTitle} numberOfLines={2}>
-                    Mở khóa trợ lý cá nhân hóa
+                    {t("home.insight_locked.title", "Mở khóa trợ lý cá nhân hóa")}
                   </ThemedText>
                   <ThemedText style={styles.insightLockedDescription} numberOfLines={3}>
-                    Tự động phân tích sai sót, đề xuất flashcard cần ôn và nhắc bạn luyện tập mỗi ngày.
+                    {t(
+                      "home.insight_locked.description",
+                      "Tự động phân tích sai sót, đề xuất flashcard cần ôn và nhắc bạn luyện tập mỗi ngày."
+                    )}
                   </ThemedText>
                   <TouchableOpacity
                     style={styles.unlockButton}
@@ -552,7 +592,7 @@ export default function HomeScreen() {
                     activeOpacity={0.85}
                   >
                     <ThemedText style={styles.unlockButtonText}>
-                      Mua gói ngay
+                      {t("home.insight_locked.button", "Mua gói ngay")}
                     </ThemedText>
                   </TouchableOpacity>
                 </View>
@@ -573,6 +613,7 @@ export default function HomeScreen() {
                       key={insight.id}
                       insight={insight}
                       onPress={handleInsightPress}
+                      metaConfig={srsTypeConfig}
                     />
                   ))}
                 </View>
@@ -581,10 +622,13 @@ export default function HomeScreen() {
               {!isPersonalizationLocked && !isSrsLoading && srsInsights.length === 0 && (
                 <View style={styles.insightEmptyState}>
                   <ThemedText style={styles.insightEmptyTitle}>
-                    Mọi thứ đang rất tốt!
+                    {t("home.insight_empty.title", "Mọi thứ đang rất tốt!")}
                   </ThemedText>
                   <ThemedText style={styles.insightEmptyDescription}>
-                    Khi bạn luyện tập thêm, trợ lý AI sẽ dựa vào lịch sử để đề xuất các nội dung cần ưu tiên.
+                    {t(
+                      "home.insight_empty.description",
+                      "Khi bạn luyện tập thêm, trợ lý AI sẽ dựa vào lịch sử để đề xuất các nội dung cần ưu tiên."
+                    )}
                   </ThemedText>
                 </View>
               )}

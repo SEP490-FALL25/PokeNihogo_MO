@@ -602,7 +602,57 @@
     "suggestion_new_lesson_desc": "Khám phá các bài học mới phù hợp với trình độ của bạn",
     "suggestion_practice": "Luyện tập",
     "suggestion_practice_desc": "Cải thiện kỹ năng nghe và phát âm",
-    "recent_exercises": "Bài tập gần đây"
+    "recent_exercises": "Bài tập gần đây",
+    "exercise_types": {
+      "vocabulary": "Từ vựng",
+      "kanji": "Kanji",
+      "grammar": "Ngữ pháp",
+      "exercise": "Bài tập"
+    },
+    "exercise_status": {
+      "completed": "Hoàn thành",
+      "failed": "Chưa đạt",
+      "skipped": "Đã bỏ qua"
+    },
+    "srs_types": {
+      "vocabulary": "Từ vựng",
+      "vocabulary_lower": "từ vựng",
+      "kanji": "Kanji",
+      "kanji_lower": "kanji",
+      "grammar": "Ngữ pháp",
+      "grammar_lower": "ngữ pháp"
+    },
+    "srs_insights": {
+      "review_now": "Ôn tập ngay",
+      "vocabulary_title": "Từ mới",
+      "kanji_title": "Kanji",
+      "grammar_title": "Ngữ pháp",
+      "grammar_level": "Trình độ {{level}}",
+      "action": "Ôn ngay"
+    },
+    "ai": {
+      "assistant_badge": "Trợ lý AI",
+      "items_to_review": "{{count}} mục cần ôn",
+      "locked_title": "Nâng cấp để mở khóa",
+      "unlocked_title": "Cá nhân hoá cho hôm nay",
+      "locked_subtitle": "Mua gói AI Coach để nhận gợi ý học tập riêng cho bạn.",
+      "focus_message": "Bạn đang cần củng cố {{topic}} nhiều nhất.",
+      "no_insight_message": "Hệ thống sẽ theo dõi tiến trình để gửi thêm gợi ý khi có.",
+      "highlight_count": "{{count}} mục {{topic}}",
+      "highlight_hint": "Tập trung trong 5 phút để nhớ lâu hơn",
+      "locked_highlight_title": "Quyền lợi dành riêng cho hội viên",
+      "locked_highlight_subtitle": "Mở khoá để xem roadmap học và nhắc nhở thông minh"
+    },
+    "insight_locked": {
+      "badge": "Tính năng cao cấp",
+      "title": "Mở khóa trợ lý cá nhân hóa",
+      "description": "Tự động phân tích sai sót, đề xuất flashcard cần ôn và nhắc bạn luyện tập mỗi ngày.",
+      "button": "Mua gói ngay"
+    },
+    "insight_empty": {
+      "title": "Mọi thứ đang rất tốt!",
+      "description": "Khi bạn luyện tập thêm, trợ lý AI sẽ dựa vào lịch sử để đề xuất các nội dung cần ưu tiên."
+    }
   },
   "quiz": {
     "question_types": {

@@ -587,7 +587,57 @@
     "partner_pokemon": "Your Partner Pokémon",
     "take_care_description": "Take care of your partner Pokémon and evolve together!",
     "take_care_me": "Take care of me!",
-    "partner_pokemon_short": "Partner Pokémon"
+    "partner_pokemon_short": "Partner Pokémon",
+    "exercise_types": {
+      "vocabulary": "Vocabulary",
+      "kanji": "Kanji",
+      "grammar": "Grammar",
+      "exercise": "Exercise"
+    },
+    "exercise_status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "srs_types": {
+      "vocabulary": "Vocabulary",
+      "vocabulary_lower": "vocabulary",
+      "kanji": "Kanji",
+      "kanji_lower": "kanji",
+      "grammar": "Grammar",
+      "grammar_lower": "grammar"
+    },
+    "srs_insights": {
+      "review_now": "Review now",
+      "vocabulary_title": "New word",
+      "kanji_title": "Kanji",
+      "grammar_title": "Grammar",
+      "grammar_level": "Level {{level}}",
+      "action": "Start review"
+    },
+    "ai": {
+      "assistant_badge": "AI Assistant",
+      "items_to_review": "{{count}} items to review",
+      "locked_title": "Upgrade to unlock",
+      "unlocked_title": "Personalized for today",
+      "locked_subtitle": "Upgrade to AI Coach for personalized study tips.",
+      "focus_message": "You need to focus on {{topic}} the most.",
+      "no_insight_message": "Keep studying and the assistant will recommend what to improve next.",
+      "highlight_count": "{{count}} {{topic}} items",
+      "highlight_hint": "Focus for 5 minutes to remember longer",
+      "locked_highlight_title": "Members-only benefit",
+      "locked_highlight_subtitle": "Unlock the roadmap and smart reminders"
+    },
+    "insight_locked": {
+      "badge": "Premium feature",
+      "title": "Unlock personalized assistant",
+      "description": "Automatically analyzes mistakes, suggests flashcards to review, and reminds you daily.",
+      "button": "Upgrade now"
+    },
+    "insight_empty": {
+      "title": "You’re doing great!",
+      "description": "As you practice more, the AI assistant will highlight what to focus on next."
+    }
   },
   "quiz": {
     "question_types": {

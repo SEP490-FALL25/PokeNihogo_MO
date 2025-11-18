@@ -224,9 +224,59 @@
         "basic_japanese": "基礎日本語 - ひらがな・カタカナ",
         "intermediate_japanese": "中級日本語 - 漢字・文法",
         "partner_pokemon": "あなたのパートナーポケモン",
-        "take_care_description": "パートナーポケモンを大切にして、一緒に進化しましょう！",
-        "take_care_me": "私を大切にしてね！",
-        "partner_pokemon_short": "パートナーポケモン"
+    "take_care_description": "パートナーポケモンを大切にして、一緒に進化しましょう！",
+    "take_care_me": "私を大切にしてね！",
+    "partner_pokemon_short": "パートナーポケモン",
+    "exercise_types": {
+        "vocabulary": "語彙",
+        "kanji": "漢字",
+        "grammar": "文法",
+        "exercise": "練習"
+    },
+    "exercise_status": {
+        "completed": "完了",
+        "failed": "未達成",
+        "skipped": "スキップ"
+    },
+    "srs_types": {
+        "vocabulary": "語彙",
+        "vocabulary_lower": "語彙",
+        "kanji": "漢字",
+        "kanji_lower": "漢字",
+        "grammar": "文法",
+        "grammar_lower": "文法"
+    },
+    "srs_insights": {
+        "review_now": "今すぐ復習",
+        "vocabulary_title": "新しい単語",
+        "kanji_title": "漢字",
+        "grammar_title": "文法",
+        "grammar_level": "レベル {{level}}",
+        "action": "復習する"
+    },
+    "ai": {
+        "assistant_badge": "AIアシスタント",
+        "items_to_review": "復習すべき項目: {{count}}",
+        "locked_title": "アップグレードしてアンロック",
+        "unlocked_title": "今日のパーソナライズ",
+        "locked_subtitle": "AI Coach プランであなた専用の学習提案を受けましょう。",
+        "focus_message": "{{topic}} を重点的に復習しましょう。",
+        "no_insight_message": "学習を続けると、AIが優先すべき内容を提案します。",
+        "highlight_count": "{{topic}} {{count}} 件",
+        "highlight_hint": "5分集中して記憶を定着させましょう",
+        "locked_highlight_title": "メンバー限定の特典",
+        "locked_highlight_subtitle": "ロードマップとスマートリマインダーをアンロック"
+    },
+    "insight_locked": {
+        "badge": "プレミアム機能",
+        "title": "パーソナライズされたアシスタントを解放",
+        "description": "ミスを自動分析し、復習すべきカードを提案して毎日リマインドします。",
+        "button": "今すぐアップグレード"
+    },
+    "insight_empty": {
+        "title": "順調に進んでいます！",
+        "description": "学習を続けると、AIアシスタントが次に集中すべき内容を提案します。"
+    }
     },
     "reading": {
         "title": "読解練習",
