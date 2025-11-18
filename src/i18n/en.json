@@ -535,6 +535,42 @@
       }
     }
   },
+  "quiz_completion": {
+    "title": "Submission summary",
+    "labels": {
+      "total_questions": "Total questions:",
+      "answered": "Answered:",
+      "unanswered": "Unanswered:",
+      "unanswered_list": "Unanswered questions:",
+      "question_number": "Question {{number}}",
+      "status": "Status:"
+    },
+    "status": {
+      "completed": "Completed",
+      "in_progress": "In progress",
+      "failed": "Failed",
+      "not_started": "Not started"
+    },
+    "buttons": {
+      "continue": "Keep working",
+      "submit": "Submit"
+    }
+  },
+  "quiz_progress": {
+    "label": "Completed {{current}}/{{total}}",
+    "expand": "Expand",
+    "collapse": "Collapse"
+  },
+  "review_stats": {
+    "correct_count": "Correct answers:",
+    "unanswered_count": "Unanswered questions:",
+    "incorrect_count": "Incorrect answers:",
+    "status_label": "Status:",
+    "status_failed": "Failed",
+    "status_passed": "Passed",
+    "expand": "Expand",
+    "collapse": "Collapse"
+  },
   "home": {
     "welcome_back": "Welcome back, {{username}}! 👋",
     "ready_to_continue": "Ready to continue your Japanese learning journey?",

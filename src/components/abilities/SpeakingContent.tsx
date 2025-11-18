@@ -153,11 +153,15 @@ export const SpeakingContent: React.FC = () => {
 
       <View style={styles.exercisesContainer}>
         {isLoading && (
-          <ThemedText style={{ textAlign: "center" }}>Loading...</ThemedText>
+          <ThemedText style={{ textAlign: "center" }}>
+            {t("common.loading", "Loading...")}
+          </ThemedText>
         )}
         {!!error && (
           <ThemedText style={{ textAlign: "center", color: "#ef4444" }}>
-            {error instanceof Error ? error.message : "Error"}
+            {error instanceof Error
+              ? error.message
+              : t("common.error", "Error")}
           </ThemedText>
         )}
         {!isLoading &&

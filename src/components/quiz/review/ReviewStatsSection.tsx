@@ -3,6 +3,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
+import { useTranslation } from "react-i18next";
 
 interface ReviewStats {
   totalQuestions: number;
@@ -28,6 +29,7 @@ export function ReviewStatsSection({
   isCollapsed = false,
   onToggleCollapse,
 }: ReviewStatsSectionProps) {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   
   // Animation values
@@ -221,19 +223,27 @@ export function ReviewStatsSection({
               {/* Stats List */}
               <View style={styles.statsList}>
                 <View style={styles.statRow}>
-                  <Text style={styles.statLabel}>Số câu đúng:</Text>
+                  <Text style={styles.statLabel}>
+                    {t("review_stats.correct_count", "Số câu đúng:")}
+                  </Text>
                   <Text style={styles.statValue}>{stats.answeredCorrect}</Text>
                 </View>
                 <View style={styles.statRow}>
-                  <Text style={styles.statLabel}>Số câu không làm:</Text>
+                  <Text style={styles.statLabel}>
+                    {t("review_stats.unanswered_count", "Số câu không làm:")}
+                  </Text>
                   <Text style={styles.statValue}>{stats.unansweredQuestions}</Text>
                 </View>
                 <View style={styles.statRow}>
-                  <Text style={styles.statLabel}>Số câu sai:</Text>
+                  <Text style={styles.statLabel}>
+                    {t("review_stats.incorrect_count", "Số câu sai:")}
+                  </Text>
                   <Text style={styles.statValue}>{stats.answeredInCorrect}</Text>
                 </View>
                 <View style={styles.statRow}>
-                  <Text style={styles.statLabel}>Trạng thái:</Text>
+                  <Text style={styles.statLabel}>
+                    {t("review_stats.status_label", "Trạng thái:")}
+                  </Text>
                   <View
                     style={[
                       styles.statusBadge,
@@ -246,7 +256,9 @@ export function ReviewStatsSection({
                         isFailedStatus && styles.statusTextFail,
                       ]}
                     >
-                      {isFailedStatus ? "Không đạt" : "Đạt"}
+                      {isFailedStatus
+                        ? t("review_stats.status_failed", "Không đạt")
+                        : t("review_stats.status_passed", "Đạt")}
                     </Text>
                   </View>
                 </View>
@@ -268,7 +280,9 @@ export function ReviewStatsSection({
                 activeOpacity={0.7}
               >
                 <Text style={styles.expandText}>
-                  {isExpanded ? "Thu gọn" : "Mở rộng"}
+                  {isExpanded
+                    ? t("review_stats.collapse", "Thu gọn")
+                    : t("review_stats.expand", "Mở rộng")}
                 </Text>
                 <Text style={styles.expandChevron}>
                   {isExpanded ? "▴" : "▾"}

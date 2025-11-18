@@ -535,6 +535,42 @@
       }
     }
   },
+  "quiz_completion": {
+    "title": "Thông tin bài làm",
+    "labels": {
+      "total_questions": "Tổng số câu hỏi:",
+      "answered": "Đã trả lời:",
+      "unanswered": "Chưa trả lời:",
+      "unanswered_list": "Câu hỏi chưa trả lời:",
+      "question_number": "Câu {{number}}",
+      "status": "Trạng thái:"
+    },
+    "status": {
+      "completed": "Hoàn thành",
+      "in_progress": "Đang làm",
+      "failed": "Không đạt",
+      "not_started": "Chưa bắt đầu"
+    },
+    "buttons": {
+      "continue": "Làm tiếp",
+      "submit": "Nộp bài"
+    }
+  },
+  "quiz_progress": {
+    "label": "Hoàn thành {{current}}/{{total}}",
+    "expand": "Mở rộng",
+    "collapse": "Thu gọn"
+  },
+  "review_stats": {
+    "correct_count": "Số câu đúng:",
+    "unanswered_count": "Số câu không làm:",
+    "incorrect_count": "Số câu sai:",
+    "status_label": "Trạng thái:",
+    "status_failed": "Không đạt",
+    "status_passed": "Đạt",
+    "expand": "Mở rộng",
+    "collapse": "Thu gọn"
+  },
   "home": {
     "welcome_back": "Chào mừng trở lại, {{username}}! 👋",
     "ready_to_continue": "Sẵn sàng tiếp tục hành trình học tiếng Nhật của bạn?",

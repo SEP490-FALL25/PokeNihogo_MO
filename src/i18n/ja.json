@@ -576,6 +576,42 @@
             }
         }
     },
+    "quiz_completion": {
+        "title": "解答情報",
+        "labels": {
+            "total_questions": "総問題数:",
+            "answered": "解答済み:",
+            "unanswered": "未解答:",
+            "unanswered_list": "未解答の問題:",
+            "question_number": "問題 {{number}}",
+            "status": "ステータス:"
+        },
+        "status": {
+            "completed": "完了",
+            "in_progress": "進行中",
+            "failed": "未達成",
+            "not_started": "未開始"
+        },
+        "buttons": {
+            "continue": "続ける",
+            "submit": "提出する"
+        }
+    },
+    "quiz_progress": {
+        "label": "完了 {{current}}/{{total}}",
+        "expand": "展開",
+        "collapse": "折りたたむ"
+    },
+    "review_stats": {
+        "correct_count": "正解数:",
+        "unanswered_count": "未解答数:",
+        "incorrect_count": "不正解数:",
+        "status_label": "ステータス:",
+        "status_failed": "未達成",
+        "status_passed": "達成",
+        "expand": "展開",
+        "collapse": "折りたたむ"
+    },
     "test_screen": {
         "loading": "読み込み中...",
         "config": {
