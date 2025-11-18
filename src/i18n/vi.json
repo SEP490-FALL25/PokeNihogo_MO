@@ -1017,7 +1017,25 @@
       "active": "Đang hoạt động",
       "inactive": "Tạm dừng",
       "archived": "Đã lưu trữ"
-    }
+    },
+    "pagination": {
+      "10": "10",
+      "20": "20",
+      "50": "50"
+    },
+    "create_modal_title": "Tạo bộ flashcard mới",
+    "create_modal_placeholder": "Nhập tên bộ flashcard",
+    "create_modal_submit": "Tạo mới",
+    "create_error_required": "Tên bộ flashcard không được để trống",
+    "create_success_title": "Tạo bộ flashcard thành công",
+    "create_success_desc": "Bạn có thể thêm từ mới ngay bây giờ.",
+    "create_error_title": "Tạo bộ flashcard thất bại",
+    "create_error_desc": "Không thể tạo bộ flashcard. Vui lòng thử lại."
+  },
+  "empty_state": {
+    "default_title": "Không có dữ liệu",
+    "default_description": "Hiện tại chưa có dữ liệu để hiển thị",
+    "footer_message": "🎮 Hãy tiếp tục hành trình học tập của bạn!"
   },
   "subscription": {
     "title": "Gói Dịch Vụ",

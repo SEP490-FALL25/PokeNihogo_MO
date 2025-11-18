@@ -1007,7 +1007,25 @@
       "active": "Active",
       "inactive": "Inactive",
       "archived": "Archived"
-    }
+    },
+    "pagination": {
+      "10": "10",
+      "20": "20",
+      "50": "50"
+    },
+    "create_modal_title": "Create a new flashcard deck",
+    "create_modal_placeholder": "Enter deck name",
+    "create_modal_submit": "Create",
+    "create_error_required": "Deck name cannot be empty",
+    "create_success_title": "Deck created",
+    "create_success_desc": "You can start adding new cards now.",
+    "create_error_title": "Failed to create deck",
+    "create_error_desc": "Could not create the deck. Please try again."
+  },
+  "empty_state": {
+    "default_title": "No data available",
+    "default_description": "There is currently no data to display",
+    "footer_message": "🎮 Keep going on your learning journey!"
   },
   "subscription": {
     "title": "Service Packages",

@@ -36,9 +36,9 @@ import {
 } from "react-native-safe-area-context";
 
 const ITEMS_PER_PAGE_OPTIONS = [
-  { label: "10", value: "10" },
-  { label: "20", value: "20" },
-  { label: "50", value: "50" },
+  { labelKey: "flashcard_list.pagination.10", fallback: "10", value: "10" },
+  { labelKey: "flashcard_list.pagination.20", fallback: "20", value: "20" },
+  { labelKey: "flashcard_list.pagination.50", fallback: "50", value: "50" },
 ];
 
 const formatDate = (date?: string | null) => {
@@ -56,11 +56,26 @@ const formatDate = (date?: string | null) => {
 
 const statusBadgeStyles: Record<
   string,
-  { bg: string; text: string; label: string }
+  { bg: string; text: string; labelKey: string; fallback: string }
 > = {
-  ACTIVE: { bg: "#dcfce7", text: "#15803d", label: "Active" },
-  INACTIVE: { bg: "#fee2e2", text: "#b91c1c", label: "Inactive" },
-  ARCHIVED: { bg: "#e0e7ff", text: "#4338ca", label: "Archived" },
+  ACTIVE: {
+    bg: "#dcfce7",
+    text: "#15803d",
+    labelKey: "flashcard_list.status.active",
+    fallback: "Active",
+  },
+  INACTIVE: {
+    bg: "#fee2e2",
+    text: "#b91c1c",
+    labelKey: "flashcard_list.status.inactive",
+    fallback: "Inactive",
+  },
+  ARCHIVED: {
+    bg: "#e0e7ff",
+    text: "#4338ca",
+    labelKey: "flashcard_list.status.archived",
+    fallback: "Archived",
+  },
 };
 
 const FlashcardDeckListScreen = () => {
@@ -88,10 +103,10 @@ const FlashcardDeckListScreen = () => {
   const itemsPerPageSelectOptions = useMemo(
     () =>
       ITEMS_PER_PAGE_OPTIONS.map((option) => ({
-        label: option.label,
+        label: t(option.labelKey, option.fallback),
         value: option.value,
       })),
-    []
+    [t]
   );
 
   const { data, isLoading, isFetching, refetch } =
@@ -158,10 +173,7 @@ const FlashcardDeckListScreen = () => {
             <Text
               style={{ color: badge.text, fontWeight: "600", fontSize: 12 }}
             >
-              {t(
-                `flashcard_list.status.${deck.status.toLowerCase()}`,
-                badge.label
-              )}
+              {t(badge.labelKey, badge.fallback)}
             </Text>
           </View>
         </View>

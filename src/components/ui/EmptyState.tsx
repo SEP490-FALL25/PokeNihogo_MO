@@ -1,6 +1,7 @@
 import { ThemedText } from "@components/ThemedText";
 import { IconSymbol } from "@components/ui/IconSymbol";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 
 interface EmptyStateProps {
@@ -16,8 +17,8 @@ interface EmptyStateProps {
 }
 
 const EmptyState: React.FC<EmptyStateProps> = ({
-  title = "Không có dữ liệu",
-  description = "Hiện tại chưa có dữ liệu để hiển thị",
+  title,
+  description,
   icon = "tray",
   iconSize = 48,
   iconColor = "#9ca3af",
@@ -26,6 +27,18 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   titleStyle,
   descriptionStyle,
 }) => {
+  const { t } = useTranslation();
+
+  const resolvedTitle =
+    title || t("empty_state.default_title", "Không có dữ liệu");
+  const resolvedDescription =
+    description ||
+    t("empty_state.default_description", "Hiện tại chưa có dữ liệu để hiển thị");
+  const footerMessage = t(
+    "empty_state.footer_message",
+    "🎮 Hãy tiếp tục hành trình học tập của bạn!"
+  );
+
   return (
     <View style={[styles.container, pokemonTheme && styles.pokemonContainer, style]}>
       <View style={[styles.iconContainer, pokemonTheme && styles.pokemonIconContainer]}>
@@ -45,20 +58,18 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         type="subtitle" 
         style={[styles.title, pokemonTheme && styles.pokemonTitle, titleStyle]}
       >
-        {title}
+        {resolvedTitle}
       </ThemedText>
       
       <ThemedText 
         style={[styles.description, pokemonTheme && styles.pokemonDescription, descriptionStyle]}
       >
-        {description}
+        {resolvedDescription}
       </ThemedText>
 
       {pokemonTheme && (
         <View style={styles.pokemonFooter}>
-          <ThemedText style={styles.pokemonFooterText}>
-            🎮 Hãy tiếp tục hành trình học tập của bạn!
-          </ThemedText>
+          <ThemedText style={styles.pokemonFooterText}>{footerMessage}</ThemedText>
         </View>
       )}
     </View>
