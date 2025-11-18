@@ -20,6 +20,8 @@
     "simple_dialog": "Hộp thoại đơn giản",
     "simple_dialog_test": "Đây là test hộp thoại đơn giản",
     "close": "Đóng",
+    "cancel": "Hủy",
+    "exit": "Thoát",
     "shop": "Cửa hàng",
     "open-shop": "Mở cửa hàng",
     "error": "Lỗi",
@@ -499,6 +501,40 @@
       }
     }
   },
+  "quiz_screen": {
+    "title": "Làm bài kiểm tra",
+    "loading": "Đang tải...",
+    "alerts": {
+      "load_quiz_failed": "Không thể tải quiz. Vui lòng thử lại.",
+      "load_questions_failed": "Không thể tải câu hỏi. Vui lòng thử lại.",
+      "missing_attempt_retry": "Không tìm thấy bài tập. Vui lòng thử lại.",
+      "missing_attempt": "Không tìm thấy bài tập.",
+      "check_status_failed": "Không thể kiểm tra trạng thái bài làm.",
+      "submit_missing_result": "Không nhận được dữ liệu kết quả.",
+      "submit_failed": "Không thể nộp bài.",
+      "save_failed": "Không thể lưu bài tập. Vui lòng thử lại.",
+      "continue_failed": "Không thể tiếp tục bài tập. Vui lòng thử lại.",
+      "new_attempt_failed": "Không thể tạo bài tập mới.",
+      "new_attempt_retry_failed": "Không thể tạo bài tập mới. Vui lòng thử lại."
+    },
+    "modals": {
+      "exit": {
+        "title": "Thoát bài làm?",
+        "message": "Bạn có muốn lưu lại phần câu trả lời đã làm không?",
+        "discard": "Không lưu",
+        "save": "Lưu và thoát",
+        "saving": "Đang lưu..."
+      },
+      "resume": {
+        "title": "Tiếp tục bài làm?",
+        "message": "Bạn có bài làm đã lưu trước đó. Bạn muốn tiếp tục bài làm cũ hay làm lại bài mới?",
+        "new_attempt": "Làm lại bài mới",
+        "creating": "Đang tạo...",
+        "continue": "Tiếp tục bài cũ",
+        "loading": "Đang tải..."
+      }
+    }
+  },
   "home": {
     "welcome_back": "Chào mừng trở lại, {{username}}! 👋",
     "ready_to_continue": "Sẵn sàng tiếp tục hành trình học tiếng Nhật của bạn?",
@@ -547,6 +583,31 @@
     "image_placeholder": "🖼️ Hình ảnh câu hỏi",
     "explanation_label": "Giải thích:",
     "points_label": "điểm"
+  },
+  "test_screen": {
+    "loading": "Đang tải...",
+    "config": {
+      "reading_test": {
+        "title": "Bài đọc",
+        "exit_title": "Thoát bài đọc?",
+        "exit_message": "Bạn có muốn quay lại danh sách bài đọc?"
+      },
+      "listening_test": {
+        "title": "Bài nghe",
+        "exit_title": "Thoát bài nghe?",
+        "exit_message": "Bạn có muốn quay lại danh sách bài nghe?"
+      },
+      "lesson_test": {
+        "title": "Kiểm tra bài học",
+        "exit_title": "Thoát bài kiểm tra?",
+        "exit_message": "Bạn có muốn quay lại bài học?"
+      },
+      "default": {
+        "title": "Bài test",
+        "exit_title": "Thoát bài test?",
+        "exit_message": "Bạn có muốn quay lại?"
+      }
+    }
   },
   "daily_login": {
     "title": "Điểm danh hàng ngày",

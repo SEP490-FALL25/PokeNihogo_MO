@@ -20,6 +20,8 @@
     "simple_dialog": "Simple Dialog",
     "simple_dialog_test": "This is a simple dialog test",
     "close": "Close",
+    "cancel": "Cancel",
+    "exit": "Exit",
     "shop": "Shop",
     "open-shop": "Open Shop",
     "error": "Error",
@@ -499,6 +501,40 @@
       }
     }
   },
+  "quiz_screen": {
+    "title": "Take the quiz",
+    "loading": "Loading...",
+    "alerts": {
+      "load_quiz_failed": "Unable to load the quiz. Please try again.",
+      "load_questions_failed": "Unable to load questions. Please try again.",
+      "missing_attempt_retry": "Could not find this exercise. Please try again.",
+      "missing_attempt": "Exercise not found.",
+      "check_status_failed": "Unable to check submission status.",
+      "submit_missing_result": "Result data was not received.",
+      "submit_failed": "Could not submit.",
+      "save_failed": "Unable to save your progress. Please try again.",
+      "continue_failed": "Unable to resume your exercise. Please try again.",
+      "new_attempt_failed": "Could not create a new exercise.",
+      "new_attempt_retry_failed": "Could not create a new exercise. Please try again."
+    },
+    "modals": {
+      "exit": {
+        "title": "Leave this quiz?",
+        "message": "Do you want to save your answered questions?",
+        "discard": "Don't save",
+        "save": "Save and exit",
+        "saving": "Saving..."
+      },
+      "resume": {
+        "title": "Resume your quiz?",
+        "message": "You have saved progress. Continue where you left off or start over?",
+        "new_attempt": "Start a new quiz",
+        "creating": "Creating...",
+        "continue": "Continue saved quiz",
+        "loading": "Loading..."
+      }
+    }
+  },
   "home": {
     "welcome_back": "Welcome back, {{username}}! 👋",
     "ready_to_continue": "Ready to continue your Japanese learning journey?",
@@ -532,6 +568,31 @@
     "image_placeholder": "🖼️ Question image",
     "explanation_label": "Explanation:",
     "points_label": "points"
+  },
+  "test_screen": {
+    "loading": "Loading...",
+    "config": {
+      "reading_test": {
+        "title": "Reading test",
+        "exit_title": "Leave reading test?",
+        "exit_message": "Do you want to return to the reading list?"
+      },
+      "listening_test": {
+        "title": "Listening test",
+        "exit_title": "Leave listening test?",
+        "exit_message": "Do you want to return to the listening list?"
+      },
+      "lesson_test": {
+        "title": "Lesson test",
+        "exit_title": "Leave lesson test?",
+        "exit_message": "Do you want to return to the lesson?"
+      },
+      "default": {
+        "title": "Test",
+        "exit_title": "Leave test?",
+        "exit_message": "Do you want to go back?"
+      }
+    }
   },
   "daily_login": {
     "title": "Daily Check-in",

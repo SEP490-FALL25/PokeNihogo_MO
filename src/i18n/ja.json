@@ -30,6 +30,8 @@
         "delete": "削除",
         "edit": "編集",
         "close": "閉じる",
+        "cancel": "キャンセル",
+        "exit": "終了",
         "shop": "ショップ",
         "open-shop": "ショップを開く",
         "yes": "はい",
@@ -537,6 +539,65 @@
                 "overlap_title": "重ねて表示",
                 "overlap_description": "後ろのカードを重ねて現在のカードに集中します。",
                 "close": "閉じる"
+            }
+        }
+    },
+    "quiz_screen": {
+        "title": "テストを受ける",
+        "loading": "読み込み中...",
+        "alerts": {
+            "load_quiz_failed": "クイズを読み込めません。もう一度お試しください。",
+            "load_questions_failed": "問題を読み込めません。もう一度お試しください。",
+            "missing_attempt_retry": "テストを見つけられません。もう一度お試しください。",
+            "missing_attempt": "テストが見つかりません。",
+            "check_status_failed": "提出状況を確認できませんでした。",
+            "submit_missing_result": "結果データを受信できませんでした。",
+            "submit_failed": "提出できませんでした。",
+            "save_failed": "テストを保存できません。もう一度お試しください。",
+            "continue_failed": "テストを再開できません。もう一度お試しください。",
+            "new_attempt_failed": "新しいテストを作成できません。",
+            "new_attempt_retry_failed": "新しいテストを作成できません。もう一度お試しください。"
+        },
+        "modals": {
+            "exit": {
+                "title": "テストを終了しますか？",
+                "message": "回答済みの内容を保存しますか？",
+                "discard": "保存しない",
+                "save": "保存して終了",
+                "saving": "保存中..."
+            },
+            "resume": {
+                "title": "テストを再開しますか？",
+                "message": "保存済みのテストがあります。再開しますか、それとも新しく始めますか？",
+                "new_attempt": "新しいテストを開始",
+                "creating": "作成中...",
+                "continue": "保存分を再開",
+                "loading": "読み込み中..."
+            }
+        }
+    },
+    "test_screen": {
+        "loading": "読み込み中...",
+        "config": {
+            "reading_test": {
+                "title": "読解テスト",
+                "exit_title": "読解テストを終了しますか？",
+                "exit_message": "読解リストに戻りますか？"
+            },
+            "listening_test": {
+                "title": "聴解テスト",
+                "exit_title": "聴解テストを終了しますか？",
+                "exit_message": "聴解リストに戻りますか？"
+            },
+            "lesson_test": {
+                "title": "レッスンテスト",
+                "exit_title": "レッスンテストを終了しますか？",
+                "exit_message": "レッスンに戻りますか？"
+            },
+            "default": {
+                "title": "テスト",
+                "exit_title": "テストを終了しますか？",
+                "exit_message": "前の画面に戻りますか？"
             }
         }
     },
