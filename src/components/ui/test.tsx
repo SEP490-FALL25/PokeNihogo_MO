@@ -3,11 +3,11 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { clsx } from 'clsx';
 import React, { useMemo, useState } from 'react';
 import {
-    GestureResponderEvent,
-    Pressable,
-    Text,
-    TouchableOpacity,
-    View,
+  GestureResponderEvent,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 export interface RewardDetail {
@@ -320,13 +320,6 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
                     <Ionicons name="checkmark" size={isBig ? 20 : 12} color="white" />
                   </View>
                 )}
-
-                 {/* Dấu hỏi đè lên icon khi bị khóa */}
-                 {isLocked && (
-                    <View className="absolute">
-                         <Text className={clsx("font-bold text-slate-500", isBig ? "text-xl" : "text-xs")}>?</Text>
-                    </View>
-                 )}
               </View>
             );
           })}

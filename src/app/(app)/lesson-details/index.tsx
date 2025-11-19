@@ -1,6 +1,7 @@
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
 import { RewardProgress } from "@components/ui/test";
+import { ExerciseAttemptStatus } from "@constants/exercise.enum";
 import { useLesson, useLessonExercises } from "@hooks/useLessons";
 import { useUserExerciseAttempt } from "@hooks/useUserExerciseAttempt";
 import { ROUTES } from "@routes/routes";
@@ -325,7 +326,7 @@ const LessonDetailScreen = () => {
       (item) => Array.isArray(item?.rewards) && item.rewards.length > 0
     );
 
-    return exercisesWithRewards.map((item, index) => {
+    const exerciseRewardsList = exercisesWithRewards.map((item, index) => {
       const typeKey = (item.exerciseType || "").toLowerCase();
       const rewardDetails = (item.rewards || []).map((reward: any, idx: number) => ({
         id: reward.id ?? `${item.id}-${idx}`,
@@ -341,9 +342,48 @@ const LessonDetailScreen = () => {
         exerciseType: item.exerciseType,
         status: exerciseStatusByType[typeKey],
         rewards: rewardDetails,
-        isBigReward: index === exercisesWithRewards.length - 1,
+        isBigReward: false,
       };
     });
+
+    // Lấy rewardLesson từ exercise đầu tiên (vì tất cả đều giống nhau)
+    const firstExercise = lessonExercises[0];
+    const rewardLesson = firstExercise?.rewardLesson || [];
+    
+    // Tính số lượng exercises đã hoàn thành
+    const completedExercises = exercisesWithRewards.filter((item) => {
+      const typeKey = (item.exerciseType || "").toLowerCase();
+      const normalized = (exerciseStatusByType[typeKey] || "").toUpperCase();
+      return normalized === ExerciseAttemptStatus.COMPLETED;
+    }).length;
+
+    // Thêm phần thưởng cuối cùng (rewardLesson) nếu có
+    if (rewardLesson.length > 0 && exercisesWithRewards.length > 0) {
+      const rewardLessonDetails = rewardLesson.map((reward: any, idx: number) => ({
+        id: reward.id ?? `reward-lesson-${idx}`,
+        name: reward.name,
+        rewardType: reward.rewardType,
+        rewardItem: reward.rewardItem,
+        rewardTarget: reward.rewardTarget,
+      }));
+
+      // Nếu hoàn thành 3 bài tập (exercise 3), phần thưởng cuối cùng sẽ được mở
+      // Status sẽ là COMPLETED nếu đã hoàn thành tất cả 3 exercises
+      const finalRewardStatus = completedExercises >= exercisesWithRewards.length
+        ? ExerciseAttemptStatus.COMPLETED
+        : undefined;
+
+      exerciseRewardsList.push({
+        id: "reward-lesson-final",
+        name: "Phần thưởng cuối cùng",
+        exerciseType: undefined,
+        status: finalRewardStatus,
+        rewards: rewardLessonDetails,
+        isBigReward: true,
+      });
+    }
+
+    return exerciseRewardsList;
   }, [exerciseStatusByType, getExerciseTypeLabel, lessonExercises]);
 
   const getStatusMeta = React.useCallback(

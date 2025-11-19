@@ -156,6 +156,7 @@ export const LessonExerciseItemSchema = z.object({
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
   rewards: z.array(ExerciseRewardSchema).optional(),
+  rewardLesson: z.array(ExerciseRewardSchema).optional(),
 });
 
 export const LessonExercisesResponseSchema = z.object({

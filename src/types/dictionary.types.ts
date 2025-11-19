@@ -1,8 +1,10 @@
 // Dictionary Types
 export interface WordMeaning {
+  id?: number;
   meaning?: string;
   exampleSentenceJp?: string;
   exampleSentence?: string;
+  wordType?: string | null;
 }
 
 export interface RelatedWord {
