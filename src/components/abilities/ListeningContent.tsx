@@ -1,6 +1,7 @@
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { TestStatus } from "@constants/test.enum";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUserTests } from "@hooks/useUserTest";
 import { ROUTES } from "@routes/routes";
 import { router } from "expo-router";
@@ -8,10 +9,10 @@ import { HeadphonesIcon } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Animated,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  Animated,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 type UserTestItem = {
@@ -33,20 +34,37 @@ type UserTestItem = {
 const ListeningCard: React.FC<{
   item: UserTestItem;
   onPress: () => void;
-}> = ({ item, onPress }) => {
+  onLockedPress: () => void;
+}> = ({ item, onPress, onLockedPress }) => {
+  const isLocked = item.status === "NOT_STARTED";
+  
   return (
     <TouchableOpacity
-      style={[styles.card, { borderLeftColor: "#10b981" }]}
-      onPress={onPress}
+      style={[
+        styles.card, 
+        { borderLeftColor: "#10b981" },
+        isLocked && styles.lockedCard
+      ]}
+      onPress={isLocked ? onLockedPress : onPress}
       activeOpacity={0.8}
     >
       <View style={styles.cardHeader}>
-        <View style={[styles.iconContainer, { backgroundColor: "#10b981" }]}>
-          <HeadphonesIcon size={24} color="#ffffff" />
+        <View style={[
+          styles.iconContainer, 
+          { backgroundColor: "#10b981" },
+          isLocked && styles.lockedIconContainer
+        ]}>
+          <HeadphonesIcon size={24} color={isLocked ? "#9ca3af" : "#ffffff"} />
         </View>
         <View style={styles.exerciseInfo}>
           <View style={styles.materialHeaderRow}>
-            <ThemedText type="subtitle" style={styles.exerciseTitle}>
+            <ThemedText 
+              type="subtitle" 
+              style={[
+                styles.exerciseTitle,
+                isLocked && styles.lockedText
+              ]}
+            >
               {item.test?.name}
             </ThemedText>
             <View style={styles.levelBadge}>
@@ -55,7 +73,10 @@ const ListeningCard: React.FC<{
               </ThemedText>
             </View>
           </View>
-          <ThemedText style={styles.exerciseDescription}>
+          <ThemedText style={[
+            styles.exerciseDescription,
+            isLocked && styles.lockedText
+          ]}>
             {item.test?.description}
           </ThemedText>
         </View>
@@ -63,11 +84,19 @@ const ListeningCard: React.FC<{
 
       <View style={styles.cardFooter}>
         <View style={styles.metaInfo}>
-          <ThemedText style={styles.durationText}>
-            {item.limit} / {item.test?.limit}
-          </ThemedText>
+          {!isLocked && (
+            <ThemedText style={styles.durationText}>
+              {item.limit} / {item.test?.limit}
+            </ThemedText>
+          )}
         </View>
       </View>
+
+      {isLocked && (
+        <View style={styles.lockOverlay} pointerEvents="none">
+          <MaterialCommunityIcons name="lock" size={48} color="#64748B" />
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -115,6 +144,10 @@ export const ListeningContent: React.FC = () => {
       pathname: ROUTES.TEST.TEST,
       params: { testId: String(testId), testType: "LISTENING_TEST" },
     });
+  };
+
+  const handleLockedPress = () => {
+    router.push(ROUTES.APP.SUBSCRIPTION);
   };
 
   return (
@@ -174,6 +207,7 @@ export const ListeningContent: React.FC = () => {
               <ListeningCard
                 item={item}
                 onPress={() => handleListeningPress(item.test?.id)}
+                onLockedPress={handleLockedPress}
               />
             </Animated.View>
           ))}
@@ -354,5 +388,26 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     lineHeight: 20,
   },
+  lockedCard: {
+    opacity: 0.6,
+  },
+  lockedIconContainer: {
+    backgroundColor: "#d1d5db",
+  },
+  lockedText: {
+    color: "#9ca3af",
+  },
+  lockOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    borderRadius: 12,
+  },
 });
+
 

@@ -12,6 +12,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 type UserTestItem = {
   id: number;
@@ -32,22 +33,42 @@ type UserTestItem = {
 const SpeakingCard: React.FC<{
   item: UserTestItem;
   onPress: () => void;
-}> = ({ item, onPress }) => {
+  onLockedPress: () => void;
+}> = ({ item, onPress, onLockedPress }) => {
+  const isLocked = item.status === "NOT_STARTED";
+  
   return (
     <TouchableOpacity
-      style={[styles.card, { borderLeftColor: "#8b5cf6" }]}
-      onPress={onPress}
+      style={[
+        styles.card, 
+        { borderLeftColor: "#8b5cf6" },
+        isLocked && styles.lockedCard
+      ]}
+      onPress={isLocked ? onLockedPress : onPress}
       activeOpacity={0.8}
     >
       <View style={styles.cardHeader}>
-        <View style={[styles.iconContainer, { backgroundColor: "#8b5cf6" }]}>
-          <Mic size={24} color="#ffffff" />
+        <View style={[
+          styles.iconContainer, 
+          { backgroundColor: "#8b5cf6" },
+          isLocked && styles.lockedIconContainer
+        ]}>
+          <Mic size={24} color={isLocked ? "#9ca3af" : "#ffffff"} />
         </View>
         <View style={styles.exerciseInfo}>
-          <ThemedText type="subtitle" style={styles.exerciseTitle}>
+          <ThemedText 
+            type="subtitle" 
+            style={[
+              styles.exerciseTitle,
+              isLocked && styles.lockedText
+            ]}
+          >
             {item.test?.name}
           </ThemedText>
-          <ThemedText style={styles.exerciseDescription}>
+          <ThemedText style={[
+            styles.exerciseDescription,
+            isLocked && styles.lockedText
+          ]}>
             {item.test?.description}
           </ThemedText>
         </View>
@@ -60,11 +81,19 @@ const SpeakingCard: React.FC<{
               N{item.test?.levelN}
             </ThemedText>
           </View>
-          <ThemedText style={styles.timeText}>
-            {item.limit} / {item.test?.limit}
-          </ThemedText>
+          {!isLocked && (
+            <ThemedText style={styles.timeText}>
+              {item.limit} / {item.test?.limit}
+            </ThemedText>
+          )}
         </View>
       </View>
+
+      {isLocked && (
+        <View style={styles.lockOverlay} pointerEvents="none">
+          <MaterialCommunityIcons name="lock" size={48} color="#64748B" />
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -112,6 +141,10 @@ export const SpeakingContent: React.FC = () => {
       pathname: ROUTES.APP.CONVERSATION,
       params: { topicId: String(materialId) },
     });
+  };
+
+  const handleLockedPress = () => {
+    router.push(ROUTES.APP.SUBSCRIPTION);
   };
 
   return (
@@ -177,6 +210,7 @@ export const SpeakingContent: React.FC = () => {
               <SpeakingCard
                 item={item}
                 onPress={() => handleSpeakingPress(item.test?.id)}
+                onLockedPress={handleLockedPress}
               />
             </Animated.View>
           ))}
@@ -303,5 +337,26 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     textAlign: "center",
   },
+  lockedCard: {
+    opacity: 0.6,
+  },
+  lockedIconContainer: {
+    backgroundColor: "#d1d5db",
+  },
+  lockedText: {
+    color: "#9ca3af",
+  },
+  lockOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    borderRadius: 12,
+  },
 });
+
 

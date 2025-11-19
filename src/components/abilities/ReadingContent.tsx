@@ -13,6 +13,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 type UserTestItem = {
   id: number;
@@ -33,20 +34,37 @@ type UserTestItem = {
 const ReadingCard: React.FC<{
   item: UserTestItem;
   onPress: () => void;
-}> = ({ item, onPress }) => {
+  onLockedPress: () => void;
+}> = ({ item, onPress, onLockedPress }) => {
+  const isLocked = item.status === "NOT_STARTED";
+  
   return (
     <TouchableOpacity
-      style={[styles.card, { borderLeftColor: "#3b82f6" }]}
-      onPress={onPress}
+      style={[
+        styles.card, 
+        { borderLeftColor: "#3b82f6" },
+        isLocked && styles.lockedCard
+      ]}
+      onPress={isLocked ? onLockedPress : onPress}
       activeOpacity={0.8}
     >
       <View style={styles.cardHeader}>
-        <View style={[styles.iconContainer, { backgroundColor: "#3b82f6" }]}>
-          <BookOpen size={24} color="#ffffff" />
+        <View style={[
+          styles.iconContainer, 
+          { backgroundColor: "#3b82f6" },
+          isLocked && styles.lockedIconContainer
+        ]}>
+          <BookOpen size={24} color={isLocked ? "#9ca3af" : "#ffffff"} />
         </View>
         <View style={styles.materialInfo}>
           <View style={styles.materialHeaderRow}>
-            <ThemedText type="subtitle" style={styles.materialTitle}>
+            <ThemedText 
+              type="subtitle" 
+              style={[
+                styles.materialTitle,
+                isLocked && styles.lockedText
+              ]}
+            >
               {item.test?.name}
             </ThemedText>
             <View style={styles.levelBadge}>
@@ -55,7 +73,10 @@ const ReadingCard: React.FC<{
               </ThemedText>
             </View>
           </View>
-          <ThemedText style={styles.materialDescription}>
+          <ThemedText style={[
+            styles.materialDescription,
+            isLocked && styles.lockedText
+          ]}>
             {item.test?.description}
           </ThemedText>
         </View>
@@ -63,11 +84,19 @@ const ReadingCard: React.FC<{
 
       <View style={styles.cardFooter}>
         <View style={styles.metaInfo}>
-          <ThemedText style={styles.timeText}>
-            {item.limit} / {item.test?.limit}
-          </ThemedText>
+          {!isLocked && (
+            <ThemedText style={styles.timeText}>
+              {item.limit} / {item.test?.limit}
+            </ThemedText>
+          )}
         </View>
       </View>
+
+      {isLocked && (
+        <View style={styles.lockOverlay} pointerEvents="none">
+          <MaterialCommunityIcons name="lock" size={48} color="#64748B" />
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -115,6 +144,10 @@ export const ReadingContent: React.FC = () => {
       pathname: ROUTES.TEST.TEST,
       params: { testId: String(materialId), testType: "READING_TEST" },
     });
+  };
+
+  const handleLockedPress = () => {
+    router.push(ROUTES.APP.SUBSCRIPTION);
   };
 
   return (
@@ -180,6 +213,7 @@ export const ReadingContent: React.FC = () => {
               <ReadingCard
                 item={item}
                 onPress={() => handleReadingPress(item.test?.id)}
+                onLockedPress={handleLockedPress}
               />
             </Animated.View>
           ))}
@@ -353,5 +387,26 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     lineHeight: 20,
   },
+  lockedCard: {
+    opacity: 0.6,
+  },
+  lockedIconContainer: {
+    backgroundColor: "#d1d5db",
+  },
+  lockedText: {
+    color: "#9ca3af",
+  },
+  lockOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    borderRadius: 12,
+  },
 });
+
 
