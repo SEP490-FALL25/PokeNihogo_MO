@@ -11,10 +11,11 @@ import { useWalletUser } from "@hooks/useWallet";
 import { ISubscriptionMarketplaceEntity } from "@models/subscription/subscription.entity";
 import { SubscriptionPackageType } from "@models/subscription/subscription.request";
 import payosService from "@services/payos";
+import { useLocalSearchParams } from "expo-router";
 import { BookOpen, Check, Coins, Crown, Headphones, RefreshCw } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Animated, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const MIN_POKECOIN_DEDUCTION = 10000;
@@ -22,10 +23,15 @@ const POKECOIN_DEDUCTION_STEP = 10000;
 
 export default function SubscriptionScreen() {
     const { t } = useTranslation();
+    const params = useLocalSearchParams<{ testType?: string }>();
     const { data: packagesData, isLoading: isLoadingPackages } = useSubscriptionMarketplacePackages();
     const { walletUser, isLoading: isLoadingWallet } = useWalletUser();
     const { mutate: createInvoice, isPending: isPurchasing } = useCreateInvoice();
     const { refetchAll } = useRefetchUserData();
+    const scrollViewRef = useRef<ScrollView>(null);
+    const packageRefs = useRef<Record<number, View | null>>({});
+    const [highlightedPackageId, setHighlightedPackageId] = useState<number | null>(null);
+    const highlightAnim = useRef(new Animated.Value(0)).current;
 
     const [alertVisible, setAlertVisible] = useState<boolean>(false);
     const [alertMessage, setAlertMessage] = useState<string>('');
@@ -56,6 +62,93 @@ export default function SubscriptionScreen() {
 
         return SubscriptionPackageType.READING; // default
     }, []);
+
+    // Helper function to check if package matches testType
+    const matchesTestType = useCallback((packageItem: ISubscriptionMarketplaceEntity, testType?: string): boolean => {
+        if (!testType) return false;
+        
+        const packageType = getPackageType(packageItem);
+        const hasReading = packageItem.features.some(f => f.feature.featureKey === 'UNLOCK_READING');
+        const hasListening = packageItem.features.some(f => f.feature.featureKey === 'UNLOCK_LISTENING');
+        const isUltra = packageType === SubscriptionPackageType.ULTRA_EXPLORER;
+
+        if (testType === 'READING_TEST') {
+            // Match READING, READING_LISTENING, or ULTRA packages
+            return hasReading || isUltra;
+        } else if (testType === 'LISTENING_TEST') {
+            // Match LISTENING, READING_LISTENING, or ULTRA packages
+            return hasListening || isUltra;
+        } else if (testType === 'SPEAKING_TEST') {
+            // Match READING_LISTENING or ULTRA packages (speaking needs both)
+            return (hasReading && hasListening) || isUltra;
+        }
+        
+        return false;
+    }, [getPackageType]);
+
+    // Effect to highlight and scroll to package based on params
+    useEffect(() => {
+        if (params.testType && packages.length > 0 && !isLoadingPackages) {
+            // Find the first package that matches the testType
+            const targetPackage = packages.find((pkg: ISubscriptionMarketplaceEntity) => {
+                return matchesTestType(pkg, params.testType);
+            });
+
+            if (targetPackage) {
+                setHighlightedPackageId(targetPackage.id);
+                
+                // Start highlight animation (loop 3 times)
+                const animateHighlight = () => {
+                    Animated.sequence([
+                        Animated.timing(highlightAnim, {
+                            toValue: 1,
+                            duration: 400,
+                            useNativeDriver: false,
+                        }),
+                        Animated.timing(highlightAnim, {
+                            toValue: 0,
+                            duration: 400,
+                            useNativeDriver: false,
+                        }),
+                    ]).start();
+                };
+
+                // Run animation 3 times
+                animateHighlight();
+                setTimeout(() => animateHighlight(), 800);
+                setTimeout(() => animateHighlight(), 1600);
+
+                // Scroll to the package after a short delay
+                setTimeout(() => {
+                    const packageRef = packageRefs.current[targetPackage.id];
+                    if (packageRef && scrollViewRef.current) {
+                        packageRef.measureLayout(
+                            scrollViewRef.current as any,
+                            (x, y) => {
+                                scrollViewRef.current?.scrollTo({
+                                    y: Math.max(0, y - 40), // Offset by 40px from top
+                                    animated: true,
+                                });
+                            },
+                            () => {
+                                // Fallback: try to scroll using findNodeHandle
+                                try {
+                                    setTimeout(() => {
+                                        scrollViewRef.current?.scrollTo({
+                                            y: 0,
+                                            animated: true,
+                                        });
+                                    }, 200);
+                                } catch (e) {
+                                    console.log('Scroll error:', e);
+                                }
+                            }
+                        );
+                    }
+                }, 200);
+            }
+        }
+    }, [params.testType, packages, isLoadingPackages, highlightAnim, matchesTestType]);
 
     // Helper function to get active plan
     const getActivePlan = useCallback((packageItem: ISubscriptionMarketplaceEntity) => {
@@ -324,7 +417,11 @@ export default function SubscriptionScreen() {
                 <BackScreen
                     color="black"
                 />
-                <ScrollView className="flex-1" contentContainerStyle={styles.scrollContent}>
+                <ScrollView 
+                    ref={scrollViewRef}
+                    className="flex-1" 
+                    contentContainerStyle={styles.scrollContent}
+                >
                     {/* Header */}
                     <View className="px-6 pt-12 pb-6">
                         <ThemedText type="title" className="text-3xl font-bold text-center mb-2">
@@ -374,6 +471,7 @@ export default function SubscriptionScreen() {
                             const gradientColors = getPackageGradient(packageType);
                             const benefits = getBenefits(packageItem);
                             const duration = activePlan ? formatDuration(activePlan) : null;
+                            const isHighlighted = highlightedPackageId === packageItem.id;
 
                             if (!activePlan) {
                                 return null; // Skip packages without active plans
@@ -400,11 +498,40 @@ export default function SubscriptionScreen() {
                                 : t('subscription.purchase');
                             const isActionBusy = hasPendingInvoice ? isResolvingInvoice : isPurchasing;
 
+                            const borderColor = isHighlighted 
+                                ? highlightAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: ['rgba(59, 130, 246, 0.8)', 'rgba(59, 130, 246, 1)'],
+                                })
+                                : undefined;
+                            const shadowOpacity = isHighlighted
+                                ? highlightAnim.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [0.5, 0.9],
+                                })
+                                : undefined;
+
                             return (
-                                <View
+                                <Animated.View
                                     key={packageItem.id}
-                                    className={`rounded-3xl overflow-hidden shadow-lg ${isUltra || isPopular ? 'border-2 border-amber-400' : ''}`}
-                                    style={isUltra || isPopular ? { shadowColor: '#f59e0b', shadowOpacity: 0.3, shadowRadius: 10 } : {}}
+                                    ref={(ref) => {
+                                        if (ref) {
+                                            packageRefs.current[packageItem.id] = ref as View;
+                                        }
+                                    }}
+                                    className={`rounded-3xl overflow-hidden shadow-lg ${isUltra || isPopular ? 'border-2 border-amber-400' : ''} ${isHighlighted ? 'border-4' : ''}`}
+                                    style={[
+                                        isUltra || isPopular ? { shadowColor: '#f59e0b', shadowOpacity: 0.3, shadowRadius: 10 } : {},
+                                        isHighlighted && borderColor && shadowOpacity ? {
+                                            borderWidth: 4,
+                                            borderColor: borderColor,
+                                            shadowColor: '#3b82f6',
+                                            shadowOpacity: shadowOpacity,
+                                            shadowRadius: 15,
+                                            shadowOffset: { width: 0, height: 4 },
+                                            elevation: 8,
+                                        } : {},
+                                    ]}
                                 >
                                     <TWLinearGradient
                                         colors={gradientColors}
@@ -609,7 +736,7 @@ export default function SubscriptionScreen() {
                                             )}
                                         </View>
                                     </TWLinearGradient>
-                                </View>
+                                </Animated.View>
                             );
                         })}
                     </View>
