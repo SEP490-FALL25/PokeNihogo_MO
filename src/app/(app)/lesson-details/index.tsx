@@ -1,6 +1,7 @@
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
-import { useLesson } from "@hooks/useLessons";
+import { RewardProgress } from "@components/ui/test";
+import { useLesson, useLessonExercises } from "@hooks/useLessons";
 import { useUserExerciseAttempt } from "@hooks/useUserExerciseAttempt";
 import { ROUTES } from "@routes/routes";
 import * as Haptics from "expo-haptics";
@@ -255,11 +256,16 @@ const LessonDetailScreen = () => {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { data: lessonData, isLoading } = useLesson(id || "");
+  const { data: lessonExercisesResponse } = useLessonExercises(id || "");
   const {
     data: exerciseAttemptData,
     isLoading: isExerciseAttemptLoading,
   } = useUserExerciseAttempt(id || "");
   const lesson: any = lessonData?.data || {};
+  const lessonExercises: any[] = React.useMemo(
+    () => lessonExercisesResponse?.data || [],
+    [lessonExercisesResponse]
+  );
 
   // Try multiple property names in case of mock/real difference, fallback to []
   const voca: any[] = lesson.voca || lesson.vocabulary || [];
@@ -287,6 +293,58 @@ const LessonDetailScreen = () => {
     });
     return map;
   }, [exerciseAttemptList]);
+
+  const exerciseStatusByType = React.useMemo(() => {
+    const map: Record<string, string | undefined> = {};
+    Object.entries(exerciseAttemptMap).forEach(([type, attempt]) => {
+      map[type] = attempt?.status;
+    });
+    return map;
+  }, [exerciseAttemptMap]);
+
+  const getExerciseTypeLabel = React.useCallback(
+    (type: ExerciseCategory | string) => {
+      switch (type) {
+        case "grammar":
+          return t("lessons.lesson_types.grammar", "Grammar");
+        case "kanji":
+          return t("lessons.lesson_types.kanji", "Kanji");
+        default:
+          return t("lessons.lesson_types.vocabulary", "Vocabulary");
+      }
+    },
+    [t]
+  );
+
+  const exerciseRewards = React.useMemo(() => {
+    if (!Array.isArray(lessonExercises)) {
+      return [];
+    }
+
+    const exercisesWithRewards = lessonExercises.filter(
+      (item) => Array.isArray(item?.rewards) && item.rewards.length > 0
+    );
+
+    return exercisesWithRewards.map((item, index) => {
+      const typeKey = (item.exerciseType || "").toLowerCase();
+      const rewardDetails = (item.rewards || []).map((reward: any, idx: number) => ({
+        id: reward.id ?? `${item.id}-${idx}`,
+        name: reward.name,
+        rewardType: reward.rewardType,
+        rewardItem: reward.rewardItem,
+        rewardTarget: reward.rewardTarget,
+      }));
+
+      return {
+        id: item.id ?? index,
+        name: item.exerciseType ? getExerciseTypeLabel(typeKey) : undefined,
+        exerciseType: item.exerciseType,
+        status: exerciseStatusByType[typeKey],
+        rewards: rewardDetails,
+        isBigReward: index === exercisesWithRewards.length - 1,
+      };
+    });
+  }, [exerciseStatusByType, getExerciseTypeLabel, lessonExercises]);
 
   const getStatusMeta = React.useCallback(
     (type: ExerciseCategory) => {
@@ -443,6 +501,12 @@ const LessonDetailScreen = () => {
             <View style={{ width: 40 }} />
           </View>
         </View>
+
+        {exerciseRewards.length > 0 && (
+          <View className="px-5 pt-5">
+            <RewardProgress exercises={exerciseRewards} />
+          </View>
+        )}
 
         <ScrollView
           className="flex-1"
