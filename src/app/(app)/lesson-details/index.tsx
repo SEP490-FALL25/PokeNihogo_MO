@@ -502,17 +502,20 @@ const LessonDetailScreen = () => {
           </View>
         </View>
 
-        {exerciseRewards.length > 0 && (
-          <View className="px-5 pt-5">
-            <RewardProgress exercises={exerciseRewards} />
-          </View>
-        )}
-
         <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            paddingTop: 20,
+            paddingBottom: 100,
+          }}
         >
+          {exerciseRewards.length > 0 && (
+            <View style={{ marginBottom: 24 }}>
+              <RewardProgress exercises={exerciseRewards} />
+            </View>
+          )}
           {/* Lesson Description */}
           {lesson.description && (
             <View

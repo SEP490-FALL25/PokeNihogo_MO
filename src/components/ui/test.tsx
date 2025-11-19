@@ -126,19 +126,32 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
 
   return (
     <Pressable
-      className="w-full bg-slate-900 p-5 rounded-2xl border border-slate-800"
+      className="w-full rounded-3xl border"
+      style={{
+        backgroundColor: '#FFFFFF',
+        borderColor: '#E2E8F0',
+        padding: 20,
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.06,
+        shadowRadius: 12,
+        elevation: 4,
+      }}
       onPress={handleOutsidePress}
     >
       <View className="mb-12 mt-2 flex-row justify-between items-end">
         <View>
-            <Text className="text-white font-bold text-xl mb-1">Tiến độ bài học</Text>
-            <Text className="text-slate-400 text-sm font-medium">
-            Đã hoàn thành <Text className="text-yellow-400 font-bold">{completedSteps}</Text> / {totalSteps} bài
+            <Text className="text-slate-900 font-bold text-xl mb-1">Tiến độ bài học</Text>
+            <Text className="text-slate-500 text-sm font-medium">
+            Đã hoàn thành <Text className="text-amber-500 font-bold">{completedSteps}</Text> / {totalSteps} bài
             </Text>
         </View>
-        <View className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+        <View
+          className="px-3 py-1 rounded-full border"
+          style={{ backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }}
+        >
             {/* Hiển thị phần trăm thực tế của tiến trình học tập, không phải độ dài thanh bar */}
-            <Text className="text-slate-300 text-xs font-bold">{completionPercent}%</Text>
+            <Text className="text-slate-900 text-xs font-bold">{completionPercent}%</Text>
         </View>
       </View>
 
@@ -147,8 +160,11 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
         
         {/* Thanh nền (Background Track) */}
         <View
-          className="absolute h-4 bg-slate-800 rounded-full top-1/2 -mt-2 z-0 border border-slate-700"
+          className="absolute h-4 rounded-full top-1/2 -mt-2 z-0"
           style={{
+            backgroundColor: '#E2E8F0',
+            borderColor: '#CBD5F5',
+            borderWidth: 1,
             left: trackLeftOffset,
             right: trackRightOffset,
           }}
@@ -157,8 +173,12 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
 
         {/* Thanh tiến độ (Active Track) - Màu vàng */}
         <View
-          className="absolute h-4 bg-yellow-500 rounded-full top-1/2 -mt-2 z-0 shadow-sm shadow-yellow-500"
+          className="absolute h-4 rounded-full top-1/2 -mt-2 z-0"
           style={{
+            backgroundColor: '#FACC15',
+            shadowColor: '#FACC15',
+            shadowOpacity: 0.45,
+            shadowRadius: 6,
             left: trackLeftOffset,
             width: activeWidth,
           }}
@@ -244,21 +264,19 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
                   activeOpacity={0.9}
                   className={clsx(
                     "items-center justify-center shadow-lg transition-transform",
-                    // Kích thước & Border radius - Mốc cuối to hơn hẳn
                     isBig ? "w-20 h-20 rounded-3xl rotate-3" : "w-12 h-12 rounded-full",
-                    
                     isBig ? "border-[6px]" : "border-4",
-
-                    isReached 
-                        ? (isBig 
-                            ? "bg-yellow-500 border-white shadow-yellow-500/50" 
-                            : (isClaimed ? "bg-slate-800 border-yellow-500/50" : "bg-slate-800 border-yellow-400"))
-                        : "bg-slate-800 border-slate-600",
-                    
-                    isSelected && "scale-110 bg-white border-yellow-500"
+                    isReached
+                      ? isBig
+                        ? "bg-amber-400 border-white shadow-amber-400/50"
+                        : isClaimed
+                          ? "bg-white border-emerald-200"
+                          : "bg-white border-amber-300"
+                      : "bg-slate-100 border-slate-200",
+                    isSelected && "scale-110 bg-white border-amber-300"
                   )}
                   style={isBig && isReached && !isClaimed ? {
-                    shadowColor: '#EAB308',
+                    shadowColor: '#FACC15',
                     shadowOffset: { width: 0, height: 0 },
                     shadowOpacity: 0.8,
                     shadowRadius: 15,
@@ -278,8 +296,8 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
                         size={isBig ? 42 : 22} 
                         color={
                             isSelected 
-                                ? "#EAB308" 
-                                : (isBig ? "#FFFFFF" : (isClaimed ? "#9CA3AF" : "#FACC15"))
+                                ? "#FACC15" 
+                                : (isBig ? "#FFFFFF" : (isClaimed ? "#94A3B8" : "#FACC15"))
                         } 
                     />
                   )}
@@ -294,9 +312,11 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
                 {/* Badge checkmark */}
                 {isClaimed && (
                   <View className={clsx(
-                      "absolute bg-green-500 items-center justify-center border-2 border-slate-900 shadow-sm z-30",
+                      "absolute items-center justify-center border-2 shadow-sm z-30",
                       isBig ? "-bottom-2 -right-2 w-8 h-8 rounded-xl" : "-bottom-1 -right-1 w-5 h-5 rounded-full"
-                  )}>
+                  )}
+                  style={{ backgroundColor: '#10B981', borderColor: '#FFFFFF' }}
+                  >
                     <Ionicons name="checkmark" size={isBig ? 20 : 12} color="white" />
                   </View>
                 )}
@@ -314,7 +334,7 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
       </View>
 
       <Text className="text-slate-500 text-xs text-center italic mt-4">
-        Hoàn thành <Text className="text-white font-bold">{totalSteps}</Text> bài học để mở khóa Rương Báu
+        Hoàn thành <Text className="text-slate-900 font-bold">{totalSteps}</Text> bài học để mở khóa Rương Báu
       </Text>
     </Pressable>
   );
