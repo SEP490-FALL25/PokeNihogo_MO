@@ -1,5 +1,7 @@
 import { IQueryRequest } from "@models/common/common.request";
 import { ILessonCategoryResponse } from "@models/lesson-category/lesson-category.response";
+import { ILessonExercisesResponse } from "@models/user-exercise-attempt/user-exercise-attempt.response";
+import exerciseService from "@services/exercise";
 import { lessonService } from "@services/lesson";
 import lessonCategoriesService from "@services/lesson-categories";
 import userProgressService from "@services/user-progres";
@@ -29,6 +31,18 @@ export const useLesson = (lessonId: string) => {
     queryKey: ["lesson", lessonId, language],
     queryFn: () => lessonService.getLessonById(lessonId, language),
     enabled: !!lessonId,
+  });
+};
+
+export const useLessonExercises = (lessonId: string) => {
+  return useQuery<ILessonExercisesResponse>({
+    queryKey: ["lesson-exercises", lessonId],
+    queryFn: () => exerciseService.getExercisesByLesson(lessonId),
+    enabled: !!lessonId,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 };
 

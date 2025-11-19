@@ -134,3 +134,38 @@ export const ExerciseHistoryListResponseSchema = z.object({
 export type IExerciseHistoryItem = z.infer<typeof ExerciseHistoryItemSchema>;
 export type IExerciseHistoryListResponse = z.infer<typeof ExerciseHistoryListResponseSchema>;
 
+/**
+ * Lesson Exercises (including rewards) Response Schema
+ */
+export const ExerciseRewardSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  rewardType: z.string(),
+  rewardItem: z.number(),
+  rewardTarget: z.string(),
+});
+
+export const LessonExerciseItemSchema = z.object({
+  id: z.number(),
+  lessonId: z.number().optional(),
+  exerciseType: z.string(),
+  isBlocked: z.boolean().optional(),
+  testSetId: z.number().nullable().optional(),
+  rewardId: z.array(z.number()).optional(),
+  status: z.nativeEnum(ExerciseAttemptStatus).optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+  rewards: z.array(ExerciseRewardSchema).optional(),
+  rewardLesson: z.array(ExerciseRewardSchema).optional(),
+});
+
+export const LessonExercisesResponseSchema = z.object({
+  statusCode: z.number(),
+  message: z.string(),
+  data: z.array(LessonExerciseItemSchema).optional(),
+});
+
+export type IExerciseReward = z.infer<typeof ExerciseRewardSchema>;
+export type ILessonExerciseItem = z.infer<typeof LessonExerciseItemSchema>;
+export type ILessonExercisesResponse = z.infer<typeof LessonExercisesResponseSchema>;
+

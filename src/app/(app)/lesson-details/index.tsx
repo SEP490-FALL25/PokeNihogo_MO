@@ -1,6 +1,8 @@
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
-import { useLesson } from "@hooks/useLessons";
+import { RewardProgress } from "@components/ui/test";
+import { ExerciseAttemptStatus } from "@constants/exercise.enum";
+import { useLesson, useLessonExercises } from "@hooks/useLessons";
 import { useUserExerciseAttempt } from "@hooks/useUserExerciseAttempt";
 import { ROUTES } from "@routes/routes";
 import * as Haptics from "expo-haptics";
@@ -255,11 +257,16 @@ const LessonDetailScreen = () => {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { data: lessonData, isLoading } = useLesson(id || "");
+  const { data: lessonExercisesResponse } = useLessonExercises(id || "");
   const {
     data: exerciseAttemptData,
     isLoading: isExerciseAttemptLoading,
   } = useUserExerciseAttempt(id || "");
   const lesson: any = lessonData?.data || {};
+  const lessonExercises: any[] = React.useMemo(
+    () => lessonExercisesResponse?.data || [],
+    [lessonExercisesResponse]
+  );
 
   // Try multiple property names in case of mock/real difference, fallback to []
   const voca: any[] = lesson.voca || lesson.vocabulary || [];
@@ -287,6 +294,97 @@ const LessonDetailScreen = () => {
     });
     return map;
   }, [exerciseAttemptList]);
+
+  const exerciseStatusByType = React.useMemo(() => {
+    const map: Record<string, string | undefined> = {};
+    Object.entries(exerciseAttemptMap).forEach(([type, attempt]) => {
+      map[type] = attempt?.status;
+    });
+    return map;
+  }, [exerciseAttemptMap]);
+
+  const getExerciseTypeLabel = React.useCallback(
+    (type: ExerciseCategory | string) => {
+      switch (type) {
+        case "grammar":
+          return t("lessons.lesson_types.grammar", "Grammar");
+        case "kanji":
+          return t("lessons.lesson_types.kanji", "Kanji");
+        default:
+          return t("lessons.lesson_types.vocabulary", "Vocabulary");
+      }
+    },
+    [t]
+  );
+
+  const exerciseRewards = React.useMemo(() => {
+    if (!Array.isArray(lessonExercises)) {
+      return [];
+    }
+
+    const exercisesWithRewards = lessonExercises.filter(
+      (item) => Array.isArray(item?.rewards) && item.rewards.length > 0
+    );
+
+    const exerciseRewardsList = exercisesWithRewards.map((item, index) => {
+      const typeKey = (item.exerciseType || "").toLowerCase();
+      const rewardDetails = (item.rewards || []).map((reward: any, idx: number) => ({
+        id: reward.id ?? `${item.id}-${idx}`,
+        name: reward.name,
+        rewardType: reward.rewardType,
+        rewardItem: reward.rewardItem,
+        rewardTarget: reward.rewardTarget,
+      }));
+
+      return {
+        id: item.id ?? index,
+        name: item.exerciseType ? getExerciseTypeLabel(typeKey) : undefined,
+        exerciseType: item.exerciseType,
+        status: exerciseStatusByType[typeKey],
+        rewards: rewardDetails,
+        isBigReward: false,
+      };
+    });
+
+    // Lấy rewardLesson từ exercise đầu tiên (vì tất cả đều giống nhau)
+    const firstExercise = lessonExercises[0];
+    const rewardLesson = firstExercise?.rewardLesson || [];
+    
+    // Tính số lượng exercises đã hoàn thành
+    const completedExercises = exercisesWithRewards.filter((item) => {
+      const typeKey = (item.exerciseType || "").toLowerCase();
+      const normalized = (exerciseStatusByType[typeKey] || "").toUpperCase();
+      return normalized === ExerciseAttemptStatus.COMPLETED;
+    }).length;
+
+    // Thêm phần thưởng cuối cùng (rewardLesson) nếu có
+    if (rewardLesson.length > 0 && exercisesWithRewards.length > 0) {
+      const rewardLessonDetails = rewardLesson.map((reward: any, idx: number) => ({
+        id: reward.id ?? `reward-lesson-${idx}`,
+        name: reward.name,
+        rewardType: reward.rewardType,
+        rewardItem: reward.rewardItem,
+        rewardTarget: reward.rewardTarget,
+      }));
+
+      // Nếu hoàn thành 3 bài tập (exercise 3), phần thưởng cuối cùng sẽ được mở
+      // Status sẽ là COMPLETED nếu đã hoàn thành tất cả 3 exercises
+      const finalRewardStatus = completedExercises >= exercisesWithRewards.length
+        ? ExerciseAttemptStatus.COMPLETED
+        : undefined;
+
+      exerciseRewardsList.push({
+        id: "reward-lesson-final",
+        name: "Phần thưởng cuối cùng",
+        exerciseType: undefined,
+        status: finalRewardStatus,
+        rewards: rewardLessonDetails,
+        isBigReward: true,
+      });
+    }
+
+    return exerciseRewardsList;
+  }, [exerciseStatusByType, getExerciseTypeLabel, lessonExercises]);
 
   const getStatusMeta = React.useCallback(
     (type: ExerciseCategory) => {
@@ -447,8 +545,17 @@ const LessonDetailScreen = () => {
         <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            paddingTop: 20,
+            paddingBottom: 100,
+          }}
         >
+          {exerciseRewards.length > 0 && (
+            <View style={{ marginBottom: 24 }}>
+              <RewardProgress exercises={exerciseRewards} />
+            </View>
+          )}
           {/* Lesson Description */}
           {lesson.description && (
             <View
