@@ -8,6 +8,7 @@ import { router } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+  InteractionManager,
   Pressable,
   StyleSheet,
   Text,
@@ -32,7 +33,12 @@ export default function ExpandedContent({
 
   const handleAvatarPress = () => {
     onClose(); // Close the modal first
-    router.push(ROUTES.ME.PROFILE);
+    // Wait for animation to complete (250ms) and interactions to finish before navigating
+    InteractionManager.runAfterInteractions(() => {
+      setTimeout(() => {
+        router.push(ROUTES.ME.PROFILE);
+      }, 250); // Match the animation duration
+    });
   };
 
   return (
