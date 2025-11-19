@@ -1,5 +1,6 @@
 import { ThemedText } from "@components/ThemedText";
 import { TestStatus } from "@constants/test.enum";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUserTests } from "@hooks/useUserTest";
 import { ROUTES } from "@routes/routes";
 import { router } from "expo-router";
@@ -7,12 +8,11 @@ import { Mic } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Animated,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  Animated,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 type UserTestItem = {
   id: number;
@@ -144,7 +144,10 @@ export const SpeakingContent: React.FC = () => {
   };
 
   const handleLockedPress = () => {
-    router.push(ROUTES.APP.SUBSCRIPTION);
+    router.push({
+      pathname: ROUTES.APP.SUBSCRIPTION,
+      params: { testType: "SPEAKING_TEST" },
+    });
   };
 
   return (

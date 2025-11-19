@@ -147,7 +147,10 @@ export const ListeningContent: React.FC = () => {
   };
 
   const handleLockedPress = () => {
-    router.push(ROUTES.APP.SUBSCRIPTION);
+    router.push({
+      pathname: ROUTES.APP.SUBSCRIPTION,
+      params: { testType: "LISTENING_TEST" },
+    });
   };
 
   return (
