@@ -783,6 +783,14 @@
   "account_details": {
     "title": "Chi tiết tài khoản",
     "subtitle": "Giữ thông tin liên hệ luôn chính xác",
+    "overview_title": "Tổng quan tài khoản",
+    "overview_subtitle": "Các thông tin này chỉ mình bạn thấy",
+    "email": "Email",
+    "rank": "Hạng giải đấu",
+    "level": "Cấp độ",
+    "joined": "Ngày tham gia",
+    "points": "Điểm",
+    "pokemon_owned": "Pokémon đã sở hữu",
     "form_title": "Thông tin cá nhân",
     "form_subtitle": "Chỉ mình bạn mới thấy phần này",
     "name": "Họ và tên",
@@ -792,6 +800,7 @@
     "avatar": "Avatar URL",
     "avatar_placeholder": "https://example.com/avatar.png",
     "save": "Lưu thay đổi",
+    "not_available": "—",
     "update_success": "Cập nhật hồ sơ thành công",
     "update_error": "Không thể cập nhật hồ sơ",
     "nothing_to_update": "Bạn chưa thay đổi thông tin nào"

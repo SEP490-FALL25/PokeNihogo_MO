@@ -1,15 +1,17 @@
+import UserAvatar from '@components/atoms/UserAvatar';
+import BackScreen from '@components/molecules/Back';
 import BounceButton from '@components/ui/BounceButton';
 import { Input } from '@components/ui/Input';
 import { useToast } from '@components/ui/Toast';
-import BackScreen from '@components/molecules/Back';
-import UserAvatar from '@components/atoms/UserAvatar';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { UpdateProfileFormDataRequest, IUpdateProfileFormDataRequest } from '@models/user/user.request';
+import { useAuth } from '@hooks/useAuth';
+import { useUpdateProfile } from '@hooks/useUpdateProfile';
 import { IUserEntity } from '@models/user/user.entity';
+import { IUpdateProfileFormDataRequest, UpdateProfileFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
-import useAuth from '@hooks/useAuth';
-import useUpdateProfile from '@hooks/useUpdateProfile';
-import { makeZodI18nMap } from 'zod-i18n-map';
+import { formatDateToMMYYYY } from '@utils/date';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import React, { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -22,9 +24,8 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import z from 'zod';
+import { z } from 'zod';
+import { makeZodI18nMap } from 'zod-i18n-map';
 
 const buildPayload = (values: IUpdateProfileFormDataRequest) => {
   const payload: Record<string, string> = {};
@@ -118,9 +119,6 @@ export default function AccountDetailsScreen() {
           color="white"
           title={t('account_details.title')}
         />
-        <Text className="text-white/80 px-5 text-base font-semibold mt-4">
-          {t('account_details.subtitle')}
-        </Text>
       </LinearGradient>
 
       <KeyboardAvoidingView
@@ -129,9 +127,9 @@ export default function AccountDetailsScreen() {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={{ paddingTop: 32, paddingBottom: 32 }}
         >
-          <View className="px-5 -mt-14">
+          <View className="px-5 -mt-6">
             <LinearGradient
               colors={['#ffffff', '#fefefe']}
               className="p-6 rounded-3xl shadow-lg"
@@ -152,6 +150,72 @@ export default function AccountDetailsScreen() {
                 </View>
               </View>
             </LinearGradient>
+
+            <View className="mt-6 bg-white rounded-3xl p-5 shadow-md">
+              <Text className="text-lg font-extrabold text-slate-800 mb-1">
+                {t('account_details.overview_title')}
+              </Text>
+              <Text className="text-sm font-semibold text-slate-500 mb-4">
+                {t('account_details.overview_subtitle')}
+              </Text>
+
+              <View className="divide-y divide-slate-100 rounded-2xl border border-slate-100 overflow-hidden">
+                {[
+                  {
+                    key: 'email',
+                    label: t('account_details.email'),
+                    value: userProfile?.email,
+                  },
+                  {
+                    key: 'rank',
+                    label: t('account_details.rank'),
+                    value: userProfile?.rankName,
+                  },
+                  {
+                    key: 'level',
+                    label: t('account_details.level'),
+                    value: userProfile?.level?.levelNumber
+                      ? `Lv ${userProfile.level.levelNumber}`
+                      : undefined,
+                  },
+                  {
+                    key: 'joined',
+                    label: t('account_details.joined'),
+                    value: userProfile?.createdAt
+                      ? formatDateToMMYYYY(userProfile.createdAt)
+                      : undefined,
+                  },
+                  {
+                    key: 'points',
+                    label: t('account_details.points'),
+                    value:
+                      typeof userProfile?.exp === 'number'
+                        ? userProfile.exp.toLocaleString()
+                        : undefined,
+                  },
+                  {
+                    key: 'pokemon',
+                    label: t('account_details.pokemon_owned'),
+                    value:
+                      typeof userProfile?.pokemonCount === 'number'
+                        ? userProfile.pokemonCount.toString()
+                        : undefined,
+                  },
+                ].map((item) => (
+                  <View
+                    key={item.key}
+                    className="flex-row items-center justify-between px-4 py-3 bg-slate-50"
+                  >
+                    <Text className="text-sm font-semibold text-slate-500">
+                      {item.label}
+                    </Text>
+                    <Text className="text-base font-bold text-slate-800">
+                      {item.value ?? t('account_details.not_available')}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
 
             <View className="mt-6 bg-white rounded-3xl p-5 shadow-md">
               <Text className="text-lg font-extrabold text-slate-800 mb-1">

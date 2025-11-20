@@ -775,6 +775,14 @@
   "account_details": {
     "title": "Account details",
     "subtitle": "Keep your contact information up to date",
+    "overview_title": "Account overview",
+    "overview_subtitle": "These details stay private to you",
+    "email": "Email",
+    "rank": "League rank",
+    "level": "Level",
+    "joined": "Joined",
+    "points": "Points",
+    "pokemon_owned": "Pokémon owned",
     "form_title": "Personal information",
     "form_subtitle": "Only you can see these details",
     "name": "Full name",
@@ -784,6 +792,7 @@
     "avatar": "Avatar URL",
     "avatar_placeholder": "https://example.com/avatar.png",
     "save": "Save changes",
+    "not_available": "—",
     "update_success": "Your profile has been updated",
     "update_error": "Unable to update profile",
     "nothing_to_update": "Nothing to update yet"
