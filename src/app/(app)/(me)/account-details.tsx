@@ -1,6 +1,7 @@
 import UserAvatar from '@components/atoms/UserAvatar';
 import BackScreen from '@components/molecules/Back';
 import BounceButton from '@components/ui/BounceButton';
+import ImageUploader from '@components/ui/ImageUploader';
 import { Input } from '@components/ui/Input';
 import { useToast } from '@components/ui/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,7 +9,6 @@ import { useAuth } from '@hooks/useAuth';
 import { useUpdateProfile } from '@hooks/useUpdateProfile';
 import { IUserEntity } from '@models/user/user.entity';
 import { IUpdateProfileFormDataRequest, UpdateProfileFormDataRequest } from '@models/user/user.request';
-import { ROUTES } from '@routes/routes';
 import { formatDateToMMYYYY } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -97,7 +97,7 @@ export default function AccountDetailsScreen() {
         variant: 'Success',
         description: t('account_details.update_success'),
       });
-      router.push(ROUTES.ME.PROFILE);
+      router.back();
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -147,7 +147,7 @@ export default function AccountDetailsScreen() {
                   />
                 </View>
 
-                <View className="ml-4 flex-1">
+                <View className="ml-12 flex-1">
                   <Text className="text-2xl font-extrabold text-slate-900" numberOfLines={1}>
                     {userProfile?.name}
                   </Text>
@@ -349,18 +349,22 @@ export default function AccountDetailsScreen() {
               <Controller
                 control={control}
                 name="avatar"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    variant="original"
-                    label={t('account_details.avatar')}
-                    value={value}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    placeholder={t('account_details.avatar_placeholder')}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    error={errors.avatar?.message as string}
-                  />
+                render={({ field: { onChange, value } }) => (
+                  <View className="mt-4">
+                    <ImageUploader
+                      label={t('account_details.avatar')}
+                      value={value}
+                      onChange={onChange}
+                      folderName="avatars"
+                      placeholder={t('account_details.avatar_placeholder')}
+                      disabled={isPending || isLoading}
+                    />
+                    {!!errors.avatar?.message && (
+                      <Text className="text-xs text-red-500 font-semibold mt-2">
+                        {errors.avatar.message as string}
+                      </Text>
+                    )}
+                  </View>
                 )}
               />
 
