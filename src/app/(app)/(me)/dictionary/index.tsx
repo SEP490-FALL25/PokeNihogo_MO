@@ -50,11 +50,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  RelatedWord,
-  SearchHistoryItem,
-  WordMeaning,
-} from "../../../types/dictionary.types";
 
 export default function DictionaryScreen() {
   const { t } = useTranslation();
@@ -513,7 +508,7 @@ export default function DictionaryScreen() {
     searchHistory, 
     onSearch 
   }: { 
-    searchHistory: SearchHistoryItem[]; 
+    searchHistory: IComponents.SearchHistoryItem[]; 
     onSearch: (keyword: string, autoSelect?: boolean) => void;
   }) => {
     const { t } = useTranslation();
@@ -700,7 +695,7 @@ export default function DictionaryScreen() {
                       keyboardShouldPersistTaps="handled"
                       nestedScrollEnabled={true}
                     >
-                      {searchHistory.map((item: SearchHistoryItem) => (
+                      {searchHistory.map((item: IComponents.SearchHistoryItem) => (
                         <TouchableOpacity
                           key={item.id}
                           className="flex-row items-center py-3 px-4 border-b border-gray-50 active:bg-gray-50"
@@ -863,7 +858,7 @@ export default function DictionaryScreen() {
                         {t("dictionary.meanings")}
                       </Text>
                       {wordDetailData.data.meanings.map(
-                        (meaning: WordMeaning, index: number) => (
+                        (meaning: IComponents.WordMeaning, index: number) => (
                           <View
                             key={`meaning-${index}-${meaning.meaning || index}`}
                             className="mb-4 pb-4 border-b border-gray-100"
@@ -908,7 +903,7 @@ export default function DictionaryScreen() {
                       </Text>
                       <View className="flex-row flex-wrap">
                         {wordDetailData.data.relatedWords.map(
-                          (related: RelatedWord) => (
+                          (related: IComponents.RelatedWord) => (
                             <TouchableOpacity
                               key={related.id}
                               className="bg-gray-100 rounded-full px-5 py-3 mr-2 mb-2"

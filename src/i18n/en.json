@@ -599,6 +599,8 @@
       "failed": "Failed",
       "skipped": "Skipped"
     },
+    "recent_exercises": "Recent exercises",
+    "see_all": "See all",
     "srs_types": {
       "vocabulary": "Vocabulary",
       "vocabulary_lower": "vocabulary",
@@ -637,6 +639,10 @@
     "insight_empty": {
       "title": "You’re doing great!",
       "description": "As you practice more, the AI assistant will highlight what to focus on next."
+    },
+    "recent_empty": {
+      "title": "No recent exercises yet",
+      "description": "Finish a lesson or practice session and your history will appear here."
     }
   },
   "quiz": {

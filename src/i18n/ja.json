@@ -238,6 +238,8 @@
         "failed": "未達成",
         "skipped": "スキップ"
     },
+    "recent_exercises": "直近の練習",
+    "see_all": "すべて表示",
     "srs_types": {
         "vocabulary": "語彙",
         "vocabulary_lower": "語彙",
@@ -276,6 +278,10 @@
     "insight_empty": {
         "title": "順調に進んでいます！",
         "description": "学習を続けると、AIアシスタントが次に集中すべき内容を提案します。"
+    },
+    "recent_empty": {
+        "title": "直近の練習はまだありません",
+        "description": "レッスンや練習を完了すると、ここに履歴が表示されます。"
     }
     },
     "reading": {
