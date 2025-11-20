@@ -1,6 +1,6 @@
 import { ThemedText } from "@components/ThemedText";
 import BounceButton from "@components/ui/BounceButton";
-import { RewardProgress } from "@components/ui/test";
+import { RewardProgress } from "@components/ui/RewardProgress";
 import { ExerciseAttemptStatus } from "@constants/exercise.enum";
 import { useLesson, useLessonExercises } from "@hooks/useLessons";
 import { useUserExerciseAttempt } from "@hooks/useUserExerciseAttempt";
