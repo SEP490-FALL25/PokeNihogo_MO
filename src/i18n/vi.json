@@ -904,6 +904,21 @@
     "purchase_success": "Mua thành công",
     "purchase_failed": "Mua thất bại"
   },
+  "reward_progress": {
+    "title": "Tiến độ bài học",
+    "completed_lessons": "Đã hoàn thành <highlight>{{completed}}</highlight> / {{total}} bài",
+    "premium_badge": {
+      "both": "Gói Premium: XP & Coin x1.2",
+      "xp": "Gói Premium: XP x1.2",
+      "coin": "Gói Premium: Coin x1.2"
+    },
+    "milestone_label": "Mốc {{step}}",
+    "status": {
+      "claimed": "Đã nhận",
+      "locked": "Chưa mở hết"
+    },
+    "footer_message": "Hoàn thành <highlight>{{total}}</highlight> bài học để mở khóa Rương Báu"
+  },
   "leaderboard": {
     "title": "Bảng xếp hạng",
     "rank": "Hạng",

@@ -896,6 +896,21 @@
     "purchase_success": "Purchase successful",
     "purchase_failed": "Purchase failed"
   },
+  "reward_progress": {
+    "title": "Lesson Progress",
+    "completed_lessons": "Completed <highlight>{{completed}}</highlight> / {{total}} lessons",
+    "premium_badge": {
+      "both": "Premium: XP & Coins x1.2",
+      "xp": "Premium: XP x1.2",
+      "coin": "Premium: Coins x1.2"
+    },
+    "milestone_label": "Milestone {{step}}",
+    "status": {
+      "claimed": "Claimed",
+      "locked": "Not unlocked yet"
+    },
+    "footer_message": "Complete <highlight>{{total}}</highlight> lessons to unlock the Treasure Chest"
+  },
   "leaderboard": {
     "title": "Leaderboard",
     "rank": "Rank",

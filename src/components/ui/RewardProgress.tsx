@@ -1,7 +1,10 @@
 import { ExerciseAttemptStatus } from '@constants/exercise.enum';
+import { SubscriptionFeatureKey } from '@constants/subscription.enum';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSubscriptionFeatures } from '@hooks/useSubscriptionFeatures';
 import { clsx } from 'clsx';
 import React, { useMemo, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import {
   GestureResponderEvent,
   Pressable,
@@ -39,8 +42,12 @@ const getNodeSize = (isBig?: boolean) => (isBig ? BIG_NODE_SIZE : SMALL_NODE_SIZ
 export const RewardProgress: React.FC<RewardProgressProps> = ({
   exercises,
 }) => {
+  const { t } = useTranslation();
   const [selectedReward, setSelectedReward] = useState<RewardMilestone | null>(null);
   const [trackWidth, setTrackWidth] = useState(0);
+  const { hasFeature } = useSubscriptionFeatures();
+  const hasXpMultiplier = hasFeature(SubscriptionFeatureKey.XP_MULTIPLIER);
+  const hasCoinMultiplier = hasFeature(SubscriptionFeatureKey.COIN_MULTIPLIER);
   const handleOutsidePress = () => {
     if (selectedReward) {
       setSelectedReward(null);
@@ -72,8 +79,22 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
     return 'gift';
   };
 
-  const formatRewardValue = (reward: RewardDetail) =>
-    `+${reward.rewardItem} ${reward.rewardTarget}`;
+  const getRewardMultiplier = (reward: RewardDetail) => {
+    const target = reward.rewardTarget?.toUpperCase() ?? '';
+    if (target === 'EXP' && hasXpMultiplier) {
+      return 1.2;
+    }
+    if ((target === 'COIN' || target === 'COINS') && hasCoinMultiplier) {
+      return 1.2;
+    }
+    return 1;
+  };
+
+  const formatRewardValue = (reward: RewardDetail) => {
+    const multiplier = getRewardMultiplier(reward);
+    const multipliedValue = Math.round((reward.rewardItem ?? 0) * multiplier);
+    return `+${multipliedValue} ${reward.rewardTarget}`;
+  };
 
   const normalizedExercises = useMemo(
     () => exercises.filter((item) => (item.rewards || []).length > 0),
@@ -173,17 +194,37 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
     >
       <View className="mb-12 mt-2 flex-row justify-between items-end">
         <View>
-            <Text className="text-slate-900 font-bold text-xl mb-1">Tiến độ bài học</Text>
+            <Text className="text-slate-900 font-bold text-xl mb-1">
+              {t('reward_progress.title')}
+            </Text>
             <Text className="text-slate-500 text-sm font-medium">
-            Đã hoàn thành <Text className="text-amber-500 font-bold">{completedSteps}</Text> / {totalSteps} bài
+              <Trans
+                i18nKey="reward_progress.completed_lessons"
+                values={{ completed: completedSteps, total: totalSteps }}
+                components={{ highlight: <Text className="text-amber-500 font-bold" /> }}
+              />
             </Text>
         </View>
-        <View
-          className="px-3 py-1 rounded-full border"
-          style={{ backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }}
-        >
-            {/* Hiển thị phần trăm thực tế của tiến trình học tập, không phải độ dài thanh bar */}
-            <Text className="text-slate-900 text-xs font-bold">{completionPercent}%</Text>
+        <View className="items-end gap-2">
+          <View
+            className="px-3 py-1 rounded-full border"
+            style={{ backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }}
+          >
+              {/* Hiển thị phần trăm thực tế của tiến trình học tập, không phải độ dài thanh bar */}
+              <Text className="text-slate-900 text-xs font-bold">{completionPercent}%</Text>
+          </View>
+          {(hasXpMultiplier || hasCoinMultiplier) && (
+            <View className="flex-row items-center gap-1 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+              <MaterialCommunityIcons name="crown" size={14} color="#B45309" />
+              <Text className="text-amber-700 text-[11px] font-semibold">
+                {hasXpMultiplier && hasCoinMultiplier
+                  ? t('reward_progress.premium_badge.both')
+                  : hasXpMultiplier
+                    ? t('reward_progress.premium_badge.xp')
+                    : t('reward_progress.premium_badge.coin')}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 
@@ -237,7 +278,9 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
             const isBig = reward.isBigReward;
             const primaryDetail = rewardDetails[0];
             const rewardTitle =
-              reward.name ?? primaryDetail?.name ?? `Mốc ${rewardStep}`;
+              reward.name ??
+              primaryDetail?.name ??
+              t('reward_progress.milestone_label', { step: rewardStep });
 
             return (
               <View key={reward.id} className="relative items-center justify-center z-20">
@@ -273,16 +316,14 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
 
                     {isClaimed ? (
                       <Text className="text-green-600 text-[10px] font-bold bg-green-100 px-2 py-1 rounded-full">
-                        Đã nhận tự động
-                      </Text>
-                    ) : isAvailable ? (
-                      <Text className="text-amber-600 text-[10px] font-bold bg-amber-100 px-2 py-1 rounded-full">
-                        Hoàn thành bài tập để nhận
+                        {t('reward_progress.status.claimed')}
                       </Text>
                     ) : (
                       <View className="flex-row items-center gap-1 bg-slate-100 px-2 py-1 rounded-full">
                         <MaterialCommunityIcons name="lock" size={10} color="#64748B" />
-                        <Text className="text-slate-500 text-[10px] font-medium">Chưa mở</Text>
+                        <Text className="text-slate-500 text-[10px] font-medium">
+                          {t('reward_progress.status.locked')}
+                        </Text>
                       </View>
                     )}
 
@@ -359,7 +400,11 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
       </View>
 
       <Text className="text-slate-500 text-xs text-center italic mt-4">
-        Hoàn thành <Text className="text-slate-900 font-bold">{totalSteps}</Text> bài học để mở khóa Rương Báu
+        <Trans
+          i18nKey="reward_progress.footer_message"
+          values={{ total: totalSteps }}
+          components={{ highlight: <Text className="text-slate-900 font-bold" /> }}
+        />
       </Text>
     </Pressable>
   );
