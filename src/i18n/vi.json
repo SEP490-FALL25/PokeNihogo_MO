@@ -783,6 +783,8 @@
   "account_details": {
     "title": "Chi tiết tài khoản",
     "subtitle": "Giữ thông tin liên hệ luôn chính xác",
+    "hero_hint": "Xem và quản lý toàn bộ dữ liệu cá nhân của bạn",
+    "member_since": "Thành viên từ {{date}}",
     "overview_title": "Tổng quan tài khoản",
     "overview_subtitle": "Các thông tin này chỉ mình bạn thấy",
     "email": "Email",
@@ -791,6 +793,8 @@
     "joined": "Ngày tham gia",
     "points": "Điểm",
     "pokemon_owned": "Pokémon đã sở hữu",
+    "stats_title": "Thông tin nổi bật",
+    "stats_subtitle": "Tóm tắt hành trình của bạn",
     "form_title": "Thông tin cá nhân",
     "form_subtitle": "Chỉ mình bạn mới thấy phần này",
     "name": "Họ và tên",

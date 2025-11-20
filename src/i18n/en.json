@@ -775,6 +775,8 @@
   "account_details": {
     "title": "Account details",
     "subtitle": "Keep your contact information up to date",
+    "hero_hint": "View all personal data and manage it in one place",
+    "member_since": "Member since {{date}}",
     "overview_title": "Account overview",
     "overview_subtitle": "These details stay private to you",
     "email": "Email",
@@ -783,6 +785,8 @@
     "joined": "Joined",
     "points": "Points",
     "pokemon_owned": "Pokémon owned",
+    "stats_title": "Highlights",
+    "stats_subtitle": "Quick snapshot of your journey",
     "form_title": "Personal information",
     "form_subtitle": "Only you can see these details",
     "name": "Full name",

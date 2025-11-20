@@ -12,6 +12,7 @@ import { ROUTES } from '@routes/routes';
 import { formatDateToMMYYYY } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { Calendar, Shield, Star } from 'lucide-react-native';
 import React, { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -49,6 +50,7 @@ export default function AccountDetailsScreen() {
   const insets = useSafeAreaInsets();
   const { user, isLoading } = useAuth();
   const userProfile = user?.data as IUserEntity | undefined;
+  const joinDate = userProfile?.createdAt ? formatDateToMMYYYY(userProfile.createdAt) : undefined;
 
   z.setErrorMap(makeZodI18nMap({ t }));
 
@@ -112,7 +114,7 @@ export default function AccountDetailsScreen() {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ paddingTop: insets.top + 12 }}
-        className="pb-8"
+        className="rounded-b-2xl"
       >
         <BackScreen
           onPress={() => router.back()}
@@ -127,31 +129,117 @@ export default function AccountDetailsScreen() {
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: 32, paddingBottom: 32 }}
+          contentContainerStyle={{ paddingTop: 100 }}
         >
-          <View className="px-5 -mt-6">
+          <View className="px-5 -mt-24 gap-6">
             <LinearGradient
-              colors={['#ffffff', '#fefefe']}
-              className="p-6 rounded-3xl shadow-lg"
+              colors={['#f5fffe', '#ecfeff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="p-6 rounded-3xl shadow-lg border border-white/40"
             >
               <View className="flex-row items-center">
-                <UserAvatar
-                  name={userProfile?.name ?? ''}
-                  avatar={userProfile?.avatar ?? undefined}
-                  size="large"
-                />
+                <View className="w-20 h-20 rounded-3xl bg-white/80 items-center justify-center shadow-md">
+                  <UserAvatar
+                    name={userProfile?.name ?? ''}
+                    avatar={userProfile?.avatar ?? undefined}
+                    size="large"
+                  />
+                </View>
+
                 <View className="ml-4 flex-1">
-                  <Text className="text-xl font-extrabold text-slate-800">
+                  <Text className="text-2xl font-extrabold text-slate-900" numberOfLines={1}>
                     {userProfile?.name}
                   </Text>
                   <Text className="text-sm font-semibold text-slate-500 mt-1">
                     {userProfile?.email}
                   </Text>
+
+                  <View className="flex-row flex-wrap gap-2 mt-3">
+                    {!!userProfile?.level?.levelNumber && (
+                      <View className="px-3 py-1 rounded-2xl bg-emerald-100/90">
+                        <Text className="text-xs font-bold text-emerald-700">
+                          Lv {userProfile.level.levelNumber}
+                        </Text>
+                      </View>
+                    )}
+                    {!!userProfile?.rankName && (
+                      <View className="px-3 py-1 rounded-2xl bg-slate-100">
+                        <Text className="text-xs font-bold text-slate-700">
+                          {userProfile.rankName}
+                        </Text>
+                      </View>
+                    )}
+                    {!!joinDate && (
+                      <View className="px-3 py-1 rounded-2xl bg-white/70">
+                        <Text className="text-xs font-semibold text-slate-600">
+                          {t('account_details.member_since', { date: joinDate })}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
               </View>
             </LinearGradient>
 
-            <View className="mt-6 bg-white rounded-3xl p-5 shadow-md">
+            <View className="bg-white rounded-3xl p-5 shadow-md border border-slate-100">
+              <View className="flex-row justify-between items-center mb-4">
+                <View>
+                  <Text className="text-lg font-extrabold text-slate-800">
+                    {t('account_details.stats_title')}
+                  </Text>
+                  <Text className="text-sm font-semibold text-slate-500">
+                    {t('account_details.stats_subtitle')}
+                  </Text>
+                </View>
+              </View>
+              <View className="flex-row gap-3">
+                {[
+                  {
+                    icon: Star,
+                    label: t('account_details.points'),
+                    value:
+                      typeof userProfile?.exp === 'number'
+                        ? userProfile.exp.toLocaleString()
+                        : t('account_details.not_available'),
+                    colors: ['#fef3c7', '#fde68a'] as [string, string],
+                    iconColor: '#f59e0b',
+                  },
+                  {
+                    icon: Shield,
+                    label: t('account_details.rank'),
+                    value: userProfile?.rankName || t('account_details.not_available'),
+                    colors: ['#dbeafe', '#bfdbfe'] as [string, string],
+                    iconColor: '#3b82f6',
+                  },
+                  {
+                    icon: Calendar,
+                    label: t('account_details.joined'),
+                    value: joinDate || t('account_details.not_available'),
+                    colors: ['#dcfce7', '#bbf7d0'] as [string, string],
+                    iconColor: '#059669',
+                  },
+                ].map((item) => (
+                  <LinearGradient
+                    key={item.label}
+                    colors={item.colors}
+                    className="flex-1 rounded-2xl p-4"
+                  >
+                    <View className="w-10 h-10 rounded-2xl bg-white/70 items-center justify-center mb-3">
+                      <item.icon size={20} color={item.iconColor} strokeWidth={2.3} />
+                    </View>
+                    <Text className="text-2xl font-extrabold text-slate-900">
+                      {item.value}
+                    </Text>
+                    <Text className="text-xs font-semibold text-slate-500 mt-1 uppercase tracking-wide">
+                      {item.label}
+                    </Text>
+                  </LinearGradient>
+                ))}
+              </View>
+            </View>
+
+            <View className="bg-white rounded-3xl p-5 shadow-md border border-slate-100">
               <Text className="text-lg font-extrabold text-slate-800 mb-1">
                 {t('account_details.overview_title')}
               </Text>
@@ -159,7 +247,7 @@ export default function AccountDetailsScreen() {
                 {t('account_details.overview_subtitle')}
               </Text>
 
-              <View className="divide-y divide-slate-100 rounded-2xl border border-slate-100 overflow-hidden">
+              <View className="divide-y divide-slate-100 rounded-2xl border border-slate-100 overflow-hidden bg-slate-50">
                 {[
                   {
                     key: 'email',
@@ -181,9 +269,7 @@ export default function AccountDetailsScreen() {
                   {
                     key: 'joined',
                     label: t('account_details.joined'),
-                    value: userProfile?.createdAt
-                      ? formatDateToMMYYYY(userProfile.createdAt)
-                      : undefined,
+                    value: joinDate,
                   },
                   {
                     key: 'points',
@@ -204,7 +290,7 @@ export default function AccountDetailsScreen() {
                 ].map((item) => (
                   <View
                     key={item.key}
-                    className="flex-row items-center justify-between px-4 py-3 bg-slate-50"
+                    className="flex-row items-center justify-between px-4 py-3"
                   >
                     <Text className="text-sm font-semibold text-slate-500">
                       {item.label}
@@ -217,7 +303,7 @@ export default function AccountDetailsScreen() {
               </View>
             </View>
 
-            <View className="mt-6 bg-white rounded-3xl p-5 shadow-md">
+            <View className="bg-white rounded-3xl p-5 shadow-md mb-4 border border-slate-100">
               <Text className="text-lg font-extrabold text-slate-800 mb-1">
                 {t('account_details.form_title')}
               </Text>

@@ -196,6 +196,8 @@
     "account_details": {
         "title": "アカウント詳細",
         "subtitle": "連絡先情報を常に最新に保ちましょう",
+        "hero_hint": "個人データをまとめて確認・管理できます",
+        "member_since": "{{date}} からのメンバー",
         "overview_title": "アカウント概要",
         "overview_subtitle": "これらの情報はあなただけが確認できます",
         "email": "メール",
@@ -204,6 +206,8 @@
         "joined": "参加日",
         "points": "ポイント",
         "pokemon_owned": "所持ポケモン",
+        "stats_title": "ハイライト",
+        "stats_subtitle": "あなたの旅をひと目で確認",
         "form_title": "個人情報",
         "form_subtitle": "この情報を見られるのはあなただけです",
         "name": "氏名",
