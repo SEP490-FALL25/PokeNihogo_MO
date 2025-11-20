@@ -1,5 +1,6 @@
 import UserAvatar from '@components/atoms/UserAvatar';
 import BackScreen from '@components/molecules/Back';
+import { useAchievement } from '@hooks/useAchievement';
 import { useAuth } from '@hooks/useAuth';
 import { useListPokemons } from '@hooks/usePokemonData';
 import { IPokemon } from '@models/pokemon/pokemon.common';
@@ -22,7 +23,7 @@ import {
   StickyNote,
   Trophy
 } from 'lucide-react-native';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Image,
@@ -35,62 +36,6 @@ import {
 } from 'react-native';
 import * as Progress from 'react-native-progress';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-
-// Properly typed interfaces
-interface LevelData {
-  name: string;
-  progress: number;
-}
-
-interface StatsData {
-  learningPoints: number;
-  streak: number;
-  league: string;
-}
-
-interface Achievement {
-  name: string;
-  icon: string;
-  colors: [string, string];
-}
-
-interface CollectionItem {
-  id: number;
-}
-
-interface UserData {
-  name: string;
-  joinDate: string;
-  avatarUrl: string;
-  level: LevelData;
-  stats: StatsData;
-  achievements: Achievement[];
-  collectionPreview: CollectionItem[];
-}
-
-const getMockUserData = (t: (key: string) => string): UserData => ({
-  name: 'Satoshi',
-  joinDate: '10/2025',
-  avatarUrl: 'https://cdn-icons-png.flaticon.com/512/219/219969.png',
-  level: {
-    name: t('profile.level_beginner'),
-    progress: 0.75,
-  },
-  stats: {
-    learningPoints: 12580,
-    streak: 12,
-    league: t('profile.league_silver'),
-  },
-  achievements: [
-    { name: t('profile.achievement_perfect_week'), icon: '🎯', colors: ['#fbbf24', '#f59e0b'] },
-    { name: t('profile.achievement_scholar'), icon: '🧠', colors: ['#e0e7ff', '#c7d2fe'] },
-    { name: t('profile.achievement_fire'), icon: '🔥', colors: ['#fecaca', '#ef4444'] },
-    { name: t('profile.achievement_wise'), icon: '🦉', colors: ['#ddd6fe', '#a78bfa'] },
-    { name: t('profile.achievement_diligent'), icon: '✍️', colors: ['#d1fae5', '#34d399'] },
-  ],
-  collectionPreview: [{ id: 4 }, { id: 7 }, { id: 1 }]
-});
 
 // Properly typed StatItem component
 interface StatItemProps {
@@ -140,9 +85,10 @@ interface AchievementBadgeProps {
   name: string;
   icon: string;
   colors: [string, string];
+  imageUrl?: string | null;
 }
 
-const AchievementBadge: React.FC<AchievementBadgeProps> = ({ name, icon, colors }) => (
+const AchievementBadge: React.FC<AchievementBadgeProps> = ({ name, icon, colors, imageUrl }) => (
   <View className="items-center w-22">
     <View
       style={[styles.achievementBadgeShadow, {
@@ -162,8 +108,16 @@ const AchievementBadge: React.FC<AchievementBadgeProps> = ({ name, icon, colors 
         end={{ x: 1, y: 1 }}
       >
         {/* Inner Glow Effect */}
-        <View className="w-18 h-18 bg-white/25 rounded-full items-center justify-center">
-          <Text className="text-4xl">{icon}</Text>
+        <View className="w-18 h-18 bg-white/25 rounded-full items-center justify-center overflow-hidden">
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <Text className="text-4xl">{icon}</Text>
+          )}
         </View>
       </LinearGradient>
     </View>
@@ -186,8 +140,50 @@ export default function ProfileScreen() {
     sortOrder: 'asc' as 'asc' | 'desc',
   });
 
-  const mockUserData = getMockUserData(t);
-  //------------------------End------------------------//
+  const { data: achievementsData } = useAchievement({
+    achPageSize: 5,
+    achCurrentPage: 1,
+  });
+console.log(achievementsData)
+  // Calculate level progress
+  const levelProgress = useMemo(() => {
+    if (!userProfile?.level) return 0;
+    
+    const currentExp = userProfile.exp || 0;
+    const currentLevelExp = userProfile.level.requiredExp || 0;
+    const nextLevel = userProfile.level.nextLevel;
+    
+    // If no next level, user is at max level
+    if (!nextLevel) {
+      // If user has exp greater than required, they've completed the level
+      if (currentExp > currentLevelExp) return 1;
+      // If exp equals required exp (both 0 for starting level), show 0 progress
+      return 0;
+    }
+    
+    const nextLevelExp = nextLevel.requiredExp;
+    const expForCurrentLevel = currentExp - currentLevelExp;
+    const expNeededForNextLevel = nextLevelExp - currentLevelExp;
+    
+    // Avoid division by zero
+    if (expNeededForNextLevel <= 0) return 0;
+    
+    const progress = expForCurrentLevel / expNeededForNextLevel;
+    return Math.min(Math.max(progress, 0), 1);
+  }, [userProfile?.exp, userProfile?.level]);
+
+  // Get achieved achievements only
+  const achievedAchievements = useMemo(() => {
+    if (!achievementsData?.results) return [];
+    
+    const allAchievements = achievementsData.results.flatMap(
+      group => group.achievements?.results || []
+    );
+    
+    return allAchievements.filter(
+      achievement => achievement.userAchievement?.achievedAt !== null
+    ).slice(0, 5); // Show max 5 achievements
+  }, [achievementsData]);
 
   return (
     <View className="flex-1 bg-slate-100">
@@ -232,7 +228,7 @@ export default function ProfileScreen() {
               <View style={styles.progressGlow} />
               <Progress.Circle
                 size={152}
-                progress={user?.level?.progress}
+                progress={levelProgress}
                 thickness={11}
                 color={'#10b981'}
                 unfilledColor={'rgba(255,255,255,0.25)'}
@@ -259,7 +255,7 @@ export default function ProfileScreen() {
                 end={{ x: 1, y: 0 }}
               >
                 <Text className="text-sm font-extrabold text-white tracking-wide">
-                  {Math.round(mockUserData?.level?.progress * 100)}
+                  Lv {userProfile?.level?.levelNumber || 1}
                 </Text>
               </LinearGradient>
             </View>
@@ -289,21 +285,21 @@ export default function ProfileScreen() {
           <View className="flex-row gap-3 mb-6">
             <StatItem
               icon={Star}
-              value={mockUserData?.stats?.learningPoints?.toLocaleString()}
+              value={(userProfile?.exp || 0).toLocaleString()}
               label={t('profile.points')}
               color="#f59e0b"
               accentColor="#fbbf24"
             />
             <StatItem
               icon={Flame}
-              value={mockUserData?.stats?.streak}
+              value={0}
               label={t('profile.streak')}
               color="#ef4444"
               accentColor="#f87171"
             />
             <StatItem
               icon={Shield}
-              value={mockUserData?.stats?.league}
+              value={userProfile?.rankName || 'N5'}
               label={t('profile.league')}
               color="#6FAFB2"
               accentColor="#7EC5C8"
@@ -523,7 +519,7 @@ export default function ProfileScreen() {
               <View>
                 <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('profile.achievements')}</Text>
                 <Text className="text-sm font-semibold text-slate-500 tracking-wide">
-                  {mockUserData.achievements.length} {t('profile.achievements_earned')}
+                  {achievedAchievements.length} {t('profile.achievements_earned')}
                 </Text>
               </View>
 
@@ -543,14 +539,32 @@ export default function ProfileScreen() {
               contentContainerStyle={styles.achievementsList}
               className="py-2.5 px-1"
             >
-              {mockUserData.achievements.map((ach, index) => (
-                <AchievementBadge
-                  key={index}
-                  name={ach.name}
-                  icon={ach.icon}
-                  colors={ach.colors}
-                />
-              ))}
+              {achievedAchievements.length > 0 ? (
+                achievedAchievements.map((achievement) => {
+                  const tierColors: Record<string, [string, string]> = {
+                    BASIC: ['#38bdf8', '#0ea5e9'],
+                    ADVANCED: ['#fbbf24', '#f59e0b'],
+                    ELITE: ['#a855f7', '#7c3aed'],
+                  };
+                  const colors = tierColors[achievement.achievementTierType] || ['#64748b', '#475569'];
+                  
+                  return (
+                    <AchievementBadge
+                      key={achievement.id}
+                      name={achievement.nameTranslation || achievement.nameKey}
+                      icon="🏆"
+                      colors={colors}
+                      imageUrl={achievement.imageUrl}
+                    />
+                  );
+                })
+              ) : (
+                <View className="py-4 px-4">
+                  <Text className="text-sm text-slate-500 text-center">
+                    {t('profile.achievements')} - {t('profile.view_all')}
+                  </Text>
+                </View>
+              )}
             </ScrollView>
           </LinearGradient>
         </View>
