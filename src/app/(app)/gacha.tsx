@@ -88,7 +88,7 @@ export default function GachaScreen() {
                     imageUrl: item.pokemon.imageUrl,
                     pokemon: item.pokemon,
                     isDuplicate: item.isDuplicate,
-                    sparkles: item.parseItem.sparkles,
+                    sparkles: item.parseItem?.sparkles || 0,
                 }));
 
                 setGachaResults(results);
@@ -97,7 +97,7 @@ export default function GachaScreen() {
             onError: (error: any) => {
                 const serverMessage = error?.response?.data?.message;
                 setConfirmMessage(
-                    serverMessage || t('gacha.history_error') || 'Đã xảy ra lỗi khi mua gacha.'
+                    serverMessage || 'Đã xảy ra lỗi khi mua gacha.'
                 );
                 setShowConfirmModal(true);
             },
