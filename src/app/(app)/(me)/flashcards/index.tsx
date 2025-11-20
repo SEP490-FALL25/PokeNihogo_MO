@@ -200,21 +200,21 @@ const FlashcardDeckListScreen = () => {
 
         <View className="flex-row gap-3 mt-4">
           <TouchableOpacity
-            className="flex-1 rounded-2xl bg-slate-100 py-3 items-center"
+            className="flex-1 rounded-2xl bg-sky-500 py-3 items-center"
             onPress={() => handleViewDeck(deck)}
           >
-            <Text style={{ color: "#0f172a", fontWeight: "600" }}>
+            <Text style={{ color: "#fff", fontWeight: "600" }}>
               {t("flashcard_list.view_detail", "View detail")}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             className="flex-1 rounded-2xl bg-sky-500 py-3 items-center"
             onPress={() => handleViewDeck(deck)}
           >
             <Text style={{ color: "#fff", fontWeight: "700" }}>
               {t("flashcard_list.review_now", "Review now")}
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </TouchableOpacity>
     );

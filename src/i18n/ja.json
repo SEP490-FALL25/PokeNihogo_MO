@@ -169,6 +169,10 @@
         "league": "リーグ",
         "collection": "コレクション",
         "collection_description": "あなたの完全なポケモン図鑑を見る",
+        "account_details": "アカウント詳細",
+        "account_details_description": "個人情報を確認・更新しましょう",
+        "manage_account": "情報を管理",
+        "edit_now": "今すぐ編集",
         "achievements": "実績",
         "achievements_earned": "バッジを獲得",
         "view_all": "すべて表示",
@@ -188,6 +192,35 @@
         "next_level": "次のレベル",
         "experience_progress": "経験値進捗",
         "to": "に"
+    },
+    "account_details": {
+        "title": "アカウント詳細",
+        "subtitle": "連絡先情報を常に最新に保ちましょう",
+        "hero_hint": "個人データをまとめて確認・管理できます",
+        "member_since": "{{date}} からのメンバー",
+        "overview_title": "アカウント概要",
+        "overview_subtitle": "これらの情報はあなただけが確認できます",
+        "email": "メール",
+        "rank": "リーグランク",
+        "level": "レベル",
+        "joined": "参加日",
+        "points": "ポイント",
+        "pokemon_owned": "所持ポケモン",
+        "stats_title": "ハイライト",
+        "stats_subtitle": "あなたの旅をひと目で確認",
+        "form_title": "個人情報",
+        "form_subtitle": "この情報を見られるのはあなただけです",
+        "name": "氏名",
+        "name_placeholder": "氏名を入力",
+        "phone": "電話番号",
+        "phone_placeholder": "電話番号を入力",
+        "avatar": "アバターURL",
+        "avatar_placeholder": "https://example.com/avatar.png",
+        "save": "変更を保存",
+        "not_available": "—",
+        "update_success": "プロフィールを更新しました",
+        "update_error": "プロフィールを更新できませんでした",
+        "nothing_to_update": "変更された項目がありません"
     },
     "ownership": {
         "owned": "所持済み",
@@ -238,6 +271,8 @@
         "failed": "未達成",
         "skipped": "スキップ"
     },
+    "recent_exercises": "直近の練習",
+    "see_all": "すべて表示",
     "srs_types": {
         "vocabulary": "語彙",
         "vocabulary_lower": "語彙",
@@ -276,6 +311,10 @@
     "insight_empty": {
         "title": "順調に進んでいます！",
         "description": "学習を続けると、AIアシスタントが次に集中すべき内容を提案します。"
+    },
+    "recent_empty": {
+        "title": "直近の練習はまだありません",
+        "description": "レッスンや練習を完了すると、ここに履歴が表示されます。"
     }
     },
     "reading": {

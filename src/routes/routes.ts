@@ -10,6 +10,7 @@ enum APP {
 
 enum ME {
   PROFILE = "/(app)/(me)/profile",
+  ACCOUNT_DETAILS = "/(app)/(me)/account-details",
   POKEMON_COLLECTION = "/(app)/(me)/pokemon-collection",
   ACHIEVEMENTS = "/(app)/(me)/achievements",
   SETTINGS = "/(app)/(me)/settings",

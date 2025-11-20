@@ -652,6 +652,10 @@
     "insight_empty": {
       "title": "Mọi thứ đang rất tốt!",
       "description": "Khi bạn luyện tập thêm, trợ lý AI sẽ dựa vào lịch sử để đề xuất các nội dung cần ưu tiên."
+    },
+    "recent_empty": {
+      "title": "Chưa có bài tập gần đây",
+      "description": "Hoàn thành một bài học hoặc luyện tập để xem lịch sử của bạn tại đây."
     }
   },
   "quiz": {
@@ -752,6 +756,10 @@
     "league": "Giải đấu",
     "collection": "Bộ sưu tập",
     "collection_description": "Xem toàn bộ Pokédex của bạn",
+    "account_details": "Chi tiết tài khoản",
+    "account_details_description": "Xem và cập nhật thông tin cá nhân của bạn",
+    "manage_account": "Quản lý thông tin",
+    "edit_now": "Chỉnh sửa ngay",
     "achievements": "Thành tích",
     "achievements_earned": "huy hiệu đã đạt được",
     "view_all": "Xem tất cả",
@@ -771,6 +779,35 @@
     "next_level": "Cấp tiếp theo",
     "experience_progress": "Tiến độ kinh nghiệm",
     "to": "đến"
+  },
+  "account_details": {
+    "title": "Chi tiết tài khoản",
+    "subtitle": "Giữ thông tin liên hệ luôn chính xác",
+    "hero_hint": "Xem và quản lý toàn bộ dữ liệu cá nhân của bạn",
+    "member_since": "Thành viên từ {{date}}",
+    "overview_title": "Tổng quan tài khoản",
+    "overview_subtitle": "Các thông tin này chỉ mình bạn thấy",
+    "email": "Email",
+    "rank": "Hạng giải đấu",
+    "level": "Cấp độ",
+    "joined": "Ngày tham gia",
+    "points": "Điểm",
+    "pokemon_owned": "Pokémon đã sở hữu",
+    "stats_title": "Thông tin nổi bật",
+    "stats_subtitle": "Tóm tắt hành trình của bạn",
+    "form_title": "Thông tin cá nhân",
+    "form_subtitle": "Chỉ mình bạn mới thấy phần này",
+    "name": "Họ và tên",
+    "name_placeholder": "Nhập họ và tên",
+    "phone": "Số điện thoại",
+    "phone_placeholder": "Nhập số điện thoại",
+    "avatar": "Avatar URL",
+    "avatar_placeholder": "https://example.com/avatar.png",
+    "save": "Lưu thay đổi",
+    "not_available": "—",
+    "update_success": "Cập nhật hồ sơ thành công",
+    "update_error": "Không thể cập nhật hồ sơ",
+    "nothing_to_update": "Bạn chưa thay đổi thông tin nào"
   },
   "ownership": {
     "owned": "Đã sở hữu",

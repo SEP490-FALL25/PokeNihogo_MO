@@ -63,3 +63,36 @@ export const ResetPasswordFormDataRequest = z.object({
 });
 export type IResetPasswordFormDataRequest = z.infer<typeof ResetPasswordFormDataRequest>;
 //-----------------End-Reset-Password-Request-----------------//
+
+/**
+ * Update profile form data request
+ */
+export const UpdateProfileFormDataRequest = z.object({
+    name: z
+        .string()
+        .trim()
+        .min(2)
+        .max(256)
+        .optional()
+        .or(z.literal('')),
+    phoneNumber: z
+        .string()
+        .trim()
+        .min(9)
+        .max(15)
+        .optional()
+        .or(z.literal('')),
+    avatar: z
+        .string()
+        .trim()
+        .url()
+        .optional()
+        .or(z.literal('')),
+});
+export type IUpdateProfileFormDataRequest = z.infer<typeof UpdateProfileFormDataRequest>;
+
+export interface IUpdateProfileRequest {
+    name?: string;
+    phoneNumber?: string;
+    avatar?: string;
+}

@@ -637,21 +637,21 @@ export default function HomeScreen() {
         )}
 
         {/* Recent Exercises */}
-        {recentExercises.length > 0 && (
-          <View style={styles.recentSection}>
-            <View style={styles.sectionHeader}>
-              <ThemedText type="subtitle" style={styles.sectionTitle}>
-                {t("home.recent_exercises")}
+        <View style={styles.recentSection}>
+          <View style={styles.sectionHeader}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              {t("home.recent_exercises")}
+            </ThemedText>
+            <TouchableOpacity
+              onPress={() => router.push(ROUTES.TABS.LEARN)}
+              activeOpacity={0.7}
+            >
+              <ThemedText style={styles.seeAllText}>
+                {t("home.see_all")}
               </ThemedText>
-              <TouchableOpacity
-                onPress={() => router.push(ROUTES.TABS.LEARN)}
-                activeOpacity={0.7}
-              >
-                <ThemedText style={styles.seeAllText}>
-                  {t("home.see_all")}
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
+          </View>
+          {recentExercises.length > 0 ? (
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -665,8 +665,20 @@ export default function HomeScreen() {
                 />
               ))}
             </ScrollView>
-          </View>
-        )}
+          ) : (
+            <View style={styles.recentEmptyState}>
+              <ThemedText style={styles.recentEmptyTitle}>
+                {t("home.recent_empty.title", "Chưa có bài tập gần đây")}
+              </ThemedText>
+              <ThemedText style={styles.recentEmptyDescription}>
+                {t(
+                  "home.recent_empty.description",
+                  "Hoàn thành một bài học hoặc luyện tập để xem lịch sử tại đây."
+                )}
+              </ThemedText>
+            </View>
+          )}
+        </View>
 
         {/* Personalized Suggestions */}
         <ThemedView style={styles.suggestionsCard}>
@@ -1095,6 +1107,25 @@ const styles = StyleSheet.create({
   recentScrollContent: {
     paddingRight: 16,
     gap: 12,
+  },
+  recentEmptyState: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderStyle: "dashed",
+    borderRadius: 16,
+    padding: 20,
+    backgroundColor: "#f9fafb",
+  },
+  recentEmptyTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 6,
+  },
+  recentEmptyDescription: {
+    fontSize: 14,
+    color: "#6b7280",
+    lineHeight: 20,
   },
   recentCard: {
     width: SCREEN_WIDTH * 0.75,

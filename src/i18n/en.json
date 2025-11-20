@@ -599,6 +599,8 @@
       "failed": "Failed",
       "skipped": "Skipped"
     },
+    "recent_exercises": "Recent exercises",
+    "see_all": "See all",
     "srs_types": {
       "vocabulary": "Vocabulary",
       "vocabulary_lower": "vocabulary",
@@ -637,6 +639,10 @@
     "insight_empty": {
       "title": "You’re doing great!",
       "description": "As you practice more, the AI assistant will highlight what to focus on next."
+    },
+    "recent_empty": {
+      "title": "No recent exercises yet",
+      "description": "Finish a lesson or practice session and your history will appear here."
     }
   },
   "quiz": {
@@ -742,6 +748,10 @@
     "league": "League",
     "collection": "Collection",
     "collection_description": "View your complete Pokédex",
+    "account_details": "Account details",
+    "account_details_description": "Review and update your personal info",
+    "manage_account": "Manage your info",
+    "edit_now": "Edit now",
     "achievements": "Achievements",
     "achievements_earned": "badges earned",
     "view_all": "View All",
@@ -761,6 +771,35 @@
     "next_level": "Next Level",
     "experience_progress": "Experience Progress",
     "to": "to"
+  },
+  "account_details": {
+    "title": "Account details",
+    "subtitle": "Keep your contact information up to date",
+    "hero_hint": "View all personal data and manage it in one place",
+    "member_since": "Member since {{date}}",
+    "overview_title": "Account overview",
+    "overview_subtitle": "These details stay private to you",
+    "email": "Email",
+    "rank": "League rank",
+    "level": "Level",
+    "joined": "Joined",
+    "points": "Points",
+    "pokemon_owned": "Pokémon owned",
+    "stats_title": "Highlights",
+    "stats_subtitle": "Quick snapshot of your journey",
+    "form_title": "Personal information",
+    "form_subtitle": "Only you can see these details",
+    "name": "Full name",
+    "name_placeholder": "Enter your name",
+    "phone": "Phone number",
+    "phone_placeholder": "Enter your phone number",
+    "avatar": "Avatar URL",
+    "avatar_placeholder": "https://example.com/avatar.png",
+    "save": "Save changes",
+    "not_available": "—",
+    "update_success": "Your profile has been updated",
+    "update_error": "Unable to update profile",
+    "nothing_to_update": "Nothing to update yet"
   },
   "ownership": {
     "owned": "Owned",

@@ -80,12 +80,44 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
     [exercises]
   );
 
-  if (normalizedExercises.length === 0) {
+  const sortedExercises = useMemo(() => {
+    const baseList = normalizedExercises.map((exercise, index) => ({
+      data: exercise,
+      originalIndex: index,
+    }));
+
+    const getStatusPriority = (status?: string) => {
+      const normalized = (status || '').toUpperCase();
+      switch (normalized) {
+        case ExerciseAttemptStatus.COMPLETED:
+          return 0;
+        case ExerciseAttemptStatus.IN_PROGRESS:
+          return 1;
+        default:
+          return 2;
+      }
+    };
+
+    return baseList
+      .sort((a, b) => {
+        const priorityDiff =
+          getStatusPriority(a.data.status) - getStatusPriority(b.data.status);
+
+        if (priorityDiff !== 0) {
+          return priorityDiff;
+        }
+
+        return a.originalIndex - b.originalIndex;
+      })
+      .map((item) => item.data);
+  }, [normalizedExercises]);
+
+  if (sortedExercises.length === 0) {
     return null;
   }
 
-  const totalSteps = normalizedExercises.length;
-  const completedSteps = normalizedExercises.filter(
+  const totalSteps = sortedExercises.length;
+  const completedSteps = sortedExercises.filter(
     (item) =>
       (item.status || "").toUpperCase() === ExerciseAttemptStatus.COMPLETED
   ).length;
@@ -102,10 +134,10 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
   const completionPercent =
     totalSteps === 0 ? 0 : Math.round((completedSteps / totalSteps) * 100);
   const startRadius =
-    getNodeSize(normalizedExercises[0]?.isBigReward) / 2 || SMALL_NODE_SIZE / 2;
+    getNodeSize(sortedExercises[0]?.isBigReward) / 2 || SMALL_NODE_SIZE / 2;
   const endRadius =
     getNodeSize(
-      normalizedExercises[normalizedExercises.length - 1]?.isBigReward
+      sortedExercises[sortedExercises.length - 1]?.isBigReward
     ) /
       2 || SMALL_NODE_SIZE / 2;
   const trackLeftOffset = TRACK_HORIZONTAL_PADDING + startRadius;
@@ -189,7 +221,7 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
           className="absolute top-0 left-0 right-0 h-full flex-row justify-between items-center z-10"
           style={{ paddingHorizontal: TRACK_HORIZONTAL_PADDING }}
         >
-          {normalizedExercises.map((reward, index) => {
+          {sortedExercises.map((reward, index) => {
             const rewardDetails = reward.rewards ?? [];
             const rewardStep = index + 1;
             const normalizedStatus = (reward.status || "").toUpperCase();

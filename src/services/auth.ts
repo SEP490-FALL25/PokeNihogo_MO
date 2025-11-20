@@ -1,5 +1,5 @@
 import { axiosClient, axiosPrivate } from "@configs/axios"
-import { ICreateAccountFormDataRequest, ILoginFormDataRequest, IOtpFormDataRequest, IResetPasswordFormDataRequest } from "@models/user/user.request"
+import { ICreateAccountFormDataRequest, ILoginFormDataRequest, IOtpFormDataRequest, IResetPasswordFormDataRequest, IUpdateProfileRequest } from "@models/user/user.request"
 
 const authService = {
     checkEmail: async (email: string) => {
@@ -25,6 +25,9 @@ const authService = {
     },
     getProfile: async () => {
         return axiosPrivate.get(`/auth/me`)
+    },
+    updateProfile: async (data: IUpdateProfileRequest) => {
+        return axiosPrivate.put(`/auth/me`, data)
     },
     // mock API for setting user level
     setUserLevel: async (level: 'N5' | 'N4' | 'N3') => {

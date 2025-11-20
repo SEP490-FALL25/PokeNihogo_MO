@@ -1,7 +1,9 @@
 import UserAvatar from '@components/atoms/UserAvatar';
 import BackScreen from '@components/molecules/Back';
+import { useAchievement } from '@hooks/useAchievement';
 import { useAuth } from '@hooks/useAuth';
 import { useListPokemons } from '@hooks/usePokemonData';
+import { AchievementEntity } from '@models/achievement/achievement.entity';
 import { IPokemon } from '@models/pokemon/pokemon.common';
 import { IUserEntity } from '@models/user/user.entity';
 import { ROUTES } from '@routes/routes';
@@ -14,15 +16,15 @@ import {
   ChevronRight,
   Cog,
   Crown,
-  Flame,
   History,
   Shield,
   Sparkles,
   Star,
   StickyNote,
-  Trophy
+  Trophy,
+  UserRound
 } from 'lucide-react-native';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Image,
@@ -35,62 +37,6 @@ import {
 } from 'react-native';
 import * as Progress from 'react-native-progress';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-
-// Properly typed interfaces
-interface LevelData {
-  name: string;
-  progress: number;
-}
-
-interface StatsData {
-  learningPoints: number;
-  streak: number;
-  league: string;
-}
-
-interface Achievement {
-  name: string;
-  icon: string;
-  colors: [string, string];
-}
-
-interface CollectionItem {
-  id: number;
-}
-
-interface UserData {
-  name: string;
-  joinDate: string;
-  avatarUrl: string;
-  level: LevelData;
-  stats: StatsData;
-  achievements: Achievement[];
-  collectionPreview: CollectionItem[];
-}
-
-const getMockUserData = (t: (key: string) => string): UserData => ({
-  name: 'Satoshi',
-  joinDate: '10/2025',
-  avatarUrl: 'https://cdn-icons-png.flaticon.com/512/219/219969.png',
-  level: {
-    name: t('profile.level_beginner'),
-    progress: 0.75,
-  },
-  stats: {
-    learningPoints: 12580,
-    streak: 12,
-    league: t('profile.league_silver'),
-  },
-  achievements: [
-    { name: t('profile.achievement_perfect_week'), icon: '🎯', colors: ['#fbbf24', '#f59e0b'] },
-    { name: t('profile.achievement_scholar'), icon: '🧠', colors: ['#e0e7ff', '#c7d2fe'] },
-    { name: t('profile.achievement_fire'), icon: '🔥', colors: ['#fecaca', '#ef4444'] },
-    { name: t('profile.achievement_wise'), icon: '🦉', colors: ['#ddd6fe', '#a78bfa'] },
-    { name: t('profile.achievement_diligent'), icon: '✍️', colors: ['#d1fae5', '#34d399'] },
-  ],
-  collectionPreview: [{ id: 4 }, { id: 7 }, { id: 1 }]
-});
 
 // Properly typed StatItem component
 interface StatItemProps {
@@ -140,9 +86,10 @@ interface AchievementBadgeProps {
   name: string;
   icon: string;
   colors: [string, string];
+  imageUrl?: string | null;
 }
 
-const AchievementBadge: React.FC<AchievementBadgeProps> = ({ name, icon, colors }) => (
+const AchievementBadge: React.FC<AchievementBadgeProps> = ({ name, icon, colors, imageUrl }) => (
   <View className="items-center w-22">
     <View
       style={[styles.achievementBadgeShadow, {
@@ -162,8 +109,16 @@ const AchievementBadge: React.FC<AchievementBadgeProps> = ({ name, icon, colors 
         end={{ x: 1, y: 1 }}
       >
         {/* Inner Glow Effect */}
-        <View className="w-18 h-18 bg-white/25 rounded-full items-center justify-center">
-          <Text className="text-4xl">{icon}</Text>
+        <View className="w-18 h-18 bg-white/25 rounded-full items-center justify-center overflow-hidden">
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <Text className="text-4xl">{icon}</Text>
+          )}
         </View>
       </LinearGradient>
     </View>
@@ -186,8 +141,55 @@ export default function ProfileScreen() {
     sortOrder: 'asc' as 'asc' | 'desc',
   });
 
-  const mockUserData = getMockUserData(t);
-  //------------------------End------------------------//
+  const { data: achievementsData } = useAchievement({
+    achPageSize: 5,
+    achCurrentPage: 1,
+  });
+
+  // Calculate level progress
+  const levelProgress = useMemo(() => {
+    if (!userProfile?.level) return 0;
+    
+    const currentExp = userProfile.exp || 0;
+    const currentLevelExp = userProfile.level.requiredExp || 0;
+    const nextLevel = userProfile.level.nextLevel;
+    
+    // If no next level, user is at max level
+    if (!nextLevel) {
+      // If user has exp greater than required, they've completed the level
+      if (currentExp > currentLevelExp) return 1;
+      // If exp equals required exp (both 0 for starting level), show 0 progress
+      return 0;
+    }
+    
+    const nextLevelExp = nextLevel.requiredExp;
+    const expForCurrentLevel = currentExp - currentLevelExp;
+    const expNeededForNextLevel = nextLevelExp - currentLevelExp;
+    
+    // Avoid division by zero
+    if (expNeededForNextLevel <= 0) return 0;
+    
+    const progress = expForCurrentLevel / expNeededForNextLevel;
+    return Math.min(Math.max(progress, 0), 1);
+  }, [userProfile?.exp, userProfile?.level]);
+
+  // Flatten all achievements from all groups
+  const allAchievements = useMemo(() => {
+    if (!achievementsData?.results) return [] as AchievementEntity[];
+
+    return achievementsData.results.flatMap(
+      (group) => group.achievements?.results || []
+    ) as AchievementEntity[];
+  }, [achievementsData]);
+
+  // Achievements that have been completed (earned badges)
+  const earnedAchievements = useMemo(
+    () =>
+      allAchievements.filter(
+        (achievement) => achievement.userAchievement?.achievedAt !== null
+      ),
+    [allAchievements]
+  );
 
   return (
     <View className="flex-1 bg-slate-100">
@@ -232,7 +234,7 @@ export default function ProfileScreen() {
               <View style={styles.progressGlow} />
               <Progress.Circle
                 size={152}
-                progress={user?.level?.progress}
+                progress={levelProgress}
                 thickness={11}
                 color={'#10b981'}
                 unfilledColor={'rgba(255,255,255,0.25)'}
@@ -259,7 +261,7 @@ export default function ProfileScreen() {
                 end={{ x: 1, y: 0 }}
               >
                 <Text className="text-sm font-extrabold text-white tracking-wide">
-                  {Math.round(mockUserData?.level?.progress * 100)}
+                  Lv {userProfile?.level?.levelNumber || 1}
                 </Text>
               </LinearGradient>
             </View>
@@ -285,30 +287,75 @@ export default function ProfileScreen() {
 
         {/* Main Content */}
         <View className="px-5 -mt-20">
-          {/* Stats Grid */}
+          {/* Stats Grid - only show what user actually has */}
           <View className="flex-row gap-3 mb-6">
-            <StatItem
-              icon={Star}
-              value={mockUserData?.stats?.learningPoints?.toLocaleString()}
-              label={t('profile.points')}
-              color="#f59e0b"
-              accentColor="#fbbf24"
-            />
-            <StatItem
-              icon={Flame}
-              value={mockUserData?.stats?.streak}
-              label={t('profile.streak')}
-              color="#ef4444"
-              accentColor="#f87171"
-            />
-            <StatItem
-              icon={Shield}
-              value={mockUserData?.stats?.league}
-              label={t('profile.league')}
-              color="#6FAFB2"
-              accentColor="#7EC5C8"
-            />
+            {typeof userProfile?.exp === 'number' && (
+              <StatItem
+                icon={Star}
+                value={userProfile.exp.toLocaleString()}
+                label={t('profile.points')}
+                color="#f59e0b"
+                accentColor="#fbbf24"
+              />
+            )}
+
+            {userProfile?.rankName && (
+              <StatItem
+                icon={Shield}
+                value={userProfile.rankName}
+                label={t('profile.league')}
+                color="#6FAFB2"
+                accentColor="#7EC5C8"
+              />
+            )}
           </View>
+
+          {/* Account Details CTA */}
+          <TouchableOpacity
+            onPress={() => router.push(ROUTES.ME.ACCOUNT_DETAILS)}
+            activeOpacity={0.7}
+            className="mb-6"
+          >
+            <LinearGradient
+              colors={['#ecfeff', '#e0f2fe']}
+              style={styles.collectionCard}
+              className="p-6 rounded-3xl overflow-hidden shadow-lg"
+            >
+              <View className="absolute -top-10 -right-10 w-35 h-35 rounded-full bg-cyan-50 opacity-40" />
+
+              <View className="flex-row items-center mb-2">
+                <LinearGradient
+                  colors={['#0891b2', '#0ea5e9']}
+                  style={styles.collectionIconContainer}
+                  className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
+                >
+                  <UserRound size={24} color="white" strokeWidth={2.5} />
+                </LinearGradient>
+
+                <View className="flex-1">
+                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">
+                    {t('profile.account_details')}
+                  </Text>
+                  <Text className="text-sm font-semibold text-slate-600 tracking-wide">
+                    {t('profile.account_details_description')}
+                  </Text>
+                </View>
+
+                <View className="w-10 h-10 bg-white/80 rounded-xl items-center justify-center">
+                  <ChevronRight size={20} color="#0284c7" strokeWidth={2.8} />
+                </View>
+              </View>
+
+              <View className="flex-row items-center justify-between pt-4 border-t border-slate-100">
+                <Text className="text-sm font-bold text-slate-600">
+                  {t('profile.manage_account')}
+                </Text>
+                <Text className="text-sm font-extrabold text-cyan-600">
+                  {t('profile.edit_now')}
+                </Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
 
           {/* Pokemon Collection Card */}
           <TouchableOpacity
@@ -522,9 +569,15 @@ export default function ProfileScreen() {
             <View className="flex-row justify-between items-center mb-6">
               <View>
                 <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('profile.achievements')}</Text>
-                <Text className="text-sm font-semibold text-slate-500 tracking-wide">
-                  {mockUserData.achievements.length} {t('profile.achievements_earned')}
-                </Text>
+                {allAchievements.length > 0 ? (
+                  <Text className="text-sm font-semibold text-slate-500 tracking-wide">
+                    {earnedAchievements.length}/{allAchievements.length} {t('profile.achievements_earned')}
+                  </Text>
+                ) : (
+                  <Text className="text-sm font-semibold text-slate-500 tracking-wide">
+                    0 {t('profile.achievements_earned')}
+                  </Text>
+                )}
               </View>
 
               <TouchableOpacity
@@ -543,14 +596,32 @@ export default function ProfileScreen() {
               contentContainerStyle={styles.achievementsList}
               className="py-2.5 px-1"
             >
-              {mockUserData.achievements.map((ach, index) => (
-                <AchievementBadge
-                  key={index}
-                  name={ach.name}
-                  icon={ach.icon}
-                  colors={ach.colors}
-                />
-              ))}
+              {allAchievements.length > 0 ? (
+                allAchievements.slice(0, 5).map((achievement: AchievementEntity) => {
+                  const tierColors: Record<string, [string, string]> = {
+                    BASIC: ['#38bdf8', '#0ea5e9'],
+                    ADVANCED: ['#fbbf24', '#f59e0b'],
+                    ELITE: ['#a855f7', '#7c3aed'],
+                  };
+                  const colors = tierColors[achievement.achievementTierType] || ['#64748b', '#475569'];
+                  
+                  return (
+                    <AchievementBadge
+                      key={achievement.id}
+                      name={achievement.nameTranslation || achievement.nameKey}
+                      icon="🏆"
+                      colors={colors}
+                      imageUrl={achievement.imageUrl}
+                    />
+                  );
+                })
+              ) : (
+                <View className="py-4 px-4">
+                  <Text className="text-sm text-slate-500 text-center">
+                    {t('profile.achievements')} - {t('profile.view_all')}
+                  </Text>
+                </View>
+              )}
             </ScrollView>
           </LinearGradient>
         </View>
