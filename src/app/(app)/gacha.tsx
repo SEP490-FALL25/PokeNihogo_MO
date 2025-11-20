@@ -569,7 +569,11 @@ export default function GachaScreen() {
                             className={`p-4 rounded-xl items-center ${selectedBanner && !isPendingPurchase && !isAnimating ? 'bg-cyan-500' : 'bg-slate-700'}`}
                             activeOpacity={0.8}
                         >
-                            <Text className="text-white font-bold text-lg">{t('gacha.wish_single')}</Text>
+                            <View className="flex-row items-center gap-2">
+                                <Sparkles size={18} color="#fff" strokeWidth={2.5} />
+                                <Text className="text-white font-bold text-lg">{t('gacha.wish_single')}</Text>
+                                <Text className="text-white/90 font-semibold text-base">(160 sparkles)</Text>
+                            </View>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => handleWish(10)}
@@ -577,7 +581,11 @@ export default function GachaScreen() {
                             className={`p-4 rounded-xl items-center ${selectedBanner && !isPendingPurchase && !isAnimating ? 'bg-purple-600' : 'bg-slate-700'}`}
                             activeOpacity={0.8}
                         >
-                            <Text className="text-white font-bold text-lg">{t('gacha.wish_ten', { guarantee: '3★' })}</Text>
+                            <View className="flex-row items-center gap-2">
+                                <Sparkles size={18} color="#fff" strokeWidth={2.5} />
+                                <Text className="text-white font-bold text-lg">{t('gacha.wish_ten')}</Text>
+                                <Text className="text-white/90 font-semibold text-base">(1600 sparkles)</Text>
+                            </View>
                         </TouchableOpacity>
                     </View>
                 </View>
