@@ -169,6 +169,10 @@
         "league": "リーグ",
         "collection": "コレクション",
         "collection_description": "あなたの完全なポケモン図鑑を見る",
+        "account_details": "アカウント詳細",
+        "account_details_description": "個人情報を確認・更新しましょう",
+        "manage_account": "情報を管理",
+        "edit_now": "今すぐ編集",
         "achievements": "実績",
         "achievements_earned": "バッジを獲得",
         "view_all": "すべて表示",
@@ -188,6 +192,22 @@
         "next_level": "次のレベル",
         "experience_progress": "経験値進捗",
         "to": "に"
+    },
+    "account_details": {
+        "title": "アカウント詳細",
+        "subtitle": "連絡先情報を常に最新に保ちましょう",
+        "form_title": "個人情報",
+        "form_subtitle": "この情報を見られるのはあなただけです",
+        "name": "氏名",
+        "name_placeholder": "氏名を入力",
+        "phone": "電話番号",
+        "phone_placeholder": "電話番号を入力",
+        "avatar": "アバターURL",
+        "avatar_placeholder": "https://example.com/avatar.png",
+        "save": "変更を保存",
+        "update_success": "プロフィールを更新しました",
+        "update_error": "プロフィールを更新できませんでした",
+        "nothing_to_update": "変更された項目がありません"
     },
     "ownership": {
         "owned": "所持済み",

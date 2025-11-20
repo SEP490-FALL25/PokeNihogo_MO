@@ -748,6 +748,10 @@
     "league": "League",
     "collection": "Collection",
     "collection_description": "View your complete Pokédex",
+    "account_details": "Account details",
+    "account_details_description": "Review and update your personal info",
+    "manage_account": "Manage your info",
+    "edit_now": "Edit now",
     "achievements": "Achievements",
     "achievements_earned": "badges earned",
     "view_all": "View All",
@@ -767,6 +771,22 @@
     "next_level": "Next Level",
     "experience_progress": "Experience Progress",
     "to": "to"
+  },
+  "account_details": {
+    "title": "Account details",
+    "subtitle": "Keep your contact information up to date",
+    "form_title": "Personal information",
+    "form_subtitle": "Only you can see these details",
+    "name": "Full name",
+    "name_placeholder": "Enter your name",
+    "phone": "Phone number",
+    "phone_placeholder": "Enter your phone number",
+    "avatar": "Avatar URL",
+    "avatar_placeholder": "https://example.com/avatar.png",
+    "save": "Save changes",
+    "update_success": "Your profile has been updated",
+    "update_error": "Unable to update profile",
+    "nothing_to_update": "Nothing to update yet"
   },
   "ownership": {
     "owned": "Owned",
