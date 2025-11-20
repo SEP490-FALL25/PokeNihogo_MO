@@ -739,6 +739,21 @@
         "purchase_success": "購入成功",
         "purchase_failed": "購入失敗"
     },
+  "reward_progress": {
+    "title": "学習進捗",
+    "completed_lessons": "完了 <highlight>{{completed}}</highlight> / {{total}} レッスン",
+    "premium_badge": {
+      "both": "プレミアム: XP とコイン x1.2",
+      "xp": "プレミアム: XP x1.2",
+      "coin": "プレミアム: コイン x1.2"
+    },
+    "milestone_label": "マイルストーン {{step}}",
+    "status": {
+      "claimed": "受け取り済み",
+      "locked": "まだ解放されていません"
+    },
+    "footer_message": "宝箱を開放するには <highlight>{{total}}</highlight> レッスンを完了してください"
+  },
     "hide_meaning": "意味を非表示",
     "press_to_see_meaning": "意味を表示",
     "no_meaning": "意味がありません",
