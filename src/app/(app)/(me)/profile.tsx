@@ -16,7 +16,6 @@ import {
   ChevronRight,
   Cog,
   Crown,
-  Flame,
   History,
   Shield,
   Sparkles,
@@ -287,29 +286,27 @@ export default function ProfileScreen() {
 
         {/* Main Content */}
         <View className="px-5 -mt-20">
-          {/* Stats Grid */}
+          {/* Stats Grid - only show what user actually has */}
           <View className="flex-row gap-3 mb-6">
-            <StatItem
-              icon={Star}
-              value={(userProfile?.exp || 0).toLocaleString()}
-              label={t('profile.points')}
-              color="#f59e0b"
-              accentColor="#fbbf24"
-            />
-            <StatItem
-              icon={Flame}
-              value={0}
-              label={t('profile.streak')}
-              color="#ef4444"
-              accentColor="#f87171"
-            />
-            <StatItem
-              icon={Shield}
-              value={userProfile?.rankName || 'N5'}
-              label={t('profile.league')}
-              color="#6FAFB2"
-              accentColor="#7EC5C8"
-            />
+            {typeof userProfile?.exp === 'number' && (
+              <StatItem
+                icon={Star}
+                value={userProfile.exp.toLocaleString()}
+                label={t('profile.points')}
+                color="#f59e0b"
+                accentColor="#fbbf24"
+              />
+            )}
+
+            {userProfile?.rankName && (
+              <StatItem
+                icon={Shield}
+                value={userProfile.rankName}
+                label={t('profile.league')}
+                color="#6FAFB2"
+                accentColor="#7EC5C8"
+              />
+            )}
           </View>
 
           {/* Pokemon Collection Card */}
