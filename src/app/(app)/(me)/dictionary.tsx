@@ -471,9 +471,14 @@ export default function DictionaryScreen() {
 
   // Handle search container layout
   const handleSearchContainerLayout = useCallback(() => {
-    searchContainerRef.current?.measure((x, y, width, height, pageX, pageY) => {
-      setSearchBarY(pageY + height + 8);
-    });
+    // Use setTimeout to ensure layout is complete before measuring
+    setTimeout(() => {
+      searchContainerRef.current?.measureInWindow((x, y, width, height) => {
+        if (y > 0 && height > 0) {
+          setSearchBarY(y + height + 70);
+        }
+      });
+    }, 0);
   }, []);
 
   // Render search result item (for dropdown) - memoized component
@@ -634,51 +639,13 @@ export default function DictionaryScreen() {
     >
       {/* Overlay để làm mờ ảnh nền */}
       <View style={styles.overlayBackground} />
-      <SafeAreaView className="flex-1">
-        {/* Header with gradient */}
-        <LinearGradient colors={["#4A9FA2", "#5FA8AB"]} className="pb-4">
-          <BackScreen
-            onPress={() => router.back()}
-            color="white"
-            title={t("dictionary.title")}
-          />
-
-          {/* Search Bar */}
-          <View
-            className="px-4 mb-3"
-            ref={searchContainerRef}
-            onLayout={handleSearchContainerLayout}
-          >
-            <View className="bg-white rounded-2xl flex-row items-center px-4 py-3 shadow-lg border border-gray-200/50 relative z-10">
-              <Search size={20} color="#6b7280" />
-              <TextInput
-                ref={searchInputRef}
-                className="flex-1 mx-3 text-base text-gray-900"
-                placeholder={t("dictionary.search_placeholder")}
-                placeholderTextColor="#9ca3af"
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                onFocus={handleFocusSearch}
-                onBlur={handleBlurSearch}
-                returnKeyType="search"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={handleClearSearch}>
-                  <X size={20} color="#6b7280" />
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        </LinearGradient>
-
-      {/* Overlay to detect outside clicks */}
+      
+      {/* Overlay to detect outside clicks - outside SafeAreaView for proper positioning */}
       {isFocused && (
         <Pressable style={styles.overlay} onPress={handleOverlayPress} />
       )}
 
-      {/* Dropdown for search suggestions/history - absolute positioned overlay */}
+      {/* Dropdown for search suggestions/history - absolute positioned overlay - outside SafeAreaView */}
       {isFocused && searchBarY > 0 && (
         <View
           style={[styles.dropdownWrapper, { top: searchBarY }]}
@@ -759,6 +726,45 @@ export default function DictionaryScreen() {
           </Pressable>
         </View>
       )}
+
+      <SafeAreaView className="flex-1">
+        {/* Header with gradient */}
+        <LinearGradient colors={["#4A9FA2", "#5FA8AB"]} className="pb-4">
+          <BackScreen
+            onPress={() => router.back()}
+            color="white"
+            title={t("dictionary.title")}
+          />
+
+          {/* Search Bar */}
+          <View
+            className="px-4 mb-3"
+            ref={searchContainerRef}
+            onLayout={handleSearchContainerLayout}
+          >
+            <View className="bg-white rounded-2xl flex-row items-center px-4 py-3 shadow-lg border border-gray-200/50 relative z-10">
+              <Search size={20} color="#6b7280" />
+              <TextInput
+                ref={searchInputRef}
+                className="flex-1 mx-3 text-base text-gray-900"
+                placeholder={t("dictionary.search_placeholder")}
+                placeholderTextColor="#9ca3af"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onFocus={handleFocusSearch}
+                onBlur={handleBlurSearch}
+                returnKeyType="search"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={handleClearSearch}>
+                  <X size={20} color="#6b7280" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </LinearGradient>
 
       {/* Results - always show content */}
       <View className="flex-1">
