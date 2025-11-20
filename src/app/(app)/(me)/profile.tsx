@@ -3,6 +3,7 @@ import BackScreen from '@components/molecules/Back';
 import { useAchievement } from '@hooks/useAchievement';
 import { useAuth } from '@hooks/useAuth';
 import { useListPokemons } from '@hooks/usePokemonData';
+import { AchievementEntity } from '@models/achievement/achievement.entity';
 import { IPokemon } from '@models/pokemon/pokemon.common';
 import { IUserEntity } from '@models/user/user.entity';
 import { ROUTES } from '@routes/routes';
@@ -144,7 +145,7 @@ export default function ProfileScreen() {
     achPageSize: 5,
     achCurrentPage: 1,
   });
-console.log(achievementsData)
+
   // Calculate level progress
   const levelProgress = useMemo(() => {
     if (!userProfile?.level) return 0;
@@ -172,18 +173,23 @@ console.log(achievementsData)
     return Math.min(Math.max(progress, 0), 1);
   }, [userProfile?.exp, userProfile?.level]);
 
-  // Get achieved achievements only
-  const achievedAchievements = useMemo(() => {
-    if (!achievementsData?.results) return [];
-    
-    const allAchievements = achievementsData.results.flatMap(
-      group => group.achievements?.results || []
-    );
-    
-    return allAchievements.filter(
-      achievement => achievement.userAchievement?.achievedAt !== null
-    ).slice(0, 5); // Show max 5 achievements
+  // Flatten all achievements from all groups
+  const allAchievements = useMemo(() => {
+    if (!achievementsData?.results) return [] as AchievementEntity[];
+
+    return achievementsData.results.flatMap(
+      (group) => group.achievements?.results || []
+    ) as AchievementEntity[];
   }, [achievementsData]);
+
+  // Achievements that have been completed (earned badges)
+  const earnedAchievements = useMemo(
+    () =>
+      allAchievements.filter(
+        (achievement) => achievement.userAchievement?.achievedAt !== null
+      ),
+    [allAchievements]
+  );
 
   return (
     <View className="flex-1 bg-slate-100">
@@ -518,9 +524,15 @@ console.log(achievementsData)
             <View className="flex-row justify-between items-center mb-6">
               <View>
                 <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('profile.achievements')}</Text>
-                <Text className="text-sm font-semibold text-slate-500 tracking-wide">
-                  {achievedAchievements.length} {t('profile.achievements_earned')}
-                </Text>
+                {allAchievements.length > 0 ? (
+                  <Text className="text-sm font-semibold text-slate-500 tracking-wide">
+                    {earnedAchievements.length}/{allAchievements.length} {t('profile.achievements_earned')}
+                  </Text>
+                ) : (
+                  <Text className="text-sm font-semibold text-slate-500 tracking-wide">
+                    0 {t('profile.achievements_earned')}
+                  </Text>
+                )}
               </View>
 
               <TouchableOpacity
@@ -539,8 +551,8 @@ console.log(achievementsData)
               contentContainerStyle={styles.achievementsList}
               className="py-2.5 px-1"
             >
-              {achievedAchievements.length > 0 ? (
-                achievedAchievements.map((achievement) => {
+              {allAchievements.length > 0 ? (
+                allAchievements.slice(0, 5).map((achievement: AchievementEntity) => {
                   const tierColors: Record<string, [string, string]> = {
                     BASIC: ['#38bdf8', '#0ea5e9'],
                     ADVANCED: ['#fbbf24', '#f59e0b'],
