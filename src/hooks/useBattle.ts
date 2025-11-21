@@ -114,3 +114,18 @@ export const useJoinNewSeason = () => {
     });
 };
 //------------------------End------------------------//
+
+
+
+/**
+ * Match tracking
+ * @returns Match tracking data
+ */
+export const useMatchTracking = () => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['match-tracking'],
+        queryFn: () => battleService.matchTracking(),
+    });
+    return { data: data?.data.data, isLoading, isError };
+};
+//------------------------End------------------------//

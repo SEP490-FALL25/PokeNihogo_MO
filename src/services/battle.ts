@@ -47,6 +47,10 @@ const battleService = {
     joinNewSeason: async () => {
         return axiosPrivate.post(`/user-season-history/join`);
     },
+
+    matchTracking: async () => {
+        return axiosPrivate.get('/match/tracking')
+    }
 };
 
 export default battleService;
