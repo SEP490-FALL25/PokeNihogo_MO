@@ -1,5 +1,5 @@
 import type { AlertType } from "@components/atoms/MinimalAlert";
-import useMinimalAlert from "@hooks/useMinimalAlert";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useUploadImage } from "@hooks/useUpload";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
@@ -31,7 +31,7 @@ export default function ImageUploader({
   disabled = false,
 }: ImageUploaderProps) {
   const { t } = useTranslation();
-  const { AlertElement, showAlert } = useMinimalAlert();
+  const { showAlert } = useMinimalAlert();
   const showUploaderAlert = useCallback(
     (title: string, description?: string, type: AlertType = "info") => {
       const message = [title, description].filter(Boolean).join(" - ");
@@ -192,7 +192,6 @@ export default function ImageUploader({
           </Text>
         )}
       </TouchableOpacity>
-      {AlertElement}
     </View>
   );
 }

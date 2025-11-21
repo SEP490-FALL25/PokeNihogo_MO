@@ -2,7 +2,7 @@ import AuthScreenLayout from '@components/layouts/AuthScreenLayout';
 import BounceButton from '@components/ui/BounceButton';
 import { Input } from '@components/ui/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import useMinimalAlert from '@hooks/useMinimalAlert';
+import { useMinimalAlert } from '@hooks/useMinimalAlert';
 import { IPasswordFormDataRequest, PasswordFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
@@ -24,7 +24,7 @@ export default function PasswordScreen() {
      */
     const { t } = useTranslation();
     const email = useEmailSelector();
-    const { AlertElement, showAlert } = useMinimalAlert();
+    const { showAlert } = useMinimalAlert();
     const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
     z.setErrorMap(makeZodI18nMap({ t }));
@@ -137,7 +137,6 @@ export default function PasswordScreen() {
                     </View>
                 </View>
             </View>
-            {AlertElement}
         </AuthScreenLayout>
     );
 }

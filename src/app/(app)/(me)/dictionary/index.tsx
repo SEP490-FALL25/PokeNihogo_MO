@@ -3,7 +3,7 @@ import type { AlertType } from "@components/atoms/MinimalAlert";
 import { HOT_KEYWORDS, JLPT_LEVELS } from "@constants/dictionary.constants";
 import { FlashcardContentType } from "@constants/flashcard.enum";
 import { useDebounce } from "@hooks/useDebounce";
-import useMinimalAlert from "@hooks/useMinimalAlert";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import {
   useDictionarySearch,
   useSearchHistory,
@@ -54,7 +54,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function DictionaryScreen() {
   const { t } = useTranslation();
-  const { AlertElement, showAlert } = useMinimalAlert();
+  const { showAlert } = useMinimalAlert();
   const showDictionaryAlert = useCallback(
     (titleKey: string, descriptionKey?: string, type: AlertType = "info") => {
       const parts = [
@@ -1133,7 +1133,6 @@ export default function DictionaryScreen() {
           </Pressable>
         </Pressable>
       </Modal>
-      {AlertElement}
       </SafeAreaView>
     </ImageBackground>
   );

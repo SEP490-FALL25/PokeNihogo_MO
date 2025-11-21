@@ -1,6 +1,13 @@
+import MinimalGameAlert, {
+  AlertWrapper,
+} from "@components/atoms/MinimalAlert";
 import GlobalMatchingNotification from "@components/GlobalMatchingNotification";
 import LanguageProvider from "@components/LanguageProvider";
 import { useColorScheme } from "@hooks/useColorScheme";
+import {
+  MinimalAlertProvider,
+  useMinimalAlert,
+} from "@hooks/useMinimalAlert";
 import "@i18n/i18n";
 import { ReactQueryProvider } from "@libs/@tanstack/react-query";
 import {
@@ -29,7 +36,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     initialize();
-  }, []);
+  }, [initialize]);
 
   if (!loaded || isTokenLoading) {
     return <SplashScreen />;
@@ -37,24 +44,42 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <LanguageProvider>
-        <ReactQueryProvider>
-          <ThemeProvider
-            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-          >
-            <CopilotProvider>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="index" />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-            </CopilotProvider>
-            <StatusBar style="auto" />
-            <GlobalMatchingNotification />
-          </ThemeProvider>
-        </ReactQueryProvider>
-      </LanguageProvider>
+      <MinimalAlertProvider>
+        <LanguageProvider>
+          <ReactQueryProvider>
+            <ThemeProvider
+              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+            >
+              <CopilotProvider>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="index" />
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="(auth)" />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+              </CopilotProvider>
+              <StatusBar style="auto" />
+              <GlobalMatchingNotification />
+            </ThemeProvider>
+          </ReactQueryProvider>
+        </LanguageProvider>
+        <GlobalAlertLayer />
+      </MinimalAlertProvider>
     </GestureHandlerRootView>
   );
 }
+
+const GlobalAlertLayer = () => {
+  const { alertConfig, hideAlert } = useMinimalAlert();
+
+  return (
+    <AlertWrapper visible={alertConfig.visible} onHide={hideAlert}>
+      <MinimalGameAlert
+        visible={alertConfig.visible}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onHide={hideAlert}
+      />
+    </AlertWrapper>
+  );
+};

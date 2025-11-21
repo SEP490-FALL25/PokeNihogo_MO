@@ -1,7 +1,7 @@
 import AuthScreenLayout from '@components/layouts/AuthScreenLayout';
 import BackScreen from '@components/molecules/Back';
 import BounceButton from '@components/ui/BounceButton';
-import useMinimalAlert from '@hooks/useMinimalAlert';
+import { useMinimalAlert } from '@hooks/useMinimalAlert';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
 import { useEmailSelector } from '@stores/user/user.selectors';
@@ -16,7 +16,7 @@ export default function OTPScreen() {
      * Define variables
      */
     const { t } = useTranslation();
-    const { AlertElement, showAlert } = useMinimalAlert();
+    const { showAlert } = useMinimalAlert();
     const email = useEmailSelector();
     const { type } = useLocalSearchParams<{ type: string }>();
     //-----------------------End-----------------------//
@@ -134,7 +134,6 @@ export default function OTPScreen() {
                     </View>
                 </View>
             </View>
-            {AlertElement}
         </AuthScreenLayout>
     );
 }

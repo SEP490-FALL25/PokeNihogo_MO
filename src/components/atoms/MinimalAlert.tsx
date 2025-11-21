@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Dimensions, Modal, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -15,23 +15,18 @@ interface MinimalGameAlertProps {
 interface AlertWrapperProps {
     children: React.ReactNode;
     visible: boolean;
-    onHide: () => void;
+    onHide?: () => void;
 }
 
 /**
  * Wrapper component cho alert layout
  * Quản lý Modal, positioning, và basic structure
  */
-const AlertWrapper = ({ children, visible, onHide }: AlertWrapperProps) => {
+const AlertWrapper = ({ children, visible }: AlertWrapperProps) => {
     if (!visible) return null;
 
     return (
-        <Modal
-            animationType="fade"
-            transparent={true}
-            visible={visible}
-            onRequestClose={onHide}
-        >
+        <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
             <View
                 className="flex-1 justify-start items-center"
                 style={{ paddingTop: SCREEN_HEIGHT * 0.12 }}
@@ -39,7 +34,7 @@ const AlertWrapper = ({ children, visible, onHide }: AlertWrapperProps) => {
             >
                 {children}
             </View>
-        </Modal>
+        </View>
     );
 };
 
@@ -84,29 +79,27 @@ const MinimalGameAlert = ({ message, visible, onHide, type = 'error' }: MinimalG
     };
 
     return (
-        <AlertWrapper visible={visible} onHide={onHide}>
-            <View
-                className={`${getBorderColor()} rounded-lg overflow-hidden`}
-                style={{
-                    borderWidth: 2,
-                    shadowColor: getGlowColor(),
-                    shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 1,
-                    shadowRadius: 15,
-                    elevation: 10,
-                    minWidth: 280,
-                    maxWidth: '85%',
-                }}
-                pointerEvents="auto"
-            >
-                {/* Background với gradient mờ */}
-                <View className="bg-black/50 px-5 py-3">
-                    <Text className={`font-bold text-base text-center ${getTextColor()}`}>
-                        {message}
-                    </Text>
-                </View>
+        <View
+            className={`${getBorderColor()} rounded-lg overflow-hidden`}
+            style={{
+                borderWidth: 2,
+                shadowColor: getGlowColor(),
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 1,
+                shadowRadius: 15,
+                elevation: 10,
+                minWidth: 280,
+                maxWidth: '85%',
+            }}
+            pointerEvents="auto"
+        >
+            {/* Background với gradient mờ */}
+            <View className="bg-black/50 px-5 py-3">
+                <Text className={`font-bold text-base text-center ${getTextColor()}`}>
+                    {message}
+                </Text>
             </View>
-        </AlertWrapper>
+        </View>
     );
 };
 

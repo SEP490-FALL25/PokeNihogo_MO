@@ -5,7 +5,7 @@ import ImageUploader from '@components/ui/ImageUploader';
 import { Input } from '@components/ui/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@hooks/useAuth';
-import useMinimalAlert from '@hooks/useMinimalAlert';
+import { useMinimalAlert } from '@hooks/useMinimalAlert';
 import { useUpdateProfile } from '@hooks/useUpdateProfile';
 import { IUserEntity } from '@models/user/user.entity';
 import { IUpdateProfileFormDataRequest, UpdateProfileFormDataRequest } from '@models/user/user.request';
@@ -46,7 +46,7 @@ const buildPayload = (values: IUpdateProfileFormDataRequest) => {
 
 export default function AccountDetailsScreen() {
   const { t } = useTranslation();
-  const { AlertElement, showAlert } = useMinimalAlert();
+  const { showAlert } = useMinimalAlert();
   const insets = useSafeAreaInsets();
   const { user, isLoading } = useAuth();
   const userProfile = user?.data as IUserEntity | undefined;
@@ -372,7 +372,6 @@ export default function AccountDetailsScreen() {
               </BounceButton>
             </View>
           </View>
-          {AlertElement}
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

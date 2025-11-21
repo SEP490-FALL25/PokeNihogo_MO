@@ -5,7 +5,7 @@ import { Select } from "@components/ui/Select";
 import type { AlertType } from "@components/atoms/MinimalAlert";
 import { FlashcardContentType } from "@constants/flashcard.enum";
 import { useDebounce } from "@hooks/useDebounce";
-import useMinimalAlert from "@hooks/useMinimalAlert";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import {
   useCreateFlashcardDeckCard,
   useDeleteFlashcardDeckCards,
@@ -166,7 +166,7 @@ const FlashcardDeckDetailScreen = () => {
   const insets = useSafeAreaInsets();
   const insetBottom = Math.max(insets.bottom, 10);
   const { t } = useTranslation();
-  const { AlertElement, showAlert } = useMinimalAlert();
+  const { showAlert } = useMinimalAlert();
   const showFlashcardAlert = useCallback(
     (title: string, description?: string, type: AlertType = "info") => {
       const message = [title, description].filter(Boolean).join(" - ");
@@ -996,7 +996,6 @@ const FlashcardDeckDetailScreen = () => {
           </View>
         </View>
       </Modal>
-      {AlertElement}
     </SafeAreaView>
   );
 };
