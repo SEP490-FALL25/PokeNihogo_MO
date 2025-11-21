@@ -325,11 +325,14 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         if (!accessToken || !matchId) return;
 
         const socket = getSocket("matching", accessToken);
-        console.log("[ARENA] Joining matching room, matchId:", matchId);
+        console.log("[ARENA] Joining matching rooms, matchId:", matchId);
+        // ✅ Emit both join-matching-room and join-user-match-room (as per index.html)
         socket.emit("join-matching-room", { matchId });
+        socket.emit("join-user-match-room", { matchId });
 
-        // Round started
+        // ✅ Handle round-started event (as per index.html)
         socket.on("round-started", (payload: any) => {
+            console.log("[ARENA] round-started event:", payload);
             setRoundStarted(true);
 
             // --- THÊM ĐOẠN NÀY ---
@@ -440,8 +443,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             setShowResult(false);
         });
 
-        // Question answered - received after submitting answer (may contain next question or status update)
+        // ✅ Handle question-answered event (as per index.html)
         socket.on("question-answered", (payload: any) => {
+            console.log("[ARENA] question-answered event:", payload);
 
             // Handle answer result if present
             if (payload?.answerResult) {
@@ -607,9 +611,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             }
         });
 
-        // Question completed (last question - both players answered, waiting for summary)
+        // ✅ Handle question-completed event (as per index.html)
         socket.on("question-completed", (payload: any) => {
-            console.log("Question completed (last question):", payload);
+            console.log("[ARENA] question-completed event:", payload);
             setShowResult(true);
             if (payload?.playerCorrect !== undefined) {
                 if (payload.playerCorrect) {
@@ -625,14 +629,15 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             setIsWaitingForOpponent(true);
         });
 
-        // Opponent completed
+        // ✅ Handle opponent-completed event (as per index.html)
         socket.on("opponent-completed", (payload: any) => {
-            console.log("Opponent completed:", payload);
+            console.log("[ARENA] opponent-completed event:", payload);
             // setIsWaitingForOpponent(true);
         });
 
-        // Waiting for opponent
+        // ✅ Handle waiting-for-opponent event (as per index.html)
         socket.on("waiting-for-opponent", (payload: any) => {
+            console.log("[ARENA] waiting-for-opponent event:", payload);
             setIsWaitingForOpponent(true);
 
             if (currentQuestion) {
@@ -640,8 +645,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             }
         });
 
-        // Round completed
+        // ✅ Handle round-completed event (as per index.html)
         socket.on("round-completed", (payload: any) => {
+            console.log("[ARENA] round-completed event:", payload);
             setRoundStarted(false);
             setCurrentQuestion(null);
             setSelectedAnswer(null);
@@ -657,10 +663,11 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             // Handle round completion logic - could navigate to next round or back to pick-pokemon
         });
 
-        // Match completed
+        // ✅ Handle match-completed event (as per index.html)
         // Note: Navigation is handled by global listener in battle.tsx
         // This local handler only updates local state
         socket.on("match-completed", (payload: any) => {
+            console.log("[ARENA] match-completed event:", payload);
             const winnerId = payload?.match?.winnerId ?? null;
             const winnerName =
                 payload?.match?.winner?.name ||
