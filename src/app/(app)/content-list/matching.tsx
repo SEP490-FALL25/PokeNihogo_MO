@@ -4,7 +4,7 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft, RotateCcw, Trophy } from "lucide-react-native";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 type CardType = "word" | "meaning";
 
@@ -220,13 +220,71 @@ const MatchingGameScreen = () => {
     }, 600);
   };
 
-  // Calculate card size for grid
+  // Calculate card size for grid - dynamically adjust based on screen and card count
+  const { cardSize, cardHeight, cardSpacing } = useMemo(() => {
+    const padding = 24;
+    const spacing = 12;
+    const headerHeight = 120; // Approximate header + stats height
+    const instructionsHeight = 50;
+    const bottomPadding = 100;
+    
+    const availableWidth = width - padding * 2;
+    const availableHeight = height - headerHeight - instructionsHeight - bottomPadding;
+    
+    // Calculate optimal number of columns based on card count
+    // Try different column counts and pick the best fit
+    const cardCount = cards.length;
+    let optimalColumns = 3;
+    let optimalCardSize = 0;
+    let optimalCardHeight = 0;
+    let minTotalHeight = Infinity;
+    
+    // Try column counts from 2 to 4
+    for (let cols = 2; cols <= 4; cols++) {
+      const cardWidth = (availableWidth - spacing * (cols - 1)) / cols;
+      const rows = Math.ceil(cardCount / cols);
+      const cardH = Math.min(
+        (availableHeight - spacing * (rows - 1)) / rows,
+        160 // Max card height
+      );
+      
+      // Ensure minimum card size (at least 80px)
+      if (cardWidth < 80 || cardH < 80) continue;
+      
+      const totalHeight = rows * cardH + spacing * (rows - 1);
+      
+      // Prefer layout that fits better and uses reasonable card sizes
+      if (totalHeight <= availableHeight && cardWidth >= 90 && cardH >= 90) {
+        if (totalHeight < minTotalHeight || (cols === 3 && totalHeight <= availableHeight * 0.9)) {
+          minTotalHeight = totalHeight;
+          optimalColumns = cols;
+          optimalCardSize = cardWidth;
+          optimalCardHeight = cardH;
+        }
+      }
+    }
+    
+    // Fallback to default if no optimal found
+    if (optimalCardSize === 0) {
+      optimalColumns = cardCount <= 6 ? 2 : 3;
+      optimalCardSize = Math.max(
+        80,
+        Math.min(
+          160,
+          (availableWidth - spacing * (optimalColumns - 1)) / optimalColumns
+        )
+      );
+      optimalCardHeight = Math.max(90, Math.min(160, optimalCardSize * 1.2));
+    }
+    
+    return {
+      cardSize: optimalCardSize,
+      cardHeight: optimalCardHeight,
+      cardSpacing: spacing,
+    };
+  }, [cards.length]);
+  
   const padding = 24;
-  const cardSpacing = 12;
-  const numColumns = 3; // 3 columns for grid
-  const availableWidth = width - padding * 2;
-  const cardSize = (availableWidth - cardSpacing * (numColumns - 1)) / numColumns;
-  const cardHeight = 120;
 
   if (isLoading) {
     return (
