@@ -1,4 +1,3 @@
-import MinimalGameAlert from "@components/atoms/MinimalAlert";
 import { DailyLoginModal } from "@components/DailyLoginModal";
 import HomeLayout, { HomeLayoutRef } from "@components/layouts/HomeLayout";
 import MainNavigation from "@components/MainNavigation";
@@ -7,6 +6,7 @@ import { ThemedView } from "@components/ThemedView";
 import WelcomeModal from "@components/ui/WelcomeModal";
 import { SubscriptionFeatureKey } from "@constants/subscription.enum";
 import useAuthHook from "@hooks/useAuth";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useSrsReview } from "@hooks/useSrsReview";
 import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
 import { useRecentExercises } from "@hooks/useUserHistory";
@@ -317,20 +317,12 @@ export default function HomeScreen() {
   const { t } = useTranslation();
   const srsTypeConfig = useSrsTypeConfig();
   const { user } = useAuthHook();
+  const { showAlert } = useMinimalAlert();
 
   // Modal state management
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showDailyLogin, setShowDailyLogin] = useState(false);
   const [hasAutoOpenedAttendance, setHasAutoOpenedAttendance] = useState(false);
-  const [alertConfig, setAlertConfig] = useState<{
-    visible: boolean;
-    message: string;
-    type: "success" | "error" | "warning" | "info";
-  }>({
-    visible: false,
-    message: "",
-    type: "info",
-  });
   const homeLayoutRef = useRef<HomeLayoutRef>(null);
   const queryClient = useQueryClient();
 
@@ -445,23 +437,17 @@ export default function HomeScreen() {
     setShowWelcomeModal(false);
   };
 
-  const hideAlert = () => {
-    setAlertConfig((prev) => ({ ...prev, visible: false }));
-  };
-
   const checkInMutation = useMutation({
     mutationFn: attendanceService.checkIn,
     onSuccess: (response) => {
       queryClient.invalidateQueries({
         queryKey: ["attendance-summary", user?.data?.id],
       });
-      setAlertConfig({
-        visible: true,
-        message:
-          response?.message ||
+      showAlert(
+        response?.message ||
           t("daily_login.success_message", "Điểm danh thành công!"),
-        type: "success",
-      });
+        "success"
+      );
     },
     onError: () => {
       const errorMessage = t(
@@ -472,11 +458,7 @@ export default function HomeScreen() {
         t("daily_login.error_title", "Có lỗi xảy ra"),
         errorMessage
       );
-      setAlertConfig({
-        visible: true,
-        message: errorMessage,
-        type: "error",
-      });
+      showAlert(errorMessage, "error");
     },
   });
 
@@ -845,13 +827,6 @@ export default function HomeScreen() {
         checkInHistory={attendanceHistory}
         isLoading={isAttendanceLoading && !attendanceSummary}
         isSubmitting={checkInMutation.isPending}
-      />
-
-      <MinimalGameAlert
-        visible={alertConfig.visible}
-        message={alertConfig.message}
-        type={alertConfig.type}
-        onHide={hideAlert}
       />
     </HomeLayout>
   );

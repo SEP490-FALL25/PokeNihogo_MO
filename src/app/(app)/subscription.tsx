@@ -1,11 +1,11 @@
 import { openInAppBrowser } from "@components/atoms/InAppBrowser";
-import MinimalAlert from "@components/atoms/MinimalAlert";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import BackScreen from "@components/molecules/Back";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { WALLET } from "@constants/wallet.enum";
 import { useCreateInvoice, useRefetchUserData } from "@hooks/useInvoice";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
 import { useWalletUser } from "@hooks/useWallet";
 import { ISubscriptionMarketplaceEntity } from "@models/subscription/subscription.entity";
@@ -28,14 +28,12 @@ export default function SubscriptionScreen() {
     const { walletUser, isLoading: isLoadingWallet } = useWalletUser();
     const { mutate: createInvoice, isPending: isPurchasing } = useCreateInvoice();
     const { refetchAll } = useRefetchUserData();
+    const { showAlert } = useMinimalAlert();
     const scrollViewRef = useRef<ScrollView>(null);
     const packageRefs = useRef<Record<number, View | null>>({});
     const [highlightedPackageId, setHighlightedPackageId] = useState<number | null>(null);
     const highlightAnim = useRef(new Animated.Value(0)).current;
 
-    const [alertVisible, setAlertVisible] = useState<boolean>(false);
-    const [alertMessage, setAlertMessage] = useState<string>('');
-    const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('error');
     const [selectedDiscounts, setSelectedDiscounts] = useState<Record<number, number>>({});
     const [isResolvingInvoice, setIsResolvingInvoice] = useState<boolean>(false);
 
@@ -147,7 +145,7 @@ export default function SubscriptionScreen() {
 
         const packageIdParam = params.packageId ? Number(params.packageId) : undefined;
         if (packageIdParam) {
-            const targetPackage = packages.find(pkg => pkg.id === packageIdParam);
+            const targetPackage = packages.find((pkg: ISubscriptionMarketplaceEntity) => pkg.id === packageIdParam);
             if (targetPackage) {
                 triggerPackageHighlight(targetPackage.id);
                 return;
@@ -198,20 +196,14 @@ export default function SubscriptionScreen() {
         });
     }, []);
 
-    const handleHideAlert = useCallback(() => {
-        setAlertVisible(false);
-    }, []);
-
     const handleBrowserClose = useCallback(() => {
         // Refetch data after payment (when browser closes)
         refetchAll();
     }, [refetchAll]);
 
     const handleBrowserError = useCallback((error: Error) => {
-        setAlertMessage(error.message || t('subscription.purchase_failed'));
-        setAlertType('error');
-        setAlertVisible(true);
-    }, [t]);
+        showAlert(error.message || t('subscription.purchase_failed'), 'error');
+    }, [t, showAlert]);
 
     const getMaxDeductable = useCallback((price: number) => {
         const cap = Math.min(price, userBalance);
@@ -245,9 +237,7 @@ export default function SubscriptionScreen() {
 
     const handleContinuePayment = useCallback(async (invoiceId?: number | null) => {
         if (!invoiceId) {
-            setAlertMessage(t('subscription.purchase_failed'));
-            setAlertType('error');
-            setAlertVisible(true);
+            showAlert(t('subscription.purchase_failed'), 'error');
             return;
         }
 
@@ -263,25 +253,20 @@ export default function SubscriptionScreen() {
                     onError: handleBrowserError,
                 });
             } else {
-                setAlertType('error');
-                setAlertVisible(true);
+                showAlert(t('subscription.purchase_failed'), 'error');
             }
         } catch (error: any) {
             const errorMessage = error?.response?.data?.message || t('subscription.purchase_failed');
-            setAlertMessage(errorMessage);
-            setAlertType('error');
-            setAlertVisible(true);
+            showAlert(errorMessage, 'error');
         } finally {
             setIsResolvingInvoice(false);
         }
-    }, [handleBrowserClose, handleBrowserError, t]);
+    }, [handleBrowserClose, handleBrowserError, t, showAlert]);
 
     const handlePurchase = useCallback((packageItem: ISubscriptionMarketplaceEntity) => {
         const activePlan = getActivePlan(packageItem);
         if (!activePlan) {
-            setAlertMessage(t('subscription.purchase_failed'));
-            setAlertType('error');
-            setAlertVisible(true);
+            showAlert(t('subscription.purchase_failed'), 'error');
             return;
         }
 
@@ -318,9 +303,7 @@ export default function SubscriptionScreen() {
                             onError: handleBrowserError,
                         });
                     } else {
-                        setAlertMessage(responseData?.message || t('subscription.purchase_success'));
-                        setAlertType('success');
-                        setAlertVisible(true);
+                        showAlert(responseData?.message || t('subscription.purchase_success'), 'success');
                     }
                 },
                 onError: (error: any) => {
@@ -341,33 +324,26 @@ export default function SubscriptionScreen() {
                                         onError: handleBrowserError,
                                     });
                                 } else {
-                                    setAlertType('error');
-                                    setAlertVisible(true);
+                                    showAlert(t('subscription.purchase_failed'), 'error');
                                 }
                             })
                             .catch((recallError: any) => {
                                 const recallErrorMessage = recallError?.response?.data?.message || errorData?.message || t('subscription.purchase_failed');
-                                setAlertMessage(recallErrorMessage);
-                                setAlertType('error');
-                                setAlertVisible(true);
+                                showAlert(recallErrorMessage, 'error');
                             });
                     } else {
                         const errorMessage = errorData?.message || t('subscription.purchase_failed');
-                        setAlertMessage(errorMessage);
-                        setAlertType('error');
-                        setAlertVisible(true);
+                        showAlert(errorMessage, 'error');
                     }
                 },
             }
         );
-    }, [createInvoice, t, getActivePlan, handleBrowserClose, handleBrowserError, selectedDiscounts, getMaxDeductable, handleContinuePayment]);
+    }, [createInvoice, t, getActivePlan, handleBrowserClose, handleBrowserError, selectedDiscounts, getMaxDeductable, handleContinuePayment, showAlert]);
 
     const handleRefetch = useCallback(() => {
         refetchAll();
-        setAlertMessage(t('subscription.data_refreshed'));
-        setAlertType('success');
-        setAlertVisible(true);
-    }, [refetchAll, t]);
+        showAlert(t('subscription.data_refreshed'), 'success');
+    }, [refetchAll, t, showAlert]);
 
     const getPackageIcon = (packageType: SubscriptionPackageType) => {
         switch (packageType) {
@@ -755,14 +731,6 @@ export default function SubscriptionScreen() {
                         })}
                     </View>
                 </ScrollView>
-
-                {/* Alert */}
-                <MinimalAlert
-                    message={alertMessage}
-                    visible={alertVisible}
-                    onHide={handleHideAlert}
-                    type={alertType}
-                />
             </ThemedView>
         </SafeAreaView>
     );
