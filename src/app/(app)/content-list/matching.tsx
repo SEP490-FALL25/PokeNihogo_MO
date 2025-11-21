@@ -477,14 +477,11 @@ const MatchingGameScreen = () => {
         initCardAnimation(secondCard.id);
         
         // Find next complete pair from pool before animation
-        let updatedCards = cards.filter(
-          (_, index) => index !== firstIndex && index !== secondIndex
-        );
         let newNextIndex = nextCardIndex;
         let nextPairCards: MatchingCard[] = [];
         
         // Get all displayed pairIds to avoid duplicates
-        const displayedPairIds = new Set(updatedCards.map((card) => card.pairId));
+        const displayedPairIds = new Set(cards.map((card) => card.pairId));
         
         // Find next pair in pool that hasn't been displayed yet
         if (newNextIndex < allCardsPool.length) {
@@ -515,46 +512,50 @@ const MatchingGameScreen = () => {
           }
         }
         
-        // Prepare final cards array
-        const finalCards = [...updatedCards];
-        if (nextPairCards.length === 2) {
-          finalCards.push(...nextPairCards);
-        }
-        
         // Animate matched cards out (zoom in -> zoom out -> fade out)
         let animationCompleteCount = 0;
         const onAnimationComplete = () => {
           animationCompleteCount++;
           if (animationCompleteCount === 2) {
-            // Both animations complete, now update cards
-            const newCards = [...updatedCards];
+            // Both animations complete, now replace cards at the same positions
+            const newCards = [...cards];
             
-            // Initialize animation refs for new cards
-            nextPairCards.forEach((card) => {
-              initCardAnimation(card.id, true);
-            });
-            
-            // Add new cards
+            // Replace cards at the same positions (firstIndex and secondIndex)
             if (nextPairCards.length === 2) {
-              newCards.push(...nextPairCards);
+              // Initialize animation refs for new cards
+              nextPairCards.forEach((card) => {
+                initCardAnimation(card.id, true);
+              });
+              
+              // Replace at the same positions
+              newCards[firstIndex] = nextPairCards[0];
+              newCards[secondIndex] = nextPairCards[1];
+              
+              setNextCardIndex(newNextIndex);
+            } else {
+              // No more pairs, remove matched cards (set to null or remove)
+              // But we want to keep positions, so we'll mark them as matched
+              newCards[firstIndex] = { ...firstCard, isMatched: true };
+              newCards[secondIndex] = { ...secondCard, isMatched: true };
             }
             
             setCards(newCards);
-            setNextCardIndex(newNextIndex);
             
             // Animate new cards in after a short delay
-            setTimeout(() => {
-              nextPairCards.forEach((card) => {
-                animateCardIn(card.id);
-              });
-            }, 50);
+            if (nextPairCards.length === 2) {
+              setTimeout(() => {
+                nextPairCards.forEach((card) => {
+                  animateCardIn(card.id);
+                });
+              }, 50);
+            }
             
             // Check if game is complete after updating cards
             setMatchedPairs((prev) => {
               const newCount = prev + 1;
               const totalPairsInPool = allCardsPool.length / 2;
               const remainingCardsInPool = allCardsPool.length - newNextIndex;
-              const remainingDisplayedCards = newCards.length;
+              const remainingDisplayedCards = newCards.filter((c) => !c.isMatched).length;
               
               // Game complete if: all pairs matched OR no more cards in pool and display
               if (newCount >= totalPairsInPool || (remainingCardsInPool === 0 && remainingDisplayedCards === 0)) {
