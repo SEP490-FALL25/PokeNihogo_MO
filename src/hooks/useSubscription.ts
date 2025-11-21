@@ -1,4 +1,5 @@
 import subscriptionService from "@services/subscription";
+import type { IUserSubscriptionFeatureDetail } from "@models/subscription/subscription.response";
 import { useAuthStore } from "@stores/auth/auth.config";
 import { useGlobalStore } from "@stores/global/global.config";
 import { useQuery } from "@tanstack/react-query";
@@ -37,11 +38,11 @@ export const useSubscriptionPackages = () => {
  */
 export const useUserSubscriptionFeatures = () => {
     const { accessToken } = useAuthStore();
-    const { setSubscriptionKeys, clearSubscriptionKeys } = useGlobalStore();
+    const { setSubscriptionFeatures, clearSubscriptionFeatures } = useGlobalStore();
 
     const query = useQuery({
         queryKey: ['user-subscription-features', accessToken],
-        queryFn: async (): Promise<{ features: string[] }> => {
+        queryFn: async (): Promise<{ features: IUserSubscriptionFeatureDetail[] }> => {
             const response = await subscriptionService.getUserFeatures();
             return response;
         },
@@ -52,14 +53,14 @@ export const useUserSubscriptionFeatures = () => {
 
     // Sync subscription keys to global state when data changes
     useEffect(() => {
-        const data = query.data as { features: string[] } | undefined;
+        const data = query.data as { features: IUserSubscriptionFeatureDetail[] } | undefined;
         if (data?.features) {
-            setSubscriptionKeys(data.features);
+            setSubscriptionFeatures(data.features);
         } else if (!accessToken) {
             // Clear subscription keys when user logs out
-            clearSubscriptionKeys();
+            clearSubscriptionFeatures();
         }
-    }, [query.data, accessToken, setSubscriptionKeys, clearSubscriptionKeys]);
+    }, [query.data, accessToken, setSubscriptionFeatures, clearSubscriptionFeatures]);
 
     return query;
 };

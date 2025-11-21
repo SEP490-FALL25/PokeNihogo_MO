@@ -31,6 +31,8 @@ export const useCheckFeature = (featureKey: string | SubscriptionFeatureKey): bo
 export const useSubscriptionFeatures = () => {
     const subscriptionKeys = useGlobalStore((state) => state.subscriptionKeys);
     const hasFeature = useGlobalStore((state) => state.hasFeature);
+    const getFeatureValue = useGlobalStore((state) => state.getFeatureValue);
+    const subscriptionFeatureDetails = useGlobalStore((state) => state.subscriptionFeatureDetails);
 
     /**
      * Check if user has a specific feature
@@ -61,9 +63,11 @@ export const useSubscriptionFeatures = () => {
 
     return {
         subscriptionKeys,
+        subscriptionFeatureDetails,
         hasFeature: checkFeature,
         hasAnyFeature,
         hasAllFeatures,
+        getFeatureValue,
     };
 };
 

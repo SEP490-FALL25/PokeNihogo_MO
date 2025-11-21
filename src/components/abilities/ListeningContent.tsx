@@ -1,19 +1,14 @@
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { TestStatus } from "@constants/test.enum";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUserTests } from "@hooks/useUserTest";
 import { ROUTES } from "@routes/routes";
 import { router } from "expo-router";
 import { HeadphonesIcon } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Animated,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
+import { LockOverlay } from "./LockOverlay";
 
 type UserTestItem = {
   id: number;
@@ -31,18 +26,20 @@ type UserTestItem = {
   };
 };
 
+const LISTENING_ACCENT = "#10b981";
+const LISTENING_PARTICLE_PALETTE = ["#fcd34d", "#fef9c3"];
+
 const ListeningCard: React.FC<{
   item: UserTestItem;
   onPress: () => void;
   onLockedPress: () => void;
 }> = ({ item, onPress, onLockedPress }) => {
   const isLocked = item.status === "NOT_STARTED";
-  
   return (
     <TouchableOpacity
       style={[
         styles.card, 
-        { borderLeftColor: "#10b981" },
+        { borderLeftColor: LISTENING_ACCENT },
         isLocked && styles.lockedCard
       ]}
       onPress={isLocked ? onLockedPress : onPress}
@@ -93,9 +90,10 @@ const ListeningCard: React.FC<{
       </View>
 
       {isLocked && (
-        <View style={styles.lockOverlay} pointerEvents="none">
-          <MaterialCommunityIcons name="lock" size={48} color="#64748B" />
-        </View>
+        <LockOverlay
+          isVisible={isLocked}
+          particlePalette={LISTENING_PARTICLE_PALETTE}
+        />
       )}
     </TouchableOpacity>
   );
@@ -399,17 +397,6 @@ const styles = StyleSheet.create({
   },
   lockedText: {
     color: "#9ca3af",
-  },
-  lockOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
-    borderRadius: 12,
   },
 });
 

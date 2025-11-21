@@ -46,5 +46,14 @@ export type ISubscriptionMarketplaceEntity = z.infer<typeof SubscriptionMarketpl
  * User Subscription Feature Item Schema
  */
 export const UserSubscriptionFeatureItemSchema = z.object({
-    featureKey: z.string(),
+    id: z.number().optional(),
+    featureId: z.number().optional(),
+    value: z.string().nullable().optional(),
+    featureKey: z.string().optional(),
+    feature: z.object({
+        id: z.number(),
+        featureKey: z.string(),
+        nameKey: z.string(),
+        nameTranslation: z.string(),
+    }).optional(),
 });

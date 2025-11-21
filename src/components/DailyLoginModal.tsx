@@ -1,9 +1,9 @@
 "use client";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  ActivityIndicator,
   Animated,
   Dimensions,
   Modal,
@@ -22,18 +22,25 @@ interface CheckInDay {
 interface DailyLoginModalProps {
   visible: boolean;
   onClose: () => void;
-  onCheckIn: () => void;
+  onCheckIn: () => Promise<void> | void;
+  streak: number;
+  hasCheckedInToday: boolean;
+  checkInHistory: string[];
+  isLoading?: boolean;
+  isSubmitting?: boolean;
 }
 
 export function DailyLoginModal({
   visible,
   onClose,
   onCheckIn,
+  streak,
+  hasCheckedInToday,
+  checkInHistory = [],
+  isLoading = false,
+  isSubmitting = false,
 }: DailyLoginModalProps) {
   const { t } = useTranslation();
-  const [streak, setStreak] = useState(0);
-  const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
-  const [checkInDays, setCheckInDays] = useState<CheckInDay[]>([]);
   const [showCelebration, setShowCelebration] = useState(false);
 
   const scaleAnim = useRef(new Animated.Value(0)).current;
@@ -43,7 +50,6 @@ export function DailyLoginModal({
 
   useEffect(() => {
     if (visible) {
-      loadCheckInData();
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
@@ -76,32 +82,26 @@ export function DailyLoginModal({
       scaleAnim.setValue(0);
       fadeAnim.setValue(0);
     }
-  }, [visible]);
+  }, [visible, fadeAnim, scaleAnim, streakPulse]);
 
-  const loadCheckInData = async () => {
-    try {
-      const storedData = await AsyncStorage.getItem("dailyCheckIn");
-      if (storedData) {
-        const data = JSON.parse(storedData);
-        setStreak(data.streak || 0);
-        setHasCheckedInToday(data.lastCheckIn === getTodayDate());
+  const normalizedHistory = useMemo(
+    () =>
+      checkInHistory
+        .map((date) => normalizeDate(date))
+        .filter((value, index, array) => value && array.indexOf(value) === index),
+    [checkInHistory]
+  );
 
-        const days = generateLast7Days(data.checkInHistory || []);
-        setCheckInDays(days);
-      } else {
-        const days = generateLast7Days([]);
-        setCheckInDays(days);
-      }
-    } catch (error) {
-      console.error("Error loading check-in data:", error);
-    }
-  };
+  const checkInDays = useMemo(
+    () => createLast7Days(normalizedHistory, hasCheckedInToday),
+    [normalizedHistory, hasCheckedInToday]
+  );
 
-  const getTodayDate = () => {
+  function getTodayDate() {
     return new Date().toISOString().split("T")[0];
-  };
+  }
 
-  const generateLast7Days = (checkInHistory: string[]) => {
+  function createLast7Days(history: string[], todayChecked: boolean) {
     const days: CheckInDay[] = [];
     const today = new Date();
 
@@ -113,8 +113,8 @@ export function DailyLoginModal({
       let status: "checked" | "missed" | "future" = "missed";
 
       if (dateString === getTodayDate()) {
-        status = checkInHistory.includes(dateString) ? "checked" : "future";
-      } else if (checkInHistory.includes(dateString)) {
+        status = todayChecked ? "checked" : "future";
+      } else if (history.includes(dateString)) {
         status = "checked";
       } else if (date < today) {
         status = "missed";
@@ -124,57 +124,34 @@ export function DailyLoginModal({
     }
 
     return days;
+  }
+
+  const triggerCelebration = () => {
+    setShowCelebration(true);
+    Animated.sequence([
+      Animated.timing(celebrationAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(celebrationAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setShowCelebration(false));
   };
 
   const handleCheckIn = async () => {
-    const today = getTodayDate();
+    if (hasCheckedInToday || isSubmitting) {
+      return;
+    }
+
     try {
-      const storedData = await AsyncStorage.getItem("dailyCheckIn");
-      const data = storedData
-        ? JSON.parse(storedData)
-        : { streak: 0, checkInHistory: [], lastCheckIn: null };
-
-      if (data.lastCheckIn === today) {
-        return;
-      }
-
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayDate = yesterday.toISOString().split("T")[0];
-
-      if (data.lastCheckIn === yesterdayDate) {
-        data.streak += 1;
-      } else if (data.lastCheckIn !== today) {
-        data.streak = 1;
-      }
-
-      data.checkInHistory.push(today);
-      data.lastCheckIn = today;
-
-      await AsyncStorage.setItem("dailyCheckIn", JSON.stringify(data));
-
-      setStreak(data.streak);
-      setHasCheckedInToday(true);
-      const days = generateLast7Days(data.checkInHistory);
-      setCheckInDays(days);
-
-      setShowCelebration(true);
-      Animated.sequence([
-        Animated.timing(celebrationAnim, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-        Animated.timing(celebrationAnim, {
-          toValue: 0,
-          duration: 400,
-          useNativeDriver: true,
-        }),
-      ]).start(() => setShowCelebration(false));
-
-      onCheckIn();
+      await onCheckIn();
+      triggerCelebration();
     } catch (error) {
-      console.error("Error saving check-in:", error);
+      console.error("Error during attendance check-in:", error);
     }
   };
 
@@ -214,87 +191,100 @@ export function DailyLoginModal({
           ]}
         >
           <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-            <View style={styles.header}>
-              <Text style={styles.title}>{t("daily_login.title")}</Text>
-              <Text style={styles.subtitle}>
-                {t("daily_login.subtitle")}
-              </Text>
-            </View>
-
-            <Animated.View
-              style={[
-                styles.streakContainer,
-                { transform: [{ scale: streakPulse }] },
-              ]}
-            >
-              <View style={styles.streakGlow}>
-                <Text style={styles.flameIcon}>🔥</Text>
-                <View style={styles.streakInfo}>
-                  <Text style={styles.streakNumber}>{streak}</Text>
-                  <Text style={styles.streakLabel}>{t("daily_login.consecutive_days")}</Text>
+            {isLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#7c3aed" />
+                <Text style={styles.loadingText}>
+                  {t("daily_login.loading_state", "Đang tải dữ liệu điểm danh...")}
+                </Text>
+              </View>
+            ) : (
+              <>
+                <View style={styles.header}>
+                  <Text style={styles.title}>{t("daily_login.title")}</Text>
+                  <Text style={styles.subtitle}>
+                    {t("daily_login.subtitle")}
+                  </Text>
                 </View>
-              </View>
-            </Animated.View>
 
-            <View style={styles.motivationContainer}>
-              <Text style={styles.motivationText}>
-                {streak === 0 && t("daily_login.motivation.start_streak")}
-                {streak > 0 && streak < 7 && t("daily_login.motivation.keep_going")}
-                {streak >= 7 &&
-                  streak < 30 &&
-                  t("daily_login.motivation.excellent")}
-                {streak >= 30 && t("daily_login.motivation.legendary")}
-              </Text>
-            </View>
-
-            <View style={styles.calendarSection}>
-
-              <View style={styles.calendarGrid}>
-                {checkInDays.map((day, index) => (
-                  <View key={index} style={styles.dayColumn}>
-                    <Text style={styles.dayName}>{getDayName(day.date)}</Text>
-                    <View
-                      style={[
-                        styles.dayBox,
-                        day.status === "checked" && styles.dayBoxChecked,
-                        day.status === "missed" && styles.dayBoxMissed,
-                        day.status === "future" && styles.dayBoxFuture,
-                      ]}
-                    >
-                      {day.status === "checked" ? (
-                        <View style={styles.iconContainer}>
-                          <Text style={styles.checkIcon}>✓</Text>
-                        </View>
-                      ) : day.status === "missed" ? (
-                        <View style={styles.iconContainer}>
-                          <Text style={styles.missIcon}>✗</Text>
-                        </View>
-                      ) : (
-                        <Text style={styles.dateNumber}>
-                          {getDateNumber(day.date)}
-                        </Text>
-                      )}
+                <Animated.View
+                  style={[
+                    styles.streakContainer,
+                    { transform: [{ scale: streakPulse }] },
+                  ]}
+                >
+                  <View style={styles.streakGlow}>
+                    <Text style={styles.flameIcon}>🔥</Text>
+                    <View style={styles.streakInfo}>
+                      <Text style={styles.streakNumber}>{streak}</Text>
+                      <Text style={styles.streakLabel}>{t("daily_login.consecutive_days")}</Text>
                     </View>
-                    <View style={styles.dayDot} />
                   </View>
-                ))}
-              </View>
-            </View>
+                </Animated.View>
 
-            <View style={styles.checkInButtonContainer}>
-              <BounceButton
-                variant="solid"
-                size="full"
-                onPress={handleCheckIn}
-                disabled={hasCheckedInToday}
-                withHaptics={true}
-                className="h-16"
-              >
-                {hasCheckedInToday
-                  ? t("daily_login.already_checked")
-                  : t("daily_login.check_in_button")}
-              </BounceButton>
-            </View>
+                <View style={styles.motivationContainer}>
+                  <Text style={styles.motivationText}>
+                    {streak === 0 && t("daily_login.motivation.start_streak")}
+                    {streak > 0 && streak < 7 && t("daily_login.motivation.keep_going")}
+                    {streak >= 7 &&
+                      streak < 30 &&
+                      t("daily_login.motivation.excellent")}
+                    {streak >= 30 && t("daily_login.motivation.legendary")}
+                  </Text>
+                </View>
+
+                <View style={styles.calendarSection}>
+
+                  <View style={styles.calendarGrid}>
+                    {checkInDays.map((day, index) => (
+                      <View key={index} style={styles.dayColumn}>
+                        <Text style={styles.dayName}>{getDayName(day.date)}</Text>
+                        <View
+                          style={[
+                            styles.dayBox,
+                            day.status === "checked" && styles.dayBoxChecked,
+                            day.status === "missed" && styles.dayBoxMissed,
+                            day.status === "future" && styles.dayBoxFuture,
+                          ]}
+                        >
+                          {day.status === "checked" ? (
+                            <View style={styles.iconContainer}>
+                              <Text style={styles.checkIcon}>✓</Text>
+                            </View>
+                          ) : day.status === "missed" ? (
+                            <View style={styles.iconContainer}>
+                              <Text style={styles.missIcon}>✗</Text>
+                            </View>
+                          ) : (
+                            <Text style={styles.dateNumber}>
+                              {getDateNumber(day.date)}
+                            </Text>
+                          )}
+                        </View>
+                        <View style={styles.dayDot} />
+                      </View>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.checkInButtonContainer}>
+                  <BounceButton
+                    variant="solid"
+                    size="full"
+                    onPress={handleCheckIn}
+                    disabled={hasCheckedInToday || isSubmitting}
+                    withHaptics={true}
+                    className="h-16"
+                  >
+                    {hasCheckedInToday
+                      ? t("daily_login.already_checked")
+                      : isSubmitting
+                      ? t("daily_login.check_in_progress", "Đang điểm danh...")
+                      : t("daily_login.check_in_button")}
+                  </BounceButton>
+                </View>
+              </>
+            )}
 
             {showCelebration && (
               <Animated.View
@@ -336,6 +326,16 @@ export function DailyLoginModal({
 const { width, height } = Dimensions.get("window");
 const modalWidth = Math.min(width * 0.92, 420);
 const isSmallDevice = width < 375;
+
+const normalizeDate = (dateString: string) => {
+  if (!dateString) return "";
+  try {
+    const normalized = new Date(dateString);
+    return normalized.toISOString().split("T")[0];
+  } catch {
+    return "";
+  }
+};
 
 const styles = StyleSheet.create({
   overlay: {

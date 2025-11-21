@@ -23,7 +23,7 @@ const POKECOIN_DEDUCTION_STEP = 10000;
 
 export default function SubscriptionScreen() {
     const { t } = useTranslation();
-    const params = useLocalSearchParams<{ testType?: string }>();
+    const params = useLocalSearchParams<{ testType?: string; packageId?: string }>();
     const { data: packagesData, isLoading: isLoadingPackages } = useSubscriptionMarketplacePackages();
     const { walletUser, isLoading: isLoadingWallet } = useWalletUser();
     const { mutate: createInvoice, isPending: isPurchasing } = useCreateInvoice();
@@ -87,68 +87,82 @@ export default function SubscriptionScreen() {
     }, [getPackageType]);
 
     // Effect to highlight and scroll to package based on params
-    useEffect(() => {
-        if (params.testType && packages.length > 0 && !isLoadingPackages) {
-            // Find the first package that matches the testType
-            const targetPackage = packages.find((pkg: ISubscriptionMarketplaceEntity) => {
-                return matchesTestType(pkg, params.testType);
-            });
+    const triggerPackageHighlight = useCallback(
+        (packageId: number) => {
+            setHighlightedPackageId(packageId);
 
-            if (targetPackage) {
-                setHighlightedPackageId(targetPackage.id);
-                
-                // Start highlight animation (loop 3 times)
-                const animateHighlight = () => {
-                    Animated.sequence([
-                        Animated.timing(highlightAnim, {
-                            toValue: 1,
-                            duration: 400,
-                            useNativeDriver: false,
-                        }),
-                        Animated.timing(highlightAnim, {
-                            toValue: 0,
-                            duration: 400,
-                            useNativeDriver: false,
-                        }),
-                    ]).start();
-                };
+            const animateHighlight = () => {
+                Animated.sequence([
+                    Animated.timing(highlightAnim, {
+                        toValue: 1,
+                        duration: 400,
+                        useNativeDriver: false,
+                    }),
+                    Animated.timing(highlightAnim, {
+                        toValue: 0,
+                        duration: 400,
+                        useNativeDriver: false,
+                    }),
+                ]).start();
+            };
 
-                // Run animation 3 times
-                animateHighlight();
-                setTimeout(() => animateHighlight(), 800);
-                setTimeout(() => animateHighlight(), 1600);
+            animateHighlight();
+            setTimeout(() => animateHighlight(), 800);
+            setTimeout(() => animateHighlight(), 1600);
 
-                // Scroll to the package after a short delay
-                setTimeout(() => {
-                    const packageRef = packageRefs.current[targetPackage.id];
-                    if (packageRef && scrollViewRef.current) {
-                        packageRef.measureLayout(
-                            scrollViewRef.current as any,
-                            (x, y) => {
-                                scrollViewRef.current?.scrollTo({
-                                    y: Math.max(0, y - 40), // Offset by 40px from top
-                                    animated: true,
-                                });
-                            },
-                            () => {
-                                // Fallback: try to scroll using findNodeHandle
-                                try {
-                                    setTimeout(() => {
-                                        scrollViewRef.current?.scrollTo({
-                                            y: 0,
-                                            animated: true,
-                                        });
-                                    }, 200);
-                                } catch (e) {
-                                    console.log('Scroll error:', e);
-                                }
+            setTimeout(() => {
+                const packageRef = packageRefs.current[packageId];
+                if (packageRef && scrollViewRef.current) {
+                    packageRef.measureLayout(
+                        scrollViewRef.current as any,
+                        (x, y) => {
+                            scrollViewRef.current?.scrollTo({
+                                y: Math.max(0, y - 40),
+                                animated: true,
+                            });
+                        },
+                        () => {
+                            try {
+                                setTimeout(() => {
+                                    scrollViewRef.current?.scrollTo({
+                                        y: 0,
+                                        animated: true,
+                                    });
+                                }, 200);
+                            } catch (e) {
+                                console.log('Scroll error:', e);
                             }
-                        );
-                    }
-                }, 200);
+                        }
+                    );
+                }
+            }, 200);
+        },
+        [highlightAnim]
+    );
+
+    useEffect(() => {
+        if (packages.length === 0 || isLoadingPackages) {
+            return;
+        }
+
+        const packageIdParam = params.packageId ? Number(params.packageId) : undefined;
+        if (packageIdParam) {
+            const targetPackage = packages.find(pkg => pkg.id === packageIdParam);
+            if (targetPackage) {
+                triggerPackageHighlight(targetPackage.id);
+                return;
             }
         }
-    }, [params.testType, packages, isLoadingPackages, highlightAnim, matchesTestType]);
+
+        if (params.testType) {
+            const targetPackage = packages.find((pkg: ISubscriptionMarketplaceEntity) =>
+                matchesTestType(pkg, params.testType)
+            );
+            if (targetPackage) {
+                triggerPackageHighlight(targetPackage.id);
+            }
+        }
+    }, [packages, isLoadingPackages, params.packageId, params.testType, matchesTestType, triggerPackageHighlight]);
 
     // Helper function to get active plan
     const getActivePlan = useCallback((packageItem: ISubscriptionMarketplaceEntity) => {

@@ -42,5 +42,16 @@ export const UserSubscriptionFeaturesResponseSchema = z.object({
 });
 
 export type IUserSubscriptionFeaturesResponse = z.infer<typeof UserSubscriptionFeaturesResponseSchema>;
+
+export type IUserSubscriptionFeatureItem = z.infer<typeof UserSubscriptionFeatureItemSchema>;
+
+export interface IUserSubscriptionFeatureDetail {
+    featureKey: string;
+    featureId?: number;
+    value: string | null | undefined;
+    numericValue: number | null;
+    nameKey?: string;
+    nameTranslation?: string;
+}
 //----------------------End----------------------//
 

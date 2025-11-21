@@ -1,8 +1,8 @@
 import EmptyState from "@components/ui/EmptyState";
 import { EnhancedPagination } from "@components/ui/Pagination";
 import { Select } from "@components/ui/Select";
-import { useToast } from "@components/ui/Toast";
 import { useDebounce } from "@hooks/useDebounce";
+import useMinimalAlert from "@hooks/useMinimalAlert";
 import {
   useCreateFlashcardDeck,
   useFlashcardDecks,
@@ -81,7 +81,7 @@ const statusBadgeStyles: Record<
 const FlashcardDeckListScreen = () => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { toast } = useToast();
+  const { AlertElement, showAlert } = useMinimalAlert();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
@@ -247,13 +247,16 @@ const FlashcardDeckListScreen = () => {
       { name: trimmedName },
       {
         onSuccess: () => {
-          toast({
-            title: t("flashcard_list.create_success_title", "Tạo bộ flashcard thành công"),
-            description: t(
+          showAlert(
+            `${t(
+              "flashcard_list.create_success_title",
+              "Tạo bộ flashcard thành công"
+            )} - ${t(
               "flashcard_list.create_success_desc",
               "Bạn có thể thêm từ mới ngay bây giờ."
-            ),
-          });
+            )}`,
+            "success"
+          );
           setIsCreateModalVisible(false);
           setNewDeckName("");
         },
@@ -262,11 +265,13 @@ const FlashcardDeckListScreen = () => {
             error?.response?.data?.message ||
             error?.message ||
             t("flashcard_list.create_error_desc", "Không thể tạo bộ flashcard. Vui lòng thử lại.");
-          toast({
-            title: t("flashcard_list.create_error_title", "Tạo bộ flashcard thất bại"),
-            description: message,
-            variant: "destructive",
-          });
+          showAlert(
+            `${t(
+              "flashcard_list.create_error_title",
+              "Tạo bộ flashcard thất bại"
+            )} - ${message}`,
+            "error"
+          );
         },
       }
     );
@@ -523,6 +528,7 @@ const FlashcardDeckListScreen = () => {
           </View>
         </View>
       </Modal>
+      {AlertElement}
     </SafeAreaView>
   );
 };

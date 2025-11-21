@@ -1,6 +1,5 @@
 import GlobalMatchingNotification from "@components/GlobalMatchingNotification";
 import LanguageProvider from "@components/LanguageProvider";
-import { ToastProvider, Toaster } from "@components/ui/Toast";
 import { useColorScheme } from "@hooks/useColorScheme";
 import "@i18n/i18n";
 import { ReactQueryProvider } from "@libs/@tanstack/react-query";
@@ -40,23 +39,20 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <LanguageProvider>
         <ReactQueryProvider>
-          <ToastProvider>
-            <ThemeProvider
-              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-            >
-              <CopilotProvider>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="(auth)" />
-                  <Stack.Screen name="+not-found" />
-                </Stack>
-              </CopilotProvider>
-              <StatusBar style="auto" />
-              <Toaster />
-              <GlobalMatchingNotification />
-            </ThemeProvider>
-          </ToastProvider>
+          <ThemeProvider
+            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          >
+            <CopilotProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </CopilotProvider>
+            <StatusBar style="auto" />
+            <GlobalMatchingNotification />
+          </ThemeProvider>
         </ReactQueryProvider>
       </LanguageProvider>
     </GestureHandlerRootView>

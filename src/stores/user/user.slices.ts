@@ -1,3 +1,4 @@
+import { ZUSTAND } from "../../types/IZustand"
 
 export const createUserSlice = (
     set: any

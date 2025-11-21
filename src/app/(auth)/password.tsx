@@ -1,8 +1,8 @@
 import AuthScreenLayout from '@components/layouts/AuthScreenLayout';
 import BounceButton from '@components/ui/BounceButton';
 import { Input } from '@components/ui/Input';
-import { useToast } from '@components/ui/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
+import useMinimalAlert from '@hooks/useMinimalAlert';
 import { IPasswordFormDataRequest, PasswordFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
@@ -24,7 +24,7 @@ export default function PasswordScreen() {
      */
     const { t } = useTranslation();
     const email = useEmailSelector();
-    const { toast } = useToast();
+    const { AlertElement, showAlert } = useMinimalAlert();
     const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
     z.setErrorMap(makeZodI18nMap({ t }));
@@ -60,7 +60,7 @@ export default function PasswordScreen() {
                 }
             }
         } catch (error: any) {
-            toast({ variant: 'destructive', description: error.message });
+            showAlert(error.message, 'error');
         }
     };
     //-----------------------End-----------------------//
@@ -76,11 +76,11 @@ export default function PasswordScreen() {
             console.log(res);
 
             if (res.data.statusCode === 200) {
-                toast({ variant: 'Success', description: res.data.message });
+                showAlert(res.data.message, 'success');
                 router.push({ pathname: ROUTES.AUTH.OTP, params: { type: res.data.data.type } });
             }
         } catch (error: any) {
-            toast({ variant: 'destructive', description: error.message });
+            showAlert(error.message, 'error');
         }
     };
     //-----------------------End-----------------------//
@@ -137,6 +137,7 @@ export default function PasswordScreen() {
                     </View>
                 </View>
             </View>
+            {AlertElement}
         </AuthScreenLayout>
     );
 }
