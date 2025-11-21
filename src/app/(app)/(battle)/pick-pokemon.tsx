@@ -609,6 +609,8 @@ export default function PickPokemonScreen() {
         if (!accessToken || !matchId) return;
 
         const socket = getSocket("matching", accessToken);
+        console.log("[PICK_POKEMON] Joining matching room, matchId:", matchId);
+        socket.emit("join-matching-room", { matchId });
 
         socket.on("select-pokemon", (payload: any) => {
             console.log("select-pokemon", payload);

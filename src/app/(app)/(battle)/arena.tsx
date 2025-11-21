@@ -325,6 +325,8 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         if (!accessToken || !matchId) return;
 
         const socket = getSocket("matching", accessToken);
+        console.log("[ARENA] Joining matching room, matchId:", matchId);
+        socket.emit("join-matching-room", { matchId });
 
         // Round started
         socket.on("round-started", (payload: any) => {

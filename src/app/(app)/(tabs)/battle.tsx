@@ -349,6 +349,12 @@ export default function BattleLobbyScreen() {
 
         console.log("[MATCH_TRACKING] 🎯 Navigating to pick pokemon, matchId:", pickPokemonMatchId, "status:", data.type);
 
+        // Join matching room before navigating to ensure socket connection is established
+        if (socketRef.current && pickPokemonMatchId) {
+          socketRef.current.emit("join-matching-room", { matchId: pickPokemonMatchId });
+          console.log("[MATCH_TRACKING] Joined matching room for pick-pokemon, matchId:", pickPokemonMatchId);
+        }
+
         setInQueue(false);
         setGlobalInQueue(false);
         hideGlobalMatchFound();
@@ -380,6 +386,12 @@ export default function BattleLobbyScreen() {
         const roundNumber = data.roundNumber || "ONE"; // Default to ONE if not provided
 
         console.log("[MATCH_TRACKING] 🎯 Navigating to arena, matchId:", arenaMatchId, "round:", roundNumber, "status:", data.type);
+
+        // Join matching room before navigating to ensure socket connection is established
+        if (socketRef.current && arenaMatchId) {
+          socketRef.current.emit("join-matching-room", { matchId: arenaMatchId });
+          console.log("[MATCH_TRACKING] Joined matching room for arena, matchId:", arenaMatchId);
+        }
 
         setInQueue(false);
         setGlobalInQueue(false);
@@ -651,7 +663,6 @@ export default function BattleLobbyScreen() {
     // Case 1: ACTIVE - Show normal battle screen (no modal)
     if (responseType === 'ACTIVE') {
       setShowSeasonEndedModal(false);
-      setShowNewSeasonModal(false);
       setShowFirstTimeModal(false);
       return;
     }
