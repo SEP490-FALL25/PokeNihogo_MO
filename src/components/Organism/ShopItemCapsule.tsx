@@ -1,12 +1,11 @@
-import MinimalAlert from "@components/atoms/MinimalAlert";
 import RarityBackground, { getRarityBorderColor } from "@components/atoms/RarityBackground";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useShopPurchase } from "@hooks/useShopPurchase";
 import { createShopPurchaseRequest, IShopPurchaseRequest } from "@models/shop-purchase/shop-purchase.request";
 import { IShopItemRandomTodayResponseSchema } from "@models/shop/shop.response";
 import { Sparkles } from "lucide-react-native";
-import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Image, Text, TouchableOpacity, View } from "react-native";
@@ -19,9 +18,7 @@ interface ShopItemCapsuleProps {
 
 const ShopItemCapsule = ({ item, userPoints, exchangeLabel }: ShopItemCapsuleProps) => {
     const { t } = useTranslation();
-    const [alertVisible, setAlertVisible] = useState(false);
-    const [alertMessage, setAlertMessage] = useState('');
-    const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('error');
+    const { showAlert } = useMinimalAlert();
 
     const canAfford = userPoints >= item.price && item.canBuy;
     const pokemonName = item.pokemon.nameTranslations.en || item.pokemon.nameJp;
@@ -42,22 +39,14 @@ const ShopItemCapsule = ({ item, userPoints, exchangeLabel }: ShopItemCapsulePro
 
     const { mutate: purchaseItem } = useShopPurchase();
 
-    const handleHideAlert = useCallback(() => {
-        setAlertVisible(false);
-    }, []);
-
     const handlePurchase = handleSubmit(async () => {
         if (!item.canBuy) {
-            setAlertMessage(t('reward_shop.already_owned'));
-            setAlertType('warning');
-            setAlertVisible(true);
+            showAlert(t('reward_shop.already_owned'), 'warning');
             return;
         }
 
         if (!canAfford) {
-            setAlertMessage(t('reward_shop.insufficient_points'));
-            setAlertType('error');
-            setAlertVisible(true);
+            showAlert(t('reward_shop.insufficient_points'), 'error');
             return;
         }
 
@@ -65,15 +54,11 @@ const ShopItemCapsule = ({ item, userPoints, exchangeLabel }: ShopItemCapsulePro
             { shopItemId: item.id, quantity: 1 },
             {
                 onSuccess: (data) => {
-                    setAlertMessage(data.data.message || t('reward_shop.purchase_success'));
-                    setAlertType('success');
-                    setAlertVisible(true);
+                    showAlert(data.data.message || t('reward_shop.purchase_success'), 'success');
                 },
                 onError: (error: any) => {
                     const errorMessage = error?.response?.data?.message || t('reward_shop.purchase_failed');
-                    setAlertMessage(errorMessage);
-                    setAlertType('error');
-                    setAlertVisible(true);
+                    showAlert(errorMessage, 'error');
                 },
             }
         );
@@ -117,14 +102,6 @@ const ShopItemCapsule = ({ item, userPoints, exchangeLabel }: ShopItemCapsulePro
                     </TouchableOpacity>
                 </View>
             </View>
-
-            {/* Minimal Alert */}
-            <MinimalAlert
-                message={alertMessage}
-                visible={alertVisible}
-                onHide={handleHideAlert}
-                type={alertType}
-            />
         </View>
     );
 };

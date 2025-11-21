@@ -1,8 +1,8 @@
 // src/app/(app)/achievements.tsx
-import MinimalGameAlert from '@components/atoms/MinimalAlert';
 import BackScreen from '@components/molecules/Back';
 import { USER_ACHIEVEMENT_STATUS } from '@constants/user-achievement.enum';
 import { useAchievement, useReceiveAchievementReward } from '@hooks/useAchievement';
+import { useMinimalAlert } from '@hooks/useMinimalAlert';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { CheckCircle2, ImageOff, Sparkles } from 'lucide-react-native';
@@ -215,8 +215,7 @@ const EmptyState = () => {
 export default function AchievementsScreen() {
     const { t } = useTranslation();
     const { data, isLoading, error } = useAchievement({ sort: 'displayOrder' });
-    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
-    const [showErrorAlert, setShowErrorAlert] = useState(false);
+    const { showAlert } = useMinimalAlert();
 
     const { mutate: receiveReward, isPending: isReceivingReward } = useReceiveAchievementReward();
 
@@ -224,10 +223,10 @@ export default function AchievementsScreen() {
         const achievementId = parseInt(id, 10);
         receiveReward(achievementId, {
             onSuccess: () => {
-                setShowSuccessAlert(true);
+                showAlert(t('achievements.reward.receive_success'), 'success');
             },
             onError: () => {
-                setShowErrorAlert(true);
+                showAlert(t('achievements.reward.receive_error'), 'error');
             },
         });
     };
@@ -330,20 +329,6 @@ export default function AchievementsScreen() {
                     ListEmptyComponent={!error ? EmptyState : undefined}
                 />
             )}
-
-            <MinimalGameAlert
-                message={t('achievements.reward.receive_success')}
-                visible={showSuccessAlert}
-                onHide={() => setShowSuccessAlert(false)}
-                type="success"
-            />
-
-            <MinimalGameAlert
-                message={t('achievements.reward.receive_error')}
-                visible={showErrorAlert}
-                onHide={() => setShowErrorAlert(false)}
-                type="error"
-            />
         </SafeAreaView>
     );
 }

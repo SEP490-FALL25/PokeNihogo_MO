@@ -13,20 +13,9 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-export const useLessons = (level: "N5" | "N4" | "N3") => {
-  const language = useGlobalStore((state) => state.language);
-  
-  return useQuery({
-    queryKey: ["lessons", level, language],
-    queryFn: () => lessonService.getLessonsByLevel(level),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!level, // Only run query if level is provided
-  });
-};
-
 export const useLesson = (lessonId: string) => {
   const language = useGlobalStore((state) => state.language);
-  
+
   return useQuery({
     queryKey: ["lesson", lessonId, language],
     queryFn: () => lessonService.getLessonById(lessonId, language),
@@ -70,63 +59,14 @@ export const useUpdateLessonProgress = () => {
   });
 };
 
-export const useUserProgress = () => {
-  const language = useGlobalStore((state) => state.language);
-  
-  return useQuery({
-    queryKey: ["userProgress", language],
-    queryFn: () => lessonService.getUserProgress(),
-    staleTime: 2 * 60 * 1000, // 2 minutes
-  });
-};
-
-export const useUserProgressWithParams = (params: IQueryRequest) => {
-  const language = useGlobalStore((state) => state.language);
-  
-  return useQuery({
-    queryKey: ["userProgress", params, language],
-    queryFn: () => userProgressService.getMyProgress(params),
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    retry: 1, // Only retry once
-  });
-};
-
-export const useUserProgressInfinite = (
-  params: Omit<IQueryRequest, "currentPage">
-) => {
-  const language = useGlobalStore((state) => state.language);
-  
-  return useInfiniteQuery({
-    queryKey: ["userProgressInfinite", params, language],
-    queryFn: ({ pageParam = 1 }) =>
-      userProgressService.getMyProgress({
-        ...params,
-        currentPage: pageParam as number,
-        pageSize: params.pageSize || 10,
-      }),
-    initialPageParam: 1,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    retry: 1, // Only retry once
-    getNextPageParam: (lastPage: any, allPages: any[]) => {
-      const { data } = lastPage;
-      if (
-        data &&
-        data.results &&
-        data.results.length === (params.pageSize || 10)
-      ) {
-        return allPages.length + 1;
-      }
-      return undefined;
-    },
-  });
-};
-
 /**
  * Infinite list of user lessons with pagination support
  */
-export const useInfiniteUserLessons = (params: Omit<IQueryRequest, "currentPage">) => {
+export const useInfiniteUserLessons = (
+  params: Omit<IQueryRequest, "currentPage">
+) => {
   const language = useGlobalStore((state) => state.language);
-  
+
   return useInfiniteQuery({
     queryKey: ["user-lessons-infinite", params, language],
     queryFn: ({ pageParam = 1 }) =>
@@ -149,7 +89,7 @@ export const useInfiniteUserLessons = (params: Omit<IQueryRequest, "currentPage"
 
 export const useLessonCategories = () => {
   const language = useGlobalStore((state) => state.language);
-  
+
   return useQuery<ILessonCategoryResponse>({
     queryKey: ["lessonCategories", language],
     queryFn: () => lessonCategoriesService.getAllLessonCategories(),

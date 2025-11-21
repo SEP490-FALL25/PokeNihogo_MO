@@ -35,6 +35,7 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     const { t } = useTranslation();
     const scrollViewRef = useRef<ScrollView>(null);
     const { user } = useAuth();
+    console.log(user)
     const [isShopVisible, setIsShopVisible] = useState(false);
     const [showDailyQuests, setShowDailyQuests] = useState(false);
 
