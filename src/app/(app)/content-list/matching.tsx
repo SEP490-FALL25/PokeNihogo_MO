@@ -11,7 +11,6 @@ import {
     Animated,
     Dimensions,
     Modal,
-    ScrollView,
     TouchableOpacity,
     View,
 } from "react-native";
@@ -40,12 +39,17 @@ const MatchingGameScreen = () => {
   const { data: lessonData, isLoading } = useLesson(id || "");
   const lesson: any = lessonData?.data || {};
 
-  const [cards, setCards] = useState<MatchingCard[]>([]);
+  const [allCardsPool, setAllCardsPool] = useState<MatchingCard[]>([]); // All cards pool
+  const [cards, setCards] = useState<MatchingCard[]>([]); // Displayed cards (max 12)
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const [matchedPairs, setMatchedPairs] = useState<number>(0);
   const [moves, setMoves] = useState<number>(0);
   const [isGameComplete, setIsGameComplete] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState<number>(600); // 10 minutes in seconds
+  const [isTimeUp, setIsTimeUp] = useState(false);
+  const [nextCardIndex, setNextCardIndex] = useState<number>(0); // Index to get next cards from pool
+  const MAX_DISPLAYED_CARDS = 12; // 3x4 = 12 cards (6 pairs)
 
   // Get content data based on content type
   const getContentData = () => {
@@ -136,11 +140,41 @@ const MatchingGameScreen = () => {
 
   // Initialize game on mount and when data changes
   useEffect(() => {
-    if (contentData.length > 0 && cards.length === 0) {
-      const initializedCards = initializeCards();
-      setCards(initializedCards);
+    if (contentData.length > 0 && allCardsPool.length === 0) {
+      const allCards = initializeCards();
+      setAllCardsPool(allCards);
+      
+      // Display first 12 cards (6 pairs)
+      const initialDisplayed = allCards.slice(0, MAX_DISPLAYED_CARDS);
+      setCards(initialDisplayed);
+      setNextCardIndex(MAX_DISPLAYED_CARDS);
     }
-  }, [contentData.length, initializeCards, cards.length]);
+  }, [contentData.length, initializeCards, allCardsPool.length]);
+
+  // Timer countdown
+  useEffect(() => {
+    if (isGameComplete || isTimeUp || cards.length === 0) return;
+
+    const interval = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          setIsTimeUp(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isGameComplete, isTimeUp, cards.length]);
+
+  // Handle time up
+  useEffect(() => {
+    if (isTimeUp && !isGameComplete) {
+      setIsGameComplete(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    }
+  }, [isTimeUp, isGameComplete]);
 
   // Reset game
   const resetGame = useCallback(() => {
@@ -149,10 +183,24 @@ const MatchingGameScreen = () => {
     setMoves(0);
     setIsGameComplete(false);
     setIsChecking(false);
-    const initializedCards = initializeCards();
-    setCards(initializedCards);
+    setTimeRemaining(600); // Reset to 10 minutes
+    setIsTimeUp(false);
+    const allCards = initializeCards();
+    setAllCardsPool(allCards);
+    
+    // Display first 12 cards (6 pairs)
+    const initialDisplayed = allCards.slice(0, MAX_DISPLAYED_CARDS);
+    setCards(initialDisplayed);
+    setNextCardIndex(MAX_DISPLAYED_CARDS);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   }, [initializeCards]);
+
+  // Format time to mm:ss
+  const formatTime = useCallback((seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }, []);
 
   // Handle card press
   const handleCardPress = (index: number) => {
@@ -193,18 +241,37 @@ const MatchingGameScreen = () => {
         // Match found!
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-        // Mark cards as matched but keep them in array
-        const updatedCards = [...cards];
-        updatedCards[firstIndex].isMatched = true;
-        updatedCards[secondIndex].isMatched = true;
+        // Remove matched cards from displayed cards
+        const updatedCards = cards.filter(
+          (_, index) => index !== firstIndex && index !== secondIndex
+        );
 
-        setCards(updatedCards);
+        // Add next 2 cards from pool if available
+        let newCards = [...updatedCards];
+        let newNextIndex = nextCardIndex;
+        
+        if (nextCardIndex < allCardsPool.length) {
+          const nextCards = allCardsPool.slice(nextCardIndex, nextCardIndex + 2);
+          if (nextCards.length === 2) {
+            newCards = [...updatedCards, ...nextCards];
+            newNextIndex = nextCardIndex + 2;
+          }
+        }
+
+        setCards(newCards);
+        setNextCardIndex(newNextIndex);
         setMatchedPairs((prev) => {
           const newCount = prev + 1;
-          // Check if game is complete
-          if (newCount >= contentData.length) {
+          // Check if game is complete (all pairs matched)
+          const totalPairsInPool = allCardsPool.length / 2;
+          const remainingCardsInPool = allCardsPool.length - newNextIndex;
+          const remainingDisplayedCards = newCards.length;
+          
+          // Game complete if: all pairs matched OR no more cards in pool and display
+          if (newCount >= totalPairsInPool || (remainingCardsInPool === 0 && remainingDisplayedCards === 0)) {
             setTimeout(() => {
               setIsGameComplete(true);
+              setIsTimeUp(false); // Mark as completed, not time up
               Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             }, 500);
           }
@@ -231,51 +298,19 @@ const MatchingGameScreen = () => {
     const availableWidth = width - padding * 2;
     const availableHeight = height - headerHeight - instructionsHeight - bottomPadding;
     
-    // Calculate optimal number of columns based on card count
-    // Try different column counts and pick the best fit
-    const cardCount = cards.length;
-    let optimalColumns = 3;
-    let optimalCardSize = 0;
-    let optimalCardHeight = 0;
-    let minTotalHeight = Infinity;
+    // Fixed 3 columns layout (3x4 = 12 cards max)
+    const optimalColumns = 3;
+    const cardCount = Math.min(cards.length, MAX_DISPLAYED_CARDS);
+    const rows = Math.ceil(cardCount / optimalColumns);
     
-    // Try column counts from 2 to 4
-    for (let cols = 2; cols <= 4; cols++) {
-      const cardWidth = (availableWidth - spacing * (cols - 1)) / cols;
-      const rows = Math.ceil(cardCount / cols);
-      const cardH = Math.min(
-        (availableHeight - spacing * (rows - 1)) / rows,
-        160 // Max card height
-      );
-      
-      // Ensure minimum card size (at least 80px)
-      if (cardWidth < 80 || cardH < 80) continue;
-      
-      const totalHeight = rows * cardH + spacing * (rows - 1);
-      
-      // Prefer layout that fits better and uses reasonable card sizes
-      if (totalHeight <= availableHeight && cardWidth >= 90 && cardH >= 90) {
-        if (totalHeight < minTotalHeight || (cols === 3 && totalHeight <= availableHeight * 0.9)) {
-          minTotalHeight = totalHeight;
-          optimalColumns = cols;
-          optimalCardSize = cardWidth;
-          optimalCardHeight = cardH;
-        }
-      }
-    }
+    const cardWidth = (availableWidth - spacing * (optimalColumns - 1)) / optimalColumns;
+    const cardH = Math.min(
+      (availableHeight - spacing * (rows - 1)) / rows,
+      160 // Max card height
+    );
     
-    // Fallback to default if no optimal found
-    if (optimalCardSize === 0) {
-      optimalColumns = cardCount <= 6 ? 2 : 3;
-      optimalCardSize = Math.max(
-        80,
-        Math.min(
-          160,
-          (availableWidth - spacing * (optimalColumns - 1)) / optimalColumns
-        )
-      );
-      optimalCardHeight = Math.max(90, Math.min(160, optimalCardSize * 1.2));
-    }
+    const optimalCardSize = Math.max(80, Math.min(160, cardWidth));
+    const optimalCardHeight = Math.max(90, Math.min(160, cardH));
     
     return {
       cardSize: optimalCardSize,
@@ -334,7 +369,7 @@ const MatchingGameScreen = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       <LinearGradient
         colors={["#79B4C4", "#85C3C3", "#9BC7B9"]}
         style={{ flex: 1 }}
@@ -363,65 +398,55 @@ const MatchingGameScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Stats Bar */}
-        <View className="px-6 py-3 flex-row justify-between items-center">
-          <View className="flex-row items-center" style={{ gap: 16 }}>
-            <View>
-              <ThemedText style={{ fontSize: 12, color: "#6b7280" }}>
-                {t("content_list.matching.pairs", "Pairs")}
-              </ThemedText>
-              <ThemedText
-                style={{
-                  fontSize: 18,
-                  fontWeight: "bold",
-                  color: "#1f2937",
-                }}
-              >
-                {matchedPairs}/{contentData.length}
-              </ThemedText>
-            </View>
-            <View>
-              <ThemedText style={{ fontSize: 12, color: "#6b7280" }}>
-                {t("content_list.matching.moves", "Moves")}
-              </ThemedText>
-              <ThemedText
-                style={{
-                  fontSize: 18,
-                  fontWeight: "bold",
-                  color: "#1f2937",
-                }}
-              >
-                {moves}
-              </ThemedText>
-            </View>
+        {/* Timer Progress Bar */}
+        <View className="px-6 py-6">
+          <View className="flex-row items-center justify-between mb-2">
+            <ThemedText style={{ fontSize: 14, fontWeight: "600", color: "#1f2937" }}>
+              {t("content_list.matching.time", "Time")}
+            </ThemedText>
+            <ThemedText
+              style={{
+                fontSize: 16,
+                fontWeight: "bold",
+                color: timeRemaining <= 60 ? "#ef4444" : "#1f2937",
+              }}
+            >
+              {formatTime(timeRemaining)}
+            </ThemedText>
+          </View>
+          <View
+            style={{
+              width: "100%",
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: "#e5e7eb",
+              overflow: "hidden",
+            }}
+          >
+            <Animated.View
+              style={{
+                height: "100%",
+                width: `${(timeRemaining / 600) * 100}%`,
+                borderRadius: 4,
+                backgroundColor:
+                  timeRemaining <= 60
+                    ? "#ef4444"
+                    : timeRemaining <= 180
+                      ? "#f59e0b"
+                      : "#10b981",
+              }}
+            />
           </View>
         </View>
 
         {/* Game Board */}
-        <ScrollView
+        <View
           className="flex-1"
-          contentContainerStyle={{
+          style={{
             padding: padding,
-            paddingBottom: 100,
           }}
-          showsVerticalScrollIndicator={false}
         >
-          {/* Instructions */}
-          <View className="mb-4 px-2">
-            <ThemedText
-              style={{
-                fontSize: 14,
-                color: "#4b5563",
-                textAlign: "center",
-                lineHeight: 20,
-              }}
-            >
-              {t(
-                "content_list.matching.instruction",
-                "Select two cards to match a word with its meaning"
-              )}
-            </ThemedText>
-          </View>
+
 
           {/* Grid Layout - All cards shuffled together */}
           <View
@@ -505,7 +530,7 @@ const MatchingGameScreen = () => {
               );
             })}
           </View>
-        </ScrollView>
+        </View>
 
         {/* Completion Modal */}
         <Modal
@@ -539,7 +564,11 @@ const MatchingGameScreen = () => {
               }}
             >
               <LinearGradient
-                colors={["#fbbf24", "#f59e0b"]}
+                colors={
+                  isTimeUp
+                    ? ["#ef4444", "#dc2626"]
+                    : ["#fbbf24", "#f59e0b"]
+                }
                 style={{
                   width: 80,
                   height: 80,
@@ -549,7 +578,11 @@ const MatchingGameScreen = () => {
                   marginBottom: 20,
                 }}
               >
-                <Trophy size={40} color="#ffffff" />
+                {isTimeUp ? (
+                  <ThemedText style={{ fontSize: 40 }}>⏰</ThemedText>
+                ) : (
+                  <Trophy size={40} color="#ffffff" />
+                )}
               </LinearGradient>
 
               <ThemedText
@@ -561,7 +594,9 @@ const MatchingGameScreen = () => {
                   textAlign: "center",
                 }}
               >
-                {t("content_list.matching.complete", "Congratulations!")}
+                {isTimeUp
+                  ? t("content_list.matching.time_up", "Time's Up!")
+                  : t("content_list.matching.complete", "Congratulations!")}
               </ThemedText>
 
               <ThemedText
@@ -572,7 +607,12 @@ const MatchingGameScreen = () => {
                   textAlign: "center",
                 }}
               >
-                {t("content_list.matching.complete_message", "You matched all pairs!")}
+                {isTimeUp
+                  ? t(
+                      "content_list.matching.time_up_message",
+                      `You matched ${matchedPairs} out of ${contentData.length} pairs!`
+                    )
+                  : t("content_list.matching.complete_message", "You matched all pairs!")}
               </ThemedText>
 
               <ThemedText
