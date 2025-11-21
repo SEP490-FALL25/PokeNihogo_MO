@@ -1,7 +1,8 @@
 import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import { ArrowLeftIcon } from "lucide-react-native";
+import { ArrowLeftIcon, ShieldCheck, Sparkles } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -12,6 +13,7 @@ import {
   Image,
   InteractionManager,
   ListRenderItem,
+  ScrollView,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -361,6 +363,57 @@ export default function AiConversationScreen() {
       .map((feature) => feature.replace(/\(x[0-9.]+\)/i, "").trim())
       .join(" · ");
   }, [ultraFeatures]);
+
+  const heroContent = useMemo(
+    () => ({
+      badge: t("home.ai.conversation.hero_badge"),
+      title: t("home.ai.conversation.hero_title"),
+      subtitle: t("home.ai.conversation.hero_subtitle"),
+    }),
+    [t]
+  );
+
+  const heroStats = useMemo(
+    () => [
+      {
+        value: t("home.ai.conversation.hero_stats_response_value"),
+        label: t("home.ai.conversation.hero_stats_response_label"),
+      },
+      {
+        value: t("home.ai.conversation.hero_stats_speed_value"),
+        label: t("home.ai.conversation.hero_stats_speed_label"),
+      },
+      {
+        value: t("home.ai.conversation.hero_stats_consistency_value"),
+        label: t("home.ai.conversation.hero_stats_consistency_label"),
+      },
+    ],
+    [t]
+  );
+
+  const featureHighlights = useMemo(() => {
+    if (ultraFeatures && ultraFeatures.length > 0) {
+      return ultraFeatures.slice(0, 3);
+    }
+    return [
+      t("home.ai.conversation.feature_feedback"),
+      t("home.ai.conversation.feature_library"),
+      t("home.ai.conversation.feature_rewards"),
+    ];
+  }, [ultraFeatures, t]);
+
+  const socialProofText = useMemo(
+    () => t("home.ai.conversation.social_proof"),
+    [t]
+  );
+
+  const guaranteeCopy = useMemo(
+    () => ({
+      title: t("home.ai.conversation.guarantee_title"),
+      subtitle: t("home.ai.conversation.guarantee_subtitle"),
+    }),
+    [t]
+  );
 
   useEffect(() => {
     if (listData.length > 0) {
@@ -1092,45 +1145,164 @@ export default function AiConversationScreen() {
       </View>
 
       {!hasAIKaiwa ? (
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-            paddingHorizontal: 24,
+        <ScrollView
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            paddingBottom: 40,
+            paddingTop: 16,
           }}
+          showsVerticalScrollIndicator={false}
         >
-          <View
+          <LinearGradient
+            colors={["#7c3aed", "#4c1d95"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={{
-              alignItems: "center",
-              justifyContent: "center",
-              paddingVertical: 32,
-              width: "100%",
+              borderRadius: 28,
+              padding: 24,
+              marginBottom: 20,
+              overflow: "hidden",
             }}
           >
             <View
               style={{
-                width: 80,
-                height: 80,
-                borderRadius: 40,
-                backgroundColor: "#f3f4f6",
+                flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "center",
-                marginBottom: 24,
+                alignSelf: "flex-start",
+                backgroundColor: "rgba(255,255,255,0.15)",
+                borderRadius: 999,
+                paddingVertical: 6,
+                paddingHorizontal: 12,
+                marginBottom: 16,
               }}
             >
-              <Image
-                source={require("@assets/images/unnamed.jpg")}
-                style={{ width: 80, height: 80 }}
-                resizeMode="contain"
-              />
+              <Sparkles size={14} color="#fef9c3" style={{ marginRight: 6 }} />
+              <ThemedText
+                style={{ color: "#fffbea", fontSize: 13, fontWeight: "600" }}
+              >
+                {heroContent.badge}
+              </ThemedText>
             </View>
+
             <ThemedText
               style={{
-                fontSize: 24,
-                fontWeight: "700",
+                fontSize: 26,
+                fontWeight: "800",
+                color: "#ffffff",
+                lineHeight: 32,
                 marginBottom: 12,
-                textAlign: "center",
+              }}
+            >
+              {heroContent.title}
+            </ThemedText>
+            <ThemedText
+              style={{
+                fontSize: 16,
+                color: "rgba(255,255,255,0.85)",
+                lineHeight: 22,
+                marginBottom: 18,
+              }}
+            >
+              {heroContent.subtitle}
+            </ThemedText>
+
+            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+              {featureHighlights.map((feature, index) => (
+                <View
+                  key={`${feature}-${index}`}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: "rgba(255,255,255,0.12)",
+                    paddingVertical: 6,
+                    paddingHorizontal: 12,
+                    borderRadius: 999,
+                    marginRight: 8,
+                    marginBottom: 8,
+                  }}
+                >
+                  <Sparkles size={14} color="#fef3c7" style={{ marginRight: 6 }} />
+                  <ThemedText
+                    style={{
+                      fontSize: 13,
+                      color: "#ffffff",
+                      fontWeight: "600",
+                    }}
+                  >
+                    {feature}
+                  </ThemedText>
+                </View>
+              ))}
+            </View>
+
+            <Image
+              source={require("@assets/images/unnamed.jpg")}
+              style={{
+                width: 110,
+                height: 110,
+                position: "absolute",
+                right: -10,
+                bottom: -10,
+                opacity: 0.25,
+              }}
+              resizeMode="contain"
+            />
+          </LinearGradient>
+
+          <View
+            style={{
+              backgroundColor: "#f5f3ff",
+              borderRadius: 20,
+              paddingVertical: 18,
+              paddingHorizontal: 22,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              marginBottom: 20,
+            }}
+          >
+            {heroStats.map((stat, index) => (
+              <View
+                key={`${stat.label}-${index}`}
+                style={{
+                  flex: 1,
+                  alignItems: index === 1 ? "center" : index === 2 ? "flex-end" : "flex-start",
+                }}
+              >
+                <ThemedText
+                  style={{ fontSize: 20, fontWeight: "800", color: "#5b21b6" }}
+                >
+                  {stat.value}
+                </ThemedText>
+                <ThemedText
+                  style={{
+                    marginTop: 4,
+                    fontSize: 13,
+                    color: "#5b21b6",
+                    opacity: 0.8,
+                  }}
+                >
+                  {stat.label}
+                </ThemedText>
+              </View>
+            ))}
+          </View>
+
+          <View
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: 24,
+              padding: 24,
+              borderWidth: 1,
+              borderColor: "rgba(0,0,0,0.05)",
+              marginBottom: 20,
+            }}
+          >
+            <ThemedText
+              style={{
+                fontSize: 22,
+                fontWeight: "700",
+                color: "#1f2937",
+                marginBottom: 6,
               }}
             >
               {ultraPackage?.nameTranslation ||
@@ -1139,31 +1311,78 @@ export default function AiConversationScreen() {
             <ThemedText
               style={{
                 fontSize: 16,
-                opacity: 0.7,
-                textAlign: "center",
-                marginBottom: 32,
-                lineHeight: 24,
+                color: "#4b5563",
+                marginBottom: 18,
+                lineHeight: 22,
               }}
             >
               {ultraPackage?.descriptionTranslation ||
                 t("home.ai.conversation.locked_description")}
             </ThemedText>
-            {isMarketplaceLoading ? (
-              <ActivityIndicator style={{ marginBottom: 24 }} />
-            ) : ultraFeatures.length > 0 ? (
+
+            {formattedUltraPrice ? (
               <View
                 style={{
-                  width: "100%",
-                  alignSelf: "stretch",
-                  backgroundColor: "#f9fafb",
                   borderRadius: 16,
-                  paddingVertical: 16,
-                  paddingHorizontal: 16,
-                  marginBottom: 24,
+                  paddingVertical: 14,
+                  paddingHorizontal: 18,
+                  marginBottom: 16,
+                  backgroundColor: "#f5f3ff",
                   borderWidth: 1,
-                  borderColor: "rgba(0,0,0,0.05)",
+                  borderColor: "rgba(139,92,246,0.3)",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                 }}
               >
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <ThemedText
+                    style={{
+                      fontSize: 18,
+                      fontWeight: "700",
+                      color: "#6d28d9",
+                    }}
+                  >
+                    {priceHighlightText || formattedUltraPrice}
+                  </ThemedText>
+                  {priceSubHighlight ? (
+                    <ThemedText
+                      style={{
+                        marginTop: 4,
+                        fontSize: 14,
+                        color: "#4c1d95",
+                        opacity: 0.85,
+                      }}
+                    >
+                      {priceSubHighlight}
+                    </ThemedText>
+                  ) : null}
+                </View>
+                <View
+                  style={{
+                    backgroundColor: "#ede9fe",
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 999,
+                  }}
+                >
+                  <ThemedText
+                    style={{
+                      fontSize: 12,
+                      color: "#6d28d9",
+                      fontWeight: "700",
+                    }}
+                  >
+                    Premium
+                  </ThemedText>
+                </View>
+              </View>
+            ) : null}
+
+            {isMarketplaceLoading ? (
+              <ActivityIndicator style={{ marginBottom: 16 }} color="#6d28d9" />
+            ) : ultraFeatures.length > 0 ? (
+              <View style={{ marginBottom: 10 }}>
                 {ultraFeatures.map((feature, index) => (
                   <View
                     key={`${feature}-${index}`}
@@ -1175,12 +1394,12 @@ export default function AiConversationScreen() {
                   >
                     <View
                       style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: 3,
+                        width: 8,
+                        height: 8,
+                        borderRadius: 4,
                         backgroundColor: "#8b5cf6",
-                        marginTop: 8,
-                        marginRight: 8,
+                        marginTop: 7,
+                        marginRight: 10,
                       }}
                     />
                     <ThemedText
@@ -1196,104 +1415,127 @@ export default function AiConversationScreen() {
                 ))}
               </View>
             ) : null}
-            {formattedUltraPrice ? (
-              <View
-                style={{
-                  width: "100%",
-                  borderRadius: 18,
-                  paddingVertical: 16,
-                  paddingHorizontal: 20,
-                  marginBottom: 18,
-                  backgroundColor: "#f5f3ff",
-                  borderWidth: 1,
-                  borderColor: "rgba(139,92,246,0.3)",
-                  shadowColor: "#8b5cf6",
-                  shadowOpacity: 0.12,
-                  shadowRadius: 12,
-                  shadowOffset: { width: 0, height: 6 },
-                }}
-              >
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <ThemedText
-                    style={{
-                      fontSize: 18,
-                      fontWeight: "700",
-                      color: "#6d28d9",
-                    }}
-                  >
-                    {priceHighlightText || formattedUltraPrice}
-                  </ThemedText>
-                  <View
-                    style={{
-                      backgroundColor: "#ede9fe",
-                      paddingHorizontal: 10,
-                      paddingVertical: 4,
-                      borderRadius: 999,
-                    }}
-                  >
-                    <ThemedText
-                      style={{
-                        fontSize: 12,
-                        color: "#6d28d9",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Premium
-                    </ThemedText>
-                  </View>
-                </View>
-                {priceSubHighlight ? (
-                  <ThemedText
-                    style={{
-                      marginTop: 10,
-                      fontSize: 14,
-                      color: "#4c1d95",
-                      lineHeight: 20,
-                    }}
-                  >
-                    {priceSubHighlight}
-                  </ThemedText>
-                ) : null}
-              </View>
-            ) : null}
-            <TouchableOpacity
-              onPress={() => {
-                if (ultraPackage?.id) {
-                  router.push({
-                    pathname: ROUTES.APP.SUBSCRIPTION as any,
-                    params: { packageId: String(ultraPackage.id) },
-                  });
-                } else {
-                  router.push(ROUTES.APP.SUBSCRIPTION as any);
-                }
-              }}
+          </View>
+
+          <TouchableOpacity
+            onPress={() => {
+              if (ultraPackage?.id) {
+                router.push({
+                  pathname: ROUTES.APP.SUBSCRIPTION as any,
+                  params: { packageId: String(ultraPackage.id) },
+                });
+              } else {
+                router.push(ROUTES.APP.SUBSCRIPTION as any);
+              }
+            }}
+            style={{
+              backgroundColor: "#111827",
+              paddingVertical: 16,
+              borderRadius: 16,
+              marginBottom: 14,
+              alignItems: "center",
+              shadowColor: "#111827",
+              shadowOpacity: 0.2,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 6 },
+            }}
+          >
+            <ThemedText
               style={{
-                backgroundColor: "#8b5cf6",
-                paddingVertical: 14,
-                paddingHorizontal: 32,
-                borderRadius: 12,
-                minWidth: 200,
+                color: "#ffffff",
+                fontSize: 16,
+                fontWeight: "700",
               }}
             >
+              {t("home.ai.conversation.subscribe_button")}
+            </ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              if (ultraPackage?.id) {
+                router.push({
+                  pathname: ROUTES.APP.SUBSCRIPTION as any,
+                  params: { packageId: String(ultraPackage.id) },
+                });
+              } else {
+                router.push(ROUTES.APP.SUBSCRIPTION as any);
+              }
+            }}
+            style={{
+              borderWidth: 1,
+              borderColor: "rgba(17,24,39,0.15)",
+              paddingVertical: 14,
+              borderRadius: 16,
+              alignItems: "center",
+              marginBottom: 18,
+            }}
+          >
+            <ThemedText
+              style={{
+                fontSize: 15,
+                fontWeight: "600",
+                color: "#1f2937",
+              }}
+            >
+              {t("home.ai.conversation.cta_secondary")}
+            </ThemedText>
+          </TouchableOpacity>
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "#f9fafb",
+              borderRadius: 18,
+              padding: 16,
+              borderWidth: 1,
+              borderColor: "rgba(0,0,0,0.05)",
+              marginBottom: 16,
+            }}
+          >
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                backgroundColor: "#dbeafe",
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 14,
+              }}
+            >
+              <ShieldCheck color="#1d4ed8" size={22} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <ThemedText
+                style={{ fontSize: 16, fontWeight: "700", color: "#111827" }}
+              >
+                {guaranteeCopy.title}
+              </ThemedText>
               <ThemedText
                 style={{
-                  color: "#ffffff",
-                  fontSize: 16,
-                  fontWeight: "600",
-                  textAlign: "center",
+                  fontSize: 14,
+                  color: "#4b5563",
+                  marginTop: 4,
+                  lineHeight: 20,
                 }}
               >
-                {t("home.ai.conversation.subscribe_button")}
+                {guaranteeCopy.subtitle}
               </ThemedText>
-            </TouchableOpacity>
+            </View>
           </View>
-        </View>
+
+          <ThemedText
+            style={{
+              textAlign: "center",
+              fontSize: 13,
+              color: "#6b7280",
+            }}
+          >
+            {socialProofText}
+          </ThemedText>
+        </ScrollView>
       ) : isLoading || isConnecting ? (
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
