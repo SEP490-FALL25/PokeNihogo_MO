@@ -322,6 +322,24 @@
       "message": "Welcome to the battle system! Join your first season now.",
       "joining": "Joining...",
       "join": "Join Now"
+    },
+    "result": {
+      "title": "BATTLE RESULT",
+      "match_label": "Match #{{matchId}}",
+      "loading_title": "Loading results...",
+      "loading_subtitle": "Please wait a moment",
+      "back_to_home": "Back to Home",
+      "total_points": "Total points",
+      "points_diff": "+{{points}} points",
+      "round_details": "Round details",
+      "round_1": "Round 1",
+      "round_2": "Round 2",
+      "round_3": "Round 3",
+      "round_default": "Round",
+      "end_battle": "End Battle",
+      "summary": "Summary",
+      "you": "You",
+      "opponent": "Opponent"
     }
   },
   "navigation": {

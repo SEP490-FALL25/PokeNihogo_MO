@@ -322,6 +322,24 @@
       "message": "Chào mừng bạn đến với hệ thống thi đấu! Hãy tham gia mùa giải đầu tiên của bạn.",
       "joining": "Đang tham gia...",
       "join": "Tham gia ngay"
+    },
+    "result": {
+      "title": "KẾT QUẢ TRẬN ĐẤU",
+      "match_label": "Match #{{matchId}}",
+      "loading_title": "Đang tải kết quả...",
+      "loading_subtitle": "Vui lòng chờ trong giây lát",
+      "back_to_home": "Về trang chính",
+      "total_points": "Tổng điểm",
+      "points_diff": "+{{points}} điểm",
+      "round_details": "Chi tiết từng round",
+      "round_1": "Round 1",
+      "round_2": "Round 2",
+      "round_3": "Round 3",
+      "round_default": "Round",
+      "end_battle": "Kết thúc trận đấu",
+      "summary": "Tổng kết",
+      "you": "Bạn",
+      "opponent": "Đối thủ"
     }
   },
   "navigation": {

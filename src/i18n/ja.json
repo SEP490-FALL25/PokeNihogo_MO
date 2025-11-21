@@ -556,6 +556,24 @@
             "message": "バトルシステムへようこそ！最初のシーズンに参加しましょう。",
             "joining": "参加中...",
             "join": "今すぐ参加"
+        },
+        "result": {
+            "title": "バトル結果",
+            "match_label": "マッチ #{{matchId}}",
+            "loading_title": "結果を読み込み中...",
+            "loading_subtitle": "少々お待ちください",
+            "back_to_home": "ホームに戻る",
+            "total_points": "合計ポイント",
+            "points_diff": "+{{points}}ポイント",
+            "round_details": "ラウンド詳細",
+            "round_1": "ラウンド1",
+            "round_2": "ラウンド2",
+            "round_3": "ラウンド3",
+            "round_default": "ラウンド",
+            "end_battle": "バトル終了",
+            "summary": "まとめ",
+            "you": "あなた",
+            "opponent": "対戦相手"
         }
     },
     "lessons": {
