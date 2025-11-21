@@ -4,6 +4,9 @@ import ModalBattleAccept from "@components/battle/modal-accept.battle";
 import ModalBattleHistory from "@components/battle/modal-battleHistory";
 import ModalLeaderboard from "@components/battle/modal-leaderboard";
 import ModalRewardLeaderboard from "@components/battle/modal-rewardLeaderboard";
+import ModalSeasonEnded from "@components/battle/modal-season-ended";
+import ModalNewSeasonInfo from "@components/battle/modal-new-season-info";
+import ModalFirstTimeUser from "@components/battle/modal-first-time-user";
 import SeasonInfo from "@components/battle/season-info.battle";
 import StatsBattle from "@components/battle/stats.battle";
 import { HapticPressable } from "@components/HapticPressable";
@@ -14,6 +17,8 @@ import TypingText from "@components/ui/TypingText";
 import { getSocket } from "@configs/socket";
 import { BATTLE_STATUS } from "@constants/battle.enum";
 import useAuth from "@hooks/useAuth";
+import { useUserStatsSeason, SeasonResponseType } from "@hooks/useSeason";
+import { useJoinNewSeason } from "@hooks/useBattle";
 import { IBattleMatchFound, IBattleMatchStatusUpdate } from "@models/battle/battle.response";
 import { ROUTES } from "@routes/routes";
 import battleService from "@services/battle";
@@ -44,6 +49,15 @@ export default function BattleLobbyScreen() {
 
   const [showAcceptModal, setShowAcceptModal] = useState<boolean>(false);
   const insets = useSafeAreaInsets();
+
+  // Season state management
+  const { data: seasonData, responseType, isLoading: isLoadingSeason } = useUserStatsSeason();
+  const [showSeasonEndedModal, setShowSeasonEndedModal] = useState(false);
+  const [showNewSeasonModal, setShowNewSeasonModal] = useState(false);
+  const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
+  const [newSeasonInfo, setNewSeasonInfo] = useState<any>(null);
+  const joinNewSeasonMutation = useJoinNewSeason();
+  const queryClient = useQueryClient();
 
   /**
    * Shimmer effect
@@ -98,6 +112,11 @@ export default function BattleLobbyScreen() {
   const [inQueue, setInQueue] = useState<boolean>(false);
 
   const handleStartRanked = async () => {
+    // Don't allow queueing if season is not active
+    if (responseType !== 'ACTIVE') {
+      return;
+    }
+
     console.log("[QUEUE] Start button pressed");
     setInQueue(true);
     setGlobalInQueue(true); // Update global store
@@ -136,6 +155,58 @@ export default function BattleLobbyScreen() {
   };
   //------------------------End------------------------//
 
+  /**
+   * Handle season ended modal continue
+   */
+  const handleSeasonEndedContinue = () => {
+    // Modal will handle showing rewards internally
+  };
+
+  /**
+   * Handle claim reward complete
+   */
+  const handleClaimRewardComplete = async () => {
+    setShowSeasonEndedModal(false);
+    
+    // After claiming, call joinNewSeason
+    try {
+      const response = await joinNewSeasonMutation.mutateAsync();
+      const seasonNowInfo = response?.data?.data?.seasonNowInfo;
+      if (seasonNowInfo) {
+        setNewSeasonInfo(seasonNowInfo);
+        setShowNewSeasonModal(true);
+      } else {
+        // Refresh season data
+        queryClient.invalidateQueries({ queryKey: ['user-stats-season'] });
+      }
+    } catch (error: any) {
+      console.error("Failed to join new season:", error);
+      Alert.alert(t("common.error"), error?.response?.data?.message || t("common.error") || "An error occurred");
+      // Refresh anyway
+      queryClient.invalidateQueries({ queryKey: ['user-stats-season'] });
+    }
+  };
+
+  /**
+   * Handle first time user join complete
+   */
+  const handleFirstTimeJoinComplete = (newSeasonInfo: any) => {
+    setShowFirstTimeModal(false);
+    setNewSeasonInfo(newSeasonInfo);
+    setShowNewSeasonModal(true);
+  };
+
+  /**
+   * Handle new season modal close
+   */
+  const handleNewSeasonModalClose = () => {
+    setShowNewSeasonModal(false);
+    setNewSeasonInfo(null);
+    // Refresh season data
+    queryClient.invalidateQueries({ queryKey: ['user-stats-season'] });
+  };
+  //------------------------End------------------------//
+
 
 
   /**
@@ -167,7 +238,6 @@ export default function BattleLobbyScreen() {
   } = useMatchingStore();
   const clearLastMatchResult = useMatchingStore((s) => (s as any).clearLastMatchResult);
   const setLastMatchResult = useMatchingStore((s) => (s as any).setLastMatchResult);
-  const queryClient = useQueryClient();
 
   // Reset match-related state when component mounts (e.g., returning from result screen)
   useEffect(() => {
@@ -175,6 +245,35 @@ export default function BattleLobbyScreen() {
     setShowAcceptModal(false);
     setMatchedPlayer(null);
   }, []);
+
+  // Handle season state based on response type
+  useEffect(() => {
+    if (isLoadingSeason) return;
+
+    // Case 1: ACTIVE - Show normal battle screen (no modal)
+    if (responseType === 'ACTIVE') {
+      setShowSeasonEndedModal(false);
+      setShowNewSeasonModal(false);
+      setShowFirstTimeModal(false);
+      return;
+    }
+
+    // Case 2: ENDED - Show season ended modal
+    if (responseType === 'ENDED' && seasonData) {
+      setShowSeasonEndedModal(true);
+      setShowNewSeasonModal(false);
+      setShowFirstTimeModal(false);
+      return;
+    }
+
+    // Case 3: NULL - First time user, show first time modal
+    if (responseType === 'NULL') {
+      setShowFirstTimeModal(true);
+      setShowSeasonEndedModal(false);
+      setShowNewSeasonModal(false);
+      return;
+    }
+  }, [responseType, seasonData, isLoadingSeason]);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -358,10 +457,10 @@ export default function BattleLobbyScreen() {
                 <HapticPressable
                   className="rounded-full overflow-hidden"
                   onPress={handleStartRanked}
-                  disabled={inQueue ? true : false}
+                  disabled={inQueue || responseType !== 'ACTIVE' || isLoadingSeason}
                 >
                   <TWLinearGradient
-                    colors={inQueue ? ["#10b981", "#059669"] : ["#22c55e", "#16a34a"]}
+                    colors={inQueue || responseType !== 'ACTIVE' || isLoadingSeason ? ["#64748b", "#374151"] : inQueue ? ["#10b981", "#059669"] : ["#22c55e", "#16a34a"]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={{ paddingVertical: 14, paddingHorizontal: 28 }}
@@ -460,6 +559,29 @@ export default function BattleLobbyScreen() {
         setInQueue={setInQueue}
         statusMatch={statusMatch}
         setStatusMatch={setStatusMatch}
+      />
+
+      {/* Season Ended Modal */}
+      <ModalSeasonEnded
+        visible={showSeasonEndedModal}
+        onRequestClose={() => setShowSeasonEndedModal(false)}
+        data={responseType === 'ENDED' ? seasonData as any : null}
+        onContinue={handleSeasonEndedContinue}
+        onClaimComplete={handleClaimRewardComplete}
+      />
+
+      {/* New Season Info Modal */}
+      <ModalNewSeasonInfo
+        visible={showNewSeasonModal}
+        onRequestClose={handleNewSeasonModalClose}
+        data={newSeasonInfo}
+      />
+
+      {/* First Time User Modal */}
+      <ModalFirstTimeUser
+        visible={showFirstTimeModal}
+        onRequestClose={() => setShowFirstTimeModal(false)}
+        onJoinComplete={handleFirstTimeJoinComplete}
       />
 
     </ThemedView>

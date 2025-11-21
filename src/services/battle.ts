@@ -39,6 +39,14 @@ const battleService = {
         };
         return axiosPrivate.get(`/user/matching/history`, { params: queryParams });
     },
+
+    claimRewardSeason: async (userSeasonHistoryId: number) => {
+        return axiosPrivate.put(`/user-season-history/get-reward/${userSeasonHistoryId}`);
+    },
+
+    joinNewSeason: async () => {
+        return axiosPrivate.post(`/user-season-history/join`);
+    },
 };
 
 export default battleService;

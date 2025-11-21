@@ -492,13 +492,35 @@
                 "item": "アイテム",
                 "skin": "スキン",
                 "badge": "バッジ",
-                "daily_request": "デイリーリクエスト"
+                "daily_request": "デイリーリクエスト",
+                "event": "イベント",
+                "poke_coins": "コイン"
             },
             "targets": {
                 "exp": "経験値",
                 "point": "ポイント",
                 "level": "レベル"
             }
+        },
+        "season_ended": {
+            "title": "シーズン終了",
+            "ended_message": "シーズンが終了しました",
+            "elo": "ELO",
+            "continue": "続行",
+            "rewards_title": "シーズン報酬",
+            "claiming": "受け取り中...",
+            "claim": "報酬を受け取る"
+        },
+        "new_season": {
+            "title": "新しいシーズン",
+            "elo": "ELO",
+            "message": "新しいシーズンでの健闘を祈ります！"
+        },
+        "first_time": {
+            "title": "ようこそ！",
+            "message": "バトルシステムへようこそ！最初のシーズンに参加しましょう。",
+            "joining": "参加中...",
+            "join": "今すぐ参加"
         }
     },
     "lessons": {

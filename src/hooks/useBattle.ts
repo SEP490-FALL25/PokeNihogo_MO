@@ -75,3 +75,42 @@ export const useUserMatchingHistory = (params?: IQueryRequest) => {
     };
 };
 //------------------------End------------------------//
+
+
+/**
+ * Claim reward season
+ * @param userSeasonHistoryId User season history ID
+ * @returns Claim reward season data
+ */
+export const useClaimRewardSeason = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (userSeasonHistoryId: number) => battleService.claimRewardSeason(userSeasonHistoryId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['user-stats-season'] });
+        },
+        onError: (error: any) => {
+            console.error(error.response.data.message);
+        },
+    });
+};
+//------------------------End------------------------//
+
+
+/**
+ * Join new season
+ * @returns Join new season mutation
+ */
+export const useJoinNewSeason = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => battleService.joinNewSeason(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['user-stats-season'] });
+        },
+        onError: (error: any) => {
+            console.error(error.response?.data?.message || error.message);
+        },
+    });
+};
+//------------------------End------------------------//

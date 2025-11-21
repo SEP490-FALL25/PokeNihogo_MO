@@ -293,13 +293,35 @@
         "item": "Item",
         "skin": "Skin",
         "badge": "Badge",
-        "daily_request": "Daily Request"
+        "daily_request": "Daily Request",
+        "event": "Event",
+        "poke_coins": "Coins"
       },
       "targets": {
         "exp": "EXP",
         "point": "Point",
         "level": "Level"
       }
+    },
+    "season_ended": {
+      "title": "Season Ended",
+      "ended_message": "The season has ended",
+      "elo": "ELO",
+      "continue": "Continue",
+      "rewards_title": "Season Rewards",
+      "claiming": "Claiming...",
+      "claim": "Claim Rewards"
+    },
+    "new_season": {
+      "title": "New Season",
+      "elo": "ELO",
+      "message": "Good luck in the new season!"
+    },
+    "first_time": {
+      "title": "Welcome!",
+      "message": "Welcome to the battle system! Join your first season now.",
+      "joining": "Joining...",
+      "join": "Join Now"
     }
   },
   "navigation": {
