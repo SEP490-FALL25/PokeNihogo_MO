@@ -45,9 +45,15 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
   const { t } = useTranslation();
   const [selectedReward, setSelectedReward] = useState<RewardMilestone | null>(null);
   const [trackWidth, setTrackWidth] = useState(0);
-  const { hasFeature } = useSubscriptionFeatures();
+  const { hasFeature, getFeatureValue } = useSubscriptionFeatures();
   const hasXpMultiplier = hasFeature(SubscriptionFeatureKey.XP_MULTIPLIER);
   const hasCoinMultiplier = hasFeature(SubscriptionFeatureKey.COIN_MULTIPLIER);
+  const xpMultiplierValue = hasXpMultiplier
+    ? getFeatureValue(SubscriptionFeatureKey.XP_MULTIPLIER) ?? 1
+    : 1;
+  const coinMultiplierValue = hasCoinMultiplier
+    ? getFeatureValue(SubscriptionFeatureKey.COIN_MULTIPLIER) ?? 1
+    : 1;
   const handleOutsidePress = () => {
     if (selectedReward) {
       setSelectedReward(null);
@@ -82,10 +88,10 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
   const getRewardMultiplier = (reward: RewardDetail) => {
     const target = reward.rewardTarget?.toUpperCase() ?? '';
     if (target === 'EXP' && hasXpMultiplier) {
-      return 1.2;
+      return xpMultiplierValue;
     }
     if ((target === 'COIN' || target === 'COINS') && hasCoinMultiplier) {
-      return 1.2;
+      return coinMultiplierValue;
     }
     return 1;
   };
