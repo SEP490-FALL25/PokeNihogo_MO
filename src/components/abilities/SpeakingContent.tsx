@@ -1,18 +1,13 @@
 import { ThemedText } from "@components/ThemedText";
 import { TestStatus } from "@constants/test.enum";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUserTests } from "@hooks/useUserTest";
 import { ROUTES } from "@routes/routes";
 import { router } from "expo-router";
 import { Mic } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Animated,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
+import { LockOverlay } from "./LockOverlay";
 
 type UserTestItem = {
   id: number;
@@ -31,14 +26,7 @@ type UserTestItem = {
 };
 
 const SPEAKING_ACCENT = "#8b5cf6";
-const SHAKE_SEGMENT_DURATION = 120;
-const SHAKE_PAUSE_DURATION = 1200;
-const SHAKE_TOTAL_DURATION = SHAKE_SEGMENT_DURATION * 3;
-const PARTICLE_DELAY = 180;
-const PARTICLE_PAUSE_AFTER =
-  SHAKE_PAUSE_DURATION - PARTICLE_DELAY > 0
-    ? SHAKE_PAUSE_DURATION - PARTICLE_DELAY
-    : 0;
+const SPEAKING_PARTICLE_PALETTE = ["#fbbf24", "#fef3c7"];
 
 const SpeakingCard: React.FC<{
   item: UserTestItem;
@@ -46,84 +34,7 @@ const SpeakingCard: React.FC<{
   onLockedPress: () => void;
 }> = ({ item, onPress, onLockedPress }) => {
   const isLocked = item.status === "NOT_STARTED";
-  const shakeAnim = React.useRef(new Animated.Value(0)).current;
-  const particleAnim = React.useRef(new Animated.Value(0)).current;
-  const particleConfigs = React.useMemo(
-    () =>
-      Array.from({ length: 6 }).map((_, index) => {
-        const angle = (index / 6) * Math.PI * 2;
-        const radius = 14 + index * 2;
-        return {
-          id: `speaking-lock-particle-${index}`,
-          x: Math.cos(angle) * radius,
-          y: Math.sin(angle) * radius,
-          color: index % 2 === 0 ? "#fbbf24" : "#fef3c7",
-        };
-      }),
-    []
-  );
-  const shakeRotate = shakeAnim.interpolate({
-    inputRange: [-1, 1],
-    outputRange: ["-9deg", "9deg"],
-  });
 
-  React.useEffect(() => {
-    if (!isLocked) {
-      shakeAnim.stopAnimation();
-      particleAnim.stopAnimation();
-      shakeAnim.setValue(0);
-      particleAnim.setValue(0);
-      return;
-    }
-
-    const shakeLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(shakeAnim, {
-          toValue: 1,
-          duration: SHAKE_SEGMENT_DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shakeAnim, {
-          toValue: -1,
-          duration: SHAKE_SEGMENT_DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.timing(shakeAnim, {
-          toValue: 0,
-          duration: SHAKE_SEGMENT_DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.delay(SHAKE_PAUSE_DURATION),
-      ])
-    );
-
-    const particleLoop = Animated.loop(
-      Animated.sequence([
-        Animated.delay(PARTICLE_DELAY),
-        Animated.timing(particleAnim, {
-          toValue: 1,
-          duration: SHAKE_TOTAL_DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.timing(particleAnim, {
-          toValue: 0,
-          duration: 0,
-          useNativeDriver: true,
-        }),
-        Animated.delay(PARTICLE_PAUSE_AFTER),
-      ]),
-      { resetBeforeIteration: true }
-    );
-
-    shakeLoop.start();
-    particleLoop.start();
-
-    return () => {
-      shakeLoop.stop();
-      particleLoop.stop();
-    };
-  }, [isLocked, shakeAnim, particleAnim]);
-  
   return (
     <TouchableOpacity
       style={[
@@ -177,50 +88,10 @@ const SpeakingCard: React.FC<{
       </View>
 
       {isLocked && (
-        <View style={styles.lockOverlay} pointerEvents="none">
-          <Animated.View
-            style={{
-              transform: [{ rotateZ: shakeRotate }],
-            }}
-          >
-            <MaterialCommunityIcons name="lock" size={48} color="#64748B" />
-          </Animated.View>
-          {particleConfigs.map((particle) => (
-            <Animated.View
-              key={particle.id}
-              style={[
-                styles.lockParticle,
-                {
-                  backgroundColor: particle.color,
-                  opacity: particleAnim.interpolate({
-                    inputRange: [0, 0.3, 1],
-                    outputRange: [0, 1, 0],
-                  }),
-                  transform: [
-                    {
-                      translateX: particleAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, particle.x],
-                      }),
-                    },
-                    {
-                      translateY: particleAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, particle.y],
-                      }),
-                    },
-                    {
-                      scale: particleAnim.interpolate({
-                        inputRange: [0, 0.4, 1],
-                        outputRange: [0.4, 1, 0.2],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-            />
-          ))}
-        </View>
+        <LockOverlay
+          isVisible={isLocked}
+          particlePalette={SPEAKING_PARTICLE_PALETTE}
+        />
       )}
     </TouchableOpacity>
   );
@@ -476,23 +347,6 @@ const styles = StyleSheet.create({
   },
   lockedText: {
     color: "#9ca3af",
-  },
-  lockOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
-    borderRadius: 12,
-  },
-  lockParticle: {
-    position: "absolute",
-    width: 14,
-    height: 14,
-    borderRadius: 7,
   },
 });
 
