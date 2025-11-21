@@ -31,18 +31,96 @@ type UserTestItem = {
   };
 };
 
+const LISTENING_ACCENT = "#10b981";
+
 const ListeningCard: React.FC<{
   item: UserTestItem;
   onPress: () => void;
   onLockedPress: () => void;
 }> = ({ item, onPress, onLockedPress }) => {
   const isLocked = item.status === "NOT_STARTED";
+  const shakeAnim = React.useRef(new Animated.Value(0)).current;
+  const particleAnim = React.useRef(new Animated.Value(0)).current;
+  const particleConfigs = React.useMemo(
+    () =>
+      Array.from({ length: 6 }).map((_, index) => {
+        const angle = (index / 6) * Math.PI * 2;
+        const radius = 14 + index * 2;
+        return {
+          id: `listening-lock-particle-${index}`,
+          x: Math.cos(angle) * radius,
+          y: Math.sin(angle) * radius,
+          color: index % 2 === 0 ? LISTENING_ACCENT : "#6ee7b7",
+        };
+      }),
+    []
+  );
+  const shakeTranslate = shakeAnim.interpolate({
+    inputRange: [-1, 1],
+    outputRange: [-4, 4],
+  });
+
+  React.useEffect(() => {
+    if (!isLocked) {
+      shakeAnim.stopAnimation();
+      particleAnim.stopAnimation();
+      shakeAnim.setValue(0);
+      particleAnim.setValue(0);
+      return;
+    }
+
+    const shakeLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shakeAnim, {
+          toValue: 1,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shakeAnim, {
+          toValue: -1,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shakeAnim, {
+          toValue: 0,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+        Animated.delay(1200),
+      ])
+    );
+
+    const particleLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(particleAnim, {
+          toValue: 1,
+          duration: 900,
+          useNativeDriver: true,
+        }),
+        Animated.timing(particleAnim, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+        Animated.delay(900),
+      ]),
+      { resetBeforeIteration: true }
+    );
+
+    shakeLoop.start();
+    particleLoop.start();
+
+    return () => {
+      shakeLoop.stop();
+      particleLoop.stop();
+    };
+  }, [isLocked, shakeAnim, particleAnim]);
   
   return (
     <TouchableOpacity
       style={[
         styles.card, 
-        { borderLeftColor: "#10b981" },
+        { borderLeftColor: LISTENING_ACCENT },
         isLocked && styles.lockedCard
       ]}
       onPress={isLocked ? onLockedPress : onPress}
@@ -94,7 +172,48 @@ const ListeningCard: React.FC<{
 
       {isLocked && (
         <View style={styles.lockOverlay} pointerEvents="none">
-          <MaterialCommunityIcons name="lock" size={48} color="#64748B" />
+          <Animated.View
+            style={{
+              transform: [{ translateX: shakeTranslate }],
+            }}
+          >
+            <MaterialCommunityIcons name="lock" size={48} color="#64748B" />
+          </Animated.View>
+          {particleConfigs.map((particle) => (
+            <Animated.View
+              key={particle.id}
+              style={[
+                styles.lockParticle,
+                {
+                  backgroundColor: particle.color,
+                  opacity: particleAnim.interpolate({
+                    inputRange: [0, 0.3, 1],
+                    outputRange: [0, 1, 0],
+                  }),
+                  transform: [
+                    {
+                      translateX: particleAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, particle.x],
+                      }),
+                    },
+                    {
+                      translateY: particleAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, particle.y],
+                      }),
+                    },
+                    {
+                      scale: particleAnim.interpolate({
+                        inputRange: [0, 0.4, 1],
+                        outputRange: [0.4, 1, 0.2],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            />
+          ))}
         </View>
       )}
     </TouchableOpacity>
@@ -410,6 +529,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.7)",
     borderRadius: 12,
+  },
+  lockParticle: {
+    position: "absolute",
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
 });
 
