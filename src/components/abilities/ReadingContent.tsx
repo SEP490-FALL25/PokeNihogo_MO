@@ -32,6 +32,14 @@ type UserTestItem = {
 };
 
 const READING_ACCENT = "#3b82f6";
+const SHAKE_SEGMENT_DURATION = 120;
+const SHAKE_PAUSE_DURATION = 1200;
+const SHAKE_TOTAL_DURATION = SHAKE_SEGMENT_DURATION * 3;
+const PARTICLE_DELAY = 180;
+const PARTICLE_PAUSE_AFTER =
+  SHAKE_PAUSE_DURATION - PARTICLE_DELAY > 0
+    ? SHAKE_PAUSE_DURATION - PARTICLE_DELAY
+    : 0;
 
 const ReadingCard: React.FC<{
   item: UserTestItem;
@@ -50,14 +58,14 @@ const ReadingCard: React.FC<{
           id: `reading-lock-particle-${index}`,
           x: Math.cos(angle) * radius,
           y: Math.sin(angle) * radius,
-          color: index % 2 === 0 ? READING_ACCENT : "#bfdbfe",
+          color: index % 2 === 0 ? "#facc15" : "#fef08a",
         };
       }),
     []
   );
-  const shakeTranslate = shakeAnim.interpolate({
+  const shakeRotate = shakeAnim.interpolate({
     inputRange: [-1, 1],
-    outputRange: [-4, 4],
+    outputRange: ["-9deg", "9deg"],
   });
 
   React.useEffect(() => {
@@ -73,28 +81,29 @@ const ReadingCard: React.FC<{
       Animated.sequence([
         Animated.timing(shakeAnim, {
           toValue: 1,
-          duration: 120,
+          duration: SHAKE_SEGMENT_DURATION,
           useNativeDriver: true,
         }),
         Animated.timing(shakeAnim, {
           toValue: -1,
-          duration: 120,
+          duration: SHAKE_SEGMENT_DURATION,
           useNativeDriver: true,
         }),
         Animated.timing(shakeAnim, {
           toValue: 0,
-          duration: 120,
+          duration: SHAKE_SEGMENT_DURATION,
           useNativeDriver: true,
         }),
-        Animated.delay(1200),
+        Animated.delay(SHAKE_PAUSE_DURATION),
       ])
     );
 
     const particleLoop = Animated.loop(
       Animated.sequence([
+        Animated.delay(PARTICLE_DELAY),
         Animated.timing(particleAnim, {
           toValue: 1,
-          duration: 900,
+          duration: SHAKE_TOTAL_DURATION,
           useNativeDriver: true,
         }),
         Animated.timing(particleAnim, {
@@ -102,7 +111,7 @@ const ReadingCard: React.FC<{
           duration: 0,
           useNativeDriver: true,
         }),
-        Animated.delay(900),
+        Animated.delay(PARTICLE_PAUSE_AFTER),
       ]),
       { resetBeforeIteration: true }
     );
@@ -174,7 +183,7 @@ const ReadingCard: React.FC<{
         <View style={styles.lockOverlay} pointerEvents="none">
           <Animated.View
             style={{
-              transform: [{ translateX: shakeTranslate }],
+              transform: [{ rotateZ: shakeRotate }],
             }}
           >
             <MaterialCommunityIcons name="lock" size={48} color="#64748B" />
@@ -531,9 +540,9 @@ const styles = StyleSheet.create({
   },
   lockParticle: {
     position: "absolute",
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
   },
 });
 
