@@ -887,7 +887,7 @@
     "rate_up_text": "Tăng tỉ lệ nhận {{pokemon}}!",
     "cost_per_roll": "Chi phí: {{cost}} mỗi lần",
     "wish_single": "Mở 1 lần",
-    "wish_ten": "Mở 10 lần (Đảm bảo {{guarantee}} trở lên)",
+    "wish_ten": "Mở 10 lần",
     "pity_title": "Bảo hiểm",
     "pity_description": "Còn {{remaining}} lần quay nữa đảm bảo 5★",
     "pity_guaranteed": "Lần quay tiếp theo chắc chắn nhận 5★!",

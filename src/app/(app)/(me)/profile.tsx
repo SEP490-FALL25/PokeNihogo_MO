@@ -521,44 +521,6 @@ export default function ProfileScreen() {
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Subscription Card */}
-          <TouchableOpacity
-            onPress={() => router.push(ROUTES.APP.SUBSCRIPTION)}
-            activeOpacity={0.7}
-            className="mb-6"
-          >
-            <LinearGradient
-              colors={['#ffffff', '#fefefe']}
-              style={styles.collectionCard}
-              className="p-6 rounded-3xl overflow-hidden shadow-lg"
-            >
-              {/* Decorative Element */}
-              <View className="absolute -top-10 -right-10 w-35 h-35 rounded-full bg-amber-50 opacity-40" />
-
-              {/* Header */}
-              <View className="flex-row items-center mb-5">
-                <LinearGradient
-                  colors={['#f59e0b', '#d97706']}
-                  style={styles.collectionIconContainer}
-                  className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
-                >
-                  <Crown size={24} color="white" strokeWidth={2.5} />
-                </LinearGradient>
-
-                <View className="flex-1">
-                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('subscription.title')}</Text>
-                  <Text className="text-sm font-semibold text-slate-500 tracking-wide">
-                    {t('subscription.subtitle')}
-                  </Text>
-                </View>
-
-                <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center">
-                  <ChevronRight size={20} color="#64748b" strokeWidth={2.8} />
-                </View>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-
           {/* Achievements Section */}
           <LinearGradient
             colors={['#ffffff', '#fefefe']}
