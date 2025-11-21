@@ -300,7 +300,26 @@
         "highlight_count": "{{topic}} {{count}} 件",
         "highlight_hint": "5分集中して記憶を定着させましょう",
         "locked_highlight_title": "メンバー限定の特典",
-        "locked_highlight_subtitle": "ロードマップとスマートリマインダーをアンロック"
+        "locked_highlight_subtitle": "ロードマップとスマートリマインダーをアンロック",
+        "conversation": {
+            "title": "会話",
+            "connecting": "接続中...",
+            "loading": "読み込み中...",
+            "connection_error": "接続できません。もう一度お試しください。",
+            "empty_message": "録音を開始して会話を練習しましょう！",
+            "locked_title": "機能がロックされています",
+            "locked_description": "AI会話機能を使用するには、プレミアムプランに登録する必要があります",
+            "subscribe_button": "今すぐ登録",
+            "processing_speech_to_text": "音声認識中...",
+            "processing_ai": "AIで処理中...",
+            "processing_tts": "音声生成中...",
+            "processing_default": "処理中...",
+            "no_audio_detected": "音声が検出されませんでした。もう一度お試しください。",
+            "sending_audio": "音声を送信中...",
+            "server_connection_error": "サーバーに接続できません。",
+            "audio_send_error": "音声送信エラー。",
+            "connecting_to_ai": "AIに接続中..."
+        }
     },
     "insight_locked": {
         "badge": "プレミアム機能",

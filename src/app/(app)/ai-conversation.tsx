@@ -3,6 +3,7 @@ import * as FileSystem from "expo-file-system";
 import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeftIcon } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Animated,
@@ -21,7 +22,11 @@ import { ThemedText } from "@components/ThemedText";
 import AudioPlayer from "@components/ui/AudioPlayer";
 import VoiceRecorder from "@components/ui/EnhancedAudioRecorder";
 import { disconnectSocket, getSocket } from "@configs/socket";
+import { SubscriptionFeatureKey } from "@constants/subscription.enum";
 import { useAuth } from "@hooks/useAuth";
+import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
+import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
+import { ROUTES } from "@routes/routes";
 import { useAuthStore } from "@stores/auth/auth.config";
 
 type Message = {
@@ -31,6 +36,38 @@ type Message = {
   translation?: string;
   audioUrl?: string;
   messageId?: string | number; // Backend message ID for audio updates (can be string or number)
+};
+
+type MarketplaceFeature = {
+  id: number;
+  featureId: number;
+  value?: string | null;
+  feature?: {
+    id: number;
+    featureKey?: string;
+    nameKey?: string;
+    nameTranslation?: string;
+  };
+};
+
+type MarketplacePlan = {
+  id: number;
+  subscriptionId: number;
+  price: number;
+  type: string;
+  durationInDays?: number | null;
+  isActive: boolean;
+};
+
+type MarketplacePackage = {
+  id: number;
+  tagName?: string;
+  nameTranslation?: string;
+  descriptionTranslation?: string;
+  plans?: MarketplacePlan[];
+  features?: MarketplaceFeature[];
+  isPopular?: boolean;
+  canBuy?: boolean;
 };
 
 type MessageUpdate = (message: Message) => Message;
@@ -96,12 +133,20 @@ const UserAvatarWithFallback = ({
 };
 
 export default function AiConversationScreen() {
-  const { topicId, conversationId: initialConversationId } = useLocalSearchParams<{
-    topicId?: string;
-    conversationId?: string;
-  }>();
+  const { t } = useTranslation();
+  const { topicId, conversationId: initialConversationId } =
+    useLocalSearchParams<{
+      topicId?: string;
+      conversationId?: string;
+    }>();
   const accessToken = useAuthStore((s) => s.accessToken);
   const { user } = useAuth();
+  const hasAIKaiwa = useCheckFeature(SubscriptionFeatureKey.AI_KAIWA);
+  // const hasAIKaiwa = true;
+  const {
+    data: marketplaceResponse,
+    isLoading: isMarketplaceLoading,
+  } = useSubscriptionMarketplacePackages();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -255,106 +300,171 @@ export default function AiConversationScreen() {
 
   const listData = useMemo(() => messages, [messages]);
 
+  const marketplacePackages: MarketplacePackage[] | undefined = useMemo(() => {
+    return marketplaceResponse?.data?.data as MarketplacePackage[] | undefined;
+  }, [marketplaceResponse]);
+
+  const ultraPackage = useMemo(() => {
+    if (!marketplacePackages) {
+      return undefined;
+    }
+    return marketplacePackages.find(
+      (pkg) =>
+        pkg.tagName?.toUpperCase() === "ULTRA" ||
+        pkg.nameTranslation?.toLowerCase().includes("ultra")
+    );
+  }, [marketplacePackages]);
+
+  const ultraFeatures = useMemo(() => {
+    return (
+      ultraPackage?.features
+        ?.map((feature) => {
+          const name = feature.feature?.nameTranslation;
+          if (!name) return null;
+          const valueSuffix =
+            feature.value && feature.value !== "null"
+              ? ` (x${feature.value})`
+              : "";
+          return `${name}${valueSuffix}`;
+        })
+        ?.filter((item): item is string => Boolean(item)) ?? []
+    );
+  }, [ultraPackage]);
+
+  const ultraPlanPrice = ultraPackage?.plans?.[0]?.price;
+
+  const formattedUltraPrice = useMemo(() => {
+    if (!ultraPlanPrice) return undefined;
+    try {
+      return `${new Intl.NumberFormat("vi-VN").format(ultraPlanPrice)}₫/tháng`;
+    } catch {
+      return `${ultraPlanPrice.toLocaleString()}₫/tháng`;
+    }
+  }, [ultraPlanPrice]);
+
+  const priceHighlightText = useMemo(() => {
+    if (!formattedUltraPrice) return undefined;
+    return `Chỉ ${formattedUltraPrice}`;
+  }, [formattedUltraPrice]);
+
+  const priceSubHighlight = useMemo(() => {
+    if (!ultraFeatures || ultraFeatures.length === 0) return undefined;
+    const priorityKeywords = ["kaiwa", "xp", "kinh nghiệm", "xu", "coin"];
+    const prioritized = ultraFeatures.filter((feature) => {
+      const lower = feature.toLowerCase();
+      return priorityKeywords.some((keyword) => lower.includes(keyword));
+    });
+    const highlightSource =
+      prioritized.length > 0 ? prioritized : ultraFeatures;
+    return highlightSource
+      .slice(0, 2)
+      .map((feature) => feature.replace(/\(x[0-9.]+\)/i, "").trim())
+      .join(" · ");
+  }, [ultraFeatures]);
+
   useEffect(() => {
     if (listData.length > 0) {
       listRef.current?.scrollToEnd({ animated: true });
     }
   }, [listData]);
 
-  const renderMessageItem = useCallback<ListRenderItem<Message>>(({ item }) => {
-    const isUser = item.role === "user";
-    const userAvatar = user?.avatar;
-    const userName = user?.name || "User";
-    
-    return (
-      <View
-        style={{
-          marginTop: 12,
-          flexDirection: "row",
-          alignItems: "flex-start",
-          justifyContent: isUser ? "flex-end" : "flex-start",
-          paddingHorizontal: 4,
-        }}
-      >
-        {!isUser && (
-          <View
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              marginRight: 8,
-              overflow: "hidden",
-              backgroundColor: "#f3f4f6",
-            }}
-          >
-            <Image
-              source={require("../../../assets/images/PokeNihongoLogo.png")}
-              style={{
-                width: "100%",
-                height: "100%",
-              }}
-              resizeMode="cover"
-            />
-          </View>
-        )}
+  const renderMessageItem = useCallback<ListRenderItem<Message>>(
+    ({ item }) => {
+      const isUser = item.role === "user";
+      const userAvatar = user?.avatar;
+      const userName = user?.name || "User";
+
+      return (
         <View
           style={{
-            backgroundColor: isUser ? "#007AFF" : "#ffffff",
-            borderRadius: 14,
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            maxWidth: "75%",
-            borderWidth: isUser ? 0 : 1,
-            borderColor: "rgba(0,0,0,0.06)",
+            marginTop: 12,
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: isUser ? "flex-end" : "flex-start",
+            paddingHorizontal: 4,
           }}
         >
-          {item.text ? (
-            <ThemedText
+          {!isUser && (
+            <View
               style={{
-                fontSize: 16,
-                color: isUser ? "#ffffff" : undefined,
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                marginRight: 8,
+                overflow: "hidden",
+                backgroundColor: "#f3f4f6",
               }}
             >
-              {item.text}
-            </ThemedText>
-          ) : null}
-          {item.translation ? (
-            <ThemedText
-              style={{
-                fontSize: 15,
-                opacity: isUser ? 0.9 : 0.75,
-                marginTop: item.text ? 6 : 0,
-                color: isUser ? "#ffffff" : undefined,
-              }}
-            >
-              {item.translation}
-            </ThemedText>
-          ) : null}
+              <Image
+                source={require("../../../assets/images/PokeNihongoLogo.png")}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                }}
+                resizeMode="cover"
+              />
+            </View>
+          )}
+          <View
+            style={{
+              backgroundColor: isUser ? "#007AFF" : "#ffffff",
+              borderRadius: 14,
+              paddingVertical: 10,
+              paddingHorizontal: 12,
+              maxWidth: "75%",
+              borderWidth: isUser ? 0 : 1,
+              borderColor: "rgba(0,0,0,0.06)",
+            }}
+          >
+            {item.text ? (
+              <ThemedText
+                style={{
+                  fontSize: 16,
+                  color: isUser ? "#ffffff" : undefined,
+                }}
+              >
+                {item.text}
+              </ThemedText>
+            ) : null}
+            {item.translation ? (
+              <ThemedText
+                style={{
+                  fontSize: 15,
+                  opacity: isUser ? 0.9 : 0.75,
+                  marginTop: item.text ? 6 : 0,
+                  color: isUser ? "#ffffff" : undefined,
+                }}
+              >
+                {item.translation}
+              </ThemedText>
+            ) : null}
 
-          {/* Always show audio player, disabled if no audioUrl */}
-          <View style={{ marginTop: 8 }}>
-            <AudioPlayer
-              audioUrl={item.audioUrl || null}
-              iconColor={isUser ? "#ffffff" : "#3b82f6"}
-              buttonStyle={
-                isUser
-                  ? {
-                      borderColor: "rgba(255,255,255,0.3)",
-                      backgroundColor: "rgba(255,255,255,0.2)",
-                    }
-                  : undefined
-              }
-            />
+            {/* Always show audio player, disabled if no audioUrl */}
+            <View style={{ marginTop: 8 }}>
+              <AudioPlayer
+                audioUrl={item.audioUrl || null}
+                iconColor={isUser ? "#ffffff" : "#3b82f6"}
+                buttonStyle={
+                  isUser
+                    ? {
+                        borderColor: "rgba(255,255,255,0.3)",
+                        backgroundColor: "rgba(255,255,255,0.2)",
+                      }
+                    : undefined
+                }
+              />
+            </View>
           </View>
+          {isUser && (
+            <View style={{ marginLeft: 8 }}>
+              <UserAvatarWithFallback avatar={userAvatar} name={userName} />
+            </View>
+          )}
         </View>
-        {isUser && (
-          <View style={{ marginLeft: 8 }}>
-            <UserAvatarWithFallback avatar={userAvatar} name={userName} />
-          </View>
-        )}
-      </View>
-    );
-  }, [user]);
+      );
+    },
+    [user]
+  );
 
   const keyExtractor = useCallback((item: Message) => item.id, []);
 
@@ -369,11 +479,11 @@ export default function AiConversationScreen() {
         }}
       >
         <ThemedText style={{ opacity: 0.6 }}>
-          Bắt đầu ghi âm để luyện hội thoại nhé!
+          {t("home.ai.conversation.empty_message")}
         </ThemedText>
       </View>
     ),
-    []
+    [t]
   );
 
   const AnimatedDots = () => {
@@ -484,6 +594,13 @@ export default function AiConversationScreen() {
       return;
     }
 
+    // Don't connect if user doesn't have subscription
+    if (!hasAIKaiwa) {
+      setIsLoading(false);
+      setIsConnecting(false);
+      return;
+    }
+
     setIsConnecting(true);
     const socket = getSocket("kaiwa", accessToken);
     socketRef.current = socket;
@@ -517,32 +634,39 @@ export default function AiConversationScreen() {
     });
 
     // Listen for history event (load previous messages when joining existing conversation)
-    socket.on("history", (data: {
-      messages?: {
-        messageId?: string | number;
-        role: "USER" | "AI";
-        message: string;
-        translation?: string;
-        audioUrl?: string;
-      }[];
-    }) => {
-      devLog("[SOCKET] History loaded:", data);
-      if (data.messages && data.messages.length > 0) {
-        const historyMessages: Message[] = data.messages.map((msg, index) => ({
-          id:
-            msg.messageId !== undefined && msg.messageId !== null
-              ? String(msg.messageId)
-              : `${msg.role}-${Date.now()}-${index}-${Math.random()}`,
-          role: msg.role === "USER" ? "user" : "ai",
-          text: msg.message,
-          translation: msg.translation,
-          audioUrl: msg.audioUrl,
-          messageId: msg.messageId,
-        }));
-        setMessages(historyMessages);
-        devLog(`[SOCKET] Loaded ${historyMessages.length} messages from history`);
+    socket.on(
+      "history",
+      (data: {
+        messages?: {
+          messageId?: string | number;
+          role: "USER" | "AI";
+          message: string;
+          translation?: string;
+          audioUrl?: string;
+        }[];
+      }) => {
+        devLog("[SOCKET] History loaded:", data);
+        if (data.messages && data.messages.length > 0) {
+          const historyMessages: Message[] = data.messages.map(
+            (msg, index) => ({
+              id:
+                msg.messageId !== undefined && msg.messageId !== null
+                  ? String(msg.messageId)
+                  : `${msg.role}-${Date.now()}-${index}-${Math.random()}`,
+              role: msg.role === "USER" ? "user" : "ai",
+              text: msg.message,
+              translation: msg.translation,
+              audioUrl: msg.audioUrl,
+              messageId: msg.messageId,
+            })
+          );
+          setMessages(historyMessages);
+          devLog(
+            `[SOCKET] Loaded ${historyMessages.length} messages from history`
+          );
+        }
       }
-    });
+    );
 
     // Listen for room-updated event (refresh room list when conversation is updated)
     socket.on("room-updated", (data: unknown) => {
@@ -566,12 +690,12 @@ export default function AiConversationScreen() {
       devLog("[SOCKET] Processing:", data);
       const statusText =
         data.status === "speech-to-text"
-          ? "Đang nhận diện giọng nói..."
+          ? t("home.ai.conversation.processing_speech_to_text")
           : data.status === "gemini-processing"
-            ? "Đang xử lý với AI..."
+            ? t("home.ai.conversation.processing_ai")
             : data.status === "text-to-speech"
-              ? "Đang tạo giọng nói..."
-              : data.message || "Đang xử lý...";
+              ? t("home.ai.conversation.processing_tts")
+              : data.message || t("home.ai.conversation.processing_default");
       setProcessingStatus(statusText);
     });
 
@@ -624,10 +748,7 @@ export default function AiConversationScreen() {
             translation: undefined,
             messageId: data.messageId,
           });
-          devLog(
-            "[SOCKET] AI message created with messageId:",
-            data.messageId
-          );
+          devLog("[SOCKET] AI message created with messageId:", data.messageId);
           // Kick off client-side typing animation
           startTypingAnimation(data.text);
 
@@ -827,11 +948,13 @@ export default function AiConversationScreen() {
     accessToken,
     topicId,
     initialConversationId,
+    hasAIKaiwa,
     appendMessage,
     updateLastAiMessage,
     updateMessageById,
     scheduleApplyPendingTranslation,
     startTypingAnimation,
+    t,
   ]);
 
   // Send audio to server via WebSocket
@@ -899,42 +1022,56 @@ export default function AiConversationScreen() {
     }
   };
 
-  const handleRecordingComplete = async (uri: string, durationSec: number) => {
-    try {
-      const info = await FileSystem.getInfoAsync(uri);
-      const isLikelySilent =
-        !info.exists || (info.size ?? 0) < 2000 || (durationSec ?? 0) < 0.5;
-
-      if (isLikelySilent) {
-        setProcessingStatus("Không phát hiện âm thanh. Thử lại nhé.");
+  const handleRecordingComplete = useCallback(
+    async (uri: string, durationSec: number) => {
+      // Don't allow recording if user doesn't have subscription
+      if (!hasAIKaiwa) {
         return;
       }
 
-      // Check if we have a conversation, if not create one
-      if (!conversationId && socketRef.current && socketRef.current.connected) {
-        socketRef.current.emit("join-kaiwa-room", {});
-        // Wait a bit for the join to complete
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
+      try {
+        const info = await FileSystem.getInfoAsync(uri);
+        const isLikelySilent =
+          !info.exists || (info.size ?? 0) < 2000 || (durationSec ?? 0) < 0.5;
 
-      setIsSubmitting(true);
-      setProcessingStatus("Đang gửi audio...");
+        if (isLikelySilent) {
+          setProcessingStatus(t("home.ai.conversation.no_audio_detected"));
+          return;
+        }
 
-      // Use WebSocket if connected, otherwise fallback to old method
-      if (socketRef.current && socketRef.current.connected) {
-        await sendAudioToServer(uri);
-        // Events will be received: processing -> transcription -> text-response -> audio-response
-      } else {
-        console.warn("[SOCKET] Not connected, cannot send audio");
+        // Check if we have a conversation, if not create one
+        if (
+          !conversationId &&
+          socketRef.current &&
+          socketRef.current.connected
+        ) {
+          socketRef.current.emit("join-kaiwa-room", {});
+          // Wait a bit for the join to complete
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+
+        setIsSubmitting(true);
+        setProcessingStatus(t("home.ai.conversation.sending_audio"));
+
+        // Use WebSocket if connected, otherwise fallback to old method
+        if (socketRef.current && socketRef.current.connected) {
+          await sendAudioToServer(uri);
+          // Events will be received: processing -> transcription -> text-response -> audio-response
+        } else {
+          console.warn("[SOCKET] Not connected, cannot send audio");
+          setIsSubmitting(false);
+          setProcessingStatus(
+            t("home.ai.conversation.server_connection_error")
+          );
+        }
+      } catch (error) {
+        console.error("[RECORDING] Error:", error);
         setIsSubmitting(false);
-        setProcessingStatus("Không thể kết nối tới máy chủ.");
+        setProcessingStatus(t("home.ai.conversation.audio_send_error"));
       }
-    } catch (error) {
-      console.error("[RECORDING] Error:", error);
-      setIsSubmitting(false);
-      setProcessingStatus("Có lỗi khi gửi audio.");
-    }
-  };
+    },
+    [hasAIKaiwa, conversationId, t]
+  );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
@@ -950,17 +1087,222 @@ export default function AiConversationScreen() {
           <ArrowLeftIcon size={20} color="#1f2937" />
         </TouchableOpacity>
         <ThemedText style={{ fontSize: 18, fontWeight: "700", marginLeft: 4 }}>
-          Conversation
+          {t("home.ai.conversation.title")}
         </ThemedText>
       </View>
 
-      {isLoading || isConnecting ? (
+      {!hasAIKaiwa ? (
+        <View
+          style={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            paddingHorizontal: 24,
+          }}
+        >
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              paddingVertical: 32,
+              width: "100%",
+            }}
+          >
+            <View
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: 40,
+                backgroundColor: "#f3f4f6",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 24,
+              }}
+            >
+              <Image
+                source={require("@assets/images/unnamed.jpg")}
+                style={{ width: 80, height: 80 }}
+                resizeMode="contain"
+              />
+            </View>
+            <ThemedText
+              style={{
+                fontSize: 24,
+                fontWeight: "700",
+                marginBottom: 12,
+                textAlign: "center",
+              }}
+            >
+              {ultraPackage?.nameTranslation ||
+                t("home.ai.conversation.locked_title")}
+            </ThemedText>
+            <ThemedText
+              style={{
+                fontSize: 16,
+                opacity: 0.7,
+                textAlign: "center",
+                marginBottom: 32,
+                lineHeight: 24,
+              }}
+            >
+              {ultraPackage?.descriptionTranslation ||
+                t("home.ai.conversation.locked_description")}
+            </ThemedText>
+            {isMarketplaceLoading ? (
+              <ActivityIndicator style={{ marginBottom: 24 }} />
+            ) : ultraFeatures.length > 0 ? (
+              <View
+                style={{
+                  width: "100%",
+                  alignSelf: "stretch",
+                  backgroundColor: "#f9fafb",
+                  borderRadius: 16,
+                  paddingVertical: 16,
+                  paddingHorizontal: 16,
+                  marginBottom: 24,
+                  borderWidth: 1,
+                  borderColor: "rgba(0,0,0,0.05)",
+                }}
+              >
+                {ultraFeatures.map((feature, index) => (
+                  <View
+                    key={`${feature}-${index}`}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "flex-start",
+                      marginBottom: index === ultraFeatures.length - 1 ? 0 : 10,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: 3,
+                        backgroundColor: "#8b5cf6",
+                        marginTop: 8,
+                        marginRight: 8,
+                      }}
+                    />
+                    <ThemedText
+                      style={{
+                        flex: 1,
+                        fontSize: 15,
+                        color: "#1f2937",
+                      }}
+                    >
+                      {feature}
+                    </ThemedText>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+            {formattedUltraPrice ? (
+              <View
+                style={{
+                  width: "100%",
+                  borderRadius: 18,
+                  paddingVertical: 16,
+                  paddingHorizontal: 20,
+                  marginBottom: 18,
+                  backgroundColor: "#f5f3ff",
+                  borderWidth: 1,
+                  borderColor: "rgba(139,92,246,0.3)",
+                  shadowColor: "#8b5cf6",
+                  shadowOpacity: 0.12,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 6 },
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <ThemedText
+                    style={{
+                      fontSize: 18,
+                      fontWeight: "700",
+                      color: "#6d28d9",
+                    }}
+                  >
+                    {priceHighlightText || formattedUltraPrice}
+                  </ThemedText>
+                  <View
+                    style={{
+                      backgroundColor: "#ede9fe",
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                      borderRadius: 999,
+                    }}
+                  >
+                    <ThemedText
+                      style={{
+                        fontSize: 12,
+                        color: "#6d28d9",
+                        fontWeight: "600",
+                      }}
+                    >
+                      Premium
+                    </ThemedText>
+                  </View>
+                </View>
+                {priceSubHighlight ? (
+                  <ThemedText
+                    style={{
+                      marginTop: 10,
+                      fontSize: 14,
+                      color: "#4c1d95",
+                      lineHeight: 20,
+                    }}
+                  >
+                    {priceSubHighlight}
+                  </ThemedText>
+                ) : null}
+              </View>
+            ) : null}
+            <TouchableOpacity
+              onPress={() => {
+                if (ultraPackage?.id) {
+                  router.push({
+                    pathname: ROUTES.APP.SUBSCRIPTION as any,
+                    params: { packageId: String(ultraPackage.id) },
+                  });
+                } else {
+                  router.push(ROUTES.APP.SUBSCRIPTION as any);
+                }
+              }}
+              style={{
+                backgroundColor: "#8b5cf6",
+                paddingVertical: 14,
+                paddingHorizontal: 32,
+                borderRadius: 12,
+                minWidth: 200,
+              }}
+            >
+              <ThemedText
+                style={{
+                  color: "#ffffff",
+                  fontSize: 16,
+                  fontWeight: "600",
+                  textAlign: "center",
+                }}
+              >
+                {t("home.ai.conversation.subscribe_button")}
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : isLoading || isConnecting ? (
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
           <ActivityIndicator />
           <ThemedText style={{ marginTop: 12, opacity: 0.7 }}>
-            {isConnecting ? "Đang kết nối..." : "Đang tải..."}
+            {isConnecting
+              ? t("home.ai.conversation.connecting")
+              : t("home.ai.conversation.loading")}
           </ThemedText>
         </View>
       ) : !isSocketConnected && !topicId ? (
@@ -968,7 +1310,7 @@ export default function AiConversationScreen() {
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
           <ThemedText style={{ opacity: 0.7 }}>
-            Không thể kết nối. Vui lòng thử lại.
+            {t("home.ai.conversation.connection_error")}
           </ThemedText>
         </View>
       ) : (
@@ -997,7 +1339,7 @@ export default function AiConversationScreen() {
               exerciseTitle={isSubmitting ? <AnimatedDots /> : processingStatus}
               showPlayback={false}
               showWaveform={false}
-              disabled={isSubmitting || !isSocketConnected}
+              disabled={isSubmitting || !isSocketConnected || !hasAIKaiwa}
               maxDuration={10}
               showSaveButton={false}
               showDeleteButton={false}
@@ -1016,7 +1358,7 @@ export default function AiConversationScreen() {
                 <ThemedText
                   style={{ fontSize: 12, opacity: 0.6, textAlign: "center" }}
                 >
-                  Đang kết nối với AI...
+                  {t("home.ai.conversation.connecting_to_ai")}
                 </ThemedText>
               </View>
             )}
