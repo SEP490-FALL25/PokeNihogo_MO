@@ -3,7 +3,7 @@ import BackScreen from '@components/molecules/Back';
 import BounceButton from '@components/ui/BounceButton';
 import { Input } from '@components/ui/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import useMinimalAlert from '@hooks/useMinimalAlert';
+import { useMinimalAlert } from '@hooks/useMinimalAlert';
 import { CreateAccountFormDataRequest, ICreateAccountFormDataRequest } from '@models/user/user.request';
 // import { IRegisterFormDataRequest, RegisterFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
@@ -25,7 +25,7 @@ export default function CreateAccountScreen() {
      */
     const { t } = useTranslation();
     const email = useEmailSelector();
-    const { AlertElement, showAlert } = useMinimalAlert();
+    const { showAlert } = useMinimalAlert();
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
 
@@ -151,7 +151,6 @@ export default function CreateAccountScreen() {
                     </View>
                 </View>
             </View>
-            {AlertElement}
         </AuthScreenLayout>
     );
 }

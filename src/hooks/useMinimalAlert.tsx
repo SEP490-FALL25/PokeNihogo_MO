@@ -1,7 +1,12 @@
-import { useCallback, useMemo, useState } from "react";
-import MinimalGameAlert, {
-  AlertType,
-} from "@components/atoms/MinimalAlert";
+import type { AlertType } from "@components/atoms/MinimalAlert";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
 interface AlertConfig {
   visible: boolean;
@@ -9,7 +14,15 @@ interface AlertConfig {
   type: AlertType;
 }
 
-export const useMinimalAlert = () => {
+interface MinimalAlertContextValue {
+  alertConfig: AlertConfig;
+  showAlert: (message: string, type?: AlertType) => void;
+  hideAlert: () => void;
+}
+
+const MinimalAlertContext = createContext<MinimalAlertContextValue | null>(null);
+
+export const MinimalAlertProvider = ({ children }: { children: ReactNode }) => {
   const [alertConfig, setAlertConfig] = useState<AlertConfig>({
     visible: false,
     message: "",
@@ -31,25 +44,35 @@ export const useMinimalAlert = () => {
     []
   );
 
-  const AlertElement = useMemo(
-    () => (
-      <MinimalGameAlert
-        visible={alertConfig.visible}
-        message={alertConfig.message}
-        type={alertConfig.type}
-        onHide={hideAlert}
-      />
-    ),
-    [alertConfig.message, alertConfig.type, alertConfig.visible, hideAlert]
+  const value = useMemo(
+    () => ({
+      alertConfig,
+      showAlert,
+      hideAlert,
+    }),
+    [alertConfig, showAlert, hideAlert]
   );
 
-  return {
-    showAlert,
-    hideAlert,
-    AlertElement,
-    alertConfig,
-  };
+  return (
+    <MinimalAlertContext.Provider value={value}>
+      {children}
+    </MinimalAlertContext.Provider>
+  );
 };
 
-export default useMinimalAlert;
+export const useMinimalAlert = () => {
+  const context = useContext(MinimalAlertContext);
+
+  if (!context) {
+    throw new Error(
+      "useMinimalAlert must be used within a MinimalAlertProvider"
+    );
+  }
+
+  return {
+    alertConfig: context.alertConfig,
+    hideAlert: context.hideAlert,
+    showAlert: context.showAlert,
+  };
+};
 

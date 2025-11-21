@@ -3,7 +3,7 @@ import BackScreen from '@components/molecules/Back';
 import BounceButton from '@components/ui/BounceButton';
 import { Input } from '@components/ui/Input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import useMinimalAlert from '@hooks/useMinimalAlert';
+import { useMinimalAlert } from '@hooks/useMinimalAlert';
 import { IResetPasswordFormDataRequest, ResetPasswordFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
@@ -21,7 +21,7 @@ export default function ResetPasswordScreen() {
      * Define variables
      */
     const { t } = useTranslation();
-    const { AlertElement, showAlert } = useMinimalAlert();
+    const { showAlert } = useMinimalAlert();
     const email = useEmailSelector();
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
@@ -130,7 +130,6 @@ export default function ResetPasswordScreen() {
                     </ScrollView>
                 </View>
             </View>
-            {AlertElement}
         </AuthScreenLayout>
     );
 }

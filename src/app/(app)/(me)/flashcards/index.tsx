@@ -2,7 +2,7 @@ import EmptyState from "@components/ui/EmptyState";
 import { EnhancedPagination } from "@components/ui/Pagination";
 import { Select } from "@components/ui/Select";
 import { useDebounce } from "@hooks/useDebounce";
-import useMinimalAlert from "@hooks/useMinimalAlert";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import {
   useCreateFlashcardDeck,
   useFlashcardDecks,
@@ -81,7 +81,7 @@ const statusBadgeStyles: Record<
 const FlashcardDeckListScreen = () => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { AlertElement, showAlert } = useMinimalAlert();
+  const { showAlert } = useMinimalAlert();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
@@ -528,7 +528,6 @@ const FlashcardDeckListScreen = () => {
           </View>
         </View>
       </Modal>
-      {AlertElement}
     </SafeAreaView>
   );
 };
