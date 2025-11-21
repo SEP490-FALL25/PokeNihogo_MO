@@ -4,7 +4,7 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft, RotateCcw, Trophy } from "lucide-react-native";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
@@ -29,6 +29,101 @@ interface MatchingCard {
   isMatched: boolean;
 }
 
+// Card component with animations
+const MatchingCardComponent = React.memo(({
+  card,
+  index,
+  isSelected,
+  cardSize,
+  cardHeight,
+  contentType,
+  scaleRef,
+  opacityRef,
+  selectionScaleRef,
+  onPress,
+  disabled,
+}: {
+  card: MatchingCard;
+  index: number;
+  isSelected: boolean;
+  cardSize: number;
+  cardHeight: number;
+  contentType?: string;
+  scaleRef: Animated.Value;
+  opacityRef: Animated.Value;
+  selectionScaleRef: Animated.Value;
+  onPress: () => void;
+  disabled: boolean;
+}) => {
+  const isWordCard = card.type === "word";
+  
+  // Animate selection scale
+  useEffect(() => {
+    Animated.spring(selectionScaleRef, {
+      toValue: isSelected ? 1.05 : 1,
+      tension: 100,
+      friction: 7,
+      useNativeDriver: true,
+    }).start();
+  }, [isSelected, selectionScaleRef]);
+  
+  // Combine base scale with selection scale
+  const combinedScale = Animated.multiply(scaleRef, selectionScaleRef);
+  
+  return (
+    <Animated.View
+      style={{
+        width: cardSize,
+        height: cardHeight,
+        transform: [{ scale: combinedScale }],
+        opacity: opacityRef,
+      }}
+      pointerEvents={disabled ? "none" : "auto"}
+    >
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.8}
+        disabled={disabled}
+        style={{
+          width: "100%",
+          height: "100%",
+          backgroundColor: isSelected ? "#fef3c7" : "#ffffff",
+          borderRadius: 16,
+          borderWidth: 3,
+          borderColor: isSelected ? "#f59e0b" : "#d1d5db",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: 8,
+          elevation: 6,
+          padding: 12,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ThemedText
+          style={{
+            fontSize: isWordCard
+              ? contentType === "kanji"
+                ? 32
+                : 20
+              : 16,
+            fontWeight: "bold",
+            color: "#000000",
+            textAlign: "center",
+          }}
+          numberOfLines={isWordCard ? 2 : 3}
+        >
+          {card.content}
+        </ThemedText>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+});
+
+MatchingCardComponent.displayName = "MatchingCardComponent";
+
+
 const MatchingGameScreen = () => {
   const { t } = useTranslation();
   const { id, contentType } = useLocalSearchParams<{
@@ -50,6 +145,87 @@ const MatchingGameScreen = () => {
   const [isTimeUp, setIsTimeUp] = useState(false);
   const [nextCardIndex, setNextCardIndex] = useState<number>(0); // Index to get next cards from pool
   const MAX_DISPLAYED_CARDS = 12; // 3x4 = 12 cards (6 pairs)
+  
+  // Animation refs for each card
+  const cardScaleRefs = useRef<{ [key: string]: Animated.Value }>({});
+  const cardOpacityRefs = useRef<{ [key: string]: Animated.Value }>({});
+  const cardSelectionScaleRefs = useRef<{ [key: string]: Animated.Value }>({});
+  
+  // Initialize animation refs for a card
+  const initCardAnimation = useCallback((cardId: string, isNewCard = false) => {
+    if (!cardScaleRefs.current[cardId]) {
+      cardScaleRefs.current[cardId] = new Animated.Value(isNewCard ? 0 : 1);
+    }
+    if (!cardOpacityRefs.current[cardId]) {
+      cardOpacityRefs.current[cardId] = new Animated.Value(isNewCard ? 0 : 1);
+    }
+  }, []);
+  
+  // Animate card match out (zoom in -> zoom out -> fade out)
+  const animateCardMatchOut = useCallback((cardId: string, callback?: () => void) => {
+    const scaleAnim = cardScaleRefs.current[cardId];
+    const opacityAnim = cardOpacityRefs.current[cardId];
+    
+    if (!scaleAnim || !opacityAnim) {
+      callback?.();
+      return;
+    }
+    
+    Animated.sequence([
+      // Zoom in
+      Animated.timing(scaleAnim, {
+        toValue: 1.2,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      // Zoom out
+      Animated.timing(scaleAnim, {
+        toValue: 0.8,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      // Fade out
+      Animated.parallel([
+        Animated.timing(scaleAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start(callback);
+  }, []);
+  
+  // Animate card in (zoom in from 0)
+  const animateCardIn = useCallback((cardId: string) => {
+    const scaleAnim = cardScaleRefs.current[cardId];
+    const opacityAnim = cardOpacityRefs.current[cardId];
+    
+    if (!scaleAnim || !opacityAnim) return;
+    
+    // Start from 0
+    scaleAnim.setValue(0);
+    opacityAnim.setValue(0);
+    
+    // Animate to 1
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   // Get content data based on content type
   const getContentData = () => {
@@ -144,10 +320,34 @@ const MatchingGameScreen = () => {
       const allCards = initializeCards();
       setAllCardsPool(allCards);
       
-      // Display first 12 cards (6 pairs)
-      const initialDisplayed = allCards.slice(0, MAX_DISPLAYED_CARDS);
+      // Display first 6 complete pairs (12 cards)
+      // Find first 6 unique pairIds and get both cards (word + meaning) for each pair
+      const displayedPairIds = new Set<string>();
+      const initialDisplayed: MatchingCard[] = [];
+      
+      for (const card of allCards) {
+        if (initialDisplayed.length >= MAX_DISPLAYED_CARDS) break;
+        
+        if (!displayedPairIds.has(card.pairId)) {
+          // Find both cards (word and meaning) of this pair
+          const pairCards = allCards.filter((c) => c.pairId === card.pairId);
+          if (pairCards.length === 2) {
+            // Add both cards to display
+            initialDisplayed.push(...pairCards);
+            displayedPairIds.add(card.pairId);
+          }
+        }
+      }
+      
       setCards(initialDisplayed);
-      setNextCardIndex(MAX_DISPLAYED_CARDS);
+      // Update nextCardIndex to skip all displayed cards
+      setNextCardIndex(
+        allCards.findIndex(
+          (card) => !displayedPairIds.has(card.pairId)
+        ) === -1
+          ? allCards.length
+          : allCards.findIndex((card) => !displayedPairIds.has(card.pairId))
+      );
     }
   }, [contentData.length, initializeCards, allCardsPool.length]);
 
@@ -176,6 +376,13 @@ const MatchingGameScreen = () => {
     }
   }, [isTimeUp, isGameComplete]);
 
+  // Initialize animation refs for cards
+  useEffect(() => {
+    cards.forEach((card) => {
+      initCardAnimation(card.id);
+    });
+  }, [cards, initCardAnimation]);
+
   // Reset game
   const resetGame = useCallback(() => {
     setSelectedIndices([]);
@@ -188,10 +395,34 @@ const MatchingGameScreen = () => {
     const allCards = initializeCards();
     setAllCardsPool(allCards);
     
-    // Display first 12 cards (6 pairs)
-    const initialDisplayed = allCards.slice(0, MAX_DISPLAYED_CARDS);
+    // Display first 6 complete pairs (12 cards)
+    // Find first 6 unique pairIds and get both cards (word + meaning) for each pair
+    const displayedPairIds = new Set<string>();
+    const initialDisplayed: MatchingCard[] = [];
+    
+    for (const card of allCards) {
+      if (initialDisplayed.length >= MAX_DISPLAYED_CARDS) break;
+      
+      if (!displayedPairIds.has(card.pairId)) {
+        // Find both cards (word and meaning) of this pair
+        const pairCards = allCards.filter((c) => c.pairId === card.pairId);
+        if (pairCards.length === 2) {
+          // Add both cards to display
+          initialDisplayed.push(...pairCards);
+          displayedPairIds.add(card.pairId);
+        }
+      }
+    }
+    
     setCards(initialDisplayed);
-    setNextCardIndex(MAX_DISPLAYED_CARDS);
+    // Update nextCardIndex to skip all displayed cards
+    setNextCardIndex(
+      allCards.findIndex(
+        (card) => !displayedPairIds.has(card.pairId)
+      ) === -1
+        ? allCards.length
+        : allCards.findIndex((card) => !displayedPairIds.has(card.pairId))
+    );
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   }, [initializeCards]);
 
@@ -241,42 +472,106 @@ const MatchingGameScreen = () => {
         // Match found!
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-        // Remove matched cards from displayed cards
-        const updatedCards = cards.filter(
+        // Initialize animation refs for matched cards
+        initCardAnimation(firstCard.id);
+        initCardAnimation(secondCard.id);
+        
+        // Find next complete pair from pool before animation
+        let updatedCards = cards.filter(
           (_, index) => index !== firstIndex && index !== secondIndex
         );
-
-        // Add next 2 cards from pool if available
-        let newCards = [...updatedCards];
         let newNextIndex = nextCardIndex;
+        let nextPairCards: MatchingCard[] = [];
         
-        if (nextCardIndex < allCardsPool.length) {
-          const nextCards = allCardsPool.slice(nextCardIndex, nextCardIndex + 2);
-          if (nextCards.length === 2) {
-            newCards = [...updatedCards, ...nextCards];
-            newNextIndex = nextCardIndex + 2;
+        // Get all displayed pairIds to avoid duplicates
+        const displayedPairIds = new Set(updatedCards.map((card) => card.pairId));
+        
+        // Find next pair in pool that hasn't been displayed yet
+        if (newNextIndex < allCardsPool.length) {
+          const remainingPool = allCardsPool.slice(newNextIndex);
+          
+          let foundPairId: string | null = null;
+          for (const card of remainingPool) {
+            if (!displayedPairIds.has(card.pairId)) {
+              foundPairId = card.pairId;
+              break;
+            }
+          }
+          
+          if (foundPairId) {
+            const pairCards = allCardsPool
+              .slice(newNextIndex)
+              .filter((card) => card.pairId === foundPairId);
+            
+            if (pairCards.length === 2) {
+              nextPairCards = pairCards;
+              const lastCardIndex = allCardsPool.findIndex(
+                (card, idx) => idx >= newNextIndex && card.pairId === foundPairId && card.type === "meaning"
+              );
+              if (lastCardIndex !== -1) {
+                newNextIndex = lastCardIndex + 1;
+              }
+            }
           }
         }
-
-        setCards(newCards);
-        setNextCardIndex(newNextIndex);
-        setMatchedPairs((prev) => {
-          const newCount = prev + 1;
-          // Check if game is complete (all pairs matched)
-          const totalPairsInPool = allCardsPool.length / 2;
-          const remainingCardsInPool = allCardsPool.length - newNextIndex;
-          const remainingDisplayedCards = newCards.length;
-          
-          // Game complete if: all pairs matched OR no more cards in pool and display
-          if (newCount >= totalPairsInPool || (remainingCardsInPool === 0 && remainingDisplayedCards === 0)) {
+        
+        // Prepare final cards array
+        const finalCards = [...updatedCards];
+        if (nextPairCards.length === 2) {
+          finalCards.push(...nextPairCards);
+        }
+        
+        // Animate matched cards out (zoom in -> zoom out -> fade out)
+        let animationCompleteCount = 0;
+        const onAnimationComplete = () => {
+          animationCompleteCount++;
+          if (animationCompleteCount === 2) {
+            // Both animations complete, now update cards
+            const newCards = [...updatedCards];
+            
+            // Initialize animation refs for new cards
+            nextPairCards.forEach((card) => {
+              initCardAnimation(card.id, true);
+            });
+            
+            // Add new cards
+            if (nextPairCards.length === 2) {
+              newCards.push(...nextPairCards);
+            }
+            
+            setCards(newCards);
+            setNextCardIndex(newNextIndex);
+            
+            // Animate new cards in after a short delay
             setTimeout(() => {
-              setIsGameComplete(true);
-              setIsTimeUp(false); // Mark as completed, not time up
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            }, 500);
+              nextPairCards.forEach((card) => {
+                animateCardIn(card.id);
+              });
+            }, 50);
+            
+            // Check if game is complete after updating cards
+            setMatchedPairs((prev) => {
+              const newCount = prev + 1;
+              const totalPairsInPool = allCardsPool.length / 2;
+              const remainingCardsInPool = allCardsPool.length - newNextIndex;
+              const remainingDisplayedCards = newCards.length;
+              
+              // Game complete if: all pairs matched OR no more cards in pool and display
+              if (newCount >= totalPairsInPool || (remainingCardsInPool === 0 && remainingDisplayedCards === 0)) {
+                setTimeout(() => {
+                  setIsGameComplete(true);
+                  setIsTimeUp(false); // Mark as completed, not time up
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                }, 500);
+              }
+              return newCount;
+            });
           }
-          return newCount;
-        });
+        };
+        
+        // Start animations for both matched cards
+        animateCardMatchOut(firstCard.id, onAnimationComplete);
+        animateCardMatchOut(secondCard.id, onAnimationComplete);
       } else {
         // No match
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -459,74 +754,33 @@ const MatchingGameScreen = () => {
           >
             {cards.map((card, index) => {
               const isSelected = selectedIndices.includes(index);
-              const isWordCard = card.type === "word";
-              const scaleAnim = new Animated.Value(isSelected ? 1.05 : 1);
-
-              if (isSelected) {
-                Animated.spring(scaleAnim, {
-                  toValue: 1.05,
-                  tension: 100,
-                  friction: 7,
-                  useNativeDriver: true,
-                }).start();
-              } else {
-                Animated.spring(scaleAnim, {
-                  toValue: 1,
-                  tension: 100,
-                  friction: 7,
-                  useNativeDriver: true,
-                }).start();
+              
+              // Get or create animation refs
+              if (!cardScaleRefs.current[card.id]) {
+                cardScaleRefs.current[card.id] = new Animated.Value(1);
+              }
+              if (!cardOpacityRefs.current[card.id]) {
+                cardOpacityRefs.current[card.id] = new Animated.Value(1);
+              }
+              if (!cardSelectionScaleRefs.current[card.id]) {
+                cardSelectionScaleRefs.current[card.id] = new Animated.Value(1);
               }
 
               return (
-                <Animated.View
+                <MatchingCardComponent
                   key={card.id}
-                  style={{
-                    width: cardSize,
-                    height: cardHeight,
-                    transform: [{ scale: scaleAnim }],
-                    opacity: card.isMatched ? 0 : 1,
-                  }}
-                  pointerEvents={card.isMatched ? "none" : "auto"}
-                >
-                  <TouchableOpacity
-                    onPress={() => handleCardPress(index)}
-                    activeOpacity={0.8}
-                    disabled={isChecking || card.isMatched}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      backgroundColor: isSelected ? "#fef3c7" : "#ffffff",
-                      borderRadius: 16,
-                      borderWidth: 3,
-                      borderColor: isSelected ? "#f59e0b" : "#d1d5db",
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.15,
-                      shadowRadius: 8,
-                      elevation: 6,
-                      padding: 12,
-                      justifyContent: "center",
-                      alignItems: "center",
-                    }}
-                  >
-                    <ThemedText
-                      style={{
-                        fontSize: isWordCard
-                          ? contentType === "kanji"
-                            ? 32
-                            : 20
-                          : 16,
-                        fontWeight: "bold",
-                        color: "#000000",
-                        textAlign: "center",
-                      }}
-                      numberOfLines={isWordCard ? 2 : 3}
-                    >
-                      {card.content}
-                    </ThemedText>
-                  </TouchableOpacity>
-                </Animated.View>
+                  card={card}
+                  index={index}
+                  isSelected={isSelected}
+                  cardSize={cardSize}
+                  cardHeight={cardHeight}
+                  contentType={contentType}
+                  scaleRef={cardScaleRefs.current[card.id]}
+                  opacityRef={cardOpacityRefs.current[card.id]}
+                  selectionScaleRef={cardSelectionScaleRefs.current[card.id]}
+                  onPress={() => handleCardPress(index)}
+                  disabled={isChecking || card.isMatched}
+                />
               );
             })}
           </View>
