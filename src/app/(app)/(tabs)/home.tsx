@@ -5,13 +5,17 @@ import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import WelcomeModal from "@components/ui/WelcomeModal";
 import { SubscriptionFeatureKey } from "@constants/subscription.enum";
+import useAuthHook from "@hooks/useAuth";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useSrsReview } from "@hooks/useSrsReview";
 import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
 import { useRecentExercises } from "@hooks/useUserHistory";
 import { ISrsReviewItem } from "@models/srs/srs-review.response";
 import { IRecentExerciseItem } from "@models/user-history/user-history.response";
 import { ROUTES } from "@routes/routes";
+import attendanceService from "@services/attendance";
 import { useUserStore } from "@stores/user/user.config";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import {
@@ -26,6 +30,7 @@ import {
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  Alert,
   Dimensions,
   ScrollView,
   StyleSheet,
@@ -37,6 +42,15 @@ import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+const normalizeDateKey = (dateString?: string) => {
+  if (!dateString) return "";
+  try {
+    return new Date(dateString).toISOString().split("T")[0];
+  } catch {
+    return "";
+  }
+};
 
 /**
  * Exercise Card Component for Recent Exercises
@@ -302,14 +316,43 @@ const InsightCard: React.FC<{
 export default function HomeScreen() {
   const { t } = useTranslation();
   const srsTypeConfig = useSrsTypeConfig();
+  const { user } = useAuthHook();
+  const { showAlert } = useMinimalAlert();
 
   // Modal state management
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showDailyLogin, setShowDailyLogin] = useState(false);
+  const [hasAutoOpenedAttendance, setHasAutoOpenedAttendance] = useState(false);
   const homeLayoutRef = useRef<HomeLayoutRef>(null);
+  const queryClient = useQueryClient();
 
   // Global state from user store
   const { isFirstTimeLogin, starterId, email } = useUserStore();
+
+  const {
+    data: attendanceSummary,
+    isLoading: isAttendanceLoading,
+  } = useQuery({
+    queryKey: ["attendance-summary", user?.data?.id],
+    queryFn: attendanceService.getAttendanceSummary,
+    enabled: !!user?.data?.id,
+  });
+
+  const username = useMemo(() => {
+    const trimmedName = user?.data?.name?.trim();
+    if (trimmedName) {
+      return trimmedName;
+    }
+
+    if (email) {
+      const [localPart] = email.split("@");
+      if (localPart) {
+        return localPart;
+      }
+    }
+
+    return "Trainer";
+  }, [user?.data?.name, email]);
 
   // Fetch user progress overview (for future use)
   // const { data: userProgressOverview } = useUserProgress();
@@ -319,6 +362,23 @@ export default function HomeScreen() {
     currentPage: 1,
     pageSize: 10,
   });
+
+  const todayKey = useMemo(() => new Date().toISOString().split("T")[0], []);
+
+  const attendanceHistory = useMemo(() => {
+    return (
+      attendanceSummary?.attendances?.map((record) =>
+        normalizeDateKey(record.date)
+      ) || []
+    );
+  }, [attendanceSummary?.attendances]);
+
+  const hasCheckedInToday = useMemo(() => {
+    if (!attendanceHistory.length) {
+      return false;
+    }
+    return attendanceHistory.includes(todayKey);
+  }, [attendanceHistory, todayKey]);
 
   // Check if user has personalized recommendations feature
   const hasPersonalizedRecommendations = useCheckFeature(
@@ -355,6 +415,21 @@ export default function HomeScreen() {
     }
   }, [isFirstTimeLogin]);
 
+  useEffect(() => {
+    if (!attendanceSummary || isAttendanceLoading) {
+      return;
+    }
+    if (!hasCheckedInToday && !hasAutoOpenedAttendance) {
+      setShowDailyLogin(true);
+      setHasAutoOpenedAttendance(true);
+    }
+  }, [
+    attendanceSummary,
+    hasCheckedInToday,
+    hasAutoOpenedAttendance,
+    isAttendanceLoading,
+  ]);
+
   /**
    * Handle welcome modal close
    */
@@ -362,11 +437,40 @@ export default function HomeScreen() {
     setShowWelcomeModal(false);
   };
 
+  const checkInMutation = useMutation({
+    mutationFn: attendanceService.checkIn,
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({
+        queryKey: ["attendance-summary", user?.data?.id],
+      });
+      showAlert(
+        response?.message ||
+          t("daily_login.success_message", "Điểm danh thành công!"),
+        "success"
+      );
+    },
+    onError: () => {
+      const errorMessage = t(
+        "daily_login.error_message",
+        "Không thể điểm danh, vui lòng thử lại."
+      );
+      Alert.alert(
+        t("daily_login.error_title", "Có lỗi xảy ra"),
+        errorMessage
+      );
+      showAlert(errorMessage, "error");
+    },
+  });
+
   /**
    * Handle daily check-in action
    */
-  const handleDailyCheckin = () => {
-    console.log("User checked in daily!");
+  const handleDailyCheckin = async () => {
+    try {
+      await checkInMutation.mutateAsync();
+    } catch {
+      // Error is handled in onError
+    }
   };
 
   // Get recent exercises from API response
@@ -472,7 +576,7 @@ export default function HomeScreen() {
         <View style={styles.welcomeSection}>
           <ThemedText type="subtitle" style={styles.welcomeTitle}>
             {t("home.welcome_back", {
-              username: email.split("@")[0] || "Trainer",
+              username,
             })}
           </ThemedText>
           <ThemedText style={styles.welcomeSubtitle}>
@@ -709,7 +813,7 @@ export default function HomeScreen() {
       <WelcomeModal
         visible={showWelcomeModal}
         onClose={handleWelcomeModalClose}
-        username={email.split("@")[0] || "Trainer"}
+        username={username}
         pokemonName={selectedStarter.name}
       />
 
@@ -718,6 +822,11 @@ export default function HomeScreen() {
         visible={showDailyLogin}
         onClose={() => setShowDailyLogin(false)}
         onCheckIn={handleDailyCheckin}
+        streak={attendanceSummary?.totalStreak ?? 0}
+        hasCheckedInToday={hasCheckedInToday}
+        checkInHistory={attendanceHistory}
+        isLoading={isAttendanceLoading && !attendanceSummary}
+        isSubmitting={checkInMutation.isPending}
       />
     </HomeLayout>
   );

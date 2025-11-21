@@ -1,18 +1,13 @@
 import { ThemedText } from "@components/ThemedText";
 import { TestStatus } from "@constants/test.enum";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUserTests } from "@hooks/useUserTest";
 import { ROUTES } from "@routes/routes";
 import { router } from "expo-router";
 import { Mic } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Animated,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
+import { LockOverlay } from "./LockOverlay";
 
 type UserTestItem = {
   id: number;
@@ -30,18 +25,21 @@ type UserTestItem = {
   };
 };
 
+const SPEAKING_ACCENT = "#8b5cf6";
+const SPEAKING_PARTICLE_PALETTE = ["#fbbf24", "#fef3c7"];
+
 const SpeakingCard: React.FC<{
   item: UserTestItem;
   onPress: () => void;
   onLockedPress: () => void;
 }> = ({ item, onPress, onLockedPress }) => {
   const isLocked = item.status === "NOT_STARTED";
-  
+
   return (
     <TouchableOpacity
       style={[
         styles.card, 
-        { borderLeftColor: "#8b5cf6" },
+        { borderLeftColor: SPEAKING_ACCENT },
         isLocked && styles.lockedCard
       ]}
       onPress={isLocked ? onLockedPress : onPress}
@@ -90,9 +88,10 @@ const SpeakingCard: React.FC<{
       </View>
 
       {isLocked && (
-        <View style={styles.lockOverlay} pointerEvents="none">
-          <MaterialCommunityIcons name="lock" size={48} color="#64748B" />
-        </View>
+        <LockOverlay
+          isVisible={isLocked}
+          particlePalette={SPEAKING_PARTICLE_PALETTE}
+        />
       )}
     </TouchableOpacity>
   );
@@ -348,17 +347,6 @@ const styles = StyleSheet.create({
   },
   lockedText: {
     color: "#9ca3af",
-  },
-  lockOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
-    borderRadius: 12,
   },
 });
 

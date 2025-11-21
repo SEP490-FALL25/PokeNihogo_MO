@@ -3,9 +3,9 @@ import BackScreen from '@components/molecules/Back';
 import BounceButton from '@components/ui/BounceButton';
 import ImageUploader from '@components/ui/ImageUploader';
 import { Input } from '@components/ui/Input';
-import { useToast } from '@components/ui/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@hooks/useAuth';
+import { useMinimalAlert } from '@hooks/useMinimalAlert';
 import { useUpdateProfile } from '@hooks/useUpdateProfile';
 import { IUserEntity } from '@models/user/user.entity';
 import { IUpdateProfileFormDataRequest, UpdateProfileFormDataRequest } from '@models/user/user.request';
@@ -46,7 +46,7 @@ const buildPayload = (values: IUpdateProfileFormDataRequest) => {
 
 export default function AccountDetailsScreen() {
   const { t } = useTranslation();
-  const { toast } = useToast();
+  const { showAlert } = useMinimalAlert();
   const insets = useSafeAreaInsets();
   const { user, isLoading } = useAuth();
   const userProfile = user?.data as IUserEntity | undefined;
@@ -84,25 +84,16 @@ export default function AccountDetailsScreen() {
     const payload = buildPayload(values);
 
     if (Object.keys(payload).length === 0) {
-      toast({
-        variant: 'default',
-        description: t('account_details.nothing_to_update'),
-      });
+      showAlert(t('account_details.nothing_to_update'), 'info');
       return;
     }
 
     try {
       await mutateAsync(payload);
-      toast({
-        variant: 'Success',
-        description: t('account_details.update_success'),
-      });
+      showAlert(t('account_details.update_success'), 'success');
       router.back();
     } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        description: error?.message || t('account_details.update_error'),
-      });
+      showAlert(error?.message || t('account_details.update_error'), 'error');
     }
   };
 

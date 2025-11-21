@@ -1,5 +1,6 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { IUserSubscriptionFeatureDetail } from '@models/subscription/subscription.response';
 
 const LANGUAGE_STORAGE_KEY = 'app_language';
 
@@ -12,6 +13,7 @@ export const createGlobalSlice = (set: any, get: any): ZUSTAND.IGlobalState => (
 
   // Subscription features state
   subscriptionKeys: [],
+  subscriptionFeatureDetails: {} as Record<string, IUserSubscriptionFeatureDetail>,
 
   setLanguage: async (language: string) => {
     try {
@@ -71,11 +73,26 @@ export const createGlobalSlice = (set: any, get: any): ZUSTAND.IGlobalState => (
   },
 
   // Subscription features management
-  setSubscriptionKeys: (keys: string[]) => set({ subscriptionKeys: keys }),
-  clearSubscriptionKeys: () => set({ subscriptionKeys: [] }),
+  setSubscriptionFeatures: (features: IUserSubscriptionFeatureDetail[]) => {
+    const featureMap = features.reduce<Record<string, IUserSubscriptionFeatureDetail>>((acc, feature) => {
+      acc[feature.featureKey] = feature;
+      return acc;
+    }, {});
+
+    set({
+      subscriptionKeys: Object.keys(featureMap),
+      subscriptionFeatureDetails: featureMap,
+    });
+  },
+  clearSubscriptionFeatures: () => set({ subscriptionKeys: [], subscriptionFeatureDetails: {} }),
   hasFeature: (featureKey: string) => {
-    const { subscriptionKeys } = get();
-    return subscriptionKeys.includes(featureKey);
+    const { subscriptionFeatureDetails } = get();
+    return Boolean(subscriptionFeatureDetails[featureKey]);
+  },
+  getFeatureValue: (featureKey: string) => {
+    const { subscriptionFeatureDetails } = get();
+    const numericValue = subscriptionFeatureDetails[featureKey]?.numericValue;
+    return typeof numericValue === 'number' ? numericValue : null;
   },
 });
 

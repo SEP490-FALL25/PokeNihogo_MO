@@ -1,6 +1,11 @@
 import { axiosPrivate } from "@configs/axios";
 import { SubscriptionPackageType } from "@models/subscription/subscription.request";
-import { ISubscriptionPackageResponse, IUserSubscriptionFeaturesResponse } from "@models/subscription/subscription.response";
+import {
+    ISubscriptionPackageResponse,
+    IUserSubscriptionFeatureDetail,
+    IUserSubscriptionFeaturesResponse,
+    UserSubscriptionFeaturesResponseSchema,
+} from "@models/subscription/subscription.response";
 
 const subscriptionService = {
     getMarketplacePackages: async () => {
@@ -77,13 +82,34 @@ const subscriptionService = {
      * Get user's subscription features (keys)
      * Returns array of feature keys that user has access to
      */
-    getUserFeatures: async (): Promise<{ features: string[] }> => {
+    getUserFeatures: async (): Promise<{ features: IUserSubscriptionFeatureDetail[] }> => {
         const response = await axiosPrivate.get(`/user-subscription/user/features`);
-        const data: IUserSubscriptionFeaturesResponse = response.data;
-        
-        // Extract feature keys from result array
-        const features = data.data?.result?.map(item => item.featureKey) || [];
-        
+        const parsed: IUserSubscriptionFeaturesResponse = UserSubscriptionFeaturesResponseSchema.parse(response.data);
+
+        const features =
+            parsed.data?.result
+                ?.map((item) => {
+                    const featureKey = item.featureKey || item.feature?.featureKey;
+                    if (!featureKey) {
+                        return null;
+                    }
+
+                    const numericValue =
+                        item.value !== null && item.value !== undefined
+                            ? Number(item.value)
+                            : null;
+
+                    return {
+                        featureKey,
+                        featureId: item.featureId || item.feature?.id,
+                        value: item.value,
+                        numericValue: Number.isFinite(numericValue) ? numericValue : null,
+                        nameKey: item.feature?.nameKey,
+                        nameTranslation: item.feature?.nameTranslation,
+                    } as IUserSubscriptionFeatureDetail;
+                })
+                .filter((item): item is IUserSubscriptionFeatureDetail => Boolean(item)) || [];
+
         return { features };
     },
 }

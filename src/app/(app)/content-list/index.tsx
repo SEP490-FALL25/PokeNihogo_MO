@@ -1421,6 +1421,65 @@ const VocabularyListScreen = () => {
                 </TouchableOpacity>
               )}
 
+              {/* Matching Game - Chỉ hiển thị khi không phải grammar */}
+              {contentTypeValue !== "grammar" && (
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    router.push({
+                      pathname: "/(app)/content-list/matching",
+                      params: {
+                        id,
+                        contentType: contentTypeValue,
+                      },
+                    });
+                  }}
+                  className="rounded-3xl p-6 shadow-lg"
+                  style={{
+                    width: (width - 48 - 12) / 2,
+                    backgroundColor: "#F3E8FF",
+                  }}
+                >
+                  <View className="items-center mb-3">
+                    <View
+                      className="rounded-full items-center justify-center"
+                      style={{
+                        width: 80,
+                        height: 80,
+                        backgroundColor: "#A855F7",
+                        shadowColor: "#7c3aed",
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 8,
+                        elevation: 6,
+                        overflow: "hidden",
+                      }}
+                    >
+                      <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
+                        🎯
+                      </ThemedText>
+                    </View>
+                  </View>
+                  <ThemedText
+                    style={{
+                      textAlign: "center",
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      color: "#7c3aed",
+                    }}
+                  >
+                    {t(
+                      contentTypeValue === "kanji"
+                        ? "content_list.activity.match.kanji"
+                        : "content_list.activity.match.vocabulary",
+                      contentTypeValue === "kanji"
+                        ? "Match kanji"
+                        : "Match vocabulary"
+                    )}
+                  </ThemedText>
+                </TouchableOpacity>
+              )}
+
               {/* Kiểm tra - Full width khi là grammar, một nửa khi không phải grammar */}
               <TouchableOpacity
                 onPress={() => {

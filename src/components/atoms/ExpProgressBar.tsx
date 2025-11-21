@@ -17,8 +17,9 @@ export default function ExpProgressBar({
   showText = true,
   style,
 }: ExpProgressBarProps) {
+  const totalExp = currentExp + expToNextLevel;
   const percentage =
-    expToNextLevel > 0 ? (currentExp / expToNextLevel) * 100 : 0;
+    totalExp > 0 ? (currentExp / totalExp) * 100 : 0;
   const isLarge = size === "large";
   const { t } = useTranslation();
   return (
@@ -31,7 +32,7 @@ export default function ExpProgressBar({
               isLarge ? styles.progressTextLarge : styles.progressTextSmall,
             ]}
           >
-            {currentExp?.toLocaleString()} / {expToNextLevel.toLocaleString()}{" "}
+            {currentExp?.toLocaleString()} / {totalExp.toLocaleString()}{" "}
             {t("profile.xp")}
           </Text>
           {/* {isLarge && (
@@ -57,7 +58,7 @@ export default function ExpProgressBar({
 
       {isLarge && showText && (
         <Text style={styles.remainingText}>
-          {(expToNextLevel - currentExp).toLocaleString()} {t("profile.xp")}{" "}
+          {expToNextLevel.toLocaleString()} {t("profile.xp")}{" "}
           {t("profile.to")} {t("profile.level")}{" "}
           {Math.floor(currentExp / 1000) + 1}
         </Text>

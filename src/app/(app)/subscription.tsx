@@ -1,11 +1,11 @@
 import { openInAppBrowser } from "@components/atoms/InAppBrowser";
-import MinimalAlert from "@components/atoms/MinimalAlert";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import BackScreen from "@components/molecules/Back";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { WALLET } from "@constants/wallet.enum";
 import { useCreateInvoice, useRefetchUserData } from "@hooks/useInvoice";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
 import { useWalletUser } from "@hooks/useWallet";
 import { ISubscriptionMarketplaceEntity } from "@models/subscription/subscription.entity";
@@ -23,19 +23,17 @@ const POKECOIN_DEDUCTION_STEP = 10000;
 
 export default function SubscriptionScreen() {
     const { t } = useTranslation();
-    const params = useLocalSearchParams<{ testType?: string }>();
+    const params = useLocalSearchParams<{ testType?: string; packageId?: string }>();
     const { data: packagesData, isLoading: isLoadingPackages } = useSubscriptionMarketplacePackages();
     const { walletUser, isLoading: isLoadingWallet } = useWalletUser();
     const { mutate: createInvoice, isPending: isPurchasing } = useCreateInvoice();
     const { refetchAll } = useRefetchUserData();
+    const { showAlert } = useMinimalAlert();
     const scrollViewRef = useRef<ScrollView>(null);
     const packageRefs = useRef<Record<number, View | null>>({});
     const [highlightedPackageId, setHighlightedPackageId] = useState<number | null>(null);
     const highlightAnim = useRef(new Animated.Value(0)).current;
 
-    const [alertVisible, setAlertVisible] = useState<boolean>(false);
-    const [alertMessage, setAlertMessage] = useState<string>('');
-    const [alertType, setAlertType] = useState<'success' | 'error' | 'warning' | 'info'>('error');
     const [selectedDiscounts, setSelectedDiscounts] = useState<Record<number, number>>({});
     const [isResolvingInvoice, setIsResolvingInvoice] = useState<boolean>(false);
 
@@ -87,68 +85,82 @@ export default function SubscriptionScreen() {
     }, [getPackageType]);
 
     // Effect to highlight and scroll to package based on params
-    useEffect(() => {
-        if (params.testType && packages.length > 0 && !isLoadingPackages) {
-            // Find the first package that matches the testType
-            const targetPackage = packages.find((pkg: ISubscriptionMarketplaceEntity) => {
-                return matchesTestType(pkg, params.testType);
-            });
+    const triggerPackageHighlight = useCallback(
+        (packageId: number) => {
+            setHighlightedPackageId(packageId);
 
-            if (targetPackage) {
-                setHighlightedPackageId(targetPackage.id);
-                
-                // Start highlight animation (loop 3 times)
-                const animateHighlight = () => {
-                    Animated.sequence([
-                        Animated.timing(highlightAnim, {
-                            toValue: 1,
-                            duration: 400,
-                            useNativeDriver: false,
-                        }),
-                        Animated.timing(highlightAnim, {
-                            toValue: 0,
-                            duration: 400,
-                            useNativeDriver: false,
-                        }),
-                    ]).start();
-                };
+            const animateHighlight = () => {
+                Animated.sequence([
+                    Animated.timing(highlightAnim, {
+                        toValue: 1,
+                        duration: 400,
+                        useNativeDriver: false,
+                    }),
+                    Animated.timing(highlightAnim, {
+                        toValue: 0,
+                        duration: 400,
+                        useNativeDriver: false,
+                    }),
+                ]).start();
+            };
 
-                // Run animation 3 times
-                animateHighlight();
-                setTimeout(() => animateHighlight(), 800);
-                setTimeout(() => animateHighlight(), 1600);
+            animateHighlight();
+            setTimeout(() => animateHighlight(), 800);
+            setTimeout(() => animateHighlight(), 1600);
 
-                // Scroll to the package after a short delay
-                setTimeout(() => {
-                    const packageRef = packageRefs.current[targetPackage.id];
-                    if (packageRef && scrollViewRef.current) {
-                        packageRef.measureLayout(
-                            scrollViewRef.current as any,
-                            (x, y) => {
-                                scrollViewRef.current?.scrollTo({
-                                    y: Math.max(0, y - 40), // Offset by 40px from top
-                                    animated: true,
-                                });
-                            },
-                            () => {
-                                // Fallback: try to scroll using findNodeHandle
-                                try {
-                                    setTimeout(() => {
-                                        scrollViewRef.current?.scrollTo({
-                                            y: 0,
-                                            animated: true,
-                                        });
-                                    }, 200);
-                                } catch (e) {
-                                    console.log('Scroll error:', e);
-                                }
+            setTimeout(() => {
+                const packageRef = packageRefs.current[packageId];
+                if (packageRef && scrollViewRef.current) {
+                    packageRef.measureLayout(
+                        scrollViewRef.current as any,
+                        (x, y) => {
+                            scrollViewRef.current?.scrollTo({
+                                y: Math.max(0, y - 40),
+                                animated: true,
+                            });
+                        },
+                        () => {
+                            try {
+                                setTimeout(() => {
+                                    scrollViewRef.current?.scrollTo({
+                                        y: 0,
+                                        animated: true,
+                                    });
+                                }, 200);
+                            } catch (e) {
+                                console.log('Scroll error:', e);
                             }
-                        );
-                    }
-                }, 200);
+                        }
+                    );
+                }
+            }, 200);
+        },
+        [highlightAnim]
+    );
+
+    useEffect(() => {
+        if (packages.length === 0 || isLoadingPackages) {
+            return;
+        }
+
+        const packageIdParam = params.packageId ? Number(params.packageId) : undefined;
+        if (packageIdParam) {
+            const targetPackage = packages.find((pkg: ISubscriptionMarketplaceEntity) => pkg.id === packageIdParam);
+            if (targetPackage) {
+                triggerPackageHighlight(targetPackage.id);
+                return;
             }
         }
-    }, [params.testType, packages, isLoadingPackages, highlightAnim, matchesTestType]);
+
+        if (params.testType) {
+            const targetPackage = packages.find((pkg: ISubscriptionMarketplaceEntity) =>
+                matchesTestType(pkg, params.testType)
+            );
+            if (targetPackage) {
+                triggerPackageHighlight(targetPackage.id);
+            }
+        }
+    }, [packages, isLoadingPackages, params.packageId, params.testType, matchesTestType, triggerPackageHighlight]);
 
     // Helper function to get active plan
     const getActivePlan = useCallback((packageItem: ISubscriptionMarketplaceEntity) => {
@@ -184,20 +196,14 @@ export default function SubscriptionScreen() {
         });
     }, []);
 
-    const handleHideAlert = useCallback(() => {
-        setAlertVisible(false);
-    }, []);
-
     const handleBrowserClose = useCallback(() => {
         // Refetch data after payment (when browser closes)
         refetchAll();
     }, [refetchAll]);
 
     const handleBrowserError = useCallback((error: Error) => {
-        setAlertMessage(error.message || t('subscription.purchase_failed'));
-        setAlertType('error');
-        setAlertVisible(true);
-    }, [t]);
+        showAlert(error.message || t('subscription.purchase_failed'), 'error');
+    }, [t, showAlert]);
 
     const getMaxDeductable = useCallback((price: number) => {
         const cap = Math.min(price, userBalance);
@@ -231,9 +237,7 @@ export default function SubscriptionScreen() {
 
     const handleContinuePayment = useCallback(async (invoiceId?: number | null) => {
         if (!invoiceId) {
-            setAlertMessage(t('subscription.purchase_failed'));
-            setAlertType('error');
-            setAlertVisible(true);
+            showAlert(t('subscription.purchase_failed'), 'error');
             return;
         }
 
@@ -249,25 +253,20 @@ export default function SubscriptionScreen() {
                     onError: handleBrowserError,
                 });
             } else {
-                setAlertType('error');
-                setAlertVisible(true);
+                showAlert(t('subscription.purchase_failed'), 'error');
             }
         } catch (error: any) {
             const errorMessage = error?.response?.data?.message || t('subscription.purchase_failed');
-            setAlertMessage(errorMessage);
-            setAlertType('error');
-            setAlertVisible(true);
+            showAlert(errorMessage, 'error');
         } finally {
             setIsResolvingInvoice(false);
         }
-    }, [handleBrowserClose, handleBrowserError, t]);
+    }, [handleBrowserClose, handleBrowserError, t, showAlert]);
 
     const handlePurchase = useCallback((packageItem: ISubscriptionMarketplaceEntity) => {
         const activePlan = getActivePlan(packageItem);
         if (!activePlan) {
-            setAlertMessage(t('subscription.purchase_failed'));
-            setAlertType('error');
-            setAlertVisible(true);
+            showAlert(t('subscription.purchase_failed'), 'error');
             return;
         }
 
@@ -304,9 +303,7 @@ export default function SubscriptionScreen() {
                             onError: handleBrowserError,
                         });
                     } else {
-                        setAlertMessage(responseData?.message || t('subscription.purchase_success'));
-                        setAlertType('success');
-                        setAlertVisible(true);
+                        showAlert(responseData?.message || t('subscription.purchase_success'), 'success');
                     }
                 },
                 onError: (error: any) => {
@@ -327,33 +324,26 @@ export default function SubscriptionScreen() {
                                         onError: handleBrowserError,
                                     });
                                 } else {
-                                    setAlertType('error');
-                                    setAlertVisible(true);
+                                    showAlert(t('subscription.purchase_failed'), 'error');
                                 }
                             })
                             .catch((recallError: any) => {
                                 const recallErrorMessage = recallError?.response?.data?.message || errorData?.message || t('subscription.purchase_failed');
-                                setAlertMessage(recallErrorMessage);
-                                setAlertType('error');
-                                setAlertVisible(true);
+                                showAlert(recallErrorMessage, 'error');
                             });
                     } else {
                         const errorMessage = errorData?.message || t('subscription.purchase_failed');
-                        setAlertMessage(errorMessage);
-                        setAlertType('error');
-                        setAlertVisible(true);
+                        showAlert(errorMessage, 'error');
                     }
                 },
             }
         );
-    }, [createInvoice, t, getActivePlan, handleBrowserClose, handleBrowserError, selectedDiscounts, getMaxDeductable, handleContinuePayment]);
+    }, [createInvoice, t, getActivePlan, handleBrowserClose, handleBrowserError, selectedDiscounts, getMaxDeductable, handleContinuePayment, showAlert]);
 
     const handleRefetch = useCallback(() => {
         refetchAll();
-        setAlertMessage(t('subscription.data_refreshed'));
-        setAlertType('success');
-        setAlertVisible(true);
-    }, [refetchAll, t]);
+        showAlert(t('subscription.data_refreshed'), 'success');
+    }, [refetchAll, t, showAlert]);
 
     const getPackageIcon = (packageType: SubscriptionPackageType) => {
         switch (packageType) {
@@ -741,14 +731,6 @@ export default function SubscriptionScreen() {
                         })}
                     </View>
                 </ScrollView>
-
-                {/* Alert */}
-                <MinimalAlert
-                    message={alertMessage}
-                    visible={alertVisible}
-                    onHide={handleHideAlert}
-                    type={alertType}
-                />
             </ThemedView>
         </SafeAreaView>
     );

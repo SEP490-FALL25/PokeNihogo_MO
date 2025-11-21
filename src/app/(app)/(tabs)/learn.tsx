@@ -14,11 +14,11 @@ import { Skeleton } from "@components/ui/Skeleton";
 import {
   useInfiniteUserLessons,
   useLessonCategories,
-  useUserProgress,
 } from "@hooks/useLessons";
 import { LessonProgress } from "@models/lesson/lesson.common";
 import { useIsFocused } from "@react-navigation/native";
 import { ROUTES } from "@routes/routes";
+import userProgressService from "@services/user-progres";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getJLPTLevelColor,
@@ -244,7 +244,6 @@ const CategoriesScreen = () => {
 
   const queryClient = useQueryClient();
 
-  const { isLoading: progressLoading, refetch: refetchProgress } = useUserProgress();
   const {
     data: lessonCategoriesData,
     isLoading: lessonCategoriesLoading,
@@ -254,7 +253,7 @@ const CategoriesScreen = () => {
 
   // Optimized animation effect when data loads
   useEffect(() => {
-    const isDataReady = !progressLoading && !lessonCategoriesLoading;
+    const isDataReady = !lessonCategoriesLoading;
 
     if (isDataReady && !isLoaded) {
       setIsLoaded(true);
@@ -275,14 +274,16 @@ const CategoriesScreen = () => {
       ]).start();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progressLoading, lessonCategoriesLoading, isLoaded]);
+  }, [lessonCategoriesLoading, isLoaded]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
+      // Ensure local cache is cleared so upcoming refetches hit the API
+      userProgressService.clearCache();
+
       // Refetch all data queries including user lessons
       await Promise.all([
-        refetchProgress(),
         refetchCategories(),
         // Refetch all user lessons infinite queries (all JLPT levels)
         queryClient.refetchQueries({ 
@@ -305,7 +306,7 @@ const CategoriesScreen = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [refetchProgress, refetchCategories, queryClient]);
+  }, [refetchCategories, queryClient]);
 
   // Auto refresh when component mounts
   useEffect(() => {
@@ -384,7 +385,7 @@ const CategoriesScreen = () => {
       }));
   }, [lessonCategoriesData?.data.results]);
 
-  if (progressLoading || lessonCategoriesLoading) {
+  if (lessonCategoriesLoading) {
     return (
       <HomeLayout>
         <ThemedText type="title" style={styles.title}>

@@ -1,8 +1,9 @@
 import BackScreen from "@components/molecules/Back";
-import { useToast } from "@components/ui/Toast";
+import type { AlertType } from "@components/atoms/MinimalAlert";
 import { HOT_KEYWORDS, JLPT_LEVELS } from "@constants/dictionary.constants";
 import { FlashcardContentType } from "@constants/flashcard.enum";
 import { useDebounce } from "@hooks/useDebounce";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import {
   useDictionarySearch,
   useSearchHistory,
@@ -53,7 +54,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function DictionaryScreen() {
   const { t } = useTranslation();
-  const { toast } = useToast();
+  const { showAlert } = useMinimalAlert();
+  const showDictionaryAlert = useCallback(
+    (titleKey: string, descriptionKey?: string, type: AlertType = "info") => {
+      const parts = [
+        titleKey ? t(titleKey) : "",
+        descriptionKey ? t(descriptionKey) : "",
+      ].filter(Boolean);
+      const message = parts.join(" - ");
+      if (message) {
+        showAlert(message, type);
+      }
+    },
+    [showAlert, t]
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [selectedWordId, setSelectedWordId] = useState<string | null>(null);
@@ -195,11 +209,11 @@ export default function DictionaryScreen() {
           contentType: FlashcardContentType.VOCABULARY,
           notes: flashcardNotes.trim() || undefined,
         });
-        toast({
-          variant: "Success",
-          title: t("dictionary.add_word_success_title"),
-          description: t("dictionary.add_word_success_description"),
-        });
+        showDictionaryAlert(
+          "dictionary.add_word_success_title",
+          "dictionary.add_word_success_description",
+          "success"
+        );
         closeFlashcardModal();
       } catch (error) {
         console.error("Error adding word to flashcard deck:", error);
@@ -211,21 +225,27 @@ export default function DictionaryScreen() {
           axiosError?.response?.data?.statusCode === 409;
         
         if (isConflictError) {
-          toast({
-            variant: "destructive",
-            title: t("dictionary.add_word_conflict_title"),
-            description: t("dictionary.add_word_conflict_description"),
-          });
+          showDictionaryAlert(
+            "dictionary.add_word_conflict_title",
+            "dictionary.add_word_conflict_description",
+            "warning"
+          );
         } else {
-          toast({
-            variant: "destructive",
-            title: t("dictionary.add_word_error_title"),
-            description: t("dictionary.add_word_error_description"),
-          });
+          showDictionaryAlert(
+            "dictionary.add_word_error_title",
+            "dictionary.add_word_error_description",
+            "error"
+          );
         }
       }
     },
-    [selectedWordId, flashcardNotes, addWordToFlashcardDeckMutation, closeFlashcardModal, toast, t]
+    [
+      selectedWordId,
+      flashcardNotes,
+      addWordToFlashcardDeckMutation,
+      closeFlashcardModal,
+      showDictionaryAlert,
+    ]
   );
 
   // Handle create new flashcard deck
@@ -247,11 +267,11 @@ export default function DictionaryScreen() {
             contentType: FlashcardContentType.VOCABULARY,
             notes: flashcardNotes.trim() || undefined,
           });
-          toast({
-            variant: "Success",
-            title: t("dictionary.add_word_success_title"),
-            description: t("dictionary.add_word_success_description"),
-          });
+          showDictionaryAlert(
+            "dictionary.add_word_success_title",
+            "dictionary.add_word_success_description",
+            "success"
+          );
         } catch (error) {
           console.error("Error adding word to new flashcard deck:", error);
           
@@ -262,35 +282,35 @@ export default function DictionaryScreen() {
             axiosError?.response?.data?.statusCode === 409;
           
           if (isConflictError) {
-            toast({
-              variant: "destructive",
-              title: t("dictionary.add_word_conflict_title"),
-              description: t("dictionary.add_word_conflict_description"),
-            });
+            showDictionaryAlert(
+              "dictionary.add_word_conflict_title",
+              "dictionary.add_word_conflict_description",
+              "warning"
+            );
           } else {
-            toast({
-              variant: "destructive",
-              title: t("dictionary.add_word_error_title"),
-              description: t("dictionary.add_word_error_description"),
-            });
+            showDictionaryAlert(
+              "dictionary.add_word_error_title",
+              "dictionary.add_word_error_description",
+              "error"
+            );
           }
         }
       }
 
-      toast({
-        variant: "Success",
-        title: t("dictionary.create_deck_success_title"),
-        description: t("dictionary.create_deck_success_description"),
-      });
+      showDictionaryAlert(
+        "dictionary.create_deck_success_title",
+        "dictionary.create_deck_success_description",
+        "success"
+      );
       closeCreateFlashcardModal();
       closeFlashcardModal();
     } catch (error) {
       console.error("Error creating flashcard deck:", error);
-      toast({
-        variant: "destructive",
-        title: t("dictionary.create_deck_error_title"),
-        description: t("dictionary.create_deck_error_description"),
-      });
+      showDictionaryAlert(
+        "dictionary.create_deck_error_title",
+        "dictionary.create_deck_error_description",
+        "error"
+      );
     }
   }, [
     newFlashcardName,
@@ -300,8 +320,7 @@ export default function DictionaryScreen() {
     addWordToFlashcardDeckMutation,
     closeCreateFlashcardModal,
     closeFlashcardModal,
-    toast,
-    t,
+    showDictionaryAlert,
   ]);
 
   // Handle select word from result
@@ -368,15 +387,19 @@ export default function DictionaryScreen() {
         await audioRef.current.playFromPositionAsync(0);
       } catch (error) {
         console.error("Error playing audio:", error);
-        toast({
-          variant: "destructive",
-          title: t("dictionary.audio_error_title", {
-            defaultValue: "Không thể phát âm thanh",
-          }),
-          description: t("dictionary.audio_error_description", {
-            defaultValue: "Vui lòng thử lại sau.",
-          }),
+        const audioErrorTitle = t("dictionary.audio_error_title", {
+          defaultValue: "Không thể phát âm thanh",
         });
+        const audioErrorDescription = t(
+          "dictionary.audio_error_description",
+          {
+            defaultValue: "Vui lòng thử lại sau.",
+          }
+        );
+        showAlert(
+          `${audioErrorTitle} - ${audioErrorDescription}`,
+          "error"
+        );
       } finally {
         setIsAudioLoading(false);
       }

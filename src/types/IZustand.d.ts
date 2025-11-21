@@ -1,3 +1,5 @@
+import type { IUserSubscriptionFeatureDetail } from "@models/subscription/subscription.response";
+
 declare namespace ZUSTAND {
 
     export interface IGlobalState {
@@ -14,9 +16,11 @@ declare namespace ZUSTAND {
 
         // Subscription features management
         subscriptionKeys: string[];
-        setSubscriptionKeys: (keys: string[]) => void;
-        clearSubscriptionKeys: () => void;
+        subscriptionFeatureDetails: Record<string, IUserSubscriptionFeatureDetail>;
+        setSubscriptionFeatures: (features: IUserSubscriptionFeatureDetail[]) => void;
+        clearSubscriptionFeatures: () => void;
         hasFeature: (featureKey: string) => boolean;
+        getFeatureValue: (featureKey: string) => number | null;
     }
 
     export interface IAuthState {

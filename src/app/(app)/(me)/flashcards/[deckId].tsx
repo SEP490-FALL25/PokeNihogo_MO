@@ -2,9 +2,10 @@ import EmptyState from "@components/ui/EmptyState";
 import ImageUploader from "@components/ui/ImageUploader";
 import { EnhancedPagination } from "@components/ui/Pagination";
 import { Select } from "@components/ui/Select";
-import { useToast } from "@components/ui/Toast";
+import type { AlertType } from "@components/atoms/MinimalAlert";
 import { FlashcardContentType } from "@constants/flashcard.enum";
 import { useDebounce } from "@hooks/useDebounce";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import {
   useCreateFlashcardDeckCard,
   useDeleteFlashcardDeckCards,
@@ -165,7 +166,16 @@ const FlashcardDeckDetailScreen = () => {
   const insets = useSafeAreaInsets();
   const insetBottom = Math.max(insets.bottom, 10);
   const { t } = useTranslation();
-  const { toast } = useToast();
+  const { showAlert } = useMinimalAlert();
+  const showFlashcardAlert = useCallback(
+    (title: string, description?: string, type: AlertType = "info") => {
+      const message = [title, description].filter(Boolean).join(" - ");
+      if (message) {
+        showAlert(message, type);
+      }
+    },
+    [showAlert]
+  );
 
   const resetEditForm = useCallback(() => {
     setEditFormData({ ...INITIAL_WORD_FORM_STATE });
@@ -283,18 +293,19 @@ const FlashcardDeckDetailScreen = () => {
       },
       {
         onSuccess: () => {
-          toast({
-            title: t("flashcard_detail.note_update_success_title", "Đã lưu ghi chú"),
-            description: t("flashcard_detail.note_update_success_desc", "Ghi chú đã được cập nhật."),
-          });
+          showFlashcardAlert(
+            t("flashcard_detail.note_update_success_title", "Đã lưu ghi chú"),
+            t("flashcard_detail.note_update_success_desc", "Ghi chú đã được cập nhật."),
+            "success"
+          );
           setNoteModalVisible(false);
         },
         onError: () => {
-          toast({
-            title: t("flashcard_detail.note_update_error_title", "Có lỗi xảy ra"),
-            description: t("flashcard_detail.note_update_error_desc", "Vui lòng thử lại sau."),
-            variant: "destructive",
-          });
+          showFlashcardAlert(
+            t("flashcard_detail.note_update_error_title", "Có lỗi xảy ra"),
+            t("flashcard_detail.note_update_error_desc", "Vui lòng thử lại sau."),
+            "error"
+          );
         },
       }
     );
@@ -368,14 +379,14 @@ const FlashcardDeckDetailScreen = () => {
     const trimmedImageUrl = editFormData.imageUrl.trim();
 
     if (!trimmedWord) {
-      toast({
-        title: t("flashcard_detail.word_required_title", "Thiếu từ vựng"),
-        description: t(
+      showFlashcardAlert(
+        t("flashcard_detail.word_required_title", "Thiếu từ vựng"),
+        t(
           "flashcard_detail.word_required_desc",
           "Vui lòng nhập từ tiếng Nhật trước khi lưu."
         ),
-        variant: "destructive",
-      });
+        "error"
+      );
       return;
     }
 
@@ -406,24 +417,25 @@ const FlashcardDeckDetailScreen = () => {
         },
         {
           onSuccess: () => {
-            toast({
-              title: t("flashcard_detail.create_success_title", "Đã thêm"),
-              description: t(
+            showFlashcardAlert(
+              t("flashcard_detail.create_success_title", "Đã thêm"),
+              t(
                 "flashcard_detail.create_success_desc",
                 "Từ mới đã được thêm vào bộ thẻ."
               ),
-            });
+              "success"
+            );
             handleCloseEditModal();
           },
           onError: () => {
-            toast({
-              title: t("flashcard_detail.create_error_title", "Có lỗi xảy ra"),
-              description: t(
+            showFlashcardAlert(
+              t("flashcard_detail.create_error_title", "Có lỗi xảy ra"),
+              t(
                 "flashcard_detail.create_error_desc",
                 "Vui lòng thử lại sau."
               ),
-              variant: "destructive",
-            });
+              "error"
+            );
           },
         }
       );
@@ -441,24 +453,25 @@ const FlashcardDeckDetailScreen = () => {
       },
       {
         onSuccess: () => {
-          toast({
-            title: t("flashcard_detail.edit_saved_title", "Đã lưu"),
-            description: t(
+          showFlashcardAlert(
+            t("flashcard_detail.edit_saved_title", "Đã lưu"),
+            t(
               "flashcard_detail.edit_saved_desc",
               "Thông tin đã được cập nhật."
             ),
-          });
+            "success"
+          );
           handleCloseEditModal();
         },
         onError: () => {
-          toast({
-            title: t("flashcard_detail.edit_error_title", "Có lỗi xảy ra"),
-            description: t(
+          showFlashcardAlert(
+            t("flashcard_detail.edit_error_title", "Có lỗi xảy ra"),
+            t(
               "flashcard_detail.edit_error_desc",
               "Vui lòng thử lại sau."
             ),
-            variant: "destructive",
-          });
+            "error"
+          );
         },
       }
     );
@@ -479,17 +492,18 @@ const FlashcardDeckDetailScreen = () => {
       },
       {
         onSuccess: () => {
-          toast({
-            title: t("flashcard_detail.delete_success_title", "Đã xóa"),
-            description: t("flashcard_detail.delete_success_desc", "Từ đã được xóa khỏi bộ thẻ."),
-          });
+          showFlashcardAlert(
+            t("flashcard_detail.delete_success_title", "Đã xóa"),
+            t("flashcard_detail.delete_success_desc", "Từ đã được xóa khỏi bộ thẻ."),
+            "success"
+          );
         },
         onError: () => {
-          toast({
-            title: t("flashcard_detail.delete_error_title", "Có lỗi xảy ra"),
-            description: t("flashcard_detail.delete_error_desc", "Vui lòng thử lại sau."),
-            variant: "destructive",
-          });
+          showFlashcardAlert(
+            t("flashcard_detail.delete_error_title", "Có lỗi xảy ra"),
+            t("flashcard_detail.delete_error_desc", "Vui lòng thử lại sau."),
+            "error"
+          );
         },
       }
     );

@@ -1,7 +1,13 @@
+import MinimalGameAlert, {
+  AlertWrapper,
+} from "@components/atoms/MinimalAlert";
 import GlobalMatchingNotification from "@components/GlobalMatchingNotification";
 import LanguageProvider from "@components/LanguageProvider";
-import { ToastProvider, Toaster } from "@components/ui/Toast";
 import { useColorScheme } from "@hooks/useColorScheme";
+import {
+  MinimalAlertProvider,
+  useMinimalAlert,
+} from "@hooks/useMinimalAlert";
 import "@i18n/i18n";
 import { ReactQueryProvider } from "@libs/@tanstack/react-query";
 import {
@@ -30,7 +36,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     initialize();
-  }, []);
+  }, [initialize]);
 
   if (!loaded || isTokenLoading) {
     return <SplashScreen />;
@@ -38,9 +44,9 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <LanguageProvider>
-        <ReactQueryProvider>
-          <ToastProvider>
+      <MinimalAlertProvider>
+        <LanguageProvider>
+          <ReactQueryProvider>
             <ThemeProvider
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
@@ -53,12 +59,27 @@ export default function RootLayout() {
                 </Stack>
               </CopilotProvider>
               <StatusBar style="auto" />
-              <Toaster />
               <GlobalMatchingNotification />
             </ThemeProvider>
-          </ToastProvider>
-        </ReactQueryProvider>
-      </LanguageProvider>
+          </ReactQueryProvider>
+        </LanguageProvider>
+        <GlobalAlertLayer />
+      </MinimalAlertProvider>
     </GestureHandlerRootView>
   );
 }
+
+const GlobalAlertLayer = () => {
+  const { alertConfig, hideAlert } = useMinimalAlert();
+
+  return (
+    <AlertWrapper visible={alertConfig.visible} onHide={hideAlert}>
+      <MinimalGameAlert
+        visible={alertConfig.visible}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onHide={hideAlert}
+      />
+    </AlertWrapper>
+  );
+};
