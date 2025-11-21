@@ -12,7 +12,7 @@ import { useAuthStore } from "@stores/auth/auth.config";
 import { useMatchingStore } from "@stores/matching/matching.config";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Award, CheckCircle, Clock, Shield, XCircle, Zap } from "lucide-react-native";
+import { CheckCircle, Clock, Shield, XCircle, Zap } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
     ActivityIndicator,
@@ -790,69 +790,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                         <ThemedText style={{ color: "#93c5fd", marginTop: 16, fontSize: 16 }}>
                             Đang tải thông tin trận đấu...
                         </ThemedText>
-                    </View>
-                </ImageBackground>
-            </ThemedView>
-        );
-    }
-
-    // Victory/Loss screen
-    if (battleComplete) {
-        const playerWon = matchSummary && currentUserId !== undefined && matchSummary.winnerId !== null
-            ? matchSummary.winnerId === currentUserId
-            : playerScore > opponentScore;
-        const winnerName = matchSummary?.winnerName || (playerWon ? "Bạn" : "Đối thủ");
-        const eloChange = matchSummary
-            ? playerWon
-                ? matchSummary.eloGained
-                : -matchSummary.eloLost
-            : 0;
-        const eloChangeText = `${eloChange >= 0 ? "+" : ""}${eloChange} ELO`;
-
-        return (
-            <ThemedView style={styles.container}>
-                <ImageBackground
-                    source={require("../../../../assets/images/list_pokemon_bg.png")}
-                    style={styles.bg}
-                    imageStyle={styles.bgImage}
-                >
-                    <TWLinearGradient
-                        colors={["rgba(17,24,39,0.85)", "rgba(17,24,39,0.6)", "rgba(17,24,39,0.85)"]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={styles.overlay}
-                    />
-                    <View className="flex-1 items-center justify-center px-5">
-                        <Animated.View className="items-center">
-                            <TWLinearGradient
-                                colors={playerWon ? ["#22c55e", "#16a34a"] : ["#ef4444", "#dc2626"]}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                                style={{ padding: 4, borderRadius: 999, marginBottom: 24 }}
-                            >
-                                <View className="w-32 h-32 rounded-full bg-black/70 items-center justify-center">
-                                    {playerWon ? (
-                                        <Award size={64} color="#ffffff" />
-                                    ) : (
-                                        <XCircle size={64} color="#ffffff" />
-                                    )}
-                                </View>
-                            </TWLinearGradient>
-                            <ThemedText style={{ color: playerWon ? "#22c55e" : "#ef4444", fontSize: 32, fontWeight: "900", marginBottom: 8 }}>
-                                {playerWon ? "THẮNG" : "THUA"}
-                            </ThemedText>
-                            <ThemedText style={{ color: "#fbbf24", fontSize: 20, fontWeight: "700", textAlign: "center", marginBottom: 12 }}>
-                                Chúc mừng {winnerName}!
-                            </ThemedText>
-                            <ThemedText style={{ color: "#cbd5e1", fontSize: 18, textAlign: "center", marginBottom: 24 }}>
-                                {playerScore} - {opponentScore}
-                            </ThemedText>
-                            <View className="px-6 py-3 rounded-2xl border border-white/20 bg-white/10">
-                                <ThemedText style={{ color: "#93c5fd", fontSize: 16 }}>
-                                    {eloChangeText}
-                                </ThemedText>
-                            </View>
-                        </Animated.View>
                     </View>
                 </ImageBackground>
             </ThemedView>
