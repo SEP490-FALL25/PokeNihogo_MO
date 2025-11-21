@@ -9,12 +9,15 @@ import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
     Animated,
+    Dimensions,
     Modal,
     ScrollView,
     TouchableOpacity,
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+const { width } = Dimensions.get("window");
 
 type CardType = "word" | "meaning";
 
@@ -37,10 +40,8 @@ const MatchingGameScreen = () => {
   const { data: lessonData, isLoading } = useLesson(id || "");
   const lesson: any = lessonData?.data || {};
 
-  const [wordCards, setWordCards] = useState<MatchingCard[]>([]);
-  const [meaningCards, setMeaningCards] = useState<MatchingCard[]>([]);
-  const [selectedWordIndex, setSelectedWordIndex] = useState<number | null>(null);
-  const [selectedMeaningIndex, setSelectedMeaningIndex] = useState<number | null>(null);
+  const [cards, setCards] = useState<MatchingCard[]>([]);
+  const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
   const [matchedPairs, setMatchedPairs] = useState<number>(0);
   const [moves, setMoves] = useState<number>(0);
   const [isGameComplete, setIsGameComplete] = useState(false);
@@ -60,10 +61,9 @@ const MatchingGameScreen = () => {
 
   // Initialize cards from content data
   const initializeCards = useCallback(() => {
-    if (contentData.length === 0) return { words: [], meanings: [] };
+    if (contentData.length === 0) return [];
 
-    const wordCardsList: MatchingCard[] = [];
-    const meaningCardsList: MatchingCard[] = [];
+    const allCards: MatchingCard[] = [];
 
     contentData.forEach((item, index) => {
       const pairId = `pair-${index}`;
@@ -74,7 +74,7 @@ const MatchingGameScreen = () => {
           item.meaning?.split("##")[0] || item.meaning || t("lessons.no_meaning");
 
         // Word card: Kanji character
-        wordCardsList.push({
+        allCards.push({
           id: `kanji-${index}`,
           type: "word",
           content: item.character,
@@ -84,7 +84,7 @@ const MatchingGameScreen = () => {
         });
 
         // Meaning card
-        meaningCardsList.push({
+        allCards.push({
           id: `meaning-${index}`,
           type: "meaning",
           content: meaning,
@@ -104,7 +104,7 @@ const MatchingGameScreen = () => {
         const meaning = meanings.length > 0 ? meanings[0] : t("lessons.no_meaning");
 
         // Word card: Japanese word
-        wordCardsList.push({
+        allCards.push({
           id: `word-${index}`,
           type: "word",
           content: wordJp,
@@ -114,7 +114,7 @@ const MatchingGameScreen = () => {
         });
 
         // Meaning card
-        meaningCardsList.push({
+        allCards.push({
           id: `meaning-${index}`,
           type: "meaning",
           content: meaning,
@@ -125,106 +125,80 @@ const MatchingGameScreen = () => {
       }
     });
 
-    // Shuffle both arrays separately
-    const shuffle = (array: MatchingCard[]) => {
-      const shuffled = [...array];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      return shuffled;
-    };
+    // Shuffle all cards together
+    for (let i = allCards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allCards[i], allCards[j]] = [allCards[j], allCards[i]];
+    }
 
-    return {
-      words: shuffle(wordCardsList),
-      meanings: shuffle(meaningCardsList),
-    };
+    return allCards;
   }, [contentData, contentType, t]);
 
   // Initialize game on mount and when data changes
   useEffect(() => {
-    if (contentData.length > 0 && wordCards.length === 0) {
-      const { words, meanings } = initializeCards();
-      setWordCards(words);
-      setMeaningCards(meanings);
+    if (contentData.length > 0 && cards.length === 0) {
+      const initializedCards = initializeCards();
+      setCards(initializedCards);
     }
-  }, [contentData.length, initializeCards, wordCards.length]);
+  }, [contentData.length, initializeCards, cards.length]);
 
   // Reset game
   const resetGame = useCallback(() => {
-    setSelectedWordIndex(null);
-    setSelectedMeaningIndex(null);
+    setSelectedIndices([]);
     setMatchedPairs(0);
     setMoves(0);
     setIsGameComplete(false);
     setIsChecking(false);
-    const { words, meanings } = initializeCards();
-    setWordCards(words);
-    setMeaningCards(meanings);
+    const initializedCards = initializeCards();
+    setCards(initializedCards);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   }, [initializeCards]);
 
-  // Handle word card press
-  const handleWordPress = (index: number) => {
+  // Handle card press
+  const handleCardPress = (index: number) => {
     if (isChecking) return;
-    if (wordCards[index].isMatched) return;
-    if (selectedWordIndex === index) {
+    if (cards[index].isMatched) return;
+    if (selectedIndices.length >= 2) return;
+    if (selectedIndices.includes(index)) {
       // Deselect if already selected
-      setSelectedWordIndex(null);
+      const newSelected = selectedIndices.filter((i) => i !== index);
+      setSelectedIndices(newSelected);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       return;
     }
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setSelectedWordIndex(index);
+    const newSelected = [...selectedIndices, index];
+    setSelectedIndices(newSelected);
 
-    // If meaning is also selected, check for match
-    if (selectedMeaningIndex !== null) {
-      checkMatch(index, selectedMeaningIndex);
-    }
-  };
-
-  // Handle meaning card press
-  const handleMeaningPress = (index: number) => {
-    if (isChecking) return;
-    if (meaningCards[index].isMatched) return;
-    if (selectedMeaningIndex === index) {
-      // Deselect if already selected
-      setSelectedMeaningIndex(null);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      return;
-    }
-
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setSelectedMeaningIndex(index);
-
-    // If word is also selected, check for match
-    if (selectedWordIndex !== null) {
-      checkMatch(selectedWordIndex, index);
+    // If 2 cards selected, check for match
+    if (newSelected.length === 2) {
+      checkMatch(newSelected[0], newSelected[1]);
     }
   };
 
   // Check if selected cards match
-  const checkMatch = (wordIndex: number, meaningIndex: number) => {
+  const checkMatch = (firstIndex: number, secondIndex: number) => {
     setIsChecking(true);
     setMoves((prev) => prev + 1);
 
-    const wordCard = wordCards[wordIndex];
-    const meaningCard = meaningCards[meaningIndex];
+    const firstCard = cards[firstIndex];
+    const secondCard = cards[secondIndex];
 
     setTimeout(() => {
-      if (wordCard.pairId === meaningCard.pairId) {
+      if (
+        firstCard.pairId === secondCard.pairId &&
+        firstCard.type !== secondCard.type
+      ) {
         // Match found!
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-        const updatedWordCards = [...wordCards];
-        const updatedMeaningCards = [...meaningCards];
+        // Mark cards as matched but keep them in array
+        const updatedCards = [...cards];
+        updatedCards[firstIndex].isMatched = true;
+        updatedCards[secondIndex].isMatched = true;
 
-        updatedWordCards[wordIndex].isMatched = true;
-        updatedMeaningCards[meaningIndex].isMatched = true;
-
-        setWordCards(updatedWordCards);
-        setMeaningCards(updatedMeaningCards);
+        setCards(updatedCards);
         setMatchedPairs((prev) => {
           const newCount = prev + 1;
           // Check if game is complete
@@ -241,15 +215,17 @@ const MatchingGameScreen = () => {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
 
-      setSelectedWordIndex(null);
-      setSelectedMeaningIndex(null);
+      setSelectedIndices([]);
       setIsChecking(false);
     }, 600);
   };
 
-  // Calculate card size
+  // Calculate card size for grid
   const padding = 24;
   const cardSpacing = 12;
+  const numColumns = 3; // 3 columns for grid
+  const availableWidth = width - padding * 2;
+  const cardSize = (availableWidth - cardSpacing * (numColumns - 1)) / numColumns;
   const cardHeight = 120;
 
   if (isLoading) {
@@ -384,231 +360,92 @@ const MatchingGameScreen = () => {
             >
               {t(
                 "content_list.matching.instruction",
-                "Select a word and its meaning to match them"
+                "Select two cards to match a word with its meaning"
               )}
             </ThemedText>
           </View>
 
-          {/* Two Column Layout: Words on left, Meanings on right */}
+          {/* Grid Layout - All cards shuffled together */}
           <View
             style={{
               flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "flex-start",
               gap: cardSpacing,
             }}
           >
-            {/* Left Column - Words */}
-            <View style={{ flex: 1 }}>
-              <ThemedText
-                style={{
-                  fontSize: 16,
-                  fontWeight: "bold",
-                  color: "#4f46e5",
-                  marginBottom: 12,
-                  textAlign: "center",
-                }}
-              >
-                {t("content_list.matching.words", "Words")}
-              </ThemedText>
-              <View style={{ gap: cardSpacing }}>
-                {wordCards.map((card, index) => {
-                  const isSelected = selectedWordIndex === index;
-                  const scaleAnim = new Animated.Value(isSelected ? 1.05 : 1);
+            {cards.map((card, index) => {
+              const isSelected = selectedIndices.includes(index);
+              const isWordCard = card.type === "word";
+              const scaleAnim = new Animated.Value(isSelected ? 1.05 : 1);
 
-                  if (isSelected) {
-                    Animated.spring(scaleAnim, {
-                      toValue: 1.05,
-                      tension: 100,
-                      friction: 7,
-                      useNativeDriver: true,
-                    }).start();
-                  } else {
-                    Animated.spring(scaleAnim, {
-                      toValue: 1,
-                      tension: 100,
-                      friction: 7,
-                      useNativeDriver: true,
-                    }).start();
-                  }
+              if (isSelected) {
+                Animated.spring(scaleAnim, {
+                  toValue: 1.05,
+                  tension: 100,
+                  friction: 7,
+                  useNativeDriver: true,
+                }).start();
+              } else {
+                Animated.spring(scaleAnim, {
+                  toValue: 1,
+                  tension: 100,
+                  friction: 7,
+                  useNativeDriver: true,
+                }).start();
+              }
 
-                  return (
-                    <Animated.View
-                      key={card.id}
+              return (
+                <Animated.View
+                  key={card.id}
+                  style={{
+                    width: cardSize,
+                    height: cardHeight,
+                    transform: [{ scale: scaleAnim }],
+                    opacity: card.isMatched ? 0 : 1,
+                  }}
+                  pointerEvents={card.isMatched ? "none" : "auto"}
+                >
+                  <TouchableOpacity
+                    onPress={() => handleCardPress(index)}
+                    activeOpacity={0.8}
+                    disabled={isChecking || card.isMatched}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      backgroundColor: isSelected ? "#fef3c7" : "#ffffff",
+                      borderRadius: 16,
+                      borderWidth: 3,
+                      borderColor: isSelected ? "#f59e0b" : "#d1d5db",
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.15,
+                      shadowRadius: 8,
+                      elevation: 6,
+                      padding: 12,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <ThemedText
                       style={{
-                        transform: [{ scale: scaleAnim }],
+                        fontSize: isWordCard
+                          ? contentType === "kanji"
+                            ? 32
+                            : 20
+                          : 16,
+                        fontWeight: "bold",
+                        color: "#000000",
+                        textAlign: "center",
                       }}
+                      numberOfLines={isWordCard ? 2 : 3}
                     >
-                      <TouchableOpacity
-                        onPress={() => handleWordPress(index)}
-                        activeOpacity={0.8}
-                        disabled={card.isMatched || isChecking}
-                        style={{
-                          minHeight: cardHeight,
-                          backgroundColor: card.isMatched
-                            ? "#d1d5db"
-                            : isSelected
-                              ? "#fbbf24"
-                              : "#4f46e5",
-                          borderRadius: 16,
-                          borderWidth: 3,
-                          borderColor: isSelected
-                            ? "#f59e0b"
-                            : card.isMatched
-                              ? "#9ca3af"
-                              : "#3b82f6",
-                          shadowColor: "#000",
-                          shadowOffset: { width: 0, height: 4 },
-                          shadowOpacity: card.isMatched ? 0.1 : 0.2,
-                          shadowRadius: 8,
-                          elevation: card.isMatched ? 2 : 6,
-                          padding: 16,
-                          justifyContent: "center",
-                          alignItems: "center",
-                          opacity: card.isMatched ? 0.6 : 1,
-                        }}
-                      >
-                        <ThemedText
-                          style={{
-                            fontSize: contentType === "kanji" ? 36 : 24,
-                            fontWeight: "bold",
-                            color: "#ffffff",
-                            textAlign: "center",
-                          }}
-                          numberOfLines={2}
-                        >
-                          {card.content}
-                        </ThemedText>
-                        {card.isMatched && (
-                          <View
-                            style={{
-                              position: "absolute",
-                              top: 8,
-                              right: 8,
-                              backgroundColor: "#22c55e",
-                              borderRadius: 12,
-                              width: 24,
-                              height: 24,
-                              justifyContent: "center",
-                              alignItems: "center",
-                            }}
-                          >
-                            <ThemedText style={{ color: "#ffffff", fontSize: 16 }}>
-                              ✓
-                            </ThemedText>
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    </Animated.View>
-                  );
-                })}
-              </View>
-            </View>
-
-            {/* Right Column - Meanings */}
-            <View style={{ flex: 1 }}>
-              <ThemedText
-                style={{
-                  fontSize: 16,
-                  fontWeight: "bold",
-                  color: "#10b981",
-                  marginBottom: 12,
-                  textAlign: "center",
-                }}
-              >
-                {t("content_list.matching.meanings", "Meanings")}
-              </ThemedText>
-              <View style={{ gap: cardSpacing }}>
-                {meaningCards.map((card, index) => {
-                  const isSelected = selectedMeaningIndex === index;
-                  const scaleAnim = new Animated.Value(isSelected ? 1.05 : 1);
-
-                  if (isSelected) {
-                    Animated.spring(scaleAnim, {
-                      toValue: 1.05,
-                      tension: 100,
-                      friction: 7,
-                      useNativeDriver: true,
-                    }).start();
-                  } else {
-                    Animated.spring(scaleAnim, {
-                      toValue: 1,
-                      tension: 100,
-                      friction: 7,
-                      useNativeDriver: true,
-                    }).start();
-                  }
-
-                  return (
-                    <Animated.View
-                      key={card.id}
-                      style={{
-                        transform: [{ scale: scaleAnim }],
-                      }}
-                    >
-                      <TouchableOpacity
-                        onPress={() => handleMeaningPress(index)}
-                        activeOpacity={0.8}
-                        disabled={card.isMatched || isChecking}
-                        style={{
-                          minHeight: cardHeight,
-                          backgroundColor: card.isMatched
-                            ? "#d1d5db"
-                            : isSelected
-                              ? "#fbbf24"
-                              : "#10b981",
-                          borderRadius: 16,
-                          borderWidth: 3,
-                          borderColor: isSelected
-                            ? "#f59e0b"
-                            : card.isMatched
-                              ? "#9ca3af"
-                              : "#059669",
-                          shadowColor: "#000",
-                          shadowOffset: { width: 0, height: 4 },
-                          shadowOpacity: card.isMatched ? 0.1 : 0.2,
-                          shadowRadius: 8,
-                          elevation: card.isMatched ? 2 : 6,
-                          padding: 16,
-                          justifyContent: "center",
-                          alignItems: "center",
-                          opacity: card.isMatched ? 0.6 : 1,
-                        }}
-                      >
-                        <ThemedText
-                          style={{
-                            fontSize: 18,
-                            fontWeight: "600",
-                            color: "#ffffff",
-                            textAlign: "center",
-                          }}
-                          numberOfLines={3}
-                        >
-                          {card.content}
-                        </ThemedText>
-                        {card.isMatched && (
-                          <View
-                            style={{
-                              position: "absolute",
-                              top: 8,
-                              right: 8,
-                              backgroundColor: "#22c55e",
-                              borderRadius: 12,
-                              width: 24,
-                              height: 24,
-                              justifyContent: "center",
-                              alignItems: "center",
-                            }}
-                          >
-                            <ThemedText style={{ color: "#ffffff", fontSize: 16 }}>
-                              ✓
-                            </ThemedText>
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    </Animated.View>
-                  );
-                })}
-              </View>
-            </View>
+                      {card.content}
+                    </ThemedText>
+                  </TouchableOpacity>
+                </Animated.View>
+              );
+            })}
           </View>
         </ScrollView>
 
