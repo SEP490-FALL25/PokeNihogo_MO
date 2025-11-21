@@ -119,13 +119,19 @@ export const useJoinNewSeason = () => {
 
 /**
  * Match tracking
+ * @param enabled Whether to enable the query
+ * @param refetchInterval Interval to refetch in milliseconds (0 to disable)
  * @returns Match tracking data
  */
-export const useMatchTracking = () => {
-    const { data, isLoading, isError } = useQuery({
+export const useMatchTracking = (enabled: boolean = true, refetchInterval: number = 0) => {
+    const { data, isLoading, isError, refetch } = useQuery({
         queryKey: ['match-tracking'],
         queryFn: () => battleService.matchTracking(),
+        enabled,
+        refetchInterval: refetchInterval > 0 ? refetchInterval : false,
+        refetchOnMount: "always",
+        refetchOnWindowFocus: false,
     });
-    return { data: data?.data.data, isLoading, isError };
+    return { data: data?.data.data, isLoading, isError, refetch };
 };
 //------------------------End------------------------//

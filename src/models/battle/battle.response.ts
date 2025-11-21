@@ -121,3 +121,41 @@ export const BattleUserMatchingHistoryResponseSchema = BackendResponsePagination
 
 export type IBattleUserMatchingHistoryResponse = z.infer<typeof BattleUserMatchingHistoryResponseSchema>;
 //------------------------End------------------------//
+
+
+/**
+ * Match Tracking Response Schema
+ * Used to check current match status when user returns to battle screen
+ */
+export const BattleMatchTrackingResponseSchema = z.object({
+    type: z.enum([
+        "NO_ACTIVE_MATCH",
+        "ROUND_IN_PROGRESS",
+        "ROUND_STARTING",
+        "ROUND_SELECTING_POKEMON",
+        "BETWEEN_ROUNDS",
+        "MATCH_FOUND",
+    ]),
+    matchId: z.number().optional(),
+    match: z.object({
+        id: z.number(),
+        status: z.string(),
+        createdAt: z.string(),
+        endTime: z.string().optional(),
+    }).optional(),
+    opponent: z.object({
+        id: z.number(),
+        name: z.string(),
+        avatar: z.string().nullable().optional(),
+    }).optional(),
+    participant: z.object({
+        id: z.number(),
+        hasAccepted: z.boolean(),
+        userId: z.number(),
+        matchId: z.number(),
+    }).optional(),
+    roundNumber: z.enum(["ONE", "TWO", "THREE"]).optional(),
+});
+
+export type IBattleMatchTrackingResponse = z.infer<typeof BattleMatchTrackingResponseSchema>;
+//------------------------End------------------------//

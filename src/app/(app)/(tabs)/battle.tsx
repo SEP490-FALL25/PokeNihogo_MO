@@ -2,11 +2,11 @@ import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import UserAvatar from "@components/atoms/UserAvatar";
 import ModalBattleAccept from "@components/battle/modal-accept.battle";
 import ModalBattleHistory from "@components/battle/modal-battleHistory";
+import ModalFirstTimeUser from "@components/battle/modal-first-time-user";
 import ModalLeaderboard from "@components/battle/modal-leaderboard";
+import ModalNewSeasonInfo from "@components/battle/modal-new-season-info";
 import ModalRewardLeaderboard from "@components/battle/modal-rewardLeaderboard";
 import ModalSeasonEnded from "@components/battle/modal-season-ended";
-import ModalNewSeasonInfo from "@components/battle/modal-new-season-info";
-import ModalFirstTimeUser from "@components/battle/modal-first-time-user";
 import SeasonInfo from "@components/battle/season-info.battle";
 import StatsBattle from "@components/battle/stats.battle";
 import { HapticPressable } from "@components/HapticPressable";
@@ -17,17 +17,17 @@ import TypingText from "@components/ui/TypingText";
 import { getSocket } from "@configs/socket";
 import { BATTLE_STATUS } from "@constants/battle.enum";
 import useAuth from "@hooks/useAuth";
-import { useUserStatsSeason, SeasonResponseType } from "@hooks/useSeason";
-import { useJoinNewSeason } from "@hooks/useBattle";
-import { IBattleMatchFound, IBattleMatchStatusUpdate } from "@models/battle/battle.response";
+import { useJoinNewSeason, useMatchTracking } from "@hooks/useBattle";
+import { useUserStatsSeason } from "@hooks/useSeason";
+import { IBattleMatchFound, IBattleMatchStatusUpdate, IBattleMatchTrackingResponse } from "@models/battle/battle.response";
 import { ROUTES } from "@routes/routes";
 import battleService from "@services/battle";
 import { useAuthStore } from "@stores/auth/auth.config";
 import { useMatchingStore } from "@stores/matching/matching.config";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Crown, History, Info, Trophy } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Animated, Easing, ImageBackground, StatusBar, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -58,6 +58,20 @@ export default function BattleLobbyScreen() {
   const [newSeasonInfo, setNewSeasonInfo] = useState<any>(null);
   const joinNewSeasonMutation = useJoinNewSeason();
   const queryClient = useQueryClient();
+
+  // Match tracking - check for active matches when screen is focused
+  // Enable polling when season is active to check for match status changes
+  const { data: matchTrackingData, refetch: refetchMatchTracking, isLoading: isLoadingMatchTracking } = useMatchTracking(
+    responseType === 'ACTIVE', // Only enable when season is active
+    responseType === 'ACTIVE' ? 5000 : 0 // Poll every 5 seconds when season is active
+  );
+
+
+  // Track if we've already checked match tracking to avoid multiple navigations
+  const hasCheckedMatchTracking = useRef(false);
+  // Track the last processed matchId and status to avoid reprocessing the same match with same status
+  const lastProcessedMatchId = useRef<number | null>(null);
+  const lastProcessedStatus = useRef<string | null>(null);
 
   /**
    * Shimmer effect
@@ -167,7 +181,7 @@ export default function BattleLobbyScreen() {
    */
   const handleClaimRewardComplete = async () => {
     setShowSeasonEndedModal(false);
-    
+
     // After claiming, call joinNewSeason
     try {
       const response = await joinNewSeasonMutation.mutateAsync();
@@ -245,6 +259,390 @@ export default function BattleLobbyScreen() {
     setShowAcceptModal(false);
     setMatchedPlayer(null);
   }, []);
+
+  /**
+   * Handle navigation based on match tracking data
+   * This function processes the match tracking data and navigates accordingly
+   */
+  const handleMatchTrackingData = useCallback((data: IBattleMatchTrackingResponse | undefined, forceProcess: boolean = false) => {
+    if (!data) {
+      console.log("[MATCH_TRACKING] No data to process");
+      return;
+    }
+
+    const currentMatchId = data.matchId || data.match?.id;
+    const currentStatus = data.type;
+
+    // Skip if we've already processed this match with the same status, unless forced
+    const isSameMatchAndStatus = currentMatchId &&
+      lastProcessedMatchId.current === currentMatchId &&
+      lastProcessedStatus.current === currentStatus;
+
+    if (!forceProcess && isSameMatchAndStatus && data.type !== BATTLE_STATUS.MATCH_TRACKING_STATUS.NO_ACTIVE_MATCH) {
+      console.log("[MATCH_TRACKING] Already processed matchId:", currentMatchId, "status:", currentStatus, "- skipping");
+      return;
+    }
+
+    console.log("[MATCH_TRACKING] Processing status:", currentStatus, "matchId:", currentMatchId, "force:", forceProcess, "lastStatus:", lastProcessedStatus.current);
+
+    // Update last processed matchId and status
+    if (currentMatchId) {
+      lastProcessedMatchId.current = currentMatchId;
+      lastProcessedStatus.current = currentStatus;
+    } else if (data.type === BATTLE_STATUS.MATCH_TRACKING_STATUS.NO_ACTIVE_MATCH) {
+      lastProcessedMatchId.current = null;
+      lastProcessedStatus.current = null;
+    }
+
+    // Handle navigation based on match status
+    switch (data.type) {
+      case BATTLE_STATUS.MATCH_TRACKING_STATUS.MATCH_FOUND:
+        // Show accept modal if match is found and not yet accepted
+        if (data.match && data.opponent && data.participant && !data.participant.hasAccepted) {
+          const matchId = data.matchId || data.match.id;
+
+          const matchFoundPayload: IBattleMatchFound = {
+            type: BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_FOUND,
+            matchId: matchId,
+            match: {
+              id: data.match.id,
+              status: data.match.status,
+              createdAt: data.match.createdAt,
+              endTime: data.match.endTime || "",
+            },
+            opponent: {
+              id: data.opponent.id,
+              name: data.opponent.name,
+              avatar: data.opponent.avatar || undefined,
+            },
+            participant: {
+              id: data.participant.id,
+              matchId: data.participant.matchId,
+              hasAccepted: data.participant.hasAccepted,
+              userId: data.participant.userId,
+            },
+          };
+
+          // Update UI state
+          setInQueue(false);
+          setGlobalInQueue(false);
+          setMatchedPlayer(matchFoundPayload);
+          setShowAcceptModal(true);
+          showGlobalMatchFound(matchFoundPayload, String(matchId));
+
+          // Join matching room
+          if (socketRef.current && matchId) {
+            socketRef.current.emit("join-matching-room", { matchId });
+          }
+        }
+        break;
+
+      case BATTLE_STATUS.MATCH_TRACKING_STATUS.ROUND_SELECTING_POKEMON:
+      case BATTLE_STATUS.MATCH_TRACKING_STATUS.BETWEEN_ROUNDS:
+        // Navigate to pick pokemon screen immediately
+        const pickPokemonMatchId = data.matchId || data.match?.id;
+
+        if (!pickPokemonMatchId) {
+          console.log("[MATCH_TRACKING] No matchId for pick pokemon navigation");
+          break;
+        }
+
+        console.log("[MATCH_TRACKING] 🎯 Navigating to pick pokemon, matchId:", pickPokemonMatchId, "status:", data.type);
+
+        setInQueue(false);
+        setGlobalInQueue(false);
+        hideGlobalMatchFound();
+        queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
+        queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
+
+        // Use replace to prevent back navigation to battle screen
+        // This is critical when user kills app and comes back - should go to pick pokemon
+        router.replace({
+          pathname: ROUTES.APP.PICK_POKEMON,
+          params: {
+            matchId: String(pickPokemonMatchId),
+          },
+        });
+        break;
+
+      case BATTLE_STATUS.MATCH_TRACKING_STATUS.ROUND_IN_PROGRESS:
+      case BATTLE_STATUS.MATCH_TRACKING_STATUS.ROUND_STARTING:
+        // Navigate to arena screen immediately
+        const arenaMatchId = data.matchId || data.match?.id;
+
+        if (!arenaMatchId) {
+          console.log("[MATCH_TRACKING] No matchId for arena navigation");
+          break;
+        }
+
+        // roundNumber is required for arena, but if not provided, we still navigate
+        // Arena screen will handle missing roundNumber
+        const roundNumber = data.roundNumber || "ONE"; // Default to ONE if not provided
+
+        console.log("[MATCH_TRACKING] 🎯 Navigating to arena, matchId:", arenaMatchId, "round:", roundNumber, "status:", data.type);
+
+        setInQueue(false);
+        setGlobalInQueue(false);
+        hideGlobalMatchFound();
+        queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
+
+        // Use replace to prevent back navigation to battle screen
+        // This is critical when user kills app and comes back - should go to arena
+        router.replace({
+          pathname: ROUTES.APP.ARENA,
+          params: {
+            matchId: String(arenaMatchId),
+            roundNumber: roundNumber,
+          },
+        });
+        break;
+
+      case BATTLE_STATUS.MATCH_TRACKING_STATUS.NO_ACTIVE_MATCH:
+        // No active match, ensure UI is in correct state
+        setInQueue(false);
+        setGlobalInQueue(false);
+        setShowAcceptModal(false);
+        setMatchedPlayer(null);
+        setStatusMatch(null);
+        hideGlobalMatchFound();
+        break;
+    }
+  }, [router, setGlobalInQueue, showGlobalMatchFound, hideGlobalMatchFound, queryClient, socketRef]);
+
+  /**
+   * Check match tracking and navigate if needed
+   * Uses matchTrackingData from hook directly
+   */
+  const checkMatchTrackingAndNavigate = useCallback(() => {
+    // Prevent multiple simultaneous checks
+    if (hasCheckedMatchTracking.current) {
+      console.log("[MATCH_TRACKING] Already checking, skipping...");
+      return;
+    }
+
+    // Only check match tracking if season is active and loaded
+    if (responseType !== 'ACTIVE' || isLoadingSeason || isLoadingMatchTracking) {
+      console.log("[MATCH_TRACKING] Skipping - responseType:", responseType, "isLoadingSeason:", isLoadingSeason, "isLoadingMatchTracking:", isLoadingMatchTracking);
+      return;
+    }
+
+    // Use existing data from hook (hook will refetch on mount/focus due to refetchOnMount: "always")
+    const data = matchTrackingData as IBattleMatchTrackingResponse | undefined;
+
+    if (data) {
+      console.log("[MATCH_TRACKING] Using data from hook");
+      hasCheckedMatchTracking.current = true;
+      handleMatchTrackingData(data, false);
+      // Reset flag after processing
+      setTimeout(() => {
+        hasCheckedMatchTracking.current = false;
+      }, 1000);
+    } else {
+      console.log("[MATCH_TRACKING] No data yet, will wait for hook to fetch");
+    }
+  }, [responseType, isLoadingSeason, isLoadingMatchTracking, matchTrackingData, handleMatchTrackingData]);
+
+  // Track if we've initialized the check on season active
+  const hasInitializedSeasonCheck = useRef(false);
+  // Track if battle screen is currently focused
+  const isBattleScreenFocused = useRef(false);
+
+  /**
+   * Check match tracking when season becomes active and battle screen is focused
+   * This handles when app is opened from kill state and user is on battle screen
+   * This is the main handler for when season loads after user clicks battle tab
+   */
+  useEffect(() => {
+    console.log("[MATCH_TRACKING] useEffect trigger - isLoadingSeason:", isLoadingSeason, "responseType:", responseType, "isBattleFocused:", isBattleScreenFocused.current, "hasChecked:", hasCheckedMatchTracking.current);
+
+    // When season becomes active and loaded, and battle screen is focused, check match tracking
+    // This is critical for app kill scenario: user opens app at home, clicks battle, season loads after
+    if (!isLoadingSeason && responseType === 'ACTIVE' && !isLoadingMatchTracking && isBattleScreenFocused.current) {
+      console.log("[MATCH_TRACKING] Conditions met: Season active + battle focused, checking match status...");
+
+      // Reset flag when season becomes active to ensure we check
+      // This is important for app kill scenario
+      if (hasCheckedMatchTracking.current) {
+        console.log("[MATCH_TRACKING] Resetting hasChecked flag to allow check on season active");
+        hasCheckedMatchTracking.current = false;
+      }
+
+      const checkMatchStatus = async () => {
+        // Double check to prevent race conditions
+        if (hasCheckedMatchTracking.current) {
+          console.log("[MATCH_TRACKING] Already checking, skipping...");
+          return;
+        }
+
+        try {
+          hasCheckedMatchTracking.current = true;
+          console.log("[MATCH_TRACKING] Refetching match status on season ready...");
+
+          const trackingResult = await refetchMatchTracking();
+          const data = trackingResult.data?.data?.data as IBattleMatchTrackingResponse | undefined;
+
+          if (data) {
+            console.log("[MATCH_TRACKING] Got data on season ready:", data.type, "matchId:", data.matchId || data.match?.id);
+            // Force process to ensure navigation happens
+            handleMatchTrackingData(data, true); // Force process
+          } else {
+            console.log("[MATCH_TRACKING] No match data on season ready");
+          }
+
+          setTimeout(() => {
+            hasCheckedMatchTracking.current = false;
+          }, 1000);
+        } catch (error) {
+          console.error("[MATCH_TRACKING] Error:", error);
+          hasCheckedMatchTracking.current = false;
+        }
+      };
+
+      // Small delay to ensure everything is ready
+      const timer = setTimeout(checkMatchStatus, 300);
+      return () => clearTimeout(timer);
+    }
+
+    // Reset initialization flag when season becomes inactive
+    if (responseType !== 'ACTIVE') {
+      hasInitializedSeasonCheck.current = false;
+    }
+  }, [isLoadingSeason, responseType, isLoadingMatchTracking, refetchMatchTracking, handleMatchTrackingData]);
+
+  /**
+   * Watch for matchTrackingData changes and process when data arrives
+   * This handles when user is already in battle screen and match status changes
+   * This is critical for: user in battle lobby, match starts, should auto-navigate
+   */
+  useEffect(() => {
+    // Only process if we have data, season is active, and not currently loading
+    // This handles when user is already in battle screen (not just on focus)
+    if (matchTrackingData && responseType === 'ACTIVE' && !isLoadingSeason && !isLoadingMatchTracking) {
+      const data = matchTrackingData as IBattleMatchTrackingResponse;
+      const currentMatchId = data.matchId || data.match?.id;
+      const currentStatus = data.type;
+
+      console.log("[MATCH_TRACKING] Data changed:", currentStatus, "matchId:", currentMatchId, "hasChecked:", hasCheckedMatchTracking.current, "lastProcessed:", lastProcessedMatchId.current, "lastStatus:", lastProcessedStatus.current);
+
+      // Check if this is a match that requires navigation (not NO_ACTIVE_MATCH)
+      const requiresNavigation = data.type !== BATTLE_STATUS.MATCH_TRACKING_STATUS.NO_ACTIVE_MATCH;
+
+      // Check if this is a new match OR different status for same match
+      const isNewMatch = !lastProcessedMatchId.current || lastProcessedMatchId.current !== currentMatchId;
+      const isDifferentStatus = lastProcessedStatus.current !== currentStatus;
+      const shouldProcess = !hasCheckedMatchTracking.current && requiresNavigation && (isNewMatch || isDifferentStatus);
+
+      if (shouldProcess) {
+        console.log("[MATCH_TRACKING] Processing match tracking data change:", currentStatus, "matchId:", currentMatchId, "isNewMatch:", isNewMatch, "isDifferentStatus:", isDifferentStatus);
+        hasCheckedMatchTracking.current = true;
+        // Force process to ensure navigation happens when user is in battle screen
+        // This handles: user in lobby, match status changes, should auto-navigate
+        handleMatchTrackingData(data, true); // Force process to handle status changes
+        // Reset flag after processing to allow re-checking
+        setTimeout(() => {
+          hasCheckedMatchTracking.current = false;
+        }, 1000);
+      } else {
+        console.log("[MATCH_TRACKING] Skipping - same match and status or already checking");
+      }
+    }
+  }, [matchTrackingData, responseType, isLoadingSeason, isLoadingMatchTracking, handleMatchTrackingData]);
+
+  /**
+   * Handle match tracking - restore state when user returns to battle screen
+   * This checks if there's an active match and restores the appropriate UI state
+   * Runs when screen is focused (user clicks on battle tab)
+   * IMPORTANT: Always check when user clicks battle tab, even if they out from match or app
+   */
+  useFocusEffect(
+    useCallback(() => {
+      console.log("[MATCH_TRACKING] Screen focused - battle tab clicked");
+
+      // Mark that battle screen is focused
+      isBattleScreenFocused.current = true;
+
+      // Always reset flags when screen is focused to allow re-checking
+      // This ensures that even if user out from match/app and come back, it will check again
+      hasCheckedMatchTracking.current = false;
+      lastProcessedMatchId.current = null; // Reset to allow re-processing same match
+      lastProcessedStatus.current = null; // Reset status too
+      console.log("[MATCH_TRACKING] Reset all flags on focus");
+
+      // ALWAYS check when battle tab is clicked
+      // This is the PRIMARY handler for app kill scenario: user kills app, reopens, clicks battle
+      const checkAndNavigate = async () => {
+        // If season not ready, wait a bit and let useEffect handle it
+        // But also try to check after a delay
+        if (responseType !== 'ACTIVE' || isLoadingSeason) {
+          console.log("[MATCH_TRACKING] Season not ready, will retry. responseType:", responseType, "isLoadingSeason:", isLoadingSeason);
+
+          // Retry after season loads (useEffect will also handle this)
+          const retryTimer = setTimeout(async () => {
+            // Check again after delay
+            const currentResponseType = responseType;
+            const currentIsLoading = isLoadingSeason;
+
+            if (currentResponseType === 'ACTIVE' && !currentIsLoading && !hasCheckedMatchTracking.current) {
+              console.log("[MATCH_TRACKING] Retrying after delay...");
+              await performCheck();
+            }
+          }, 1000);
+
+          return () => clearTimeout(retryTimer);
+        }
+
+        // Season is ready, check immediately
+        await performCheck();
+      };
+
+      const performCheck = async () => {
+        // Skip if already checking (race condition protection)
+        if (hasCheckedMatchTracking.current) {
+          console.log("[MATCH_TRACKING] Already checking, skipping duplicate...");
+          return;
+        }
+
+        // Double check season is active
+        if (responseType !== 'ACTIVE') {
+          console.log("[MATCH_TRACKING] Season not active, skipping. responseType:", responseType);
+          return;
+        }
+
+        try {
+          console.log("[MATCH_TRACKING] 🔄 Force refetching match status on battle tab click...");
+          hasCheckedMatchTracking.current = true;
+
+          const trackingResult = await refetchMatchTracking();
+          const data = trackingResult.data?.data?.data as IBattleMatchTrackingResponse | undefined;
+
+          if (data) {
+            console.log("[MATCH_TRACKING] ✅ Got match data:", data.type, "matchId:", data.matchId || data.match?.id);
+            // ALWAYS force process when user clicks battle tab
+            // This ensures user goes to correct screen (arena/pick-pokemon) even after killing app
+            handleMatchTrackingData(data, true); // Force process - ignore all previous state
+          } else {
+            console.log("[MATCH_TRACKING] No match data");
+          }
+
+          // Reset flag after processing
+          setTimeout(() => {
+            hasCheckedMatchTracking.current = false;
+          }, 2000);
+        } catch (error) {
+          console.error("[MATCH_TRACKING] Error refetching:", error);
+          hasCheckedMatchTracking.current = false;
+        }
+      };
+
+      // Start check immediately when battle tab is clicked
+      checkAndNavigate();
+
+      // Cleanup: mark screen as unfocused when leaving
+      return () => {
+        isBattleScreenFocused.current = false;
+      };
+    }, [responseType, isLoadingSeason, refetchMatchTracking, handleMatchTrackingData])
+  );
 
   // Handle season state based on response type
   useEffect(() => {
