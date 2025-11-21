@@ -2,6 +2,7 @@ import AuthScreenLayout from '@components/layouts/AuthScreenLayout';
 import BackScreen from '@components/molecules/Back';
 import BounceButton from '@components/ui/BounceButton';
 import { useToast } from '@components/ui/Toast';
+import { AuthType } from '@constants/auth.enum';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
 import { useEmailSelector } from '@stores/user/user.selectors';
@@ -50,12 +51,14 @@ export default function OTPScreen() {
         setIsSubmitting(true);
         try {
             const res = await authService.verifyOtp({ email, code, type });
-            console.log(res);
 
-            if (res.data.statusCode === 201) {
+            if (res.data.statusCode === 201 && type === AuthType.REGISTER) {
                 toast({ variant: 'Success', description: res.data.message });
                 router.replace(ROUTES.AUTH.CREATE_ACCOUNT);
-            } else if (res.data.statusCode === 200) {
+            } else if (res.data.statusCode === 201 && type === AuthType.LOGIN) {
+                toast({ variant: 'Success', description: res.data.message });
+                router.replace(ROUTES.AUTH.PASSWORD);
+            } else if (res.data.statusCode === 200 && type === AuthType.FORGOT_PASSWORD) {
                 toast({ variant: 'Success', description: res.data.message });
                 saveSecureStorage('accessToken', res.data.data.accessToken);
                 router.replace(ROUTES.AUTH.RESET_PASSWORD);
