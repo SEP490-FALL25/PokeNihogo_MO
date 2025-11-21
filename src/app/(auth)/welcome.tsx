@@ -13,14 +13,6 @@ const WelcomeScreen = () => {
     router.push(ROUTES.AUTH.EMAIL);
   }
 
-  const handleTabs = () => {
-    router.push(ROUTES.STARTER.SELECT_LEVEL);
-  }
-
-  const handleDemo = () => {
-    router.push(ROUTES.TABS.HOME);
-  }
-
   return (
     <AuthScreenLayout>
       <View className='flex-1 justify-between px-8 py-10'>
@@ -31,9 +23,7 @@ const WelcomeScreen = () => {
           </Text>
         </View>
         <View className='gap-5'>
-          <BounceButton onPress={handleTabs}>{t('common.start')}</BounceButton>
-          <BounceButton onPress={handleDemo}>{t('common.demo')}</BounceButton>
-          <BounceButton variant={'ghost'} onPress={handleLogin}>{t('common.i-already-have-an-account')}</BounceButton>
+          <BounceButton onPress={handleLogin}>{t('common.start')}</BounceButton>
         </View>
       </View>
     </AuthScreenLayout >
