@@ -136,9 +136,12 @@ export default function BattleLobbyScreen() {
     setGlobalInQueue(true); // Update global store
     try {
       await battleService.matchQueue();
+      // ✅ Emit join-searching-room after successful queue (as per index.html)
       if (socketRef.current) {
         socketRef.current.emit("join-searching-room", {}, (ack: any) => {
+          console.log("[QUEUE] join-searching-room ack:", ack);
         });
+        console.log("[QUEUE] Emitted join-searching-room");
       }
     } catch (error: any) {
       Alert.alert(t("common.error"), t("battle.lobby.alerts.queue_error_message"));
@@ -330,10 +333,8 @@ export default function BattleLobbyScreen() {
           setShowAcceptModal(true);
           showGlobalMatchFound(matchFoundPayload, String(matchId));
 
-          // Join matching room
-          if (socketRef.current && matchId) {
-            socketRef.current.emit("join-matching-room", { matchId });
-          }
+          // Note: Don't join rooms here, wait for MATCH_STATUS_UPDATE with IN_PROGRESS
+          // Rooms will be joined when status becomes IN_PROGRESS (as per index.html flow)
         }
         break;
 
@@ -349,10 +350,11 @@ export default function BattleLobbyScreen() {
 
         console.log("[MATCH_TRACKING] 🎯 Navigating to pick pokemon, matchId:", pickPokemonMatchId, "status:", data.type);
 
-        // Join matching room before navigating to ensure socket connection is established
+        // Join matching rooms before navigating to ensure socket connection is established
         if (socketRef.current && pickPokemonMatchId) {
           socketRef.current.emit("join-matching-room", { matchId: pickPokemonMatchId });
-          console.log("[MATCH_TRACKING] Joined matching room for pick-pokemon, matchId:", pickPokemonMatchId);
+          socketRef.current.emit("join-user-match-room", { matchId: pickPokemonMatchId });
+          console.log("[MATCH_TRACKING] Joined matching-room and user-match-room for pick-pokemon, matchId:", pickPokemonMatchId);
         }
 
         setInQueue(false);
@@ -387,10 +389,11 @@ export default function BattleLobbyScreen() {
 
         console.log("[MATCH_TRACKING] 🎯 Navigating to arena, matchId:", arenaMatchId, "round:", roundNumber, "status:", data.type);
 
-        // Join matching room before navigating to ensure socket connection is established
+        // Join matching rooms before navigating to ensure socket connection is established
         if (socketRef.current && arenaMatchId) {
           socketRef.current.emit("join-matching-room", { matchId: arenaMatchId });
-          console.log("[MATCH_TRACKING] Joined matching room for arena, matchId:", arenaMatchId);
+          socketRef.current.emit("join-user-match-room", { matchId: arenaMatchId });
+          console.log("[MATCH_TRACKING] Joined matching-room and user-match-room for arena, matchId:", arenaMatchId);
         }
 
         setInQueue(false);
@@ -690,13 +693,16 @@ export default function BattleLobbyScreen() {
     const socket = getSocket("matching", accessToken);
     socketRef.current = socket;
 
-    const onMatchingEvent = async (payload: IBattleMatchFound | IBattleMatchStatusUpdate) => {
-      console.log("payload", payload);
+    const onMatchingEvent = async (payload: IBattleMatchFound | IBattleMatchStatusUpdate | any) => {
+      console.log("[BATTLE] matching-event received:", payload);
 
+      // Handle MATCH_FOUND - show accept modal with countdown
       if (payload?.type === BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_FOUND) {
         const match = payload?.match;
 
         if (match && 'opponent' in payload) {
+          console.log("[BATTLE] MATCH_FOUND - matchId:", match.id, "endTime:", match.endTime);
+
           // Reset status match to allow accepting new match
           setStatusMatch(null);
 
@@ -706,13 +712,23 @@ export default function BattleLobbyScreen() {
 
           // Also update global store for notification on other tabs
           showGlobalMatchFound(payload as IBattleMatchFound, match.id.toString());
-          socket.emit("join-matching-room", { matchId: match.id });
+
+          // Note: Don't join rooms yet, wait for MATCH_STATUS_UPDATE with IN_PROGRESS
         }
       }
 
+      // Handle MATCH_STATUS_UPDATE - navigate based on status
       if (payload?.type === BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_STATUS_UPDATE) {
+        console.log("[BATTLE] MATCH_STATUS_UPDATE - status:", payload.status, "matchId:", payload.matchId);
+
         if (payload.status === "IN_PROGRESS" && payload.matchId) {
-          socket.emit("join-matching-room", { matchId: payload.matchId });
+          const matchId = payload.matchId;
+
+          // ✅ CRITICAL: Emit both join-matching-room AND join-user-match-room (as per index.html)
+          socket.emit("join-matching-room", { matchId });
+          socket.emit("join-user-match-room", { matchId });
+          console.log("[BATTLE] Joined matching-room and user-match-room for matchId:", matchId);
+
           setShowAcceptModal(false);
           setStatusMatch(null);
           setMatchedPlayer(null);
@@ -729,14 +745,18 @@ export default function BattleLobbyScreen() {
           queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
           queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
 
-          router.push({
+          // Navigate to pick pokemon screen
+          // Use replace to prevent back navigation to battle screen when match starts
+          router.replace({
             pathname: ROUTES.APP.PICK_POKEMON,
             params: {
-              matchId: payload.matchId,
+              matchId: String(matchId),
             },
           });
         }
+
         if (payload.status === "CANCELLED") {
+          console.log("[BATTLE] Match cancelled:", payload.message);
           setShowAcceptModal(false);
           setStatusMatch(null);
           setMatchedPlayer(null);
@@ -751,10 +771,19 @@ export default function BattleLobbyScreen() {
         }
       }
 
-      if (payload?.type === "MATCHMAKING_FAILED") {
+      // Handle MATCHMAKING_FAILED
+      if (payload?.type === BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCHMAKING_FAILED || payload?.type === "MATCHMAKING_FAILED") {
+        console.log("[BATTLE] Matchmaking failed:", payload.reason || payload.message);
         setInQueue(false);
         setStatusMatch(null);
         setGlobalInQueue(false);
+
+        if (payload.reason || payload.message) {
+          Alert.alert(
+            t("common.error"),
+            payload.reason || payload.message || t("battle.lobby.alerts.queue_error_message")
+          );
+        }
       }
     };
 
