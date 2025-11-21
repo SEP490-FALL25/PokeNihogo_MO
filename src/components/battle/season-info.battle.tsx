@@ -1,7 +1,7 @@
 import { CountdownTimer } from "@components/atoms/CountdownTimer";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { ThemedText } from "@components/ThemedText";
-import { useUserStatsSeason } from "@hooks/useSeason";
+import { useUserStatsSeason, SeasonResponseType } from "@hooks/useSeason";
 import { Crown, Info } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -22,7 +22,7 @@ const DEFAULT_RANK_RULES: RankRule[] = [
 
 export default function SeasonInfo({ insetsTop }: SeasonInfoProps) {
     const { t } = useTranslation();
-    const { data, isLoading } = useUserStatsSeason();
+    const { data, isLoading, responseType } = useUserStatsSeason();
     const [showRankInfo, setShowRankInfo] = useState<boolean>(false);
     const rankRules = useMemo<RankRule[]>(() => {
         const raw =
@@ -71,6 +71,11 @@ export default function SeasonInfo({ insetsTop }: SeasonInfoProps) {
                 </TWLinearGradient>
             </View>
         );
+    }
+
+    // Only show season info for ACTIVE season
+    if (responseType !== 'ACTIVE') {
+        return null;
     }
 
     const seasonName = data?.leaderboardSeason?.name || "Season 1";

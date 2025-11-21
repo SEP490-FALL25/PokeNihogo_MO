@@ -293,13 +293,35 @@
         "item": "Vật phẩm",
         "skin": "Skin",
         "badge": "Huy hiệu",
-        "daily_request": "Nhiệm vụ hàng ngày"
+        "daily_request": "Nhiệm vụ hàng ngày",
+        "event": "Sự kiện",
+        "poke_coins": "Xu"
       },
       "targets": {
         "exp": "Kinh nghiệm",
         "point": "Điểm",
         "level": "Cấp độ"
       }
+    },
+    "season_ended": {
+      "title": "Mùa giải đã kết thúc",
+      "ended_message": "Mùa giải đã kết thúc",
+      "elo": "ELO",
+      "continue": "Tiếp tục",
+      "rewards_title": "Phần thưởng mùa giải",
+      "claiming": "Đang nhận...",
+      "claim": "Nhận thưởng"
+    },
+    "new_season": {
+      "title": "Mùa giải mới",
+      "elo": "ELO",
+      "message": "Chúc bạn may mắn trong mùa giải mới!"
+    },
+    "first_time": {
+      "title": "Chào mừng!",
+      "message": "Chào mừng bạn đến với hệ thống thi đấu! Hãy tham gia mùa giải đầu tiên của bạn.",
+      "joining": "Đang tham gia...",
+      "join": "Tham gia ngay"
     }
   },
   "navigation": {

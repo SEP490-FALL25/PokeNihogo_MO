@@ -86,13 +86,6 @@ export default function ModalLeaderboard({ visible, onRequestClose, rankName = "
         const me = (latestData && typeof latestData === 'object' && 'me' in latestData ? latestData.me : undefined)
             || (leaderboardResponse && typeof leaderboardResponse === 'object' && 'me' in leaderboardResponse ? leaderboardResponse.me : undefined);
 
-        console.log("[Leaderboard] leaderboardData:", {
-            resultsLength: results.length,
-            allResultsLength: allResults.length,
-            leaderboardResponseResultsLength: leaderboardResponse?.results?.length || 0,
-            hasMe: !!me
-        });
-
         return {
             results,
             pagination: pagination || {
