@@ -314,42 +314,51 @@ const MatchingGameScreen = () => {
     return allCards;
   }, [contentData, contentType, t]);
 
+  // Helper function to initialize displayed cards from pool
+  const initializeDisplayedCards = useCallback((allCards: MatchingCard[]) => {
+    // Display first 6 complete pairs (12 cards)
+    // Find first 6 unique pairIds and get both cards (word + meaning) for each pair
+    const displayedPairIds = new Set<string>();
+    const initialDisplayed: MatchingCard[] = [];
+    
+    for (const card of allCards) {
+      if (initialDisplayed.length >= MAX_DISPLAYED_CARDS) break;
+      
+      if (!displayedPairIds.has(card.pairId)) {
+        // Find both cards (word and meaning) of this pair
+        const pairCards = allCards.filter((c) => c.pairId === card.pairId);
+        if (pairCards.length === 2) {
+          // Add both cards to display
+          initialDisplayed.push(...pairCards);
+          displayedPairIds.add(card.pairId);
+          
+          // Initialize animation refs for displayed cards
+          pairCards.forEach((c) => {
+            initCardAnimation(c.id);
+          });
+        }
+      }
+    }
+    
+    setCards(initialDisplayed);
+    // Update nextCardIndex to skip all displayed cards
+    setNextCardIndex(
+      allCards.findIndex(
+        (card) => !displayedPairIds.has(card.pairId)
+      ) === -1
+        ? allCards.length
+        : allCards.findIndex((card) => !displayedPairIds.has(card.pairId))
+    );
+  }, [initCardAnimation]);
+
   // Initialize game on mount and when data changes
   useEffect(() => {
     if (contentData.length > 0 && allCardsPool.length === 0) {
       const allCards = initializeCards();
       setAllCardsPool(allCards);
-      
-      // Display first 6 complete pairs (12 cards)
-      // Find first 6 unique pairIds and get both cards (word + meaning) for each pair
-      const displayedPairIds = new Set<string>();
-      const initialDisplayed: MatchingCard[] = [];
-      
-      for (const card of allCards) {
-        if (initialDisplayed.length >= MAX_DISPLAYED_CARDS) break;
-        
-        if (!displayedPairIds.has(card.pairId)) {
-          // Find both cards (word and meaning) of this pair
-          const pairCards = allCards.filter((c) => c.pairId === card.pairId);
-          if (pairCards.length === 2) {
-            // Add both cards to display
-            initialDisplayed.push(...pairCards);
-            displayedPairIds.add(card.pairId);
-          }
-        }
-      }
-      
-      setCards(initialDisplayed);
-      // Update nextCardIndex to skip all displayed cards
-      setNextCardIndex(
-        allCards.findIndex(
-          (card) => !displayedPairIds.has(card.pairId)
-        ) === -1
-          ? allCards.length
-          : allCards.findIndex((card) => !displayedPairIds.has(card.pairId))
-      );
+      initializeDisplayedCards(allCards);
     }
-  }, [contentData.length, initializeCards, allCardsPool.length]);
+  }, [contentData.length, initializeCards, allCardsPool.length, initializeDisplayedCards]);
 
   // Timer countdown
   useEffect(() => {
@@ -385,6 +394,7 @@ const MatchingGameScreen = () => {
 
   // Reset game
   const resetGame = useCallback(() => {
+    // Clear all state first
     setSelectedIndices([]);
     setMatchedPairs(0);
     setMoves(0);
@@ -392,39 +402,22 @@ const MatchingGameScreen = () => {
     setIsChecking(false);
     setTimeRemaining(600); // Reset to 10 minutes
     setIsTimeUp(false);
+    setNextCardIndex(0);
+    
+    // Clear animation refs
+    cardScaleRefs.current = {};
+    cardOpacityRefs.current = {};
+    cardSelectionScaleRefs.current = {};
+    
+    // Initialize new cards pool and display immediately
     const allCards = initializeCards();
+    
+    // Set new pool and initialize displayed cards directly (don't clear first)
     setAllCardsPool(allCards);
+    initializeDisplayedCards(allCards);
     
-    // Display first 6 complete pairs (12 cards)
-    // Find first 6 unique pairIds and get both cards (word + meaning) for each pair
-    const displayedPairIds = new Set<string>();
-    const initialDisplayed: MatchingCard[] = [];
-    
-    for (const card of allCards) {
-      if (initialDisplayed.length >= MAX_DISPLAYED_CARDS) break;
-      
-      if (!displayedPairIds.has(card.pairId)) {
-        // Find both cards (word and meaning) of this pair
-        const pairCards = allCards.filter((c) => c.pairId === card.pairId);
-        if (pairCards.length === 2) {
-          // Add both cards to display
-          initialDisplayed.push(...pairCards);
-          displayedPairIds.add(card.pairId);
-        }
-      }
-    }
-    
-    setCards(initialDisplayed);
-    // Update nextCardIndex to skip all displayed cards
-    setNextCardIndex(
-      allCards.findIndex(
-        (card) => !displayedPairIds.has(card.pairId)
-      ) === -1
-        ? allCards.length
-        : allCards.findIndex((card) => !displayedPairIds.has(card.pairId))
-    );
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-  }, [initializeCards]);
+  }, [initializeCards, initializeDisplayedCards]);
 
   // Format time to mm:ss
   const formatTime = useCallback((seconds: number) => {
