@@ -53,13 +53,13 @@ export default function OTPScreen() {
             const res = await authService.verifyOtp({ email, code, type });
 
             if (res.data.statusCode === 201 && type === AuthType.REGISTER) {
-                toast({ variant: 'Success', description: res.data.message });
+                showAlert(res.data.message, 'success');
                 router.replace(ROUTES.AUTH.CREATE_ACCOUNT);
             } else if (res.data.statusCode === 201 && type === AuthType.LOGIN) {
-                toast({ variant: 'Success', description: res.data.message });
+                showAlert(res.data.message, 'success');
                 router.replace(ROUTES.AUTH.PASSWORD);
             } else if (res.data.statusCode === 200 && type === AuthType.FORGOT_PASSWORD) {
-                toast({ variant: 'Success', description: res.data.message });
+                showAlert(res.data.message, 'success');
                 saveSecureStorage('accessToken', res.data.data.accessToken);
                 router.replace(ROUTES.AUTH.RESET_PASSWORD);
             }
