@@ -1,4 +1,5 @@
-import { useToast } from "@components/ui/Toast";
+import type { AlertType } from "@components/atoms/MinimalAlert";
+import useMinimalAlert from "@hooks/useMinimalAlert";
 import { useUploadImage } from "@hooks/useUpload";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
@@ -30,7 +31,16 @@ export default function ImageUploader({
   disabled = false,
 }: ImageUploaderProps) {
   const { t } = useTranslation();
-  const { toast } = useToast();
+  const { AlertElement, showAlert } = useMinimalAlert();
+  const showUploaderAlert = useCallback(
+    (title: string, description?: string, type: AlertType = "info") => {
+      const message = [title, description].filter(Boolean).join(" - ");
+      if (message) {
+        showAlert(message, type);
+      }
+    },
+    [showAlert]
+  );
   const uploadImageMutation = useUploadImage();
 
   const handleSelectImage = useCallback(async () => {
@@ -40,14 +50,14 @@ export default function ImageUploader({
 
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissionResult.granted) {
-        toast({
-          title: t("flashcard_detail.image_permission_denied_title", "Không có quyền"),
-          description: t(
+        showUploaderAlert(
+          t("flashcard_detail.image_permission_denied_title", "Không có quyền"),
+          t(
             "flashcard_detail.image_permission_denied_desc",
             "Ứng dụng cần quyền truy cập thư viện ảnh để tải hình."
           ),
-          variant: "destructive",
-        });
+          "error"
+        );
         return;
       }
 
@@ -85,59 +95,40 @@ export default function ImageUploader({
             const imageUrl = response?.data?.url;
             if (imageUrl) {
               onChange?.(imageUrl);
-              toast({
-                title: t(
-                  "flashcard_detail.upload_success_title",
-                  "Tải ảnh thành công"
-                ),
-                description: t(
-                  "flashcard_detail.upload_success_desc",
-                  "Ảnh đã được tải lên và hiển thị."
-                ),
-              });
+              showUploaderAlert(
+                t("flashcard_detail.upload_success_title", "Tải ảnh thành công"),
+                t("flashcard_detail.upload_success_desc", "Ảnh đã được tải lên và hiển thị."),
+                "success"
+              );
             } else {
               console.warn("Upload response missing URL:", response);
-              toast({
-                title: t(
-                  "flashcard_detail.upload_error_title",
-                  "Không thể tải ảnh"
-                ),
-                description: t(
-                  "flashcard_detail.upload_error_desc",
-                  "Phản hồi từ server thiếu URL."
-                ),
-                variant: "destructive",
-              });
+              showUploaderAlert(
+                t("flashcard_detail.upload_error_title", "Không thể tải ảnh"),
+                t("flashcard_detail.upload_error_desc", "Phản hồi từ server thiếu URL."),
+                "error"
+              );
             }
           },
           onError: (error: any) => {
             console.warn("Image upload error:", error);
-            toast({
-              title: t(
-                "flashcard_detail.upload_error_title",
-                "Không thể tải ảnh"
-              ),
-              description: error?.message || t(
-                "flashcard_detail.upload_error_desc",
-                "Vui lòng thử lại sau."
-              ),
-              variant: "destructive",
-            });
+            showUploaderAlert(
+              t("flashcard_detail.upload_error_title", "Không thể tải ảnh"),
+              error?.message ||
+                t("flashcard_detail.upload_error_desc", "Vui lòng thử lại sau."),
+              "error"
+            );
           },
         }
       );
     } catch (error) {
       console.warn("Image upload error", error);
-      toast({
-        title: t("flashcard_detail.upload_error_title", "Không thể tải ảnh"),
-        description: t(
-          "flashcard_detail.upload_error_desc",
-          "Vui lòng thử lại sau."
-        ),
-        variant: "destructive",
-      });
+      showUploaderAlert(
+        t("flashcard_detail.upload_error_title", "Không thể tải ảnh"),
+        t("flashcard_detail.upload_error_desc", "Vui lòng thử lại sau."),
+        "error"
+      );
     }
-  }, [uploadImageMutation, folderName, onChange, toast, t, disabled]);
+  }, [uploadImageMutation, folderName, onChange, showUploaderAlert, t, disabled]);
 
   const handleRemoveImage = useCallback(() => {
     onChange?.("");
@@ -201,6 +192,7 @@ export default function ImageUploader({
           </Text>
         )}
       </TouchableOpacity>
+      {AlertElement}
     </View>
   );
 }

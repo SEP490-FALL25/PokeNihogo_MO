@@ -3,7 +3,7 @@ import { Dimensions, Modal, Text, View } from 'react-native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-type AlertType = 'success' | 'error' | 'warning' | 'info';
+export type AlertType = 'success' | 'error' | 'warning' | 'info';
 
 interface MinimalGameAlertProps {
     message: string;

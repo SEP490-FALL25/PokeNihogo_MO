@@ -2,8 +2,8 @@ import AuthScreenLayout from '@components/layouts/AuthScreenLayout';
 import BackScreen from '@components/molecules/Back';
 import BounceButton from '@components/ui/BounceButton';
 import { Input } from '@components/ui/Input';
-import { useToast } from '@components/ui/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
+import useMinimalAlert from '@hooks/useMinimalAlert';
 import { IResetPasswordFormDataRequest, ResetPasswordFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
@@ -21,7 +21,7 @@ export default function ResetPasswordScreen() {
      * Define variables
      */
     const { t } = useTranslation();
-    const { toast } = useToast();
+    const { AlertElement, showAlert } = useMinimalAlert();
     const email = useEmailSelector();
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
@@ -50,11 +50,11 @@ export default function ResetPasswordScreen() {
             const res = await authService.resetPassword(data);
 
             if (res.data.statusCode === 201) {
-                toast({ variant: 'Success', description: res.data.message });
+                showAlert(res.data.message, 'success');
                 router.replace(ROUTES.AUTH.PASSWORD);
             }
         } catch (error: any) {
-            toast({ variant: 'destructive', description: error.message });
+            showAlert(error.message, 'error');
         }
     };
     //-----------------------End-----------------------//
@@ -130,6 +130,7 @@ export default function ResetPasswordScreen() {
                     </ScrollView>
                 </View>
             </View>
+            {AlertElement}
         </AuthScreenLayout>
     );
 }

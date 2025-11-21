@@ -2,8 +2,8 @@ import AuthScreenLayout from '@components/layouts/AuthScreenLayout';
 import BackScreen from '@components/molecules/Back';
 import BounceButton from '@components/ui/BounceButton';
 import { Input } from '@components/ui/Input';
-import { useToast } from '@components/ui/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
+import useMinimalAlert from '@hooks/useMinimalAlert';
 import { CreateAccountFormDataRequest, ICreateAccountFormDataRequest } from '@models/user/user.request';
 // import { IRegisterFormDataRequest, RegisterFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
@@ -25,7 +25,7 @@ export default function CreateAccountScreen() {
      */
     const { t } = useTranslation();
     const email = useEmailSelector();
-    const { toast } = useToast();
+    const { AlertElement, showAlert } = useMinimalAlert();
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
 
@@ -51,13 +51,13 @@ export default function CreateAccountScreen() {
             
 
             if (res.data.statusCode === 201) {
-                toast({ variant: 'Success', description: res.data.message });
+                showAlert(res.data.message, 'success');
                 saveSecureStorage('accessToken', res.data.data.accessToken);
                 saveSecureStorage('refreshToken', res.data.data.refreshToken);
                 router.replace(ROUTES.STARTER.SELECT_LEVEL);
             }
         } catch (error: any) {
-            toast({ variant: 'destructive', description: error.message });
+            showAlert(error.message, 'error');
         }
     };
 
@@ -151,6 +151,7 @@ export default function CreateAccountScreen() {
                     </View>
                 </View>
             </View>
+            {AlertElement}
         </AuthScreenLayout>
     );
 }
