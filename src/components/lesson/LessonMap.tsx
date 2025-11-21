@@ -318,24 +318,53 @@ const LessonNodeComponent: React.FC<{
   const filledSegments = Math.floor(segmentProgress); // Số đoạn đã fill hoàn toàn (0, 1, 2, hoặc 3)
   const partialSegmentProgress = Math.max(0, Math.min(1, segmentProgress - filledSegments)); // Tiến độ của đoạn đang fill (0-1)
   
+  // Ngưỡng tối thiểu để hiển thị partial segment (tránh hiển thị khi quá nhỏ)
+  const MIN_PARTIAL_LENGTH = 2; // pixels
+  
   // Tính toán strokeDasharray và strokeDashoffset cho progress
+  // Logic: mỗi segment cần có gap trước và sau để tách biệt rõ ràng
   let progressDashArray = "";
   
   if (filledSegments >= 3 || progress >= 1) {
     // Fill cả 3 đoạn (100%)
-    progressDashArray = `${segmentFillLength} ${segmentGapLength} ${segmentFillLength} ${segmentGapLength} ${segmentFillLength} ${circumference}`;
+    progressDashArray = `${segmentFillLength} ${segmentGapLength} ${segmentFillLength} ${segmentGapLength} ${segmentFillLength} ${segmentGapLength}`;
   } else if (filledSegments === 2) {
     // Fill 2 đoạn + phần đoạn 3 (66-99%)
     const partialLength = segmentFillLength * partialSegmentProgress;
-    progressDashArray = `${segmentFillLength} ${segmentGapLength} ${segmentFillLength} ${segmentGapLength} ${partialLength} ${circumference}`;
+    // Chỉ hiển thị partialLength nếu đủ lớn (tránh hiển thị khi quá nhỏ)
+    if (partialLength >= MIN_PARTIAL_LENGTH) {
+      // Có phần fill ở đoạn 3: segment1 + gap + segment2 + gap + partialSegment3 + gap(còn lại)
+      // Đảm bảo gap giữa segment 2 và 3 là segmentGapLength để tách biệt rõ ràng
+      const totalUsed = segmentFillLength * 2 + segmentGapLength * 2 + partialLength;
+      const remainingGap = circumference - totalUsed;
+      // Đảm bảo gap cuối cùng ít nhất bằng segmentGapLength để tách biệt
+      const finalGap = Math.max(segmentGapLength, remainingGap);
+      progressDashArray = `${segmentFillLength} ${segmentGapLength} ${segmentFillLength} ${segmentGapLength} ${partialLength} ${finalGap}`;
+    } else {
+      // Chỉ fill 2 đoạn đầy, không hiển thị phần nhỏ của đoạn 3 (tránh "dính")
+      const remainingGap = circumference - (segmentFillLength * 2 + segmentGapLength);
+      progressDashArray = `${segmentFillLength} ${segmentGapLength} ${segmentFillLength} ${remainingGap}`;
+    }
   } else if (filledSegments === 1) {
     // Fill 1 đoạn + phần đoạn 2 (33-65%)
     const partialLength = segmentFillLength * partialSegmentProgress;
-    progressDashArray = `${segmentFillLength} ${segmentGapLength} ${partialLength} ${circumference}`;
+    if (partialLength >= MIN_PARTIAL_LENGTH) {
+      const totalUsed = segmentFillLength + segmentGapLength + partialLength;
+      const remainingGap = circumference - totalUsed;
+      // Đảm bảo gap cuối cùng ít nhất bằng segmentGapLength để tách biệt
+      const finalGap = Math.max(segmentGapLength, remainingGap);
+      progressDashArray = `${segmentFillLength} ${segmentGapLength} ${partialLength} ${finalGap}`;
+    } else {
+      const remainingGap = circumference - segmentFillLength;
+      progressDashArray = `${segmentFillLength} ${remainingGap}`;
+    }
   } else if (partialSegmentProgress > 0) {
     // Chỉ fill phần đoạn 1 (0-32%)
     const partialLength = segmentFillLength * partialSegmentProgress;
-    progressDashArray = `${partialLength} ${circumference}`;
+    if (partialLength >= MIN_PARTIAL_LENGTH) {
+      const remainingGap = circumference - partialLength;
+      progressDashArray = `${partialLength} ${remainingGap}`;
+    }
   }
 
   return (
