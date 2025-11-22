@@ -443,6 +443,7 @@ export default function HomeScreen() {
       queryClient.invalidateQueries({
         queryKey: ["attendance-summary", user?.data?.id],
       });
+      queryClient.invalidateQueries({ queryKey: ['wallet-user'] });
       showAlert(
         response?.message ||
           t("daily_login.success_message", "Điểm danh thành công!"),
