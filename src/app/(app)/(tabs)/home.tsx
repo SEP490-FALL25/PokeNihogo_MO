@@ -587,16 +587,20 @@ export default function HomeScreen() {
 
         {shouldRenderPersonalization && (
           <View style={styles.aiSection}>
-            <View style={isPersonalizationLocked && styles.lockedContainer}>
+            <TouchableOpacity
+              activeOpacity={0.95}
+              onPress={isPersonalizationLocked ? handleUnlockPress : undefined}
+              disabled={!isPersonalizationLocked}
+            >
               <LinearGradient
-                colors={isPersonalizationLocked ? ["#f3f4f6", "#e5e7eb"] : ["#eef2ff", "#fdf2f8"]}
+                colors={isPersonalizationLocked ? ["#fefcfb", "#fff7ed", "#fff4e6"] : ["#eef2ff", "#fdf2f8"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={[styles.aiHeroCard, isPersonalizationLocked && styles.aiHeroCardLocked]}
               >
                 <View style={styles.aiHeroHeader}>
                   <View style={[styles.aiHeroBadge, isPersonalizationLocked && styles.aiHeroBadgeLocked]}>
-                    <Sparkles size={16} color={isPersonalizationLocked ? "#9ca3af" : "#7c3aed"} />
+                    <Sparkles size={16} color={isPersonalizationLocked ? "#d97706" : "#7c3aed"} />
                     <ThemedText style={[styles.aiHeroBadgeText, isPersonalizationLocked && styles.aiHeroBadgeTextLocked]}>
                       {t("home.ai.assistant_badge", "Trợ lý AI")}
                     </ThemedText>
@@ -608,6 +612,13 @@ export default function HomeScreen() {
                         defaultValue: "{{count}} mục cần ôn",
                       })}
                     </ThemedText>
+                  )}
+                  {isPersonalizationLocked && (
+                    <View style={styles.lockedPremiumBadge}>
+                      <ThemedText style={styles.lockedPremiumBadgeText}>
+                        Premium
+                      </ThemedText>
+                    </View>
                   )}
                 </View>
                 <ThemedText style={[styles.aiHeroTitle, isPersonalizationLocked && styles.aiHeroTitleLocked]} numberOfLines={2}>
@@ -652,32 +663,44 @@ export default function HomeScreen() {
                   </View>
                 )}
                 {isPersonalizationLocked && (
-                  <View style={[styles.aiHeroHighlight, styles.aiHeroHighlightLocked]}>
-                    <Lock size={18} color="#9ca3af" />
-                    <View style={{ flex: 1 }}>
-                      <ThemedText style={styles.aiHeroHighlightTextLocked} numberOfLines={1}>
-                        {t(
-                          "home.ai.locked_highlight_title",
-                          "Quyền lợi dành riêng cho hội viên"
-                        )}
-                      </ThemedText>
-                      <ThemedText style={styles.aiHeroHighlightSubLocked} numberOfLines={2}>
-                        {t(
-                          "home.ai.locked_highlight_subtitle",
-                          "Mở khoá để xem roadmap học và nhắc nhở thông minh"
-                        )}
-                      </ThemedText>
+                  <>
+                    <View style={[styles.aiHeroHighlight, styles.aiHeroHighlightLocked]}>
+                      <Lock size={20} color="#b45309" />
+                      <View style={{ flex: 1 }}>
+                        <ThemedText style={styles.aiHeroHighlightTextLocked} numberOfLines={1}>
+                          {t(
+                            "home.ai.locked_highlight_title",
+                            "Quyền lợi dành riêng cho hội viên"
+                          )}
+                        </ThemedText>
+                        <ThemedText style={styles.aiHeroHighlightSubLocked} numberOfLines={2}>
+                          {t(
+                            "home.ai.locked_highlight_subtitle",
+                            "Mở khoá để xem roadmap học và nhắc nhở thông minh"
+                          )}
+                        </ThemedText>
+                      </View>
                     </View>
-                  </View>
+                    <TouchableOpacity
+                      style={styles.heroUnlockButton}
+                      onPress={handleUnlockPress}
+                      activeOpacity={0.8}
+                    >
+                      <ThemedText style={styles.heroUnlockButtonText}>
+                        {t("home.ai.unlock_button", "Mở khóa ngay")}
+                      </ThemedText>
+                      <ChevronRight size={18} color="#ffffff" />
+                    </TouchableOpacity>
+                  </>
                 )}
               </LinearGradient>
-            </View>
+            </TouchableOpacity>
 
             <View style={styles.insightList}>
               {isPersonalizationLocked && (
                 <View style={styles.insightLockedState}>
                   <View style={styles.insightLockedBadge}>
-                    <Lock size={18} color="#9ca3af" />
+                    <Lock size={18} color="#b45309" />
                     <ThemedText style={styles.insightLockedBadgeText}>
                       {t("home.insight_locked.badge", "Tính năng cao cấp")}
                     </ThemedText>
@@ -865,7 +888,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   lockedContainer: {
-    opacity: 0.6,
+    opacity: 1,
   },
   aiHeroCard: {
     borderRadius: 24,
@@ -877,8 +900,13 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   aiHeroCardLocked: {
-    shadowColor: "#9ca3af",
-    shadowOpacity: 0.05,
+    shadowColor: "#d97706",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: "#fcd34d",
   },
   aiHeroHeader: {
     flexDirection: "row",
@@ -896,7 +924,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   aiHeroBadgeLocked: {
-    backgroundColor: "rgba(156, 163, 175, 0.15)",
+    backgroundColor: "rgba(217, 119, 6, 0.12)",
   },
   aiHeroBadgeText: {
     fontSize: 13,
@@ -904,7 +932,21 @@ const styles = StyleSheet.create({
     color: "#7c3aed",
   },
   aiHeroBadgeTextLocked: {
-    color: "#9ca3af",
+    color: "#b45309",
+    fontWeight: "600",
+  },
+  lockedPremiumBadge: {
+    backgroundColor: "rgba(217, 119, 6, 0.1)",
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(217, 119, 6, 0.2)",
+  },
+  lockedPremiumBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#b45309",
   },
   aiHeroCount: {
     fontSize: 13,
@@ -918,7 +960,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   aiHeroTitleLocked: {
-    color: "#6b7280",
+    color: "#78350f",
+    fontWeight: "700",
   },
   aiHeroSubtitle: {
     fontSize: 15,
@@ -927,7 +970,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   aiHeroSubtitleLocked: {
-    color: "#9ca3af",
+    color: "#92400e",
+    fontWeight: "500",
   },
   aiHeroHighlight: {
     flexDirection: "row",
@@ -938,7 +982,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(67, 56, 202, 0.08)",
   },
   aiHeroHighlightLocked: {
-    backgroundColor: "rgba(156, 163, 175, 0.08)",
+    backgroundColor: "rgba(217, 119, 6, 0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(217, 119, 6, 0.2)",
   },
   aiHeroHighlightText: {
     fontSize: 15,
@@ -946,14 +992,37 @@ const styles = StyleSheet.create({
     color: "#312e81",
   },
   aiHeroHighlightTextLocked: {
-    color: "#6b7280",
+    color: "#78350f",
+    fontWeight: "600",
   },
   aiHeroHighlightSub: {
     fontSize: 13,
     color: "#4c1d95",
   },
   aiHeroHighlightSubLocked: {
-    color: "#9ca3af",
+    color: "#92400e",
+    fontWeight: "400",
+  },
+  heroUnlockButton: {
+    marginTop: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#d97706",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    shadowColor: "#d97706",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  heroUnlockButtonText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "600",
   },
   insightList: {
     gap: 12,
@@ -1051,13 +1120,17 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   insightLockedState: {
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#fcd34d",
     padding: 20,
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#fffef9",
     gap: 12,
-    opacity: 0.7,
+    shadowColor: "#d97706",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   insightLockedBadge: {
     alignSelf: "flex-start",
@@ -1067,39 +1140,42 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 999,
-    backgroundColor: "rgba(156, 163, 175, 0.12)",
+    backgroundColor: "rgba(217, 119, 6, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(217, 119, 6, 0.25)",
   },
   insightLockedBadgeText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#6b7280",
+    color: "#b45309",
   },
   insightLockedTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#6b7280",
+    color: "#78350f",
   },
   insightLockedDescription: {
     fontSize: 14,
-    color: "#9ca3af",
+    color: "#92400e",
     lineHeight: 22,
+    fontWeight: "400",
   },
   unlockButton: {
     marginTop: 4,
-    borderRadius: 14,
-    backgroundColor: "#7c3aed",
+    borderRadius: 12,
+    backgroundColor: "#d97706",
     paddingVertical: 12,
     alignItems: "center",
-    shadowColor: "#7c3aed",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 5,
+    shadowColor: "#d97706",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   unlockButtonText: {
     color: "#fff",
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: "600",
   },
   // Statistics
   statsContainer: {
