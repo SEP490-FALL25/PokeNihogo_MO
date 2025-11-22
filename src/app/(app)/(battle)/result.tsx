@@ -2,6 +2,7 @@ import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import useAuth from "@hooks/useAuth";
+import { ROUTES } from "@routes/routes";
 import { useMatchingStore } from "@stores/matching/matching.config";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -143,7 +144,8 @@ export default function BattleResultScreen() {
         // Invalidate query tags for user battle stats
         queryClient.invalidateQueries({ queryKey: ['user-matching-history'] });
         queryClient.invalidateQueries({ queryKey: ['user-stats-season'] });
-        router.back();
+        // Navigate directly to battle tab instead of using router.back()
+        router.replace(ROUTES.TABS.BATTLE);
     };
 
     // Show loading/empty state if no data
