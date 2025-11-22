@@ -452,6 +452,14 @@
         "kanji": "Xáo trộn Kanji",
         "vocabulary": "Xáo trộn từ vựng"
       },
+      "fill_blank": {
+        "kanji": "Điền vào chỗ trống - Kanji",
+        "vocabulary": "Điền vào chỗ trống - Từ vựng"
+      },
+      "word_chain": {
+        "kanji": "Nối từ - Kanji",
+        "vocabulary": "Nối từ - Từ vựng"
+      },
       "test": {
         "vocabulary": "Kiểm tra từ mới",
         "kanji": "Kiểm tra Kanji",
@@ -517,6 +525,44 @@
       "complete": "Chúc mừng!",
       "game_over_message": "Bạn đã đạt {{score}} điểm!",
       "complete_message": "Bạn đã hoàn thành tất cả từ với {{score}} điểm!",
+      "final_score": "Điểm cuối: {{score}}",
+      "play_again": "Chơi lại"
+    },
+    "fill_blank": {
+      "title": "Điền vào chỗ trống",
+      "no_content": "Không có nội dung",
+      "score": "Điểm",
+      "lives": "Mạng",
+      "hint": "Gợi ý",
+      "meaning": "Nghĩa",
+      "hint_text": "Gợi ý",
+      "complete_sentence": "Hoàn thành câu",
+      "select_answer": "Chọn câu trả lời",
+      "submit": "Nộp bài",
+      "game_over": "Game Over!",
+      "complete": "Chúc mừng!",
+      "game_over_message": "Bạn đã đạt {{score}} điểm!",
+      "complete_message": "Bạn đã hoàn thành tất cả câu hỏi với {{score}} điểm!",
+      "final_score": "Điểm cuối: {{score}}",
+      "play_again": "Chơi lại"
+    },
+    "word_chain": {
+      "title": "Nối từ (Shiritori)",
+      "no_content": "Không có nội dung",
+      "score": "Điểm",
+      "lives": "Mạng",
+      "time": "Thời gian",
+      "chain_length": "Chuỗi: {{length}} từ",
+      "current_word": "Từ hiện tại",
+      "next_starts_with": "Từ tiếp theo phải bắt đầu bằng",
+      "chain": "Chuỗi từ",
+      "enter_word": "Nhập từ bắt đầu bằng",
+      "input_placeholder": "Gõ từ...",
+      "submit": "Nộp bài",
+      "game_over": "Game Over!",
+      "complete": "Chúc mừng!",
+      "game_over_message": "Bạn đã đạt {{score}} điểm với chuỗi {{chainLength}} từ!",
+      "complete_message": "Bạn đã tạo chuỗi {{chainLength}} từ với {{score}} điểm!",
       "final_score": "Điểm cuối: {{score}}",
       "play_again": "Chơi lại"
     }

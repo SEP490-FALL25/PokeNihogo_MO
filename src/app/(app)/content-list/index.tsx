@@ -1539,6 +1539,124 @@ const VocabularyListScreen = () => {
                 </TouchableOpacity>
               )}
 
+              {/* Fill in the Blank Game - Chỉ hiển thị khi không phải grammar */}
+              {contentTypeValue !== "grammar" && (
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    router.push({
+                      pathname: "/(app)/content-list/fill-blank",
+                      params: {
+                        id,
+                        contentType: contentTypeValue,
+                      },
+                    });
+                  }}
+                  className="rounded-3xl p-6 shadow-lg"
+                  style={{
+                    width: (width - 48 - 12) / 2,
+                    backgroundColor: "#FEF3C7",
+                  }}
+                >
+                  <View className="items-center mb-3">
+                    <View
+                      className="rounded-full items-center justify-center"
+                      style={{
+                        width: 80,
+                        height: 80,
+                        backgroundColor: "#F59E0B",
+                        shadowColor: "#92400e",
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 8,
+                        elevation: 6,
+                        overflow: "hidden",
+                      }}
+                    >
+                      <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
+                        ✏️
+                      </ThemedText>
+                    </View>
+                  </View>
+                  <ThemedText
+                    style={{
+                      textAlign: "center",
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      color: "#92400e",
+                    }}
+                  >
+                    {t(
+                      contentTypeValue === "kanji"
+                        ? "content_list.activity.fill_blank.kanji"
+                        : "content_list.activity.fill_blank.vocabulary",
+                      contentTypeValue === "kanji"
+                        ? "Fill in the Blank - Kanji"
+                        : "Fill in the Blank - Vocabulary"
+                    )}
+                  </ThemedText>
+                </TouchableOpacity>
+              )}
+
+              {/* Word Chain Game - Chỉ hiển thị khi không phải grammar */}
+              {contentTypeValue !== "grammar" && (
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    router.push({
+                      pathname: "/(app)/content-list/word-chain",
+                      params: {
+                        id,
+                        contentType: contentTypeValue,
+                      },
+                    });
+                  }}
+                  className="rounded-3xl p-6 shadow-lg"
+                  style={{
+                    width: (width - 48 - 12) / 2,
+                    backgroundColor: "#FCE7F3",
+                  }}
+                >
+                  <View className="items-center mb-3">
+                    <View
+                      className="rounded-full items-center justify-center"
+                      style={{
+                        width: 80,
+                        height: 80,
+                        backgroundColor: "#EC4899",
+                        shadowColor: "#be185d",
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 8,
+                        elevation: 6,
+                        overflow: "hidden",
+                      }}
+                    >
+                      <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
+                        🔗
+                      </ThemedText>
+                    </View>
+                  </View>
+                  <ThemedText
+                    style={{
+                      textAlign: "center",
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      color: "#be185d",
+                    }}
+                  >
+                    {t(
+                      contentTypeValue === "kanji"
+                        ? "content_list.activity.word_chain.kanji"
+                        : "content_list.activity.word_chain.vocabulary",
+                      contentTypeValue === "kanji"
+                        ? "Word Chain - Kanji"
+                        : "Word Chain - Vocabulary"
+                    )}
+                  </ThemedText>
+                </TouchableOpacity>
+              )}
+
               {/* Kiểm tra - Full width khi là grammar, một nửa khi không phải grammar */}
               <TouchableOpacity
                 onPress={() => {
