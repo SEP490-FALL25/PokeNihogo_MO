@@ -448,6 +448,10 @@
         "grammar": "Learn grammar"
       },
       "match": "Card matching game",
+      "scramble": {
+        "kanji": "Scramble kanji",
+        "vocabulary": "Scramble vocabulary"
+      },
       "test": {
         "vocabulary": "Vocabulary test",
         "kanji": "Kanji test",
@@ -499,6 +503,22 @@
         "overlap_description": "Cards behind overlap to stay focused on the current card.",
         "close": "Close"
       }
+    },
+    "scramble": {
+      "no_content": "No content available",
+      "score": "Score",
+      "lives": "Lives",
+      "hint": "Hint",
+      "meaning": "Meaning",
+      "hint_text": "Hint",
+      "your_answer": "Your answer",
+      "select_letters": "Select letters",
+      "game_over": "Game Over!",
+      "complete": "Congratulations!",
+      "game_over_message": "You scored {{score}} points!",
+      "complete_message": "You completed all words with {{score}} points!",
+      "final_score": "Final Score: {{score}}",
+      "play_again": "Play Again"
     }
   },
   "quiz_screen": {

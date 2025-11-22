@@ -448,6 +448,10 @@
         "grammar": "Học ngữ pháp"
       },
       "match": "Trò chơi ghép thẻ",
+      "scramble": {
+        "kanji": "Xáo trộn Kanji",
+        "vocabulary": "Xáo trộn từ vựng"
+      },
       "test": {
         "vocabulary": "Kiểm tra từ mới",
         "kanji": "Kiểm tra Kanji",
@@ -499,6 +503,22 @@
         "overlap_description": "Các thẻ phía sau trùng nhau để tập trung vào thẻ hiện tại.",
         "close": "Đóng"
       }
+    },
+    "scramble": {
+      "no_content": "Không có nội dung",
+      "score": "Điểm",
+      "lives": "Mạng",
+      "hint": "Gợi ý",
+      "meaning": "Nghĩa",
+      "hint_text": "Gợi ý",
+      "your_answer": "Câu trả lời của bạn",
+      "select_letters": "Chọn chữ cái",
+      "game_over": "Game Over!",
+      "complete": "Chúc mừng!",
+      "game_over_message": "Bạn đã đạt {{score}} điểm!",
+      "complete_message": "Bạn đã hoàn thành tất cả từ với {{score}} điểm!",
+      "final_score": "Điểm cuối: {{score}}",
+      "play_again": "Chơi lại"
     }
   },
   "quiz_screen": {

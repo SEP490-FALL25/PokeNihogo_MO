@@ -836,7 +836,7 @@ const ScrambleGameScreen = () => {
         <View className="px-6 py-4">
           <View className="flex-row items-center justify-between mb-3">
             <View className="flex-row items-center gap-4">
-              <View className="bg-white/80 rounded-2xl px-4 py-2">
+              <View className="flex flex-row items-center gap-2 bg-white/80 rounded-2xl px-4 py-2">
                 <ThemedText style={{ fontSize: 14, color: "#6b7280" }}>
                   {t("content_list.scramble.score", "Score")}
                 </ThemedText>
@@ -850,7 +850,7 @@ const ScrambleGameScreen = () => {
                   {displayScore}
                 </ThemedText>
               </View>
-              <View className="bg-white/80 rounded-2xl px-4 py-2">
+              <View className="flex flex-row items-center gap-2 bg-white/80 rounded-2xl px-4 py-2">
                 <ThemedText style={{ fontSize: 14, color: "#6b7280" }}>
                   {t("content_list.scramble.lives", "Lives")}
                 </ThemedText>
@@ -1134,6 +1134,7 @@ const ScrambleGameScreen = () => {
                   color: "#1f2937",
                   marginBottom: 12,
                   textAlign: "center",
+                  padding: 20,
                 }}
               >
                 {isGameOver
@@ -1150,14 +1151,14 @@ const ScrambleGameScreen = () => {
                 }}
               >
                 {isGameOver
-                  ? t(
-                      "content_list.scramble.game_over_message",
-                      `You scored ${score} points!`
-                    )
-                  : t(
-                      "content_list.scramble.complete_message",
-                      `You completed all words with ${score} points!`
-                    )}
+                  ? t("content_list.scramble.game_over_message", {
+                      score,
+                      defaultValue: `You scored ${score} points!`,
+                    })
+                  : t("content_list.scramble.complete_message", {
+                      score,
+                      defaultValue: `You completed all words with ${score} points!`,
+                    })}
               </ThemedText>
 
               <ThemedText
