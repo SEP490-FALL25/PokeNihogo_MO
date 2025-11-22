@@ -3,7 +3,7 @@ import { useLesson } from "@hooks/useLessons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import { Check, ChevronLeft, RotateCcw, Trophy, X } from "lucide-react-native";
+import { Check, ChevronLeft, Heart, RotateCcw, Trophy, X } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -11,6 +11,7 @@ import {
     Animated,
     Easing,
     Modal,
+    PanResponder,
     TouchableOpacity,
     View,
 } from "react-native";
@@ -45,6 +46,12 @@ const FillBlankGameScreen = () => {
   const [answerState, setAnswerState] = useState<"none" | "correct" | "wrong">("none");
   const [userInput, setUserInput] = useState("");
   const [showHint, setShowHint] = useState(false);
+  const [draggingOption, setDraggingOption] = useState<string | null>(null);
+  const [isOverDropZone, setIsOverDropZone] = useState(false);
+
+  // Refs for drop zone
+  const dropZoneRef = useRef<View>(null);
+  const dropZoneLayout = useRef({ x: 0, y: 0, width: 0, height: 0 });
 
   // Animation refs
   const cardAnim = useRef(new Animated.Value(1)).current;
@@ -53,6 +60,7 @@ const FillBlankGameScreen = () => {
   const modalScaleAnim = useRef(new Animated.Value(0)).current;
   const inputShakeAnim = useRef(new Animated.Value(0)).current;
   const successPulseAnim = useRef(new Animated.Value(1)).current;
+  const dragAnim = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
 
   // Get content data
   const contentData = useMemo(() => {
@@ -150,6 +158,15 @@ const FillBlankGameScreen = () => {
     }
   }, [currentQuestionIndex, questions.length, progressAnim]);
 
+  // Measure drop zone layout
+  const measureDropZone = useCallback(() => {
+    if (dropZoneRef.current) {
+      dropZoneRef.current.measure((x, y, width, height, pageX, pageY) => {
+        dropZoneLayout.current = { x: pageX, y: pageY, width, height };
+      });
+    }
+  }, []);
+
   // Animate score
   useEffect(() => {
     Animated.spring(scoreAnim, {
@@ -165,6 +182,8 @@ const FillBlankGameScreen = () => {
     setAnswerState("none");
     setUserInput("");
     setShowHint(false);
+    setDraggingOption(null);
+    setIsOverDropZone(false);
     cardAnim.setValue(0);
     Animated.spring(cardAnim, {
       toValue: 1,
@@ -172,7 +191,12 @@ const FillBlankGameScreen = () => {
       tension: 40,
       useNativeDriver: true,
     }).start();
-  }, [currentQuestionIndex, cardAnim]);
+    
+    // Measure drop zone after animation
+    setTimeout(() => {
+      measureDropZone();
+    }, 100);
+  }, [currentQuestionIndex, cardAnim, measureDropZone]);
 
   // Animate modal
   useEffect(() => {
@@ -276,15 +300,136 @@ const FillBlankGameScreen = () => {
     [currentQuestion, currentQuestionIndex, questions.length, lives, inputShakeAnim, successPulseAnim]
   );
 
-  // Handle option select
+  // Handle option select (tap)
   const handleOptionSelect = useCallback(
     (option: string) => {
       if (answerState !== "none") return;
-      setUserInput(option);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      // If clicking on already selected option, clear it
+      if (userInput === option) {
+        setUserInput("");
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } else {
+        setUserInput(option);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
     },
-    [answerState]
+    [answerState, userInput]
   );
+
+  // Start drag on long press
+  const handleLongPress = useCallback(
+    (option: string) => {
+      if (answerState !== "none") return;
+      setDraggingOption(option);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      dragAnim.setOffset({ x: 0, y: 0 });
+      dragAnim.setValue({ x: 0, y: 0 });
+    },
+    [answerState, dragAnim]
+  );
+
+  // Track if over drop zone using ref to avoid dependency issues
+  const isOverDropZoneRef = useRef(false);
+
+  // PanResponder for drag and drop
+  const panResponder = useMemo(() => {
+    return PanResponder.create({
+      onStartShouldSetPanResponder: () => draggingOption !== null,
+      onMoveShouldSetPanResponder: () => draggingOption !== null,
+      onPanResponderGrant: () => {
+        if (draggingOption) {
+          dragAnim.setOffset({ x: 0, y: 0 });
+          dragAnim.setValue({ x: 0, y: 0 });
+        }
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        if (!draggingOption || answerState !== "none") return;
+        
+        dragAnim.setValue({ x: gestureState.dx, y: gestureState.dy });
+        
+        // Check if over drop zone
+        const { pageX, pageY } = evt.nativeEvent;
+        const dropZone = dropZoneLayout.current;
+        
+        if (dropZone.width > 0 && dropZone.height > 0) {
+          const isOver =
+            pageX >= dropZone.x &&
+            pageX <= dropZone.x + dropZone.width &&
+            pageY >= dropZone.y &&
+            pageY <= dropZone.y + dropZone.height;
+          
+          isOverDropZoneRef.current = isOver;
+          setIsOverDropZone(isOver);
+        }
+      },
+      onPanResponderRelease: (evt) => {
+        if (!draggingOption || answerState !== "none") {
+          dragAnim.flattenOffset();
+          setDraggingOption(null);
+          setIsOverDropZone(false);
+          isOverDropZoneRef.current = false;
+          return;
+        }
+
+        const optionToFill = draggingOption;
+        const wasOverDropZone = isOverDropZoneRef.current;
+
+        // Reset animation first
+        Animated.spring(dragAnim, {
+          toValue: { x: 0, y: 0 },
+          useNativeDriver: true,
+        }).start(() => {
+          dragAnim.setOffset({ x: 0, y: 0 });
+          dragAnim.setValue({ x: 0, y: 0 });
+        });
+        
+        setDraggingOption(null);
+        setIsOverDropZone(false);
+        isOverDropZoneRef.current = false;
+
+        // Check if was over drop zone (use ref or measure again)
+        if (wasOverDropZone) {
+          // Drop successful - just fill the value, don't auto submit
+          setUserInput(optionToFill);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } else {
+          // Double check with measure as fallback
+          if (dropZoneRef.current) {
+            dropZoneRef.current.measure((x, y, width, height, pageX, pageY) => {
+              const { pageX: releaseX, pageY: releaseY } = evt.nativeEvent;
+              
+              const isOver =
+                width > 0 &&
+                height > 0 &&
+                releaseX >= pageX &&
+                releaseX <= pageX + width &&
+                releaseY >= pageY &&
+                releaseY <= pageY + height;
+
+              if (isOver) {
+                // Drop successful - just fill the value, don't auto submit
+                setUserInput(optionToFill);
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              } else {
+                // Drop failed
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }
+            });
+          } else {
+            // Drop failed
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }
+        }
+      },
+    });
+  }, [draggingOption, answerState, dragAnim]);
+
+  // Handle blank click to clear selection
+  const handleBlankClick = useCallback(() => {
+    if (answerState !== "none" || !userInput) return;
+    setUserInput("");
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, [answerState, userInput]);
 
   // Handle submit
   const handleSubmit = useCallback(() => {
@@ -415,14 +560,11 @@ const FillBlankGameScreen = () => {
                 </ThemedText>
                 <View className="flex-row items-center gap-1">
                   {Array.from({ length: 3 }).map((_, i) => (
-                    <View
+                    <Heart
                       key={i}
-                      style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: 9,
-                        backgroundColor: i < lives ? "#ef4444" : "#d1d5db",
-                      }}
+                      size={18}
+                      color={i < lives ? "#ef4444" : "#d1d5db"}
+                      fill={i < lives ? "#ef4444" : "transparent"}
                     />
                   ))}
                 </View>
@@ -539,62 +681,79 @@ const FillBlankGameScreen = () => {
                         {part}
                       </ThemedText>
                       {index < currentQuestion.sentence.split("______").length - 1 && (
-                        <Animated.View
-                          style={{
-                            transform: [{ translateX: inputShakeAnim }],
-                          }}
+                        <View
+                          ref={dropZoneRef}
+                          onLayout={measureDropZone}
+                          collapsable={false}
+                          style={{ marginHorizontal: 12 }}
                         >
-                          <View
+                          <Animated.View
                             style={{
-                              minWidth: 120,
-                              height: 50,
-                              borderRadius: 12,
-                              borderWidth: 3,
-                              borderColor:
-                                answerState === "correct"
-                                  ? "#10b981"
-                                  : answerState === "wrong"
-                                    ? "#ef4444"
-                                    : "#3b82f6",
-                              borderStyle: userInput ? "solid" : "dashed",
-                              backgroundColor:
-                                answerState === "correct"
-                                  ? "#d1fae5"
-                                  : answerState === "wrong"
-                                    ? "#fee2e2"
-                                    : "#f3f4f6",
-                              justifyContent: "center",
-                              alignItems: "center",
-                              paddingHorizontal: 12,
+                              transform: [{ translateX: inputShakeAnim }],
                             }}
                           >
-                            {userInput ? (
-                              <ThemedText
-                                style={{
-                                  fontSize: 24,
-                                  fontWeight: "bold",
-                                  color:
-                                    answerState === "correct"
-                                      ? "#059669"
-                                      : answerState === "wrong"
-                                        ? "#dc2626"
-                                        : "#1e40af",
-                                }}
-                              >
-                                {userInput}
-                              </ThemedText>
-                            ) : (
+                            <TouchableOpacity
+                              onPress={handleBlankClick}
+                              disabled={answerState !== "none" || !userInput}
+                              activeOpacity={0.7}
+                            >
                               <View
                                 style={{
-                                  width: 8,
-                                  height: 8,
-                                  borderRadius: 4,
-                                  backgroundColor: "#9ca3af",
+                                  minWidth: 120,
+                                  height: 50,
+                                  borderRadius: 12,
+                                  borderWidth: 3,
+                                  borderColor:
+                                    isOverDropZone
+                                      ? "#10b981"
+                                      : answerState === "correct"
+                                        ? "#10b981"
+                                        : answerState === "wrong"
+                                          ? "#ef4444"
+                                          : "#3b82f6",
+                                  borderStyle: userInput ? "solid" : "dashed",
+                                  backgroundColor:
+                                    isOverDropZone
+                                      ? "#d1fae5"
+                                      : answerState === "correct"
+                                        ? "#d1fae5"
+                                        : answerState === "wrong"
+                                          ? "#fee2e2"
+                                          : "#f3f4f6",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  paddingHorizontal: 12,
                                 }}
-                              />
-                            )}
-                          </View>
-                        </Animated.View>
+                              >
+                                {userInput ? (
+                                  <ThemedText
+                                    style={{
+                                      fontSize: 24,
+                                      fontWeight: "bold",
+                                      color:
+                                        answerState === "correct"
+                                          ? "#059669"
+                                          : answerState === "wrong"
+                                            ? "#dc2626"
+                                            : "#1e40af",
+                                    }}
+                                  >
+                                    {userInput}
+                                  </ThemedText>
+                                ) : (
+                                  <View
+                                    style={{
+                                      width: 8,
+                                      height: 8,
+                                      borderRadius: 4,
+                                      backgroundColor: "#9ca3af",
+                                    }}
+                                  />
+                                )}
+                              </View>
+                            </TouchableOpacity>
+                          </Animated.View>
+                        </View>
                       )}
                     </React.Fragment>
                   ))}
@@ -621,56 +780,93 @@ const FillBlankGameScreen = () => {
                     justifyContent: "center",
                   }}
                 >
-                  {currentQuestion.options.map((option, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => handleOptionSelect(option)}
-                      disabled={answerState !== "none"}
-                      style={{
-                        backgroundColor:
-                          userInput === option
-                            ? answerState === "correct"
-                              ? "#d1fae5"
-                              : answerState === "wrong"
-                                ? "#fee2e2"
-                                : "#e0f2fe"
-                            : "#ffffff",
-                        borderRadius: 12,
-                        borderWidth: 3,
-                        borderColor:
-                          userInput === option
-                            ? answerState === "correct"
-                              ? "#10b981"
-                              : answerState === "wrong"
-                                ? "#ef4444"
-                                : "#3b82f6"
-                            : "#d1d5db",
-                        paddingVertical: 16,
-                        paddingHorizontal: 24,
-                        minWidth: 100,
-                        alignItems: "center",
-                        opacity: answerState !== "none" && userInput !== option ? 0.5 : 1,
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <ThemedText
+                  {currentQuestion.options.map((option, index) => {
+                    const isDragging = draggingOption === option;
+                    
+                    return (
+                      <Animated.View
+                        key={index}
                         style={{
-                          fontSize: 20,
-                          fontWeight: "bold",
-                          color:
-                            userInput === option
-                              ? answerState === "correct"
-                                ? "#059669"
-                                : answerState === "wrong"
-                                  ? "#dc2626"
-                                  : "#1e40af"
-                              : "#1f2937",
+                          transform: isDragging
+                            ? [
+                                {
+                                  translateX: dragAnim.x,
+                                },
+                                {
+                                  translateY: dragAnim.y,
+                                },
+                                {
+                                  scale: isDragging ? 1.1 : 1,
+                                },
+                              ]
+                            : [],
+                          zIndex: isDragging ? 1000 : 1,
+                          opacity: isDragging ? 0.8 : answerState !== "none" && userInput !== option ? 0.5 : 1,
                         }}
+                        {...(isDragging ? panResponder.panHandlers : {})}
                       >
-                        {option}
-                      </ThemedText>
-                    </TouchableOpacity>
-                  ))}
+                        <TouchableOpacity
+                          onPress={() => handleOptionSelect(option)}
+                          onLongPress={() => handleLongPress(option)}
+                          disabled={answerState !== "none" || isDragging}
+                          delayLongPress={300}
+                          style={{
+                            backgroundColor:
+                              userInput === option
+                                ? answerState === "correct"
+                                  ? "#d1fae5"
+                                  : answerState === "wrong"
+                                    ? "#fee2e2"
+                                    : "#e0f2fe"
+                                : isDragging
+                                  ? "#fef3c7"
+                                  : "#ffffff",
+                            borderRadius: 12,
+                            borderWidth: 3,
+                            borderColor:
+                              userInput === option
+                                ? answerState === "correct"
+                                  ? "#10b981"
+                                  : answerState === "wrong"
+                                    ? "#ef4444"
+                                    : "#3b82f6"
+                                : isDragging
+                                  ? "#f59e0b"
+                                  : "#d1d5db",
+                            paddingVertical: 16,
+                            paddingHorizontal: 24,
+                            minWidth: 100,
+                            alignItems: "center",
+                            shadowColor: isDragging ? "#000" : "transparent",
+                            shadowOffset: { width: 0, height: isDragging ? 4 : 0 },
+                            shadowOpacity: isDragging ? 0.3 : 0,
+                            shadowRadius: isDragging ? 8 : 0,
+                            elevation: isDragging ? 8 : 0,
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <ThemedText
+                            style={{
+                              fontSize: 20,
+                              fontWeight: "bold",
+                              color:
+                                userInput === option
+                                  ? answerState === "correct"
+                                    ? "#059669"
+                                    : answerState === "wrong"
+                                      ? "#dc2626"
+                                      : "#1e40af"
+                                  : isDragging
+                                    ? "#92400e"
+                                    : "#1f2937",
+                            }}
+                          >
+                            {option}
+                          </ThemedText>
+                        </TouchableOpacity>
+                      </Animated.View>
+                    );
+                  })}
                 </View>
               </View>
 
