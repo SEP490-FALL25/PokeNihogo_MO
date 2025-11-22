@@ -323,6 +323,36 @@
       "joining": "Đang tham gia...",
       "join": "Tham gia ngay"
     },
+    "arena": {
+      "title": "ĐẤU TRƯỜNG",
+      "round": "ROUND {{round}}/3",
+      "waiting_opponent": "Đợi đối thủ...",
+      "opponent_label": "Đối thủ",
+      "you_label": "Bạn",
+      "vs": "VS",
+      "type_advantage_player": "Bạn có lợi thế hệ (Fog: Đối thủ nhìn mờ!)",
+      "type_advantage_opponent": "Đối thủ có lợi thế (Confusion: Bạn bị nhiễu loạn!)",
+      "waiting_round_start": "Đang chờ round bắt đầu...",
+      "question_label": "Câu hỏi",
+      "question_loading": "Câu hỏi đang được tải...",
+      "points_this_turn": "Điểm lượt này",
+      "points_description": "Bắt đầu 100 điểm, tối thiểu 50 điểm theo thời gian trả lời.",
+      "confirm_button": "XÁC NHẬN",
+      "waiting_opponent_complete": "Đang chờ đối thủ hoàn thành...",
+      "loading_match_info": "Đang tải thông tin trận đấu...",
+      "turn": "Lượt {{turn}}",
+      "debuff": {
+        "discomfort_vision": "Tầm nhìn bị mờ",
+        "add_question": "Thêm câu hỏi",
+        "decrease_point": "Giảm điểm",
+        "title": "Debuff",
+        "affected_by": "Bạn bị ảnh hưởng bởi bùa bất lợi:",
+        "add_question_description": "+{{value}} câu hỏi",
+        "decrease_point_description": "-{{value}} điểm mỗi câu",
+        "discomfort_vision_description": "Tầm nhìn bị mờ",
+        "next_turn_warning": "Turn sau bạn sẽ bị ảnh hưởng bởi bùa bất lợi: {{debuff}}"
+      }
+    },
     "result": {
       "title": "KẾT QUẢ TRẬN ĐẤU",
       "match_label": "Match #{{matchId}}",

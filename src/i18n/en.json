@@ -323,6 +323,36 @@
       "joining": "Joining...",
       "join": "Join Now"
     },
+    "arena": {
+      "title": "BATTLE ARENA",
+      "round": "ROUND {{round}}/3",
+      "waiting_opponent": "Waiting for opponent...",
+      "opponent_label": "Opponent",
+      "you_label": "You",
+      "vs": "VS",
+      "type_advantage_player": "You have type advantage (Fog: Opponent's vision is blurred!)",
+      "type_advantage_opponent": "Opponent has advantage (Confusion: You are confused!)",
+      "waiting_round_start": "Waiting for round to start...",
+      "question_label": "Question",
+      "question_loading": "Question is loading...",
+      "points_this_turn": "Points this turn",
+      "points_description": "Starts at 100 points, minimum 50 points based on answer time.",
+      "confirm_button": "CONFIRM",
+      "waiting_opponent_complete": "Waiting for opponent to complete...",
+      "loading_match_info": "Loading match information...",
+      "turn": "Turn {{turn}}",
+      "debuff": {
+        "discomfort_vision": "Blurred vision",
+        "add_question": "Add question",
+        "decrease_point": "Decrease points",
+        "title": "Debuff",
+        "affected_by": "You are affected by debuff:",
+        "add_question_description": "+{{value}} questions",
+        "decrease_point_description": "-{{value}} points per question",
+        "discomfort_vision_description": "Blurred vision",
+        "next_turn_warning": "Next turn you will be affected by debuff: {{debuff}}"
+      }
+    },
     "result": {
       "title": "BATTLE RESULT",
       "match_label": "Match #{{matchId}}",
