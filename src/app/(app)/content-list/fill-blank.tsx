@@ -304,10 +304,16 @@ const FillBlankGameScreen = () => {
   const handleOptionSelect = useCallback(
     (option: string) => {
       if (answerState !== "none") return;
-      setUserInput(option);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      // If clicking on already selected option, clear it
+      if (userInput === option) {
+        setUserInput("");
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } else {
+        setUserInput(option);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
     },
-    [answerState]
+    [answerState, userInput]
   );
 
   // Start drag on long press
@@ -417,6 +423,13 @@ const FillBlankGameScreen = () => {
       },
     });
   }, [draggingOption, answerState, dragAnim]);
+
+  // Handle blank click to clear selection
+  const handleBlankClick = useCallback(() => {
+    if (answerState !== "none" || !userInput) return;
+    setUserInput("");
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, [answerState, userInput]);
 
   // Handle submit
   const handleSubmit = useCallback(() => {
@@ -681,60 +694,66 @@ const FillBlankGameScreen = () => {
                               transform: [{ translateX: inputShakeAnim }],
                             }}
                           >
-                            <View
-                              style={{
-                                minWidth: 120,
-                                height: 50,
-                                borderRadius: 12,
-                                borderWidth: 3,
-                                borderColor:
-                                  isOverDropZone
-                                    ? "#10b981"
-                                    : answerState === "correct"
-                                      ? "#10b981"
-                                      : answerState === "wrong"
-                                        ? "#ef4444"
-                                        : "#3b82f6",
-                                borderStyle: userInput ? "solid" : "dashed",
-                                backgroundColor:
-                                  isOverDropZone
-                                    ? "#d1fae5"
-                                    : answerState === "correct"
-                                      ? "#d1fae5"
-                                      : answerState === "wrong"
-                                        ? "#fee2e2"
-                                        : "#f3f4f6",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                paddingHorizontal: 12,
-                              }}
+                            <TouchableOpacity
+                              onPress={handleBlankClick}
+                              disabled={answerState !== "none" || !userInput}
+                              activeOpacity={0.7}
                             >
-                              {userInput ? (
-                                <ThemedText
-                                  style={{
-                                    fontSize: 24,
-                                    fontWeight: "bold",
-                                    color:
-                                      answerState === "correct"
-                                        ? "#059669"
+                              <View
+                                style={{
+                                  minWidth: 120,
+                                  height: 50,
+                                  borderRadius: 12,
+                                  borderWidth: 3,
+                                  borderColor:
+                                    isOverDropZone
+                                      ? "#10b981"
+                                      : answerState === "correct"
+                                        ? "#10b981"
                                         : answerState === "wrong"
-                                          ? "#dc2626"
-                                          : "#1e40af",
-                                  }}
-                                >
-                                  {userInput}
-                                </ThemedText>
-                              ) : (
-                                <View
-                                  style={{
-                                    width: 8,
-                                    height: 8,
-                                    borderRadius: 4,
-                                    backgroundColor: "#9ca3af",
-                                  }}
-                                />
-                              )}
-                            </View>
+                                          ? "#ef4444"
+                                          : "#3b82f6",
+                                  borderStyle: userInput ? "solid" : "dashed",
+                                  backgroundColor:
+                                    isOverDropZone
+                                      ? "#d1fae5"
+                                      : answerState === "correct"
+                                        ? "#d1fae5"
+                                        : answerState === "wrong"
+                                          ? "#fee2e2"
+                                          : "#f3f4f6",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  paddingHorizontal: 12,
+                                }}
+                              >
+                                {userInput ? (
+                                  <ThemedText
+                                    style={{
+                                      fontSize: 24,
+                                      fontWeight: "bold",
+                                      color:
+                                        answerState === "correct"
+                                          ? "#059669"
+                                          : answerState === "wrong"
+                                            ? "#dc2626"
+                                            : "#1e40af",
+                                    }}
+                                  >
+                                    {userInput}
+                                  </ThemedText>
+                                ) : (
+                                  <View
+                                    style={{
+                                      width: 8,
+                                      height: 8,
+                                      borderRadius: 4,
+                                      backgroundColor: "#9ca3af",
+                                    }}
+                                  />
+                                )}
+                              </View>
+                            </TouchableOpacity>
                           </Animated.View>
                         </View>
                       )}
