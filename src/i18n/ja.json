@@ -683,6 +683,10 @@
                 "grammar": "文法を学ぶ"
             },
             "match": "カードマッチゲーム",
+            "scramble": {
+                "kanji": "漢字スクランブル",
+                "vocabulary": "語彙スクランブル"
+            },
             "test": {
                 "vocabulary": "語彙テスト",
                 "kanji": "漢字テスト",
@@ -734,6 +738,22 @@
                 "overlap_description": "後ろのカードを重ねて現在のカードに集中します。",
                 "close": "閉じる"
             }
+        },
+        "scramble": {
+            "no_content": "コンテンツがありません",
+            "score": "スコア",
+            "lives": "ライフ",
+            "hint": "ヒント",
+            "meaning": "意味",
+            "hint_text": "ヒント",
+            "your_answer": "あなたの答え",
+            "select_letters": "文字を選択",
+            "game_over": "ゲームオーバー！",
+            "complete": "おめでとうございます！",
+            "game_over_message": "{{score}}ポイント獲得しました！",
+            "complete_message": "{{score}}ポイントで全単語を完成しました！",
+            "final_score": "最終スコア: {{score}}",
+            "play_again": "もう一度プレイ"
         }
     },
     "quiz_screen": {

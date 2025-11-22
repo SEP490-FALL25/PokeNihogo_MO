@@ -518,6 +518,18 @@
         "grammar": "Learn grammar"
       },
       "match": "Card matching game",
+      "scramble": {
+        "kanji": "Scramble kanji",
+        "vocabulary": "Scramble vocabulary"
+      },
+      "fill_blank": {
+        "kanji": "Fill in the Blank - Kanji",
+        "vocabulary": "Fill in the Blank - Vocabulary"
+      },
+      "word_chain": {
+        "kanji": "Word Chain - Kanji",
+        "vocabulary": "Word Chain - Vocabulary"
+      },
       "test": {
         "vocabulary": "Vocabulary test",
         "kanji": "Kanji test",
@@ -569,6 +581,60 @@
         "overlap_description": "Cards behind overlap to stay focused on the current card.",
         "close": "Close"
       }
+    },
+    "scramble": {
+      "no_content": "No content available",
+      "score": "Score",
+      "lives": "Lives",
+      "hint": "Hint",
+      "meaning": "Meaning",
+      "hint_text": "Hint",
+      "your_answer": "Your answer",
+      "select_letters": "Select letters",
+      "game_over": "Game Over!",
+      "complete": "Congratulations!",
+      "game_over_message": "You scored {{score}} points!",
+      "complete_message": "You completed all words with {{score}} points!",
+      "final_score": "Final Score: {{score}}",
+      "play_again": "Play Again"
+    },
+    "fill_blank": {
+      "title": "Fill in the Blank",
+      "no_content": "No content available",
+      "score": "Score",
+      "lives": "Lives",
+      "hint": "Hint",
+      "meaning": "Meaning",
+      "hint_text": "Hint",
+      "complete_sentence": "Complete the sentence",
+      "select_answer": "Select your answer",
+      "submit": "Submit",
+      "game_over": "Game Over!",
+      "complete": "Congratulations!",
+      "game_over_message": "You scored {{score}} points!",
+      "complete_message": "You completed all questions with {{score}} points!",
+      "final_score": "Final Score: {{score}}",
+      "play_again": "Play Again"
+    },
+    "word_chain": {
+      "title": "Word Chain (Shiritori)",
+      "no_content": "No content available",
+      "score": "Score",
+      "lives": "Lives",
+      "time": "Time",
+      "chain_length": "Chain: {{length}} words",
+      "current_word": "Current Word",
+      "next_starts_with": "Next word must start with",
+      "chain": "Word Chain",
+      "enter_word": "Enter a word starting with",
+      "input_placeholder": "Type a word...",
+      "submit": "Submit",
+      "game_over": "Game Over!",
+      "complete": "Congratulations!",
+      "game_over_message": "You scored {{score}} points with a chain of {{chainLength}} words!",
+      "complete_message": "You created a chain of {{chainLength}} words with {{score}} points!",
+      "final_score": "Final Score: {{score}}",
+      "play_again": "Play Again"
     }
   },
   "quiz_screen": {
