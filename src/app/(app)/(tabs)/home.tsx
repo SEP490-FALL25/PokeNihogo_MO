@@ -587,11 +587,8 @@ export default function HomeScreen() {
 
         {shouldRenderPersonalization && (
           <View style={styles.aiSection}>
-            <TouchableOpacity
-              activeOpacity={0.95}
-              onPress={isPersonalizationLocked ? handleUnlockPress : undefined}
-              disabled={!isPersonalizationLocked}
-            >
+            <View style={styles.aiSectionContainer}>
+              {/* First Card */}
               <LinearGradient
                 colors={isPersonalizationLocked ? ["#fefcfb", "#fff7ed", "#fff4e6"] : ["#eef2ff", "#fdf2f8"]}
                 start={{ x: 0, y: 0 }}
@@ -663,40 +660,27 @@ export default function HomeScreen() {
                   </View>
                 )}
                 {isPersonalizationLocked && (
-                  <>
-                    <View style={[styles.aiHeroHighlight, styles.aiHeroHighlightLocked]}>
-                      <Lock size={20} color="#b45309" />
-                      <View style={{ flex: 1 }}>
-                        <ThemedText style={styles.aiHeroHighlightTextLocked} numberOfLines={1}>
-                          {t(
-                            "home.ai.locked_highlight_title",
-                            "Quyền lợi dành riêng cho hội viên"
-                          )}
-                        </ThemedText>
-                        <ThemedText style={styles.aiHeroHighlightSubLocked} numberOfLines={2}>
-                          {t(
-                            "home.ai.locked_highlight_subtitle",
-                            "Mở khoá để xem roadmap học và nhắc nhở thông minh"
-                          )}
-                        </ThemedText>
-                      </View>
-                    </View>
-                    <TouchableOpacity
-                      style={styles.heroUnlockButton}
-                      onPress={handleUnlockPress}
-                      activeOpacity={0.8}
-                    >
-                      <ThemedText style={styles.heroUnlockButtonText}>
-                        {t("home.ai.unlock_button", "Mở khóa ngay")}
+                  <View style={[styles.aiHeroHighlight, styles.aiHeroHighlightLocked]}>
+                    <Lock size={20} color="#b45309" />
+                    <View style={{ flex: 1 }}>
+                      <ThemedText style={styles.aiHeroHighlightTextLocked} numberOfLines={1}>
+                        {t(
+                          "home.ai.locked_highlight_title",
+                          "Quyền lợi dành riêng cho hội viên"
+                        )}
                       </ThemedText>
-                      <ChevronRight size={18} color="#ffffff" />
-                    </TouchableOpacity>
-                  </>
+                      <ThemedText style={styles.aiHeroHighlightSubLocked} numberOfLines={2}>
+                        {t(
+                          "home.ai.locked_highlight_subtitle",
+                          "Mở khoá để xem roadmap học và nhắc nhở thông minh"
+                        )}
+                      </ThemedText>
+                    </View>
+                  </View>
                 )}
               </LinearGradient>
-            </TouchableOpacity>
 
-            <View style={styles.insightList}>
+              {/* Second Card */}
               {isPersonalizationLocked && (
                 <View style={styles.insightLockedState}>
                   <View style={styles.insightLockedBadge}>
@@ -714,18 +698,29 @@ export default function HomeScreen() {
                       "Tự động phân tích sai sót, đề xuất flashcard cần ôn và nhắc bạn luyện tập mỗi ngày."
                     )}
                   </ThemedText>
-                  <TouchableOpacity
-                    style={styles.unlockButton}
-                    onPress={handleUnlockPress}
-                    activeOpacity={0.85}
-                  >
-                    <ThemedText style={styles.unlockButtonText}>
-                      {t("home.insight_locked.button", "Mua gói ngay")}
-                    </ThemedText>
-                  </TouchableOpacity>
                 </View>
               )}
 
+              {/* Lock Overlay */}
+              {isPersonalizationLocked && (
+                <TouchableOpacity
+                  style={styles.lockOverlay}
+                  onPress={handleUnlockPress}
+                  activeOpacity={0.9}
+                >
+                  <View style={styles.lockOverlayContent}>
+                    <View style={styles.lockIconContainer}>
+                      <Lock size={48} color="#d97706" />
+                    </View>
+                    <ThemedText style={styles.lockOverlayText}>
+                      {t("home.ai.unlock_button", "Mở khóa ngay")}
+                    </ThemedText>
+                  </View>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <View style={styles.insightList}>
               {!isPersonalizationLocked && isSrsLoading && (
                 <View style={styles.insightSkeletonWrapper}>
                   {[1, 2].map((item) => (
@@ -887,6 +882,10 @@ const styles = StyleSheet.create({
   aiSection: {
     gap: 16,
   },
+  aiSectionContainer: {
+    position: "relative",
+    gap: 16,
+  },
   lockedContainer: {
     opacity: 1,
   },
@@ -907,6 +906,7 @@ const styles = StyleSheet.create({
     elevation: 6,
     borderWidth: 1,
     borderColor: "#fcd34d",
+    opacity: 0.6,
   },
   aiHeroHeader: {
     flexDirection: "row",
@@ -1131,6 +1131,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 4,
+    opacity: 0.6,
   },
   insightLockedBadge: {
     alignSelf: "flex-start",
@@ -1176,6 +1177,44 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 15,
     fontWeight: "600",
+  },
+  lockOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.6)",
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+    borderWidth: 1,
+    borderColor: "rgba(217, 119, 6, 0.2)",
+  },
+  lockOverlayContent: {
+    alignItems: "center",
+    gap: 16,
+  },
+  lockIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(217, 119, 6, 0.15)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "rgba(217, 119, 6, 0.4)",
+    shadowColor: "#d97706",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  lockOverlayText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#d97706",
   },
   // Statistics
   statsContainer: {

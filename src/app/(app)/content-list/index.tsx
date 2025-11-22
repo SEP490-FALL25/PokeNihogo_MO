@@ -1480,6 +1480,65 @@ const VocabularyListScreen = () => {
                 </TouchableOpacity>
               )}
 
+              {/* Scramble Game - Chỉ hiển thị khi không phải grammar */}
+              {contentTypeValue !== "grammar" && (
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    router.push({
+                      pathname: "/(app)/content-list/scramble",
+                      params: {
+                        id,
+                        contentType: contentTypeValue,
+                      },
+                    });
+                  }}
+                  className="rounded-3xl p-6 shadow-lg"
+                  style={{
+                    width: (width - 48 - 12) / 2,
+                    backgroundColor: "#DCFCE7",
+                  }}
+                >
+                  <View className="items-center mb-3">
+                    <View
+                      className="rounded-full items-center justify-center"
+                      style={{
+                        width: 80,
+                        height: 80,
+                        backgroundColor: "#22C55E",
+                        shadowColor: "#15803d",
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 8,
+                        elevation: 6,
+                        overflow: "hidden",
+                      }}
+                    >
+                      <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
+                        🔤
+                      </ThemedText>
+                    </View>
+                  </View>
+                  <ThemedText
+                    style={{
+                      textAlign: "center",
+                      fontSize: 16,
+                      fontWeight: "bold",
+                      color: "#15803d",
+                    }}
+                  >
+                    {t(
+                      contentTypeValue === "kanji"
+                        ? "content_list.activity.scramble.kanji"
+                        : "content_list.activity.scramble.vocabulary",
+                      contentTypeValue === "kanji"
+                        ? "Scramble kanji"
+                        : "Scramble vocabulary"
+                    )}
+                  </ThemedText>
+                </TouchableOpacity>
+              )}
+
               {/* Kiểm tra - Full width khi là grammar, một nửa khi không phải grammar */}
               <TouchableOpacity
                 onPress={() => {
