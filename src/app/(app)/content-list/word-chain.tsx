@@ -3,8 +3,21 @@ import { useLesson } from "@hooks/useLessons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronLeft, RotateCcw, Sparkles, Trophy, X } from "lucide-react-native";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ChevronLeft,
+  Heart,
+  RotateCcw,
+  Sparkles,
+  Trophy,
+  X,
+} from "lucide-react-native";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -42,7 +55,9 @@ const WordChainGameScreen = () => {
   const [lives, setLives] = useState(3);
   const [isGameComplete, setIsGameComplete] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
-  const [answerState, setAnswerState] = useState<"none" | "correct" | "wrong">("none");
+  const [answerState, setAnswerState] = useState<"none" | "correct" | "wrong">(
+    "none"
+  );
   const [timeRemaining, setTimeRemaining] = useState<number>(30);
 
   // Animation refs
@@ -83,11 +98,16 @@ const WordChainGameScreen = () => {
 
         if (contentType === "kanji") {
           word = item.character || "";
-          meaning = item.meaning?.split("##")[0] || item.meaning || t("lessons.no_meaning");
+          meaning =
+            item.meaning?.split("##")[0] ||
+            item.meaning ||
+            t("lessons.no_meaning");
         } else {
           word = item.wordJp || "";
           const meanings = (item.meanings || [])
-            .map((m: any) => (typeof m === "string" ? m : m.meaning || m.text || ""))
+            .map((m: any) =>
+              typeof m === "string" ? m : m.meaning || m.text || ""
+            )
             .filter(Boolean);
           meaning = meanings.length > 0 ? meanings[0] : t("lessons.no_meaning");
         }
@@ -113,7 +133,8 @@ const WordChainGameScreen = () => {
       setWords(wordList);
       // Start with a random word
       if (wordList.length > 0) {
-        const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
+        const randomWord =
+          wordList[Math.floor(Math.random() * wordList.length)];
         setCurrentWord(randomWord);
         setChain([randomWord.word]);
       }
@@ -520,14 +541,11 @@ const WordChainGameScreen = () => {
                 </ThemedText>
                 <View className="flex-row items-center gap-1">
                   {Array.from({ length: 3 }).map((_, i) => (
-                    <View
+                    <Heart
                       key={i}
-                      style={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: 9,
-                        backgroundColor: i < lives ? "#ef4444" : "#d1d5db",
-                      }}
+                      size={18}
+                      color={i < lives ? "#ef4444" : "#d1d5db"}
+                      fill={i < lives ? "#ef4444" : "transparent"}
                     />
                   ))}
                 </View>
@@ -607,6 +625,7 @@ const WordChainGameScreen = () => {
                       fontWeight: "bold",
                       color: "#1f2937",
                       marginBottom: 8,
+                      paddingTop: 24,
                     }}
                   >
                     {currentWord.word}
@@ -629,7 +648,11 @@ const WordChainGameScreen = () => {
                       color: "#4f46e5",
                     }}
                   >
-                    {t("content_list.word_chain.next_starts_with", "Next word must start with")}:{" "}
+                    {t(
+                      "content_list.word_chain.next_starts_with",
+                      "Next word must start with"
+                    )}
+                    :{" "}
                     <ThemedText
                       style={{
                         fontSize: 24,
@@ -677,7 +700,10 @@ const WordChainGameScreen = () => {
                           >
                             {word}
                             {index < chain.length - 1 && (
-                              <ThemedText style={{ color: "#818cf8" }}> → </ThemedText>
+                              <ThemedText style={{ color: "#818cf8" }}>
+                                {" "}
+                                →{" "}
+                              </ThemedText>
                             )}
                           </ThemedText>
                         </View>
@@ -697,7 +723,10 @@ const WordChainGameScreen = () => {
                     marginBottom: 12,
                   }}
                 >
-                  {t("content_list.word_chain.enter_word", "Enter a word starting with")}{" "}
+                  {t(
+                    "content_list.word_chain.enter_word",
+                    "Enter a word starting with"
+                  )}{" "}
                   <ThemedText
                     style={{
                       fontSize: 20,
@@ -804,9 +833,7 @@ const WordChainGameScreen = () => {
             >
               <LinearGradient
                 colors={
-                  isGameOver
-                    ? ["#ef4444", "#dc2626"]
-                    : ["#fbbf24", "#f59e0b"]
+                  isGameOver ? ["#ef4444", "#dc2626"] : ["#fbbf24", "#f59e0b"]
                 }
                 style={{
                   width: 80,
@@ -935,4 +962,3 @@ const WordChainGameScreen = () => {
 };
 
 export default WordChainGameScreen;
-
