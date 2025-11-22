@@ -3,7 +3,7 @@ import { useLesson } from "@hooks/useLessons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import { ChevronLeft, RotateCcw, Trophy, X } from "lucide-react-native";
+import { ChevronLeft, Heart, RotateCcw, Trophy, X } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -854,16 +854,13 @@ const ScrambleGameScreen = () => {
                 <ThemedText style={{ fontSize: 14, color: "#6b7280" }}>
                   {t("content_list.scramble.lives", "Lives")}
                 </ThemedText>
-                <View className="flex-row items-center gap-1 mt-1">
+                <View className="flex-row items-center gap-1">
                   {Array.from({ length: 3 }).map((_, i) => (
-                    <View
+                    <Heart
                       key={i}
-                      style={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: 6,
-                        backgroundColor: i < lives ? "#ef4444" : "#d1d5db",
-                      }}
+                      size={18}
+                      color={i < lives ? "#ef4444" : "#d1d5db"}
+                      fill={i < lives ? "#ef4444" : "transparent"}
                     />
                   ))}
                 </View>
