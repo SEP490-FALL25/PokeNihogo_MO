@@ -293,13 +293,83 @@
         "item": "Item",
         "skin": "Skin",
         "badge": "Badge",
-        "daily_request": "Daily Request"
+        "daily_request": "Daily Request",
+        "event": "Event",
+        "poke_coins": "Coins"
       },
       "targets": {
         "exp": "EXP",
         "point": "Point",
         "level": "Level"
       }
+    },
+    "season_ended": {
+      "title": "Season Ended",
+      "ended_message": "The season has ended",
+      "elo": "ELO",
+      "continue": "Continue",
+      "rewards_title": "Season Rewards",
+      "claiming": "Claiming...",
+      "claim": "Claim Rewards"
+    },
+    "new_season": {
+      "title": "New Season",
+      "elo": "ELO",
+      "message": "Good luck in the new season!"
+    },
+    "first_time": {
+      "title": "Welcome!",
+      "message": "Welcome to the battle system! Join your first season now.",
+      "joining": "Joining...",
+      "join": "Join Now"
+    },
+    "arena": {
+      "title": "BATTLE ARENA",
+      "round": "ROUND {{round}}/3",
+      "waiting_opponent": "Waiting for opponent...",
+      "opponent_label": "Opponent",
+      "you_label": "You",
+      "vs": "VS",
+      "type_advantage_player": "You have type advantage (Fog: Opponent's vision is blurred!)",
+      "type_advantage_opponent": "Opponent has advantage (Confusion: You are confused!)",
+      "waiting_round_start": "Waiting for round to start...",
+      "question_label": "Question",
+      "question_loading": "Question is loading...",
+      "points_this_turn": "Points this turn",
+      "points_description": "Starts at 100 points, minimum 50 points based on answer time.",
+      "confirm_button": "CONFIRM",
+      "waiting_opponent_complete": "Waiting for opponent to complete...",
+      "loading_match_info": "Loading match information...",
+      "turn": "Turn {{turn}}",
+      "debuff": {
+        "discomfort_vision": "Blurred vision",
+        "add_question": "Add question",
+        "decrease_point": "Decrease points",
+        "title": "Debuff",
+        "affected_by": "You are affected by debuff:",
+        "add_question_description": "+{{value}} questions",
+        "decrease_point_description": "-{{value}} points per question",
+        "discomfort_vision_description": "Blurred vision",
+        "next_turn_warning": "Next turn you will be affected by debuff: {{debuff}}"
+      }
+    },
+    "result": {
+      "title": "BATTLE RESULT",
+      "match_label": "Match #{{matchId}}",
+      "loading_title": "Loading results...",
+      "loading_subtitle": "Please wait a moment",
+      "back_to_home": "Back to Home",
+      "total_points": "Total points",
+      "points_diff": "+{{points}} points",
+      "round_details": "Round details",
+      "round_1": "Round 1",
+      "round_2": "Round 2",
+      "round_3": "Round 3",
+      "round_default": "Round",
+      "end_battle": "End Battle",
+      "summary": "Summary",
+      "you": "You",
+      "opponent": "Opponent"
     }
   },
   "navigation": {

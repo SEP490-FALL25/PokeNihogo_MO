@@ -1,8 +1,10 @@
+import DiscomfortVision from "@components/atoms/DiscomfortVision";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { HapticPressable } from "@components/HapticPressable";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { getSocket } from "@configs/socket";
+import { MATCH_DEBUFF_TYPE } from "@constants/battle.enum";
 import useAuth from "@hooks/useAuth";
 import { useListMatchRound } from "@hooks/useBattle";
 import useOwnedPokemons from "@hooks/useOwnedPokemons";
@@ -12,8 +14,9 @@ import { useAuthStore } from "@stores/auth/auth.config";
 import { useMatchingStore } from "@stores/matching/matching.config";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Award, CheckCircle, Clock, Shield, XCircle, Zap } from "lucide-react-native";
+import { CheckCircle, Clock, Eye, Plus, Shield, XCircle, Zap } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
     Animated,
@@ -33,6 +36,7 @@ interface BattleArenaScreenProps { }
 export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     const router = useRouter();
     const params = useLocalSearchParams();
+    const { t } = useTranslation();
     const matchId = params.matchId as string;
     const roundNumber = params.roundNumber as string;
     const { ownedPokemons } = useOwnedPokemons();
@@ -77,6 +81,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     const [showConfusion, setShowConfusion] = useState(false);
     const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
     const [currentQuestion, setCurrentQuestion] = useState<any>(null);
+    const [nextQuestionDebuff, setNextQuestionDebuff] = useState<any>(null); // Debuff của turn tiếp theo
     const [roundStarted, setRoundStarted] = useState(false);
     const [roundData, setRoundData] = useState<{
         participant?: any;
@@ -325,9 +330,14 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         if (!accessToken || !matchId) return;
 
         const socket = getSocket("matching", accessToken);
+        console.log("[ARENA] Joining matching rooms, matchId:", matchId);
+        // ✅ Emit both join-matching-room and join-user-match-room (as per index.html)
+        socket.emit("join-matching-room", { matchId });
+        socket.emit("join-user-match-room", { matchId });
 
-        // Round started
+        // ✅ Handle round-started event (as per index.html)
         socket.on("round-started", (payload: any) => {
+            console.log("[ARENA] round-started event:", payload);
             setRoundStarted(true);
 
             // --- THÊM ĐOẠN NÀY ---
@@ -396,6 +406,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 pointProgress.setValue(1);
                 setCurrentQuestionPoints(BASE_POINT_PER_QUESTION);
 
+                // Clear nextQuestionDebuff khi set question đầu tiên từ round-started
+                setNextQuestionDebuff(null);
+
                 setCurrentQuestion({
                     id: questionData.id || questionBank?.id, // questionBankId for reference
                     question: questionText,
@@ -438,8 +451,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             setShowResult(false);
         });
 
-        // Question answered - received after submitting answer (may contain next question or status update)
+        // ✅ Handle question-answered event (as per index.html)
         socket.on("question-answered", (payload: any) => {
+            console.log("[ARENA] question-answered event:", payload);
 
             // Handle answer result if present
             if (payload?.answerResult) {
@@ -459,6 +473,13 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
 
             if (nextQuestionData) {
                 const questionData = nextQuestionData;
+
+                // Lưu debuff của nextQuestion để hiển thị thông báo
+                if (questionData.debuff) {
+                    setNextQuestionDebuff(questionData.debuff);
+                } else {
+                    setNextQuestionDebuff(null);
+                }
 
                 // Handle new format: questionBank structure
                 const questionBank = questionData.questionBank || questionData;
@@ -494,6 +515,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 pointProgress.setValue(1);
                 setCurrentQuestionPoints(BASE_POINT_PER_QUESTION);
 
+                // Chuyển nextQuestionDebuff thành debuff của currentQuestion khi set currentQuestion
+                const debuffForCurrentQuestion = questionData.debuff || nextQuestionDebuff;
+
                 setCurrentQuestion({
                     id: questionBank.id || questionData.id,
                     question: questionText,
@@ -503,10 +527,13 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                     endTimeQuestion: questionData.endTimeQuestion,
                     timeLimitMs: questionData.timeLimitMs,
                     questionType: questionBank.questionType || questionData.questionType,
-                    debuff: questionData.debuff,
+                    debuff: debuffForCurrentQuestion,
                     roundQuestionId: roundQuestionId,
                     orderNumber: questionData.orderNumber,
                 });
+
+                // Clear nextQuestionDebuff sau khi đã chuyển thành currentQuestion
+                setNextQuestionDebuff(null);
 
                 if (questionData.endTimeQuestion) {
                     const endTime = new Date(questionData.endTimeQuestion).getTime();
@@ -568,6 +595,16 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 // IMPORTANT: Prioritize roundQuestionId field (socket events) over id field
                 const roundQuestionId = questionData.roundQuestionId || questionData.id;
 
+                // Lưu debuff của nextQuestion để hiển thị thông báo
+                if (questionData.debuff) {
+                    setNextQuestionDebuff(questionData.debuff);
+                } else {
+                    setNextQuestionDebuff(null);
+                }
+
+                // Chuyển nextQuestionDebuff thành debuff của currentQuestion khi set currentQuestion
+                const debuffForCurrentQuestion = questionData.debuff || nextQuestionDebuff;
+
                 setCurrentQuestion({
                     id: questionBank.id || questionData.id, // Use questionBank.id for question ID
                     question: questionText,
@@ -577,10 +614,13 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                     endTimeQuestion: questionData.endTimeQuestion,
                     timeLimitMs: questionData.timeLimitMs,
                     questionType: questionBank.questionType || questionData.questionType,
-                    debuff: questionData.debuff,
+                    debuff: debuffForCurrentQuestion,
                     roundQuestionId: roundQuestionId, // Prioritize roundQuestionId field (socket events)
                     orderNumber: questionData.orderNumber,
                 });
+
+                // Clear nextQuestionDebuff sau khi đã chuyển thành currentQuestion
+                setNextQuestionDebuff(null);
 
                 if (questionData.endTimeQuestion) {
                     const endTime = new Date(questionData.endTimeQuestion).getTime();
@@ -605,9 +645,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             }
         });
 
-        // Question completed (last question - both players answered, waiting for summary)
+        // ✅ Handle question-completed event (as per index.html)
         socket.on("question-completed", (payload: any) => {
-            console.log("Question completed (last question):", payload);
+            console.log("[ARENA] question-completed event:", payload);
             setShowResult(true);
             if (payload?.playerCorrect !== undefined) {
                 if (payload.playerCorrect) {
@@ -623,14 +663,15 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             setIsWaitingForOpponent(true);
         });
 
-        // Opponent completed
+        // ✅ Handle opponent-completed event (as per index.html)
         socket.on("opponent-completed", (payload: any) => {
-            console.log("Opponent completed:", payload);
+            console.log("[ARENA] opponent-completed event:", payload);
             // setIsWaitingForOpponent(true);
         });
 
-        // Waiting for opponent
+        // ✅ Handle waiting-for-opponent event (as per index.html)
         socket.on("waiting-for-opponent", (payload: any) => {
+            console.log("[ARENA] waiting-for-opponent event:", payload);
             setIsWaitingForOpponent(true);
 
             if (currentQuestion) {
@@ -638,8 +679,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             }
         });
 
-        // Round completed
+        // ✅ Handle round-completed event (as per index.html)
         socket.on("round-completed", (payload: any) => {
+            console.log("[ARENA] round-completed event:", payload);
             setRoundStarted(false);
             setCurrentQuestion(null);
             setSelectedAnswer(null);
@@ -655,10 +697,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             // Handle round completion logic - could navigate to next round or back to pick-pokemon
         });
 
-        // Match completed
-        // Note: Navigation is handled by global listener in battle.tsx
-        // This local handler only updates local state
-        socket.on("match-completed", (payload: any) => {
+        // ✅ Handle match-completed event (as per index.html)
+        const handleMatchCompleted = (payload: any) => {
+            console.log("[ARENA] match-completed event:", payload);
             const winnerId = payload?.match?.winnerId ?? null;
             const winnerName =
                 payload?.match?.winner?.name ||
@@ -673,7 +714,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 eloGained,
                 eloLost,
             });
-            // Save result payload to store (global handler will handle navigation)
+            // Save result payload to store
             try {
                 setLastMatchResult(payload);
             } catch (e) {
@@ -686,9 +727,20 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             if (payload?.opponentScore !== undefined) {
                 setOpponentScore(payload.opponentScore);
             }
-            // Navigation is handled by global listener in battle.tsx to ensure it works
-            // even if this component unmounts before the event arrives
-        });
+
+            // Navigate to result screen
+            const matchIdFromPayload = payload?.matchId || payload?.match?.id || matchId;
+            if (matchIdFromPayload) {
+                console.log("[ARENA] Navigating to result screen, matchId:", matchIdFromPayload);
+                router.replace({
+                    pathname: "/(app)/(battle)/result",
+                    params: { matchId: matchIdFromPayload.toString() }
+                });
+            }
+        };
+
+        socket.on("match-completed", handleMatchCompleted);
+        socket.on("MATCH_COMPLETED", handleMatchCompleted); // Listen for uppercase version
 
         return () => {
             socket.off("round-started");
@@ -698,7 +750,8 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             socket.off("opponent-completed");
             socket.off("waiting-for-opponent");
             socket.off("round-completed");
-            socket.off("match-completed");
+            socket.off("match-completed", handleMatchCompleted);
+            socket.off("MATCH_COMPLETED", handleMatchCompleted);
         };
     }, [accessToken, matchId]);
 
@@ -788,71 +841,8 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                     <View className="flex-1 items-center justify-center">
                         <ActivityIndicator size="large" color="#22d3ee" />
                         <ThemedText style={{ color: "#93c5fd", marginTop: 16, fontSize: 16 }}>
-                            Đang tải thông tin trận đấu...
+                            {t("battle.arena.loading_match_info")}
                         </ThemedText>
-                    </View>
-                </ImageBackground>
-            </ThemedView>
-        );
-    }
-
-    // Victory/Loss screen
-    if (battleComplete) {
-        const playerWon = matchSummary && currentUserId !== undefined && matchSummary.winnerId !== null
-            ? matchSummary.winnerId === currentUserId
-            : playerScore > opponentScore;
-        const winnerName = matchSummary?.winnerName || (playerWon ? "Bạn" : "Đối thủ");
-        const eloChange = matchSummary
-            ? playerWon
-                ? matchSummary.eloGained
-                : -matchSummary.eloLost
-            : 0;
-        const eloChangeText = `${eloChange >= 0 ? "+" : ""}${eloChange} ELO`;
-
-        return (
-            <ThemedView style={styles.container}>
-                <ImageBackground
-                    source={require("../../../../assets/images/list_pokemon_bg.png")}
-                    style={styles.bg}
-                    imageStyle={styles.bgImage}
-                >
-                    <TWLinearGradient
-                        colors={["rgba(17,24,39,0.85)", "rgba(17,24,39,0.6)", "rgba(17,24,39,0.85)"]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={styles.overlay}
-                    />
-                    <View className="flex-1 items-center justify-center px-5">
-                        <Animated.View className="items-center">
-                            <TWLinearGradient
-                                colors={playerWon ? ["#22c55e", "#16a34a"] : ["#ef4444", "#dc2626"]}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                                style={{ padding: 4, borderRadius: 999, marginBottom: 24 }}
-                            >
-                                <View className="w-32 h-32 rounded-full bg-black/70 items-center justify-center">
-                                    {playerWon ? (
-                                        <Award size={64} color="#ffffff" />
-                                    ) : (
-                                        <XCircle size={64} color="#ffffff" />
-                                    )}
-                                </View>
-                            </TWLinearGradient>
-                            <ThemedText style={{ color: playerWon ? "#22c55e" : "#ef4444", fontSize: 32, fontWeight: "900", marginBottom: 8 }}>
-                                {playerWon ? "THẮNG" : "THUA"}
-                            </ThemedText>
-                            <ThemedText style={{ color: "#fbbf24", fontSize: 20, fontWeight: "700", textAlign: "center", marginBottom: 12 }}>
-                                Chúc mừng {winnerName}!
-                            </ThemedText>
-                            <ThemedText style={{ color: "#cbd5e1", fontSize: 18, textAlign: "center", marginBottom: 24 }}>
-                                {playerScore} - {opponentScore}
-                            </ThemedText>
-                            <View className="px-6 py-3 rounded-2xl border border-white/20 bg-white/10">
-                                <ThemedText style={{ color: "#93c5fd", fontSize: 16 }}>
-                                    {eloChangeText}
-                                </ThemedText>
-                            </View>
-                        </Animated.View>
                     </View>
                 </ImageBackground>
             </ThemedView>
@@ -878,11 +868,11 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                     <View className="flex-row items-center justify-between mb-4">
                         <View className="flex-row items-center gap-3">
                             <ThemedText style={{ color: "#fbbf24", fontSize: 20, fontWeight: "800" }}>
-                                BATTLE ARENA
+                                {t("battle.arena.title")}
                             </ThemedText>
                             <View className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/40">
                                 <ThemedText style={{ color: "#22d3ee", fontSize: 12, fontWeight: "700" }}>
-                                    ROUND {currentRound}/3
+                                    {t("battle.arena.round", { round: currentRound })}
                                 </ThemedText>
                             </View>
                         </View>
@@ -900,10 +890,10 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                                 fontSize: 14
                             }}>
                                 {isWaitingForOpponent
-                                    ? "Đợi đối thủ..."
+                                    ? t("battle.arena.waiting_opponent")
                                     : questionTimeRemaining !== null
                                         ? `${Math.floor(questionTimeRemaining / 60)}:${String(questionTimeRemaining % 60).padStart(2, "0")}`
-                                        : `Turn ${currentTurn}`}
+                                        : t("battle.arena.turn", { turn: currentTurn })}
                             </ThemedText>
                         </View>
                     </View>
@@ -920,7 +910,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                                 />
                             )}
                             <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
-                                Đối thủ
+                                {t("battle.arena.opponent_label")}
                             </ThemedText>
                             {/* <ThemedText style={{ color: "#ef4444", fontSize: 24, fontWeight: "900", marginTop: 4 }}>
                                 {opponentScore}
@@ -935,7 +925,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                             style={{ padding: 2, borderRadius: 999, marginHorizontal: 20 }}
                         >
                             <View className="px-4 py-2 rounded-full bg-black/70">
-                                <ThemedText style={{ color: "#ffffff", fontWeight: "700", fontSize: 16 }}>VS</ThemedText>
+                                <ThemedText style={{ color: "#ffffff", fontWeight: "700", fontSize: 16 }}>{t("battle.arena.vs")}</ThemedText>
                             </View>
                         </TWLinearGradient>
 
@@ -949,7 +939,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                                 />
                             )}
                             <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
-                                Bạn
+                                {t("battle.arena.you_label")}
                             </ThemedText>
                             {/* <ThemedText style={{ color: "#22c55e", fontSize: 24, fontWeight: "900", marginTop: 4 }}>
                                 {playerScore}
@@ -966,20 +956,107 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                                 <>
                                     <Zap size={16} color="#86efac" />
                                     <ThemedText style={{ color: "#86efac", fontSize: 12, fontWeight: "700" }}>
-                                        Bạn có lợi thế hệ (Fog: Đối thủ nhìn mờ!)
+                                        {t("battle.arena.type_advantage_player")}
                                     </ThemedText>
                                 </>
                             ) : (
                                 <>
                                     <Shield size={16} color="#fca5a5" />
                                     <ThemedText style={{ color: "#fca5a5", fontSize: 12, fontWeight: "700" }}>
-                                        Đối thủ có lợi thế (Confusion: Bạn bị nhiễu loạn!)
+                                        {t("battle.arena.type_advantage_opponent")}
                                     </ThemedText>
                                 </>
                             )}
                         </View>
                     </View>
                 )}
+
+                {/* Player Debuff Indicators - Chỉ hiển thị debuff của turn hiện tại */}
+                {(() => {
+                    // Chỉ hiển thị debuff từ currentQuestion (turn-level debuff), không phải từ roundData.participant
+                    const currentTurnDebuff = currentQuestion?.debuff;
+
+                    if (!currentTurnDebuff || !roundStarted || !currentQuestion) return null;
+
+                    const getDebuffIcon = () => {
+                        switch (currentTurnDebuff.typeDebuff) {
+                            case MATCH_DEBUFF_TYPE.ADD_QUESTION:
+                                return <Plus size={16} color="#fca5a5" />;
+                            case MATCH_DEBUFF_TYPE.DECREASE_POINT:
+                                return <XCircle size={16} color="#fca5a5" />;
+                            case MATCH_DEBUFF_TYPE.DISCOMFORT_VISION:
+                                return <Eye size={16} color="#fca5a5" />;
+                            default:
+                                return <XCircle size={16} color="#fca5a5" />;
+                        }
+                    };
+
+                    const getDebuffText = () => {
+                        switch (currentTurnDebuff.typeDebuff) {
+                            case MATCH_DEBUFF_TYPE.ADD_QUESTION:
+                                return t("battle.arena.debuff.add_question_description", { value: currentTurnDebuff.valueDebuff || 1 });
+                            case MATCH_DEBUFF_TYPE.DECREASE_POINT:
+                                return t("battle.arena.debuff.decrease_point_description", { value: currentTurnDebuff.valueDebuff || 0 });
+                            case MATCH_DEBUFF_TYPE.DISCOMFORT_VISION:
+                                return t("battle.arena.debuff.discomfort_vision_description");
+                            default:
+                                return "";
+                        }
+                    };
+
+                    return (
+                        <View className="px-5 mb-4">
+                            <View className="flex-row items-center justify-center gap-2 py-2 px-4 rounded-full bg-red-500/20 border border-red-500/40">
+                                {getDebuffIcon()}
+                                <ThemedText style={{ color: "#fca5a5", fontSize: 12, fontWeight: "700" }}>
+                                    {t("battle.arena.debuff.affected_by")} {getDebuffText()}
+                                </ThemedText>
+                            </View>
+                        </View>
+                    );
+                })()}
+
+                {/* Next Turn Debuff Warning - Thông báo turn sau sẽ bị debuff */}
+                {(() => {
+                    if (!nextQuestionDebuff || !roundStarted || !currentQuestion) return null;
+
+                    const getNextDebuffIcon = () => {
+                        switch (nextQuestionDebuff.typeDebuff) {
+                            case MATCH_DEBUFF_TYPE.ADD_QUESTION:
+                                return <Plus size={14} color="#fbbf24" />;
+                            case MATCH_DEBUFF_TYPE.DECREASE_POINT:
+                                return <XCircle size={14} color="#fbbf24" />;
+                            case MATCH_DEBUFF_TYPE.DISCOMFORT_VISION:
+                                return <Eye size={14} color="#fbbf24" />;
+                            default:
+                                return <XCircle size={14} color="#fbbf24" />;
+                        }
+                    };
+
+                    const getNextDebuffText = () => {
+                        switch (nextQuestionDebuff.typeDebuff) {
+                            case MATCH_DEBUFF_TYPE.ADD_QUESTION:
+                                return t("battle.arena.debuff.add_question_description", { value: nextQuestionDebuff.valueDebuff || 1 });
+                            case MATCH_DEBUFF_TYPE.DECREASE_POINT:
+                                return t("battle.arena.debuff.decrease_point_description", { value: nextQuestionDebuff.valueDebuff || 0 });
+                            case MATCH_DEBUFF_TYPE.DISCOMFORT_VISION:
+                                return t("battle.arena.debuff.discomfort_vision_description");
+                            default:
+                                return "";
+                        }
+                    };
+
+                    return (
+                        <View className="px-5 mb-4">
+                            <View className="flex-row items-center justify-center gap-2 py-2 px-4 rounded-full bg-yellow-500/20 border border-yellow-500/40">
+                                <Clock size={14} color="#fbbf24" />
+                                <ThemedText style={{ color: "#fbbf24", fontSize: 11, fontWeight: "600" }}>
+                                    {t("battle.arena.debuff.next_turn_warning", { debuff: getNextDebuffText() })}
+                                </ThemedText>
+                            </View>
+                        </View>
+                    );
+                })()}
 
                 {/* Visual Effects */}
                 {showFog && (
@@ -1003,7 +1080,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                         <View className="bg-black/40 rounded-2xl p-6 items-center justify-center">
                             <ActivityIndicator size="large" color="#22d3ee" />
                             <ThemedText style={{ color: "#cbd5e1", fontSize: 16, fontWeight: "600", marginTop: 16, textAlign: "center" }}>
-                                Đang chờ round bắt đầu...
+                                {t("battle.arena.waiting_round_start")}
                             </ThemedText>
                         </View>
                     </View>
@@ -1012,118 +1089,133 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 {/* Question Card */}
                 {!isWaitingForOpponent && currentQuestion && roundStarted && (
                     <View className="px-5 mb-6">
-                        <TWLinearGradient
-                            colors={["rgba(255,255,255,0.1)", "rgba(255,255,255,0.05)"]}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={{ borderRadius: 24, padding: 2 }}
+                        <DiscomfortVision
+                            debuff={(() => {
+                                const debuffToUse = currentQuestion.debuff || roundData?.opponent?.debuff || null;
+                                console.log("[ARENA] DiscomfortVision debuff:", {
+                                    currentQuestionDebuff: currentQuestion.debuff,
+                                    opponentDebuff: roundData?.opponent?.debuff,
+                                    finalDebuff: debuffToUse,
+                                    typeDebuff: debuffToUse?.typeDebuff,
+                                    isDiscomfortVision: debuffToUse?.typeDebuff === MATCH_DEBUFF_TYPE.DISCOMFORT_VISION,
+                                });
+                                return debuffToUse;
+                            })()}
+                            style={{ borderRadius: 24, overflow: "hidden" }}
                         >
-                            <View className="bg-black/40 rounded-2xl p-6">
-                                <ThemedText style={{ color: "#fbbf24", fontSize: 14, fontWeight: "700", marginBottom: 8 }}>
-                                    Câu hỏi
-                                </ThemedText>
-                                <ThemedText style={{ color: "#e5e7eb", fontSize: 18, fontWeight: "600", marginBottom: 16, lineHeight: 28 }}>
-                                    {currentQuestion.question || currentQuestion.content || "Câu hỏi đang được tải..."}
-                                </ThemedText>
-
-                                {/* Points progress bar (Kahoot-style) */}
-                                <View className="mb-6">
-                                    <View className="flex-row items-center justify-between mb-2">
-                                        <ThemedText style={{ color: "#cbd5e1", fontSize: 14, fontWeight: "600" }}>
-                                            Điểm lượt này
-                                        </ThemedText>
-                                        <ThemedText style={{ color: "#fbbf24", fontSize: 16, fontWeight: "700" }}>
-                                            {currentQuestionPoints}
-                                        </ThemedText>
-                                    </View>
-                                    <View style={{ height: 10, borderRadius: 999, backgroundColor: "rgba(148, 163, 184, 0.2)", overflow: "hidden" }}>
-                                        <Animated.View
-                                            style={{
-                                                height: "100%",
-                                                width: pointProgressWidth,
-                                                backgroundColor: "#38bdf8",
-                                            }}
-                                        />
-                                    </View>
-                                    <ThemedText style={{ color: "#64748b", fontSize: 10, marginTop: 4 }}>
-                                        Bắt đầu 100 điểm, tối thiểu 50 điểm theo thời gian trả lời.
+                            <TWLinearGradient
+                                colors={["rgba(255,255,255,0.1)", "rgba(255,255,255,0.05)"]}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={{ borderRadius: 24, padding: 2 }}
+                            >
+                                <View className="bg-black/40 rounded-2xl p-6">
+                                    <ThemedText style={{ color: "#fbbf24", fontSize: 14, fontWeight: "700", marginBottom: 8 }}>
+                                        {t("battle.arena.question_label")}
                                     </ThemedText>
-                                </View>
+                                    <ThemedText style={{ color: "#e5e7eb", fontSize: 18, fontWeight: "600", marginBottom: 16, lineHeight: 28 }}>
+                                        {currentQuestion.question || currentQuestion.content || t("battle.arena.question_loading")}
+                                    </ThemedText>
 
-                                {/* Answer Options */}
-                                <View className="gap-3">
-                                    {(currentQuestion.options || currentQuestion.answers || []).map((option: any, idx: number) => {
-                                        const isSelected = selectedAnswer === idx;
-                                        const isCorrect = showResult && currentQuestion.correctAnswer !== undefined
-                                            ? idx === currentQuestion.correctAnswer
-                                            : false;
-                                        const isWrong = isSelected && showResult && !isCorrect;
-                                        const showFeedback = showResult && (isCorrect || isWrong);
-                                        const optionText = typeof option === 'string' ? option : option.text || option.content || option;
-
-                                        return (
-                                            <Animated.View
-                                                key={idx}
-                                                style={typeAdvantage === "opponent" && !isAnswerSubmitted && roundStarted ? {
-                                                    transform: [{ translateX: shakeAnimation }]
-                                                } : {}}
-                                            >
-                                                <HapticPressable
-                                                    onPress={() => handleSelectAnswer(idx)}
-                                                    disabled={isAnswerSubmitted || isWaitingForOpponent}
-                                                    className={`rounded-2xl border-2 overflow-hidden ${showFeedback
-                                                        ? isCorrect
-                                                            ? "border-green-500 bg-green-500/20"
-                                                            : "border-red-500 bg-red-500/20"
-                                                        : isSelected
-                                                            ? "border-cyan-400 bg-cyan-500/20"
-                                                            : "border-white/20 bg-white/5"
-                                                        }`}
-                                                >
-                                                    <View className="p-4 flex-row items-center justify-between">
-                                                        <ThemedText
-                                                            style={{
-                                                                color: showFeedback ? (isCorrect ? "#86efac" : "#fca5a5") : "#e5e7eb",
-                                                                fontSize: 16,
-                                                                fontWeight: "600",
-                                                                flex: 1,
-                                                            }}
-                                                        >
-                                                            {optionText}
-                                                        </ThemedText>
-                                                        {showFeedback && (
-                                                            <View>
-                                                                {isCorrect ? (
-                                                                    <CheckCircle size={24} color="#22c55e" />
-                                                                ) : (
-                                                                    <XCircle size={24} color="#ef4444" />
-                                                                )}
-                                                            </View>
-                                                        )}
-                                                    </View>
-                                                </HapticPressable>
-                                            </Animated.View>
-                                        );
-                                    })}
-                                </View>
-
-                                {/* Submit Button */}
-                                {!isAnswerSubmitted && selectedAnswer !== null && !isWaitingForOpponent && (
-                                    <HapticPressable onPress={handleSubmitAnswer} className="mt-6 rounded-2xl overflow-hidden">
-                                        <TWLinearGradient
-                                            colors={["#22c55e", "#16a34a"]}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 1 }}
-                                            style={{ paddingVertical: 16 }}
-                                        >
-                                            <ThemedText style={{ color: "#ffffff", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
-                                                XÁC NHẬN
+                                    {/* Points progress bar (Kahoot-style) */}
+                                    <View className="mb-6">
+                                        <View className="flex-row items-center justify-between mb-2">
+                                            <ThemedText style={{ color: "#cbd5e1", fontSize: 14, fontWeight: "600" }}>
+                                                {t("battle.arena.points_this_turn")}
                                             </ThemedText>
-                                        </TWLinearGradient>
-                                    </HapticPressable>
-                                )}
-                            </View>
-                        </TWLinearGradient>
+                                            <ThemedText style={{ color: "#fbbf24", fontSize: 16, fontWeight: "700" }}>
+                                                {currentQuestionPoints}
+                                            </ThemedText>
+                                        </View>
+                                        <View style={{ height: 10, borderRadius: 999, backgroundColor: "rgba(148, 163, 184, 0.2)", overflow: "hidden" }}>
+                                            <Animated.View
+                                                style={{
+                                                    height: "100%",
+                                                    width: pointProgressWidth,
+                                                    backgroundColor: "#38bdf8",
+                                                }}
+                                            />
+                                        </View>
+                                        <ThemedText style={{ color: "#64748b", fontSize: 10, marginTop: 4 }}>
+                                            {t("battle.arena.points_description")}
+                                        </ThemedText>
+                                    </View>
+
+                                    {/* Answer Options */}
+                                    <View className="gap-3">
+                                        {(currentQuestion.options || currentQuestion.answers || []).map((option: any, idx: number) => {
+                                            const isSelected = selectedAnswer === idx;
+                                            const isCorrect = showResult && currentQuestion.correctAnswer !== undefined
+                                                ? idx === currentQuestion.correctAnswer
+                                                : false;
+                                            const isWrong = isSelected && showResult && !isCorrect;
+                                            const showFeedback = showResult && (isCorrect || isWrong);
+                                            const optionText = typeof option === 'string' ? option : option.text || option.content || option;
+
+                                            return (
+                                                <Animated.View
+                                                    key={idx}
+                                                    style={typeAdvantage === "opponent" && !isAnswerSubmitted && roundStarted ? {
+                                                        transform: [{ translateX: shakeAnimation }]
+                                                    } : {}}
+                                                >
+                                                    <HapticPressable
+                                                        onPress={() => handleSelectAnswer(idx)}
+                                                        disabled={isAnswerSubmitted || isWaitingForOpponent}
+                                                        className={`rounded-2xl border-2 overflow-hidden ${showFeedback
+                                                            ? isCorrect
+                                                                ? "border-green-500 bg-green-500/20"
+                                                                : "border-red-500 bg-red-500/20"
+                                                            : isSelected
+                                                                ? "border-cyan-400 bg-cyan-500/20"
+                                                                : "border-white/20 bg-white/5"
+                                                            }`}
+                                                    >
+                                                        <View className="p-4 flex-row items-center justify-between">
+                                                            <ThemedText
+                                                                style={{
+                                                                    color: showFeedback ? (isCorrect ? "#86efac" : "#fca5a5") : "#e5e7eb",
+                                                                    fontSize: 16,
+                                                                    fontWeight: "600",
+                                                                    flex: 1,
+                                                                }}
+                                                            >
+                                                                {optionText}
+                                                            </ThemedText>
+                                                            {showFeedback && (
+                                                                <View>
+                                                                    {isCorrect ? (
+                                                                        <CheckCircle size={24} color="#22c55e" />
+                                                                    ) : (
+                                                                        <XCircle size={24} color="#ef4444" />
+                                                                    )}
+                                                                </View>
+                                                            )}
+                                                        </View>
+                                                    </HapticPressable>
+                                                </Animated.View>
+                                            );
+                                        })}
+                                    </View>
+
+                                    {/* Submit Button */}
+                                    {!isAnswerSubmitted && selectedAnswer !== null && !isWaitingForOpponent && (
+                                        <HapticPressable onPress={handleSubmitAnswer} className="mt-6 rounded-2xl overflow-hidden">
+                                            <TWLinearGradient
+                                                colors={["#22c55e", "#16a34a"]}
+                                                start={{ x: 0, y: 0 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={{ paddingVertical: 16 }}
+                                            >
+                                                <ThemedText style={{ color: "#ffffff", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
+                                                    {t("battle.arena.confirm_button")}
+                                                </ThemedText>
+                                            </TWLinearGradient>
+                                        </HapticPressable>
+                                    )}
+                                </View>
+                            </TWLinearGradient>
+                        </DiscomfortVision>
                     </View>
                 )}
 
@@ -1132,7 +1224,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                         <View className="bg-black/40 rounded-2xl p-6 items-center justify-center">
                             <ActivityIndicator size="large" color="#fbbf24" />
                             <ThemedText style={{ color: "#fbbf24", fontSize: 16, fontWeight: "600", marginTop: 16, textAlign: "center" }}>
-                                Đang chờ đối thủ hoàn thành...
+                                {t("battle.arena.waiting_opponent_complete")}
                             </ThemedText>
                         </View>
                     </View>

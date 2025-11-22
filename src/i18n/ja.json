@@ -527,13 +527,83 @@
                 "item": "アイテム",
                 "skin": "スキン",
                 "badge": "バッジ",
-                "daily_request": "デイリーリクエスト"
+                "daily_request": "デイリーリクエスト",
+                "event": "イベント",
+                "poke_coins": "コイン"
             },
             "targets": {
                 "exp": "経験値",
                 "point": "ポイント",
                 "level": "レベル"
             }
+        },
+        "season_ended": {
+            "title": "シーズン終了",
+            "ended_message": "シーズンが終了しました",
+            "elo": "ELO",
+            "continue": "続行",
+            "rewards_title": "シーズン報酬",
+            "claiming": "受け取り中...",
+            "claim": "報酬を受け取る"
+        },
+        "new_season": {
+            "title": "新しいシーズン",
+            "elo": "ELO",
+            "message": "新しいシーズンでの健闘を祈ります！"
+        },
+        "first_time": {
+            "title": "ようこそ！",
+            "message": "バトルシステムへようこそ！最初のシーズンに参加しましょう。",
+            "joining": "参加中...",
+            "join": "今すぐ参加"
+        },
+        "arena": {
+            "title": "バトルアリーナ",
+            "round": "ラウンド {{round}}/3",
+            "waiting_opponent": "対戦相手を待っています...",
+            "opponent_label": "対戦相手",
+            "you_label": "あなた",
+            "vs": "VS",
+            "type_advantage_player": "あなたはタイプ有利です（霧：対戦相手の視界がぼやけています！）",
+            "type_advantage_opponent": "対戦相手が有利です（混乱：あなたは混乱しています！）",
+            "waiting_round_start": "ラウンド開始を待っています...",
+            "question_label": "問題",
+            "question_loading": "問題を読み込み中...",
+            "points_this_turn": "このターンのポイント",
+            "points_description": "100ポイントから始まり、回答時間に応じて最低50ポイントです。",
+            "confirm_button": "確認",
+            "waiting_opponent_complete": "対戦相手の完了を待っています...",
+            "loading_match_info": "マッチ情報を読み込み中...",
+            "turn": "ターン {{turn}}",
+            "debuff": {
+                "discomfort_vision": "視界がぼやける",
+                "add_question": "問題を追加",
+                "decrease_point": "ポイントを減らす",
+                "title": "デバフ",
+                "affected_by": "あなたはデバフの影響を受けています:",
+                "add_question_description": "+{{value}}問題",
+                "decrease_point_description": "問題ごとに-{{value}}ポイント",
+                "discomfort_vision_description": "視界がぼやける",
+                "next_turn_warning": "次のターン、あなたはデバフの影響を受けます: {{debuff}}"
+            }
+        },
+        "result": {
+            "title": "バトル結果",
+            "match_label": "マッチ #{{matchId}}",
+            "loading_title": "結果を読み込み中...",
+            "loading_subtitle": "少々お待ちください",
+            "back_to_home": "ホームに戻る",
+            "total_points": "合計ポイント",
+            "points_diff": "+{{points}}ポイント",
+            "round_details": "ラウンド詳細",
+            "round_1": "ラウンド1",
+            "round_2": "ラウンド2",
+            "round_3": "ラウンド3",
+            "round_default": "ラウンド",
+            "end_battle": "バトル終了",
+            "summary": "まとめ",
+            "you": "あなた",
+            "opponent": "対戦相手"
         }
     },
     "lessons": {

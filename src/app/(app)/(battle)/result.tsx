@@ -2,10 +2,13 @@ import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import useAuth from "@hooks/useAuth";
+import { ROUTES } from "@routes/routes";
 import { useMatchingStore } from "@stores/matching/matching.config";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useMemo } from "react";
-import { Image, ImageBackground, StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Image, ImageBackground, Pressable, StyleSheet, View } from "react-native";
 
 export default function BattleResultScreen() {
     const router = useRouter();
@@ -15,6 +18,8 @@ export default function BattleResultScreen() {
     const clearLast = useMatchingStore((s) => (s as any).clearLastMatchResult);
     const { user } = useAuth();
     const currentUserId = user?.data?.id as number | undefined;
+    const { t } = useTranslation();
+    const queryClient = useQueryClient();
 
     const {
         me,
@@ -36,8 +41,8 @@ export default function BattleResultScreen() {
             foe: null,
             meTotal: 0,
             foeTotal: 0,
-            meName: "Bạn",
-            foeName: "Đối thủ",
+            meName: t("battle.result.you"),
+            foeName: t("battle.result.opponent"),
             meAvatarUrl: null,
             foeAvatarUrl: null,
             winnerId: lastResult?.match?.winnerId ?? null,
@@ -56,8 +61,8 @@ export default function BattleResultScreen() {
         const foeP = participants.find((p: any) => p.userId !== currentUserId && p.userId !== meP?.userId) || participants[1];
         result.me = meP;
         result.foe = foeP;
-        result.meName = meP?.user?.name || meP?.user?.email || "Bạn";
-        result.foeName = foeP?.user?.name || foeP?.user?.email || "Đối thủ";
+        result.meName = meP?.user?.name || meP?.user?.email || t("battle.result.you");
+        result.foeName = foeP?.user?.name || foeP?.user?.email || t("battle.result.opponent");
 
         // Pick last selected pokémon avatars if available in last round snapshot-like data (if provided)
         // Otherwise show nothing; UI still works
@@ -104,8 +109,16 @@ export default function BattleResultScreen() {
                 const winnerParticipant = participants.find((p: any) => p.id === r.roundWinnerId);
                 roundWinnerUserId = winnerParticipant?.userId ?? null;
             }
+            const roundLabel = r.roundNumber === "ONE"
+                ? t("battle.result.round_1")
+                : r.roundNumber === "TWO"
+                    ? t("battle.result.round_2")
+                    : r.roundNumber === "THREE"
+                        ? t("battle.result.round_3")
+                        : r.roundNumber || t("battle.result.round_default");
+
             result.roundDetails.push({
-                label: r.roundNumber === "ONE" ? "Round 1" : r.roundNumber === "TWO" ? "Round 2" : r.roundNumber === "THREE" ? "Round 3" : r.roundNumber || "Round",
+                label: roundLabel,
                 me: mePts,
                 foe: foePts,
                 winnerUserId: roundWinnerUserId,
@@ -124,11 +137,15 @@ export default function BattleResultScreen() {
         result.eloDeltaPositive = delta >= 0;
 
         return result;
-    }, [lastResult, currentUserId, matchIdParam]);
+    }, [lastResult, currentUserId, matchIdParam, t]);
 
     const handleBack = () => {
         try { clearLast(); } catch { }
-        router.back();
+        // Invalidate query tags for user battle stats
+        queryClient.invalidateQueries({ queryKey: ['user-matching-history'] });
+        queryClient.invalidateQueries({ queryKey: ['user-stats-season'] });
+        // Navigate directly to battle tab instead of using router.back()
+        router.replace(ROUTES.TABS.BATTLE);
     };
 
     // Show loading/empty state if no data
@@ -148,13 +165,13 @@ export default function BattleResultScreen() {
                     />
                     <View className="flex-1 items-center justify-center px-5">
                         <ThemedText style={{ color: "#fbbf24", fontSize: 18, fontWeight: "700", marginBottom: 8 }}>
-                            Đang tải kết quả...
+                            {t("battle.result.loading_title")}
                         </ThemedText>
                         <ThemedText style={{ color: "#94a3b8", fontSize: 14, textAlign: "center", marginBottom: 24 }}>
-                            Vui lòng chờ trong giây lát
+                            {t("battle.result.loading_subtitle")}
                         </ThemedText>
                         <ThemedText onPress={handleBack} style={{ color: "#93c5fd", fontSize: 14, textDecorationLine: "underline" }}>
-                            Về trang chính
+                            {t("battle.result.back_to_home")}
                         </ThemedText>
                     </View>
                 </ImageBackground>
@@ -179,10 +196,10 @@ export default function BattleResultScreen() {
                 <View className="px-5 pt-16 pb-6">
                     <View className="items-center mb-5">
                         <ThemedText style={{ color: "#fbbf24", fontSize: 22, fontWeight: "900" }}>
-                            KẾT QUẢ TRẬN ĐẤU
+                            {t("battle.result.title")}
                         </ThemedText>
                         <ThemedText style={{ color: "#94a3b8", fontSize: 12, marginTop: 4 }}>
-                            Match #{matchIdParam || lastResult?.match?.id}
+                            {t("battle.result.match_label", { matchId: matchIdParam || lastResult?.match?.id })}
                         </ThemedText>
                     </View>
 
@@ -203,12 +220,21 @@ export default function BattleResultScreen() {
                                         ) : (
                                             <View style={{ width: 52, height: 52 }} />
                                         )}
-                                        <View className="ml-3">
-                                            <ThemedText style={{ color: "#e5e7eb", fontWeight: "800", fontSize: 16 }}>
+                                        <View className="ml-3 flex-1">
+                                            <ThemedText
+                                                style={{
+                                                    color: "#e5e7eb",
+                                                    fontWeight: "800",
+                                                    fontSize: 16,
+                                                    lineHeight: (foeName && foeName.length > 15) ? 20 : 22
+                                                }}
+                                                numberOfLines={2}
+                                                ellipsizeMode="tail"
+                                            >
                                                 {foeName}
                                             </ThemedText>
                                             <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>
-                                                Tổng điểm
+                                                {t("battle.result.total_points")}
                                             </ThemedText>
                                         </View>
                                     </View>
@@ -218,7 +244,7 @@ export default function BattleResultScreen() {
                                         </ThemedText>
                                         {pointDiff < 0 && (
                                             <ThemedText style={{ color: "#fca5a5", fontSize: 12, marginTop: 4 }}>
-                                                +{Math.abs(pointDiff)} điểm
+                                                {t("battle.result.points_diff", { points: Math.abs(pointDiff) })}
                                             </ThemedText>
                                         )}
                                     </View>
@@ -241,12 +267,21 @@ export default function BattleResultScreen() {
                                         ) : (
                                             <View style={{ width: 52, height: 52 }} />
                                         )}
-                                        <View className="ml-3">
-                                            <ThemedText style={{ color: "#e5e7eb", fontWeight: "800", fontSize: 16 }}>
+                                        <View className="ml-3 flex-1">
+                                            <ThemedText
+                                                style={{
+                                                    color: "#e5e7eb",
+                                                    fontWeight: "800",
+                                                    fontSize: 16,
+                                                    lineHeight: (meName && meName.length > 15) ? 20 : 22
+                                                }}
+                                                numberOfLines={2}
+                                                ellipsizeMode="tail"
+                                            >
                                                 {meName}
                                             </ThemedText>
                                             <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>
-                                                Tổng điểm
+                                                {t("battle.result.total_points")}
                                             </ThemedText>
                                         </View>
                                     </View>
@@ -256,7 +291,7 @@ export default function BattleResultScreen() {
                                         </ThemedText>
                                         {pointDiff > 0 && (
                                             <ThemedText style={{ color: "#86efac", fontSize: 12, marginTop: 4 }}>
-                                                +{pointDiff} điểm
+                                                {t("battle.result.points_diff", { points: pointDiff })}
                                             </ThemedText>
                                         )}
                                     </View>
@@ -276,7 +311,7 @@ export default function BattleResultScreen() {
                     {/* Per-round breakdown */}
                     <View className="mt-6 bg-black/40 rounded-2xl p-6">
                         <ThemedText style={{ color: "#e5e7eb", fontWeight: "800", fontSize: 16, marginBottom: 8 }}>
-                            Chi tiết từng round
+                            {t("battle.result.round_details")}
                         </ThemedText>
                         {roundDetails.map((rd: { label: string; me: number; foe: number; winnerUserId?: number | null }, idx: number) => {
                             const meWin = rd.winnerUserId !== undefined && rd.winnerUserId !== null && me?.userId === rd.winnerUserId;
@@ -318,22 +353,20 @@ export default function BattleResultScreen() {
 
                     {/* Footer actions */}
                     <View className="items-center mt-8">
-                        <TWLinearGradient
-                            colors={winnerId ? ["#06b6d4", "#3b82f6"] : ["#64748b", "#475569"]}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={{ paddingVertical: 12, paddingHorizontal: 24, borderRadius: 999 }}
-                        >
-                            <ThemedText style={{ color: "#ffffff", fontWeight: "800" }}>
-                                {winnerId ? "Kết thúc trận đấu" : "Tổng kết"}
-                            </ThemedText>
-                        </TWLinearGradient>
-
-                        <View className="mt-3">
-                            <ThemedText onPress={handleBack} style={{ color: "#93c5fd", fontSize: 14, textDecorationLine: "underline" }}>
-                                Về trang chính
-                            </ThemedText>
-                        </View>
+                        <Pressable onPress={handleBack} style={{ borderRadius: 999, overflow: "hidden" }}>
+                            <TWLinearGradient
+                                colors={["#06b6d4", "#3b82f6"]}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                                style={{ paddingVertical: 14, paddingHorizontal: 32, minWidth: 200 }}
+                            >
+                                <ThemedText
+                                    style={{ color: "#ffffff", fontWeight: "800", fontSize: 16, textAlign: "center" }}
+                                >
+                                    {t("battle.result.back_to_home")}
+                                </ThemedText>
+                            </TWLinearGradient>
+                        </Pressable>
                     </View>
                 </View>
             </ImageBackground>

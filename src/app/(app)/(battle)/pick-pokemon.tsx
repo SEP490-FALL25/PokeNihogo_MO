@@ -609,27 +609,33 @@ export default function PickPokemonScreen() {
         if (!accessToken || !matchId) return;
 
         const socket = getSocket("matching", accessToken);
+        console.log("[PICK_POKEMON] Joining matching rooms, matchId:", matchId);
+        // ✅ Emit both join-matching-room and join-user-match-room (as per index.html)
+        socket.emit("join-matching-room", { matchId });
+        socket.emit("join-user-match-room", { matchId });
 
+        // ✅ Handle select-pokemon event (as per index.html)
         socket.on("select-pokemon", (payload: any) => {
-            console.log("select-pokemon", payload);
+            console.log("[PICK_POKEMON] select-pokemon event:", payload);
             if (payload?.matchId && payload.matchId.toString() === matchId.toString()) {
                 if (payload?.data) {
-                    // SỬA LẠI NHƯ SAU:
+                    // Update cache with new match round data
                     queryClient.setQueryData(['list-match-round'], (oldData: any) => {
-                        // payload.data chính là object IBattleMatchRound mới
-                        // Chỉ cần return nó để thay thế hoàn toàn cache cũ.
+                        // payload.data is the new IBattleMatchRound object
                         return payload.data;
                     });
                 }
 
-                // Vẫn giữ lại invalidate để đảm bảo dữ liệu cuối cùng là chính xác từ server
+                // Invalidate to ensure fresh data from server
                 queryClient.invalidateQueries({ queryKey: ['list-match-round'] });
                 queryClient.invalidateQueries({ queryKey: ['list-user-pokemon-round'] });
             }
         });
 
+        // ✅ Handle round-starting event (as per index.html)
         socket.on("round-starting", (payload: any) => {
-            if (payload?.matchId && payload?.roundNumber && payload?.delaySeconds) {
+            console.log("[PICK_POKEMON] round-starting event:", payload);
+            if (payload?.matchId && payload?.roundNumber && payload?.delaySeconds !== undefined) {
                 setRoundStartingData({
                     matchId: payload.matchId,
                     roundNumber: payload.roundNumber,
@@ -651,22 +657,32 @@ export default function PickPokemonScreen() {
 
     /**
      * Countdown timer for round starting - decrement remainingSeconds
+     * ✅ As per index.html: round-starting event has delaySeconds, countdown until 0 then navigate
      */
     useEffect(() => {
-        if (!roundStartingData || remainingSeconds === null || remainingSeconds <= 0) {
-            if (roundStartingData && remainingSeconds !== null && remainingSeconds <= 0) {
-                // Navigate to arena when countdown reaches 0
-                router.replace({
-                    pathname: ROUTES.APP.ARENA,
-                    params: {
-                        matchId: roundStartingData.matchId.toString(),
-                        roundNumber: roundStartingData.roundNumber,
-                    },
-                });
-            }
+        if (!roundStartingData) {
             return;
         }
 
+        // When countdown reaches 0, navigate to arena
+        if (remainingSeconds !== null && remainingSeconds <= 0) {
+            console.log("[PICK_POKEMON] Countdown reached 0, navigating to arena");
+            router.replace({
+                pathname: ROUTES.APP.ARENA,
+                params: {
+                    matchId: roundStartingData.matchId.toString(),
+                    roundNumber: roundStartingData.roundNumber,
+                },
+            });
+            return;
+        }
+
+        // Skip if no valid remaining seconds
+        if (remainingSeconds === null || remainingSeconds <= 0) {
+            return;
+        }
+
+        // Decrement countdown every second
         const timer = setTimeout(() => {
             setRemainingSeconds((prev) => {
                 if (prev === null || prev <= 1) {

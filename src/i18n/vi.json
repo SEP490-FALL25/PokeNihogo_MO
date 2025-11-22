@@ -293,13 +293,83 @@
         "item": "Vật phẩm",
         "skin": "Skin",
         "badge": "Huy hiệu",
-        "daily_request": "Nhiệm vụ hàng ngày"
+        "daily_request": "Nhiệm vụ hàng ngày",
+        "event": "Sự kiện",
+        "poke_coins": "Xu"
       },
       "targets": {
         "exp": "Kinh nghiệm",
         "point": "Điểm",
         "level": "Cấp độ"
       }
+    },
+    "season_ended": {
+      "title": "Mùa giải đã kết thúc",
+      "ended_message": "Mùa giải đã kết thúc",
+      "elo": "ELO",
+      "continue": "Tiếp tục",
+      "rewards_title": "Phần thưởng mùa giải",
+      "claiming": "Đang nhận...",
+      "claim": "Nhận thưởng"
+    },
+    "new_season": {
+      "title": "Mùa giải mới",
+      "elo": "ELO",
+      "message": "Chúc bạn may mắn trong mùa giải mới!"
+    },
+    "first_time": {
+      "title": "Chào mừng!",
+      "message": "Chào mừng bạn đến với hệ thống thi đấu! Hãy tham gia mùa giải đầu tiên của bạn.",
+      "joining": "Đang tham gia...",
+      "join": "Tham gia ngay"
+    },
+    "arena": {
+      "title": "ĐẤU TRƯỜNG",
+      "round": "ROUND {{round}}/3",
+      "waiting_opponent": "Đợi đối thủ...",
+      "opponent_label": "Đối thủ",
+      "you_label": "Bạn",
+      "vs": "VS",
+      "type_advantage_player": "Bạn có lợi thế hệ (Fog: Đối thủ nhìn mờ!)",
+      "type_advantage_opponent": "Đối thủ có lợi thế (Confusion: Bạn bị nhiễu loạn!)",
+      "waiting_round_start": "Đang chờ round bắt đầu...",
+      "question_label": "Câu hỏi",
+      "question_loading": "Câu hỏi đang được tải...",
+      "points_this_turn": "Điểm lượt này",
+      "points_description": "Bắt đầu 100 điểm, tối thiểu 50 điểm theo thời gian trả lời.",
+      "confirm_button": "XÁC NHẬN",
+      "waiting_opponent_complete": "Đang chờ đối thủ hoàn thành...",
+      "loading_match_info": "Đang tải thông tin trận đấu...",
+      "turn": "Lượt {{turn}}",
+      "debuff": {
+        "discomfort_vision": "Tầm nhìn bị mờ",
+        "add_question": "Thêm câu hỏi",
+        "decrease_point": "Giảm điểm",
+        "title": "Debuff",
+        "affected_by": "Bạn bị ảnh hưởng bởi bùa bất lợi:",
+        "add_question_description": "+{{value}} câu hỏi",
+        "decrease_point_description": "-{{value}} điểm mỗi câu",
+        "discomfort_vision_description": "Tầm nhìn bị mờ",
+        "next_turn_warning": "Turn sau bạn sẽ bị ảnh hưởng bởi bùa bất lợi: {{debuff}}"
+      }
+    },
+    "result": {
+      "title": "KẾT QUẢ TRẬN ĐẤU",
+      "match_label": "Match #{{matchId}}",
+      "loading_title": "Đang tải kết quả...",
+      "loading_subtitle": "Vui lòng chờ trong giây lát",
+      "back_to_home": "Về trang chính",
+      "total_points": "Tổng điểm",
+      "points_diff": "+{{points}} điểm",
+      "round_details": "Chi tiết từng round",
+      "round_1": "Round 1",
+      "round_2": "Round 2",
+      "round_3": "Round 3",
+      "round_default": "Round",
+      "end_battle": "Kết thúc trận đấu",
+      "summary": "Tổng kết",
+      "you": "Bạn",
+      "opponent": "Đối thủ"
     }
   },
   "navigation": {

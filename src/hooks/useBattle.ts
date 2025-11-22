@@ -75,3 +75,63 @@ export const useUserMatchingHistory = (params?: IQueryRequest) => {
     };
 };
 //------------------------End------------------------//
+
+
+/**
+ * Claim reward season
+ * @param userSeasonHistoryId User season history ID
+ * @returns Claim reward season data
+ */
+export const useClaimRewardSeason = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (userSeasonHistoryId: number) => battleService.claimRewardSeason(userSeasonHistoryId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['user-stats-season'] });
+        },
+        onError: (error: any) => {
+            console.error(error.response.data.message);
+        },
+    });
+};
+//------------------------End------------------------//
+
+
+/**
+ * Join new season
+ * @returns Join new season mutation
+ */
+export const useJoinNewSeason = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => battleService.joinNewSeason(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['user-stats-season'] });
+        },
+        onError: (error: any) => {
+            console.error(error.response?.data?.message || error.message);
+        },
+    });
+};
+//------------------------End------------------------//
+
+
+
+/**
+ * Match tracking
+ * @param enabled Whether to enable the query
+ * @param refetchInterval Interval to refetch in milliseconds (0 to disable)
+ * @returns Match tracking data
+ */
+export const useMatchTracking = (enabled: boolean = true, refetchInterval: number = 0) => {
+    const { data, isLoading, isError, refetch } = useQuery({
+        queryKey: ['match-tracking'],
+        queryFn: () => battleService.matchTracking(),
+        enabled,
+        refetchInterval: refetchInterval > 0 ? refetchInterval : false,
+        refetchOnMount: "always",
+        refetchOnWindowFocus: false,
+    });
+    return { data: data?.data.data, isLoading, isError, refetch };
+};
+//------------------------End------------------------//

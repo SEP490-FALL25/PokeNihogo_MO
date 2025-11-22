@@ -1,12 +1,12 @@
 import { ThemedText } from "@components/ThemedText";
-import { useUserStatsSeason } from "@hooks/useSeason";
+import { useUserStatsSeason, SeasonResponseType } from "@hooks/useSeason";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, View } from "react-native";
 
 export default function StatsBattle() {
     const { t } = useTranslation();
-    const { data, isLoading } = useUserStatsSeason();
+    const { data, isLoading, responseType } = useUserStatsSeason();
 
     if (isLoading) {
         return (
@@ -20,6 +20,11 @@ export default function StatsBattle() {
                 </View>
             </View>
         );
+    }
+
+    // Only show stats for ACTIVE season
+    if (responseType !== 'ACTIVE') {
+        return null;
     }
 
     const totalWins = data?.totalWins || 0;

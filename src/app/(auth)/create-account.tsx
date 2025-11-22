@@ -8,6 +8,7 @@ import { CreateAccountFormDataRequest, ICreateAccountFormDataRequest } from '@mo
 // import { IRegisterFormDataRequest, RegisterFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
+import { useAuthStore } from '@stores/auth/auth.config';
 import { useEmailSelector } from '@stores/user/user.selectors';
 import { saveSecureStorage } from '@utils/secure-storage';
 import { router } from 'expo-router';
@@ -26,6 +27,9 @@ export default function CreateAccountScreen() {
     const { t } = useTranslation();
     const email = useEmailSelector();
     const { showAlert } = useMinimalAlert();
+    const setAccessToken = useAuthStore((state) => state.setAccessToken);
+
+
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
 
@@ -47,13 +51,11 @@ export default function CreateAccountScreen() {
     const handleCompleteRegistration = async (data: ICreateAccountFormDataRequest) => {
         try {
             const res = await authService.register(data);
-            console.log('>>>>>>>res: ', res);
-            
 
             if (res.data.statusCode === 201) {
                 showAlert(res.data.message, 'success');
-                saveSecureStorage('accessToken', res.data.data.accessToken);
-                saveSecureStorage('refreshToken', res.data.data.refreshToken);
+                await setAccessToken(res.data.data.accessToken);
+                try { await saveSecureStorage('refreshToken', res.data.data.refreshToken); } catch { }
                 router.replace(ROUTES.STARTER.SELECT_LEVEL);
             }
         } catch (error: any) {
