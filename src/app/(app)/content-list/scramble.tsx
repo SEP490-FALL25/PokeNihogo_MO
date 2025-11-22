@@ -521,15 +521,15 @@ const ScrambleGameScreen = () => {
         if (slotScale) {
           Animated.sequence([
             Animated.spring(slotScale, {
-              toValue: 1.3,
-              friction: 3,
-              tension: 40,
+              toValue: 1.05,
+              friction: 4,
+              tension: 50,
               useNativeDriver: true,
             }),
             Animated.spring(slotScale, {
               toValue: 1,
-              friction: 3,
-              tension: 40,
+              friction: 4,
+              tension: 50,
               useNativeDriver: true,
             }),
           ]).start();
@@ -658,15 +658,15 @@ const ScrambleGameScreen = () => {
     if (slotScale) {
       Animated.sequence([
         Animated.spring(slotScale, {
-          toValue: 1.2,
-          friction: 3,
-          tension: 40,
+          toValue: 1.1,
+          friction: 4,
+          tension: 50,
           useNativeDriver: true,
         }),
         Animated.spring(slotScale, {
           toValue: 1,
-          friction: 3,
-          tension: 40,
+          friction: 4,
+          tension: 50,
           useNativeDriver: true,
         }),
       ]).start();
