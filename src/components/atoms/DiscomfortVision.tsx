@@ -1,7 +1,7 @@
 import { MATCH_DEBUFF_TYPE } from "@constants/battle.enum";
 import { BlurView } from "expo-blur";
 import React from "react";
-import { Animated, StyleSheet, View } from "react-native";
+import { Animated, Platform, StyleSheet, View } from "react-native";
 
 interface DiscomfortVisionProps {
     children: React.ReactNode;
@@ -28,6 +28,18 @@ interface DiscomfortVisionProps {
 export default function DiscomfortVision({ children, debuff, enabled, style }: DiscomfortVisionProps) {
     const isDiscomfortVision = debuff?.typeDebuff === MATCH_DEBUFF_TYPE.DISCOMFORT_VISION;
     const shouldApply = enabled !== undefined ? enabled : isDiscomfortVision;
+
+    // Debug logging
+    React.useEffect(() => {
+        if (debuff) {
+            console.log("[DiscomfortVision] Debuff received:", {
+                typeDebuff: debuff.typeDebuff,
+                isDiscomfortVision,
+                shouldApply,
+                valueDebuff: debuff.valueDebuff,
+            });
+        }
+    }, [debuff, isDiscomfortVision, shouldApply]);
 
     // Animation for subtle pulsing effect to make it harder to read
     const opacityAnim = React.useRef(new Animated.Value(0.3)).current;
@@ -72,30 +84,68 @@ export default function DiscomfortVision({ children, debuff, enabled, style }: D
         ? Math.min(Math.max(debuff.valueDebuff / 160, 15), 30)
         : 20;
 
+    console.log("[DiscomfortVision] Applying blur effect, intensity:", blurIntensity);
+
+    // For web, use CSS filter blur as fallback
+    const isWeb = Platform.OS === "web";
+
+    if (isWeb) {
+        // Web fallback: Use CSS filter blur
+        return (
+            <View style={[styles.container, style]}>
+                <Animated.View
+                    style={[
+                        styles.content,
+                        {
+                            filter: `blur(${blurIntensity / 2}px)`,
+                            WebkitFilter: `blur(${blurIntensity / 2}px)`,
+                            opacity: opacityAnim.interpolate({
+                                inputRange: [0.3, 0.6],
+                                outputRange: [0.7, 0.9],
+                            }),
+                        },
+                    ]}
+                >
+                    {children}
+                </Animated.View>
+                {/* Dark overlay for web */}
+                <Animated.View
+                    style={[
+                        StyleSheet.absoluteFill,
+                        {
+                            backgroundColor: "rgba(0, 0, 0, 0.5)",
+                            opacity: opacityAnim,
+                        },
+                    ]}
+                />
+            </View>
+        );
+    }
+
     return (
         <View style={[styles.container, style]}>
-            {/* Blur overlay */}
+            {/* Use BlurView to wrap content - this applies blur to everything inside */}
             <BlurView
                 intensity={blurIntensity}
                 tint="dark"
                 style={StyleSheet.absoluteFill}
-            />
+            >
+                {/* Additional dark overlay with animation for extra difficulty */}
+                <Animated.View
+                    style={[
+                        StyleSheet.absoluteFill,
+                        {
+                            backgroundColor: "rgba(0, 0, 0, 0.5)",
+                            opacity: opacityAnim,
+                        },
+                    ]}
+                />
 
-            {/* Additional dark overlay with animation for extra difficulty */}
-            <Animated.View
-                style={[
-                    StyleSheet.absoluteFill,
-                    {
-                        backgroundColor: "rgba(0, 0, 0, 0.4)",
-                        opacity: opacityAnim,
-                    },
-                ]}
-            />
-
-            {/* Content */}
-            <View style={styles.content}>
-                {children}
-            </View>
+                {/* Content */}
+                <View style={styles.content}>
+                    {children}
+                </View>
+            </BlurView>
         </View>
     );
 }

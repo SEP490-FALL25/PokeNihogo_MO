@@ -1090,7 +1090,17 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 {!isWaitingForOpponent && currentQuestion && roundStarted && (
                     <View className="px-5 mb-6">
                         <DiscomfortVision
-                            debuff={currentQuestion.debuff || roundData?.opponent?.debuff || null}
+                            debuff={(() => {
+                                const debuffToUse = currentQuestion.debuff || roundData?.opponent?.debuff || null;
+                                console.log("[ARENA] DiscomfortVision debuff:", {
+                                    currentQuestionDebuff: currentQuestion.debuff,
+                                    opponentDebuff: roundData?.opponent?.debuff,
+                                    finalDebuff: debuffToUse,
+                                    typeDebuff: debuffToUse?.typeDebuff,
+                                    isDiscomfortVision: debuffToUse?.typeDebuff === MATCH_DEBUFF_TYPE.DISCOMFORT_VISION,
+                                });
+                                return debuffToUse;
+                            })()}
                             style={{ borderRadius: 24, overflow: "hidden" }}
                         >
                             <TWLinearGradient
