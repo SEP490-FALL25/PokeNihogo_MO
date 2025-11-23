@@ -255,7 +255,7 @@ type ExerciseCategory = "vocabulary" | "grammar" | "kanji";
 
 const LessonDetailScreen = () => {
   const { t } = useTranslation();
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, status } = useLocalSearchParams<{ id?: string; status?: string }>();
   const { data: lessonData, isLoading } = useLesson(id || "");
   const { data: lessonExercisesResponse } = useLessonExercises(id || "");
   const {
@@ -367,10 +367,11 @@ const LessonDetailScreen = () => {
         rewardTarget: reward.rewardTarget,
       }));
 
-      // Nếu hoàn thành 3 bài tập (exercise 3), phần thưởng cuối cùng sẽ được mở
-      // Status sẽ là COMPLETED nếu đã hoàn thành tất cả 3 exercises
-      const finalRewardStatus = completedExercises >= exercisesWithRewards.length
-        ? ExerciseAttemptStatus.COMPLETED
+      // Phần thưởng cuối cùng chỉ được nhận khi lesson status là COMPLETED
+      // Ưu tiên lấy từ params (từ màn hình trước), fallback về lesson object
+      const lessonStatus = (status || lesson.status || lesson.lessonProgress?.status || "").toUpperCase();
+      const finalRewardStatus = lessonStatus === "COMPLETED" 
+        ? ExerciseAttemptStatus.COMPLETED 
         : undefined;
 
       exerciseRewardsList.push({

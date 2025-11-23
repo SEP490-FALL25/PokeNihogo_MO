@@ -1,7 +1,9 @@
 import LottieAnimation from "@components/ui/LottieAnimation";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { LessonProgress } from "@models/lesson/lesson.common";
 import { Image, type ImageSource } from "expo-image";
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dimensions,
   Pressable,
@@ -215,6 +217,8 @@ const LessonNodeComponent: React.FC<{
   const { isActive, isUnlocked, progressPercentage } = node;
   const translateY = useSharedValue(0);
   const shadowOpacity = useSharedValue(1);
+  const { t } = useTranslation();
+  const { showAlert } = useMinimalAlert();
 
   const style = useMemo(() => {
     const iconContainerStyle: ViewStyle[] = [
@@ -260,6 +264,14 @@ const LessonNodeComponent: React.FC<{
 
   const handlePress = () => {
     if (!isUnlocked) return;
+    
+    // Kiểm tra nếu bài học là NOT_STARTED thì hiển thị alert và không cho bấm
+    const status = ((node.lessonProgress.status as string) ?? "NOT_STARTED").toUpperCase();
+    if (status === "NOT_STARTED") {
+      showAlert(t("lessons.complete_previous_lesson"), "warning");
+      return;
+    }
+    
     onPress?.(node.lessonProgress);
   };
 

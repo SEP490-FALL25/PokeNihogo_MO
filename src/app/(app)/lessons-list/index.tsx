@@ -121,7 +121,10 @@ const LessonsScreen = () => {
   const handleLessonPress = useCallback((lesson: LessonProgress) => {
     router.push({
       pathname: ROUTES.LESSON.DETAIL,
-      params: { id: lesson.lessonId.toString() },
+      params: { 
+        id: lesson.lessonId.toString(),
+        status: lesson.status || "NOT_STARTED",
+      },
     });
   }, []);
 

@@ -230,7 +230,7 @@ export default function AccountDetailsScreen() {
               </View>
             </View>
 
-            <View className="bg-white rounded-3xl p-5 shadow-md border border-slate-100">
+            {/* <View className="bg-white rounded-3xl p-5 shadow-md border border-slate-100">
               <Text className="text-lg font-extrabold text-slate-800 mb-1">
                 {t('account_details.overview_title')}
               </Text>
@@ -292,7 +292,7 @@ export default function AccountDetailsScreen() {
                   </View>
                 ))}
               </View>
-            </View>
+            </View> */}
 
             <View className="bg-white rounded-3xl p-5 shadow-md mb-4 border border-slate-100">
               <Text className="text-lg font-extrabold text-slate-800 mb-1">

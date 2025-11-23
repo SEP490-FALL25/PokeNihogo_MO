@@ -422,6 +422,7 @@
       "in_progress": "In Progress",
       "not_started": "Not Started"
     },
+    "complete_previous_lesson": "You must complete the previous lesson first",
     "lesson_types": {
       "vocabulary": "Vocabulary",
       "grammar": "Grammar",
@@ -1158,6 +1159,31 @@
     "minutes_ago": "{{minutes}} min ago",
     "hours_ago": "{{hours}} hr ago",
     "days_ago": "{{days}} days ago"
+  },
+  "reward_history": {
+    "title": "Reward History",
+    "subtitle": "View your received rewards",
+    "statistics": "Statistics",
+    "total_rewards": "Total Rewards",
+    "total_exp": "Total EXP",
+    "reward_received": "Reward Received",
+    "reward_type": "Reward Type",
+    "reward_item": "Quantity",
+    "empty_title": "No Rewards Yet",
+    "empty_description": "You haven't received any rewards yet. Complete lessons and exercises to earn rewards!",
+    "load_error": "Failed to load reward history",
+    "retry": "Retry",
+    "just_now": "Just now",
+    "minutes_ago": "{{minutes}} minutes ago",
+    "hours_ago": "{{hours}} hours ago",
+    "days_ago": "{{days}} days ago",
+    "source": {
+      "exercise": "Exercise",
+      "lesson": "Lesson",
+      "test": "Test",
+      "daily_login": "Daily Login",
+      "achievement": "Achievement"
+    }
   },
   "achievements": {
     "title": "Achievement Book",
