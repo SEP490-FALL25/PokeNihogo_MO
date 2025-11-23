@@ -7,7 +7,7 @@ import BounceButton from "@components/ui/BounceButton";
 import { TypingText } from "@components/ui/TypingText";
 import { useFocusEffect } from "@react-navigation/native";
 import { ROUTES } from "@routes/routes";
-import authService from "@services/auth";
+import userService from "@services/user";
 import { useUserStore } from "@stores/user/user.config";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -116,7 +116,6 @@ export default function SelectLevelScreen() {
   const translateY = React.useRef(new Animated.Value(12)).current;
 
   // Store selectors
-  const setLevel = useUserStore((s) => (s as any).setLevel);
   const userLevel = useUserStore((s) => (s as any).level);
   const hasCompletedPlacementTest = useUserStore(
     (s) => (s as any).hasCompletedPlacementTest
@@ -172,20 +171,42 @@ export default function SelectLevelScreen() {
   // EVENT HANDLERS
   // ============================================================================
   /**
-   * Handles continue action - sets user level and navigates to starter selection
+   * Handles level selection - calls API to update level on server
+   */
+  const onLevelSelect = async (level: Level) => {
+    if (isProcessing || selected === level) return;
+
+    try {
+      setSelected(level);
+      // Call API to update level immediately when user selects (no local storage)
+      await userService.updateLevelJLPT(level);
+    } catch (error) {
+      console.error("Error updating user level:", error);
+      // Revert selection on error
+      if (userLevel) {
+        setSelected(userLevel);
+      } else {
+        setSelected(null);
+      }
+    }
+  };
+
+  /**
+   * Handles continue action - ensures level is saved and navigates to starter selection
    */
   const onContinue = async () => {
     if (!selected || isProcessing) return;
 
     try {
       setIsProcessing(true);
-      setLevel(selected);
-      await authService.setUserLevel(selected);
-      setIsProcessing(false); // Reset processing state before navigation
+      // Ensure level is saved on server before navigation (in case previous API call failed)
+      await userService.updateLevelJLPT(selected);
+      setIsProcessing(false);
       router.push(ROUTES.STARTER.CHOOSE_STARTER as any);
     } catch (error) {
       console.error("Error setting user level:", error);
       setIsProcessing(false);
+      // Optionally show error message to user
     }
   };
 
@@ -258,7 +279,7 @@ export default function SelectLevelScreen() {
         onPress={() => {
           if (isProcessing) return;
           Haptics.selectionAsync();
-          setSelected(level);
+          onLevelSelect(level);
           // Don't reset hasCompletedPlacementTest to keep recommendation visible
         }}
         activeOpacity={0.8}

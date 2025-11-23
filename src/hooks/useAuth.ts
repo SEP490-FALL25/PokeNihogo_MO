@@ -1,18 +1,32 @@
-import * as SecureStore from 'expo-secure-store';
-import { useEffect, useState } from "react";
+import authService from '@services/auth';
+import { useAuthStore } from '@stores/auth/auth.config';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 export const useAuth = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+    const { accessToken } = useAuthStore();
+
+    const { data: user, isLoading, isError, error } = useQuery({
+        queryKey: ['user-profile', accessToken],
+        queryFn: () => authService.getProfile(),
+        enabled: !!accessToken,
+    });
 
     useEffect(() => {
-        const checkToken = async () => {
-            const token = await SecureStore.getItemAsync('token');
-            setIsLoggedIn(!!token);
-        };
-        checkToken();
-    }, []);
+        if (isError) {
+            console.error("--- LỖI TỪ API GET PROFILE ---");
+            console.error("Lỗi chi tiết:", error.message);
+        }
+    }, [isError, error]);
 
-    return { isLoggedIn, isLoading: isLoggedIn === null };
-}
+    return {
+        isAuthenticated: !!user,
+        isLoading,
+        user: user?.data,
+        // isAuthenticated: true, // Temporarily bypass authentication
+        // isLoading: false,
+        // user: user?.data || { id: 'temp-user', name: 'Test User' }, // Mock user data
+    };
+};
 
 export default useAuth;

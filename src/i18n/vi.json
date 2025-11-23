@@ -1,115 +1,1339 @@
 {
-    "common": {
-        "start": "BẮT ĐẦU NGAY",
-        "i-already-have-an-account": "TÔI ĐÃ CÓ TÀI KHOẢN",
-        "learn": "Học",
-        "learn-again": "Học nữa",
-        "learn-forever": "Học mãi",
-        "home": "Trang chủ",
-        "explore": "Khám phá",
-        "welcome": "Chào mừng",
-        "demo": "DEMO",
-        "continue": "Tiếp tục",
-        "next": "Tiếp theo",
-        "finish": "Hoàn tất",
-        "processing": "Đang xử lý..."
-
+  "common": {
+    "start": "BẮT ĐẦU NGAY",
+    "i-already-have-an-account": "TÔI ĐÃ CÓ TÀI KHOẢN",
+    "learn": "Học",
+    "learn-again": "Học nữa",
+    "learn-forever": "Học mãi",
+    "home": "Trang chủ",
+    "explore": "Khám phá",
+    "welcome": "Chào mừng",
+    "demo": "DEMO",
+    "continue": "Tiếp tục",
+    "next": "Tiếp theo",
+    "finish": "Hoàn tất",
+    "complete": "Hoàn thành",
+    "retry": "Thử lại",
+    "processing": "Đang xử lý...",
+    "loading": "Đang tải...",
+    "position_saved": "Vị trí được ghi nhớ!",
+    "simple_dialog": "Hộp thoại đơn giản",
+    "simple_dialog_test": "Đây là test hộp thoại đơn giản",
+    "close": "Đóng",
+    "cancel": "Hủy",
+    "exit": "Thoát",
+    "shop": "Cửa hàng",
+    "open-shop": "Mở cửa hàng",
+    "error": "Lỗi",
+    "something_wrong": "Có lỗi xảy ra, vui lòng thử lại."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Mật khẩu",
+    "enter-your-email": "Nhập email",
+    "enter-your-password": "Nhập mật khẩu",
+    "log-in": "Đăng nhập",
+    "welcome-back": "Chào mừng trở lại!",
+    "forgot-your-password": "Quên mật khẩu?",
+    "dont-have-an-account": "Không có tài khoản?",
+    "sign-up": "Đăng ký",
+    "login-success": "Đăng nhập thành công",
+    "login-failed": "Đăng nhập thất bại",
+    "sign-in-with-google": "Đăng nhập với Google",
+    "already-have-an-account": "Đã có tài khoản?",
+    "create-account": "Tạo tài khoản",
+    "confirm-password": "Xác nhận mật khẩu",
+    "name": "Tên",
+    "enter-your-name": "Nhập tên",
+    "enter-code": "Nhập mã",
+    "we-sent-a-6-digit-code-to": "Chúng tôi đã gửi mã 6 chữ số đến",
+    "didnt-receive-a-code": "Không nhận được mã?",
+    "resend": "Gửi lại",
+    "verify": "Xác nhận",
+    "logged-in-successfully": "Đăng nhập thành công!",
+    "invalid-otp-please-try-again": "Mã OTP không hợp lệ. Vui lòng thử lại.",
+    "an-unexpected-error-occurred": "Đã xảy ra lỗi không mong muốn.",
+    "a-new-code-has-been-sent-to-your-email": "Một mã mới đã được gửi đến email của bạn.",
+    "complete-profile": "Hoàn thành hồ sơ",
+    "whats-your-name": "Tên của bạn là gì?",
+    "next": "Tiếp tục",
+    "reset-your-password": "Đặt lại mật khẩu",
+    "create-new-password": "Tạo mật khẩu mới",
+    "new-password-description": "Nhập mật khẩu mới.",
+    "new-password": "Mật khẩu mới",
+    "confirm-new-password": "Xác nhận mật khẩu mới",
+    "enter-new-password": "Nhập mật khẩu mới",
+    "enter-confirm-new-password": "Nhập xác nhận mật khẩu mới",
+    "save-password": "Lưu mật khẩu",
+    "select_level": {
+      "title": "Trình độ hiện tại của bạn là gì?",
+      "n5": "N5 (Sơ cấp)",
+      "n4": "N4 (Sơ trung cấp)",
+      "n3": "N3 (Trung cấp)",
+      "take_test": "Tôi không chắc, hãy kiểm tra trình độ!",
+      "test_result_title": "🎉 Kết quả Placement Test",
+      "test_result_desc": "Dựa trên kết quả test, chúng tôi đề xuất bạn bắt đầu với level {{level}}",
+      "recommended_from_test": "✨ Được đề xuất từ test"
     },
-    "auth": {
-        "email": "Email",
-        "password": "Mật khẩu",
-        "enter-your-email": "Nhập email",
-        "enter-your-password": "Nhập mật khẩu",
-        "log-in": "Đăng nhập",
-        "welcome-back": "Chào mừng trở lại!",
-        "forgot-your-password": "Quên mật khẩu?",
-        "dont-have-an-account": "Không có tài khoản?",
-        "sign-up": "Đăng ký",
-        "login-success": "Đăng nhập thành công",
-        "login-failed": "Đăng nhập thất bại",
-        "sign-in-with-google": "Đăng nhập với Google",
-        "already-have-an-account": "Đã có tài khoản?",
-        "create-account": "Tạo tài khoản",
-        "confirm-password": "Xác nhận mật khẩu",
-        "name": "Tên",
-        "enter-your-name": "Nhập tên",
-        "enter-code": "Nhập mã",
-        "we-sent-a-6-digit-code-to": "Chúng tôi đã gửi mã 6 chữ số đến",
-        "didnt-receive-a-code": "Không nhận được mã?",
-        "resend": "Gửi lại",
-        "verify": "Xác nhận",
-        "logged-in-successfully": "Đăng nhập thành công!",
-        "invalid-otp-please-try-again": "Mã OTP không hợp lệ. Vui lòng thử lại.",
-        "an-unexpected-error-occurred": "Đã xảy ra lỗi không mong muốn.",
-        "a-new-code-has-been-sent-to-your-email": "Một mã mới đã được gửi đến email của bạn.",
-        "complete-profile": "Hoàn thành hồ sơ",
-        "whats-your-name": "Tên của bạn là gì?",
-        "next": "Tiếp tục",
-        "reset-your-password": "Đặt lại mật khẩu",
-        "create-new-password": "Tạo mật khẩu mới",
-        "new-password-description": "Nhập mật khẩu mới.",
-        "new-password": "Mật khẩu mới",
-        "confirm-new-password": "Xác nhận mật khẩu mới",
-        "enter-new-password": "Nhập mật khẩu mới",
-        "enter-confirm-new-password": "Nhập xác nhận mật khẩu mới",
-        "save-password": "Lưu mật khẩu",
-        "select_level": {
-            "title": "Trình độ hiện tại của bạn là gì?",
-            "n5": "N5 (Sơ cấp)",
-            "n4": "N4 (Sơ trung cấp)",
-            "n3": "N3 (Trung cấp)",
-            "take_test": "Tôi không chắc, hãy kiểm tra trình độ!",
-            "test_result_title": "🎉 Kết quả Placement Test",
-            "test_result_desc": "Dựa trên kết quả test, chúng tôi đề xuất bạn bắt đầu với level {{level}}",
-            "recommended_from_test": "✨ Được đề xuất từ test"
-        },
-        "placement_test": {
-            "no_questions": "Không có câu hỏi nào.",
-            "recommended_title": "Trình độ đề xuất của bạn",
-            "recommended_desc": "Dựa trên câu trả lời, đề xuất: {{level}}",
-            "choose_starter": "Chọn Pokémon khởi đầu",
-            "progress_title": "Kiểm tra trình độ",
-            "progress": "Câu hỏi {{current}} trên {{total}}",
-            "speak_question": "Đọc câu hỏi",
-            "stop_speaking": "Dừng đọc",
-            "play_audio": "Phát audio",
-            "pause_audio": "Tạm dừng audio",
-            "audio_question_instruction": "Nghe audio và chọn đáp án đúng"
-        },
-        "choose_starter": {
-            "title": "Chọn Đồng hành của bạn!",
-            "confirm": "Xác nhận"
-        },
-        "mascots": {
-            "pikachu": "Hãy chọn level phù hợp với bạn!",
-            "eevee": "Mỗi level sẽ có thử thách khác nhau!",
-            "bulbasaur": "Bắt đầu từ N5 để học từ cơ bản!",
-            "charmander": "N3 sẽ là thử thách lớn nhất!",
-            "squirtle": "Chọn level và bắt đầu hành trình!",
-            "jigglypuff": "Âm nhạc sẽ giúp bạn tập trung!",
-            "meowth": "Đừng lo, chúng ta sẽ học từ từ!",
-            "psyduck": "Chọn level rồi cùng giải đố nhé!",
-            "snorlax": "Đừng vội, chọn level phù hợp nhất với bạn!",
-            "mew": "Cùng bay vào thế giới tiếng Nhật!",
-            "togepi": "Bước nhỏ hôm nay, thành công ngày mai!"
-        }
+    "placement_test": {
+      "no_questions": "Không có câu hỏi nào.",
+      "loading": "Đang tải câu hỏi...",
+      "fetch_error": "Đã xảy ra lỗi khi tải câu hỏi. Vui lòng thử lại.",
+      "recommended_title": "Trình độ đề xuất của bạn",
+      "recommended_desc": "Dựa trên câu trả lời, đề xuất: {{level}}",
+      "choose_starter": "Chọn Pokémon khởi đầu",
+      "progress_title": "Kiểm tra trình độ",
+      "progress": "Câu hỏi {{current}} trên {{total}}",
+      "speak_question": "Đọc câu hỏi",
+      "stop_speaking": "Dừng đọc",
+      "play_audio": "Phát audio",
+      "pause_audio": "Tạm dừng audio",
+      "audio_question_instruction": "Nghe audio và chọn đáp án đúng"
     },
-    "zod": {
-        "errors": {
-            "auth": {
-                "too_small": {
-                    "string": "Mật khẩu phải có ít nhất {{minimum}} ký tự"
-                },
-                "invalid_email": {
-                    "email": "Email không hợp lệ"
-                },
-                "invalid_password": {
-                    "password": "Mật khẩu không hợp lệ"
-                },
-                "invalid_otp": {
-                    "otp": "OTP không hợp lệ"
-                }
-            }
-        }
+    "choose_starter": {
+      "title": "Chọn Đồng hành của bạn!",
+      "confirm": "Xác nhận",
+      "loading": "Đang tải Pokemon khởi đầu...",
+      "fetch_error": "Không thể tải Pokemon khởi đầu. Vui lòng thử lại.",
+      "select_error": "Không thể chọn Pokemon khởi đầu. Vui lòng thử lại."
+    },
+    "congrats": {
+      "celebration": "Hoan hô!!",
+      "welcome": "Chào mừng",
+      "profile_created": "Hồ sơ của bạn đã được tạo thành công.",
+      "your_starter": "Pokemon khởi đầu của bạn",
+      "continue_to_home": "TIẾP TỤC ĐẾN TRANG CHỦ"
+    },
+    "mascots": {
+      "pikachu": "Hãy chọn level phù hợp với bạn!",
+      "eevee": "Mỗi level sẽ có thử thách khác nhau!",
+      "bulbasaur": "Bắt đầu từ N5 để học từ cơ bản!",
+      "charmander": "N3 sẽ là thử thách lớn nhất!",
+      "squirtle": "Chọn level và bắt đầu hành trình!",
+      "jigglypuff": "Âm nhạc sẽ giúp bạn tập trung!",
+      "meowth": "Đừng lo, chúng ta sẽ học từ từ!",
+      "psyduck": "Chọn level rồi cùng giải đố nhé!",
+      "snorlax": "Đừng vội, chọn level phù hợp nhất với bạn!",
+      "mew": "Cùng bay vào thế giới tiếng Nhật!",
+      "togepi": "Bước nhỏ hôm nay, thành công ngày mai!"
     }
+  },
+  "reading": {
+    "title": "Luyện Đọc",
+    "subtitle": "Cải thiện kỹ năng đọc tiếng Nhật với nhiều loại văn bản khác nhau",
+    "materials_title": "Tài liệu đọc",
+    "progress_title": "Tiến độ đọc",
+    "articles_read": "Bài đã đọc",
+    "words_learned": "Từ đã học",
+    "comprehension": "Hiểu biết",
+    "tips_title": "Mẹo đọc",
+    "tip_1": "Bắt đầu với văn bản đơn giản và tăng dần độ khó",
+    "tip_2": "Tra từ chưa biết nhưng hãy thử đoán nghĩa từ ngữ cảnh trước",
+    "tip_3": "Đọc to để cải thiện phát âm và nhịp điệu",
+    "tip_4": "Luyện đọc nhiều loại văn bản khác nhau (tin tức, truyện, v.v.)"
+  },
+  "listening": {
+    "title": "Luyện Nghe",
+    "subtitle": "Cải thiện kỹ năng nghe tiếng Nhật với các bài tập âm thanh",
+    "audio_exercises": "Bài tập âm thanh",
+    "progress_title": "Tiến độ nghe",
+    "exercises_done": "Bài tập hoàn thành",
+    "total_time": "Tổng thời gian",
+    "accuracy": "Độ chính xác",
+    "tips_title": "Mẹo nghe",
+    "tip_1": "Nghe nhiều lần - lần đầu để hiểu tổng quan, sau đó để hiểu chi tiết",
+    "tip_2": "Tập trung vào ngữ điệu và nhịp điệu",
+    "tip_3": "Sử dụng phụ đề ban đầu, sau đó thử không có phụ đề",
+    "tip_4": "Luyện tập với các giọng nói và tốc độ nói khác nhau",
+    "controls_title": "Điều khiển âm thanh",
+    "controls_hint": "Chạm vào bất kỳ bài tập nào ở trên để bắt đầu luyện nghe"
+  },
+  "speaking": {
+    "title": "Luyện Nói",
+    "subtitle": "Cải thiện kỹ năng nói tiếng Nhật với các bài tập tương tác",
+    "exercises_title": "Bài tập nói",
+    "recorder_title": "Ghi âm bài tập",
+    "recorder_description": "Chọn bài tập và bắt đầu ghi âm để luyện tập phát âm",
+    "default_exercise": "Bài tập phát âm",
+    "recording_complete": "Ghi âm hoàn thành!",
+    "recording_description": "Bạn có thể nghe lại bản ghi âm, ghi âm lại hoặc gửi lên server để phân tích",
+    "upload_to_server": "Gửi lên server",
+    "upload_success": "Thành công",
+    "upload_success_message": "Bản ghi âm đã được gửi lên server!",
+    "upload_error": "Lỗi",
+    "upload_error_message": "Không thể gửi bản ghi âm lên server.",
+    "progress_title": "Tiến độ nói",
+    "exercises_done": "Bài tập hoàn thành",
+    "practice_time": "Thời gian luyện tập",
+    "pronunciation": "Phát âm",
+    "tips_title": "Mẹo nói",
+    "tip_1": "Luyện nói to thường xuyên, kể cả khi một mình",
+    "tip_2": "Ghi âm và nghe lại để xác định những điểm cần cải thiện",
+    "tip_3": "Tập trung vào phát âm và ngữ điệu",
+    "tip_4": "Cố gắng suy nghĩ bằng tiếng Nhật thay vì dịch từ tiếng Anh",
+    "controls_title": "Điều khiển ghi âm",
+    "controls_hint": "Chạm vào bất kỳ bài tập nào ở trên để bắt đầu luyện nói"
+  },
+  "battle": {
+    "title": "Đấu Trường",
+    "subtitle": "Thách thức người chơi khác trong các trận chiến ngôn ngữ tiếng Nhật",
+    "available_battles": "Trận chiến có sẵn",
+    "statistics_title": "Thống kê trận chiến",
+    "battles_won": "Trận thắng",
+    "battles_lost": "Trận thua",
+    "win_rate": "Tỷ lệ thắng",
+    "top_players": "Người chơi hàng đầu",
+    "tips_title": "Mẹo chiến đấu",
+    "tip_1": "Luyện tập thường xuyên để cải thiện thời gian phản ứng",
+    "tip_2": "Tập trung vào độ chính xác hơn là tốc độ lúc đầu",
+    "tip_3": "Nghiên cứu lỗi sai để tránh lặp lại",
+    "tip_4": "Tham gia các trận chiến phù hợp với trình độ hiện tại",
+    "season_info": {
+      "ends_in": "Kết thúc sau",
+      "days_label": "ngày"
+    },
+    "rank_modal": {
+      "title": "Bậc rank & mốc điểm",
+      "description": "Mốc ELO cần đạt để thăng hạng. Điểm ELO hiện tại của bạn: <highlight>{{eloScore}}</highlight>.",
+      "current_badge": "Hạng hiện tại",
+      "empty_state": "Thông tin mốc điểm đang được cập nhật.",
+      "range_between": "{{min}} - {{max}} ELO",
+      "range_min": "≥ {{min}} ELO"
+    },
+    "stats": {
+      "total_wins": "Trận thắng",
+      "win_rate": "Tỷ lệ thắng",
+      "win_streak": "Chuỗi thắng"
+    },
+    "lobby": {
+      "title": "⚡ SẢNH ĐẤU",
+      "history_button": "Lịch sử",
+      "alerts": {
+        "top_rewards_title": "Phần thưởng TOP",
+        "top_rewards_message": "Xem phần thưởng theo thứ hạng mùa giải (WIP).",
+        "rank_info_title": "Hệ thống Rank",
+        "rank_info_message": "Thông tin về bậc rank, thăng hạng và bảo lưu điểm (WIP).",
+        "queue_error_message": "Không thể tìm trận đấu.",
+        "match_cancelled_title": "Thông báo",
+        "match_cancelled_default": "Trận đấu đã bị hủy."
+      },
+      "queue_status": {
+        "searching": "Đang tìm...",
+        "waiting": "Đang chờ"
+      },
+      "buttons": {
+        "find_match": "TÌM TRẬN NGAY",
+        "queueing": "⏳ ĐANG TÌM TRẬN..."
+      },
+      "queue_messages": [
+        "Đang tìm đối thủ phù hợp...",
+        "Cân bằng MMR...",
+        "Xếp phòng..."
+      ],
+      "sections": {
+        "leaderboard_title": "Bảng xếp hạng",
+        "leaderboard_subtitle": "Top người chơi theo mùa",
+        "rewards_title": "Phần thưởng",
+        "rewards_subtitle": "Skin, huy hiệu, kim cương",
+        "rank_info_title": "Thông tin rank",
+        "rank_info_subtitle": "Cơ chế thăng hạng, bảo lưu điểm"
+      },
+      "history": {
+        "title": "Lịch sử thi đấu",
+        "empty": "Không có lịch sử thi đấu",
+        "stats": {
+          "wins": "Thắng",
+          "losses": "Thua",
+          "win_rate": "Tỉ lệ thắng"
+        },
+        "filters": {
+          "all": "Tất cả ({{count}})",
+          "wins": "Thắng ({{count}})",
+          "losses": "Thua ({{count}})"
+        },
+        "list": {
+          "win_badge": "THẮNG",
+          "loss_badge": "THUA",
+          "score": "Tỉ số: {{score}}"
+        },
+        "detail": {
+          "win_title": "🎉 CHIẾN THẮNG",
+          "loss_title": "💔 THẤT BẠI",
+          "opponent_label": "Đối thủ",
+          "score_label": "Tỉ số",
+          "mmr_change_label": "Thay đổi MMR",
+          "mmr_current_label": "MMR hiện tại",
+          "accuracy_label": "Độ chính xác",
+          "duration_label": "Thời gian"
+        }
+      }
+    },
+    "rewards": {
+      "title": "Phần thưởng mùa giải",
+      "subtitle": "Phần thưởng cho {{season}}",
+      "loading": "Đang tải phần thưởng...",
+      "empty": "Không có phần thưởng cho mùa giải này.",
+      "error": "Không thể tải phần thưởng. Vui lòng thử lại.",
+      "no_rewards": "Không có phần thưởng cho hạng này",
+      "empty_for_league": "Không có phần thưởng cho hạng này",
+      "no_rewards_for_rank": "Không có phần thưởng cho mốc này",
+      "rank_order": "Thứ hạng: {{order}}",
+      "rank_rewards_count": "{{count}} mốc",
+      "ranks": {
+        "top1": "Hạng 1",
+        "top2-10": "Hạng 2-10",
+        "top11-50": "Hạng 11-50",
+        "top51-100": "Hạng 51-100",
+        "default": "Thứ hạng {{order}}"
+      },
+      "types": {
+        "pokemon": "Pokémon",
+        "gem": "Kim cương",
+        "coin": "Xu",
+        "item": "Vật phẩm",
+        "skin": "Skin",
+        "badge": "Huy hiệu",
+        "daily_request": "Nhiệm vụ hàng ngày",
+        "event": "Sự kiện",
+        "poke_coins": "Xu"
+      },
+      "targets": {
+        "exp": "Kinh nghiệm",
+        "point": "Điểm",
+        "level": "Cấp độ"
+      }
+    },
+    "season_ended": {
+      "title": "Mùa giải đã kết thúc",
+      "ended_message": "Mùa giải đã kết thúc",
+      "elo": "ELO",
+      "continue": "Tiếp tục",
+      "rewards_title": "Phần thưởng mùa giải",
+      "claiming": "Đang nhận...",
+      "claim": "Nhận thưởng"
+    },
+    "new_season": {
+      "title": "Mùa giải mới",
+      "elo": "ELO",
+      "message": "Chúc bạn may mắn trong mùa giải mới!"
+    },
+    "first_time": {
+      "title": "Chào mừng!",
+      "message": "Chào mừng bạn đến với hệ thống thi đấu! Hãy tham gia mùa giải đầu tiên của bạn.",
+      "joining": "Đang tham gia...",
+      "join": "Tham gia ngay"
+    },
+    "arena": {
+      "title": "ĐẤU TRƯỜNG",
+      "round": "ROUND {{round}}/3",
+      "waiting_opponent": "Đợi đối thủ...",
+      "opponent_label": "Đối thủ",
+      "you_label": "Bạn",
+      "vs": "VS",
+      "type_advantage_player": "Bạn có lợi thế hệ (Fog: Đối thủ nhìn mờ!)",
+      "type_advantage_opponent": "Đối thủ có lợi thế (Confusion: Bạn bị nhiễu loạn!)",
+      "waiting_round_start": "Đang chờ round bắt đầu...",
+      "question_label": "Câu hỏi",
+      "question_loading": "Câu hỏi đang được tải...",
+      "points_this_turn": "Điểm lượt này",
+      "points_description": "Bắt đầu 100 điểm, tối thiểu 50 điểm theo thời gian trả lời.",
+      "confirm_button": "XÁC NHẬN",
+      "waiting_opponent_complete": "Đang chờ đối thủ hoàn thành...",
+      "loading_match_info": "Đang tải thông tin trận đấu...",
+      "turn": "Lượt {{turn}}",
+      "debuff": {
+        "discomfort_vision": "Tầm nhìn bị mờ",
+        "add_question": "Thêm câu hỏi",
+        "decrease_point": "Giảm điểm",
+        "title": "Debuff",
+        "affected_by": "Bạn bị ảnh hưởng bởi bùa bất lợi:",
+        "add_question_description": "+{{value}} câu hỏi",
+        "decrease_point_description": "-{{value}} điểm mỗi câu",
+        "discomfort_vision_description": "Tầm nhìn bị mờ",
+        "next_turn_warning": "Turn sau bạn sẽ bị ảnh hưởng bởi bùa bất lợi: {{debuff}}"
+      }
+    },
+    "result": {
+      "title": "KẾT QUẢ TRẬN ĐẤU",
+      "match_label": "Match #{{matchId}}",
+      "loading_title": "Đang tải kết quả...",
+      "loading_subtitle": "Vui lòng chờ trong giây lát",
+      "back_to_home": "Về trang chính",
+      "total_points": "Tổng điểm",
+      "points_diff": "+{{points}} điểm",
+      "round_details": "Chi tiết từng round",
+      "round_1": "Round 1",
+      "round_2": "Round 2",
+      "round_3": "Round 3",
+      "round_default": "Round",
+      "end_battle": "Kết thúc trận đấu",
+      "summary": "Tổng kết",
+      "you": "Bạn",
+      "opponent": "Đối thủ"
+    }
+  },
+  "navigation": {
+    "title": "Điều hướng chính",
+    "tour_start_learning": "Bắt đầu học",
+    "tour_description": "Bắt đầu hành trình của bạn tại đây!",
+    "learn": "Học",
+    "reading": "Đọc",
+    "listening": "Nghe",
+    "battle": "Chiến đấu",
+    "user_info": "Thông tin người dùng",
+    "other": "Khác"
+  },
+  "tour": {
+    "header_title": "Hồ sơ của bạn",
+    "header_description": "Nhấn vào đây để xem hồ sơ, cấp độ và tiến độ của bạn",
+    "pokemon_title": "Pokemon đồng hành",
+    "pokemon_description": "Đây là Pokemon đồng hành của bạn! Bạn có thể kéo thả nó quanh màn hình đến vị trí bất kỳ",
+    "store_title": "Cửa hàng",
+    "store_description": "Ghé thăm cửa hàng để mua vật phẩm, Pokemon và phần thưởng",
+    "quest_title": "Nhiệm vụ hàng ngày",
+    "quest_description": "Hoàn thành nhiệm vụ hàng ngày để nhận phần thưởng và kinh nghiệm",
+    "gacha_title": "Gacha",
+    "gacha_description": "Thử vận may với gacha để có được Pokemon và vật phẩm mới",
+    "navigation_title": "Nút Học",
+    "navigation_description": "Nhấn nút Học để bắt đầu hành trình học tiếng Nhật của bạn"
+  },
+  "lessons": {
+    "title": "Bài học",
+    "progress_title": "Tiến độ học tập",
+    "overall_progress": "Tổng tiến độ",
+    "level_progress": "Tiến độ theo cấp độ",
+    "lessons_completed": "Bài học hoàn thành",
+    "total_lessons": "Tổng bài học",
+    "lessons_list": "Danh sách bài học",
+    "lessons_count": "bài",
+    "load_more": "Xem thêm",
+    "end_of_results": "Đây là toàn bộ kết quả",
+    "no_lessons": "Chưa có bài học nào",
+    "no_lessons_description": "Bạn chưa có bài học nào trong danh mục này. Vui lòng liên hệ admin để được thêm bài học.",
+    "error_loading_lessons": "Lỗi tải danh sách bài học",
+    "error_loading_lessons_description": "Không thể tải danh sách bài học. Vui lòng kiểm tra kết nối mạng và thử lại.",
+    "select_level": "Chọn cấp độ",
+    "all_levels": "Tất cả",
+    "categories": "Danh mục bài học",
+    "categories_count": "danh mục",
+    "contact_admin": "Thử chọn cấp độ khác hoặc liên hệ admin để thêm nội dung",
+    "lesson_status": {
+      "completed": "Hoàn thành",
+      "in_progress": "Đang học",
+      "not_started": "Chưa bắt đầu"
+    },
+    "lesson_types": {
+      "vocabulary": "Từ vựng",
+      "grammar": "Ngữ pháp",
+      "reading": "Đọc hiểu",
+      "listening": "Nghe hiểu",
+      "kanji": "Kanji"
+    },
+    "difficulty": {
+      "beginner": "Sơ cấp",
+      "intermediate": "Trung cấp",
+      "advanced": "Nâng cao"
+    },
+    "level_names": {
+      "N5": "Sơ cấp",
+      "N4": "Sơ trung cấp",
+      "N3": "Trung cấp"
+    },
+    "skill_categories": {
+      "title": "Danh mục kỹ năng",
+      "reading": "Đọc hiểu",
+      "speaking": "Nói",
+      "listening": "Nghe hiểu"
+    },
+    "level_categories": {
+      "title": "Cấp độ học tập",
+      "n5_basic": "N5 - Cơ bản",
+      "n4_intermediate": "N4 - Trung cấp",
+      "n3_advanced": "N3 - Nâng cao"
+    },
+    "view_all_categories": "Xem tất cả danh mục",
+    "lesson_info": {
+      "title": "Thông tin bài học",
+      "lesson_type": "Loại bài học",
+      "level": "Cấp độ",
+      "difficulty": "Độ khó",
+      "estimated_time": "Thời gian ước tính",
+      "minutes": "phút",
+      "reward": "Phần thưởng",
+      "status": "Trạng thái"
+    },
+    "hide_meaning": "Ẩn nghĩa",
+    "press_to_see_meaning": "Nhấn để xem nghĩa",
+    "no_meaning": "Chưa có nghĩa",
+    "no_description": "Không có mô tả",
+    "stroke": "nét",
+    "do_vocab_exercise": "Luyện tập từ vựng",
+    "do_grammar_exercise": "Luyện tập ngữ pháp",
+    "do_kanji_exercise": "Luyện tập kanji",
+    "usage": "Ví dụ"
+  },
+  "lesson_detail": {
+    "about_title": "Về bài học này",
+    "stats": {
+      "total_content": "Tổng nội dung",
+      "sections": "Phần học"
+    },
+    "content_list": {
+      "title": "Danh sách nội dung",
+      "subtitle": "Chọn phần muốn học"
+    },
+    "cards": {
+      "start_learning": "Bắt đầu học",
+      "vocabulary": {
+        "title": "Từ vựng",
+        "subtitle": "Học từ mới tiếng Nhật"
+      },
+      "grammar": {
+        "title": "Ngữ pháp",
+        "subtitle": "Cấu trúc câu và mẫu câu"
+      },
+      "kanji": {
+        "title": "Kanji",
+        "subtitle": "Chữ Hán trong tiếng Nhật"
+      }
+    },
+    "test": {
+      "button": "Bắt đầu kiểm tra",
+      "locked_hint": "Hoàn thành tất cả các phần học để bắt đầu kiểm tra"
+    },
+    "status": {
+      "completed": "Hoàn thành",
+      "failed": "Chưa đạt",
+      "in_progress": "Đang làm",
+      "abandoned": "Đã bỏ",
+      "pending": "Đang chờ",
+      "unknown": "Chưa có dữ liệu"
+    }
+  },
+  "content_list": {
+    "activity": {
+      "learn": {
+        "vocabulary": "Học từ mới",
+        "kanji": "Học Kanji",
+        "grammar": "Học ngữ pháp"
+      },
+      "match": "Trò chơi ghép thẻ",
+      "scramble": {
+        "kanji": "Xáo trộn Kanji",
+        "vocabulary": "Xáo trộn từ vựng"
+      },
+      "fill_blank": {
+        "kanji": "Điền vào chỗ trống - Kanji",
+        "vocabulary": "Điền vào chỗ trống - Từ vựng"
+      },
+      "word_chain": {
+        "kanji": "Nối từ - Kanji",
+        "vocabulary": "Nối từ - Từ vựng"
+      },
+      "test": {
+        "vocabulary": "Kiểm tra từ mới",
+        "kanji": "Kiểm tra Kanji",
+        "grammar": "Kiểm tra ngữ pháp"
+      },
+      "reflex": "Luyện phản xạ",
+      "default_in_lesson": "{{title}} trong bài"
+    },
+    "banner": {
+      "vocabulary": "Từ vựng trong bài",
+      "kanji": "Kanji trong bài",
+      "grammar": "Ngữ pháp trong bài"
+    },
+    "empty_states": {
+      "vocabulary": "Không có từ vựng nào",
+      "kanji": "Không có Kanji nào",
+      "grammar": "Không có ngữ pháp nào"
+    },
+    "kanji_modal": {
+      "title": "Giải thích Kanji",
+      "on_reading": "Âm Onyomi",
+      "kun_reading": "Âm Kunyomi",
+      "stroke_count": "Số nét",
+      "stroke_value": "{{count}} nét",
+      "details_heading": "📖 Giải thích chi tiết"
+    },
+    "flashcard": {
+      "progress": {
+        "deck": "{{reviewed}}/{{total}} thẻ trong bộ flashcard",
+        "vocabulary": "{{reviewed}}/{{total}} thẻ từ vựng đã xem",
+        "grammar": "{{reviewed}}/{{total}} thẻ ngữ pháp đã xem",
+        "kanji": "{{reviewed}}/{{total}} thẻ Kanji đã xem"
+      },
+      "no_explanation": "Không có phần giải thích",
+      "on_label": "Âm On",
+      "kun_label": "Âm Kun",
+      "usage_label": "Cách dùng:",
+      "no_details": "Chưa có mô tả chi tiết",
+      "empty_state": "Không có dữ liệu để hiển thị",
+      "complete_title": "Hoàn thành!",
+      "complete_subtitle": "Bạn có thể xem lại bằng cách nhấn biểu tượng làm mới.",
+      "unknown_label": "Chưa thuộc",
+      "known_label": "Đã thuộc",
+      "options": {
+        "title": "Tùy chỉnh hiển thị thẻ",
+        "offset_title": "Hiển thị hở",
+        "offset_description": "Các thẻ phía sau lệch nhẹ để thấy còn bao nhiêu thẻ.",
+        "overlap_title": "Chồng lên nhau",
+        "overlap_description": "Các thẻ phía sau trùng nhau để tập trung vào thẻ hiện tại.",
+        "close": "Đóng"
+      }
+    },
+    "scramble": {
+      "no_content": "Không có nội dung",
+      "score": "Điểm",
+      "lives": "Mạng",
+      "hint": "Gợi ý",
+      "meaning": "Nghĩa",
+      "hint_text": "Gợi ý",
+      "your_answer": "Câu trả lời của bạn",
+      "select_letters": "Chọn chữ cái",
+      "game_over": "Game Over!",
+      "complete": "Chúc mừng!",
+      "game_over_message": "Bạn đã đạt {{score}} điểm!",
+      "complete_message": "Bạn đã hoàn thành tất cả từ với {{score}} điểm!",
+      "final_score": "Điểm cuối: {{score}}",
+      "play_again": "Chơi lại"
+    },
+    "fill_blank": {
+      "title": "Điền vào chỗ trống",
+      "no_content": "Không có nội dung",
+      "score": "Điểm",
+      "lives": "Mạng",
+      "hint": "Gợi ý",
+      "meaning": "Nghĩa",
+      "hint_text": "Gợi ý",
+      "complete_sentence": "Hoàn thành câu",
+      "select_answer": "Chọn câu trả lời",
+      "submit": "Nộp bài",
+      "game_over": "Game Over!",
+      "complete": "Chúc mừng!",
+      "game_over_message": "Bạn đã đạt {{score}} điểm!",
+      "complete_message": "Bạn đã hoàn thành tất cả câu hỏi với {{score}} điểm!",
+      "final_score": "Điểm cuối: {{score}}",
+      "play_again": "Chơi lại"
+    },
+    "word_chain": {
+      "title": "Nối từ (Shiritori)",
+      "no_content": "Không có nội dung",
+      "score": "Điểm",
+      "lives": "Mạng",
+      "time": "Thời gian",
+      "chain_length": "Chuỗi: {{length}} từ",
+      "current_word": "Từ hiện tại",
+      "next_starts_with": "Từ tiếp theo phải bắt đầu bằng",
+      "chain": "Chuỗi từ",
+      "enter_word": "Nhập từ bắt đầu bằng",
+      "input_placeholder": "Gõ từ...",
+      "submit": "Nộp bài",
+      "game_over": "Game Over!",
+      "complete": "Chúc mừng!",
+      "game_over_message": "Bạn đã đạt {{score}} điểm với chuỗi {{chainLength}} từ!",
+      "complete_message": "Bạn đã tạo chuỗi {{chainLength}} từ với {{score}} điểm!",
+      "final_score": "Điểm cuối: {{score}}",
+      "play_again": "Chơi lại"
+    }
+  },
+  "quiz_screen": {
+    "title": "Làm bài kiểm tra",
+    "loading": "Đang tải...",
+    "alerts": {
+      "load_quiz_failed": "Không thể tải quiz. Vui lòng thử lại.",
+      "load_questions_failed": "Không thể tải câu hỏi. Vui lòng thử lại.",
+      "missing_attempt_retry": "Không tìm thấy bài tập. Vui lòng thử lại.",
+      "missing_attempt": "Không tìm thấy bài tập.",
+      "check_status_failed": "Không thể kiểm tra trạng thái bài làm.",
+      "submit_missing_result": "Không nhận được dữ liệu kết quả.",
+      "submit_failed": "Không thể nộp bài.",
+      "save_failed": "Không thể lưu bài tập. Vui lòng thử lại.",
+      "continue_failed": "Không thể tiếp tục bài tập. Vui lòng thử lại.",
+      "new_attempt_failed": "Không thể tạo bài tập mới.",
+      "new_attempt_retry_failed": "Không thể tạo bài tập mới. Vui lòng thử lại."
+    },
+    "modals": {
+      "exit": {
+        "title": "Thoát bài làm?",
+        "message": "Bạn có muốn lưu lại phần câu trả lời đã làm không?",
+        "discard": "Không lưu",
+        "save": "Lưu và thoát",
+        "saving": "Đang lưu..."
+      },
+      "resume": {
+        "title": "Tiếp tục bài làm?",
+        "message": "Bạn có bài làm đã lưu trước đó. Bạn muốn tiếp tục bài làm cũ hay làm lại bài mới?",
+        "new_attempt": "Làm lại bài mới",
+        "creating": "Đang tạo...",
+        "continue": "Tiếp tục bài cũ",
+        "loading": "Đang tải..."
+      }
+    }
+  },
+  "quiz_completion": {
+    "title": "Thông tin bài làm",
+    "labels": {
+      "total_questions": "Tổng số câu hỏi:",
+      "answered": "Đã trả lời:",
+      "unanswered": "Chưa trả lời:",
+      "unanswered_list": "Câu hỏi chưa trả lời:",
+      "question_number": "Câu {{number}}",
+      "status": "Trạng thái:"
+    },
+    "status": {
+      "completed": "Hoàn thành",
+      "in_progress": "Đang làm",
+      "failed": "Không đạt",
+      "not_started": "Chưa bắt đầu"
+    },
+    "buttons": {
+      "continue": "Làm tiếp",
+      "submit": "Nộp bài"
+    }
+  },
+  "quiz_progress": {
+    "label": "Hoàn thành {{current}}/{{total}}",
+    "expand": "Mở rộng",
+    "collapse": "Thu gọn"
+  },
+  "review_stats": {
+    "correct_count": "Số câu đúng:",
+    "unanswered_count": "Số câu không làm:",
+    "incorrect_count": "Số câu sai:",
+    "status_label": "Trạng thái:",
+    "status_failed": "Không đạt",
+    "status_passed": "Đạt",
+    "expand": "Mở rộng",
+    "collapse": "Thu gọn"
+  },
+  "home": {
+    "welcome_back": "Chào mừng trở lại, {{username}}! 👋",
+    "ready_to_continue": "Sẵn sàng tiếp tục hành trình học tiếng Nhật của bạn?",
+    "test_tour_guide": "🧪 Test Tour Guide",
+    "clear_overlay_position": "🗑️ Clear Overlay Position",
+    "test_daily_login_modal": "🎉 Test Daily Login Modal",
+    "quick_start": "🚀 Bắt đầu nhanh",
+    "start_new_lesson": "Bắt đầu bài học mới",
+    "learning_path": "📚 Lộ trình học tập của bạn",
+    "current_level": "Cấp độ hiện tại: {{level}}",
+    "next_goal": "Mục tiêu tiếp theo: {{level}}",
+    "basic_japanese": "Tiếng Nhật cơ bản - Hiragana & Katakana",
+    "intermediate_japanese": "Tiếng Nhật trung cấp - Kanji & Ngữ pháp",
+    "partner_pokemon": "Pokémon đồng hành của bạn",
+    "take_care_description": "Chăm sóc Pokémon đồng hành và cùng nhau tiến hóa!",
+    "take_care_me": "Hãy chăm sóc tôi nhé!",
+    "partner_pokemon_short": "Pokémon đồng hành",
+    "stats_completed": "Hoàn thành",
+    "stats_in_progress": "Đang học",
+    "stats_streak": "Chuỗi ngày",
+    "stats_progress": "Tiến độ",
+    "weekly_progress": "Tiến độ tuần này",
+    "recent_activities": "Hoạt động gần đây",
+    "see_all": "Xem tất cả",
+    "suggestions": "Gợi ý cho bạn",
+    "suggestion_continue": "Tiếp tục bài học",
+    "suggestion_continue_desc": "Quay lại bài học bạn đang học dở",
+    "suggestion_new_lesson": "Bài học mới",
+    "suggestion_new_lesson_desc": "Khám phá các bài học mới phù hợp với trình độ của bạn",
+    "suggestion_practice": "Luyện tập",
+    "suggestion_practice_desc": "Cải thiện kỹ năng nghe và phát âm",
+    "recent_exercises": "Bài tập gần đây",
+    "exercise_types": {
+      "vocabulary": "Từ vựng",
+      "kanji": "Kanji",
+      "grammar": "Ngữ pháp",
+      "exercise": "Bài tập"
+    },
+    "exercise_status": {
+      "completed": "Hoàn thành",
+      "failed": "Chưa đạt",
+      "skipped": "Đã bỏ qua"
+    },
+    "srs_types": {
+      "vocabulary": "Từ vựng",
+      "vocabulary_lower": "từ vựng",
+      "kanji": "Kanji",
+      "kanji_lower": "kanji",
+      "grammar": "Ngữ pháp",
+      "grammar_lower": "ngữ pháp"
+    },
+    "srs_insights": {
+      "review_now": "Ôn tập ngay",
+      "vocabulary_title": "Từ mới",
+      "kanji_title": "Kanji",
+      "grammar_title": "Ngữ pháp",
+      "grammar_level": "Trình độ {{level}}",
+      "action": "Ôn ngay"
+    },
+    "ai": {
+      "assistant_badge": "Trợ lý AI",
+      "items_to_review": "{{count}} mục cần ôn",
+      "locked_title": "Nâng cấp để mở khóa",
+      "unlocked_title": "Cá nhân hoá cho hôm nay",
+      "locked_subtitle": "Mua gói AI Coach để nhận gợi ý học tập riêng cho bạn.",
+      "focus_message": "Bạn đang cần củng cố {{topic}} nhiều nhất.",
+      "no_insight_message": "Hệ thống sẽ theo dõi tiến trình để gửi thêm gợi ý khi có.",
+      "highlight_count": "{{count}} mục {{topic}}",
+      "highlight_hint": "Tập trung trong 5 phút để nhớ lâu hơn",
+      "locked_highlight_title": "Quyền lợi dành riêng cho hội viên",
+      "locked_highlight_subtitle": "Mở khoá để xem roadmap học và nhắc nhở thông minh",
+      "conversation": {
+        "title": "Hội thoại",
+        "connecting": "Đang kết nối...",
+        "loading": "Đang tải...",
+        "connection_error": "Không thể kết nối. Vui lòng thử lại.",
+        "empty_message": "Bắt đầu ghi âm để luyện hội thoại nhé!",
+        "locked_title": "Tính năng bị khóa",
+        "locked_description": "Bạn cần đăng ký gói Premium để sử dụng tính năng AI Conversation",
+        "subscribe_button": "Đăng ký ngay",
+        "hero_title": "Luyện kaiwa như đang ở Nhật",
+        "hero_subtitle": "AI phản hồi tức thì, sửa phát âm và lưu toàn bộ hội thoại.",
+        "hero_badge": "Ultra Kaiwa",
+        "hero_stats_response_value": "24/7",
+        "hero_stats_response_label": "Phản hồi ngay lập tức",
+        "hero_stats_speed_value": "x3",
+        "hero_stats_speed_label": "Tăng tốc tiến bộ",
+        "hero_stats_consistency_value": "10'",
+        "hero_stats_consistency_label": "Thói quen mỗi ngày",
+        "feature_feedback": "AI chấm phát âm & góp ý ngay",
+        "feature_library": "Tình huống hội thoại thực tế",
+        "feature_rewards": "Tích lũy XP và xu nhanh hơn",
+        "social_proof": "12.000+ học viên đã nâng cấp Ultra Kaiwa",
+        "guarantee_title": "Huỷ bất cứ lúc nào",
+        "guarantee_subtitle": "Không phù hợp? Bạn dừng chỉ với 1 chạm.",
+        "cta_secondary": "Xem toàn bộ quyền lợi",
+        "processing_speech_to_text": "Đang nhận diện giọng nói...",
+        "processing_ai": "Đang xử lý với AI...",
+        "processing_tts": "Đang tạo giọng nói...",
+        "processing_default": "Đang xử lý...",
+        "no_audio_detected": "Không phát hiện âm thanh. Thử lại nhé.",
+        "sending_audio": "Đang gửi audio...",
+        "server_connection_error": "Không thể kết nối tới máy chủ.",
+        "audio_send_error": "Có lỗi khi gửi audio.",
+        "connecting_to_ai": "Đang kết nối với AI..."
+      }
+    },
+    "insight_locked": {
+      "badge": "Tính năng cao cấp",
+      "title": "Mở khóa trợ lý cá nhân hóa",
+      "description": "Tự động phân tích sai sót, đề xuất flashcard cần ôn và nhắc bạn luyện tập mỗi ngày.",
+      "button": "Mua gói ngay"
+    },
+    "insight_empty": {
+      "title": "Mọi thứ đang rất tốt!",
+      "description": "Khi bạn luyện tập thêm, trợ lý AI sẽ dựa vào lịch sử để đề xuất các nội dung cần ưu tiên."
+    },
+    "recent_empty": {
+      "title": "Chưa có bài tập gần đây",
+      "description": "Hoàn thành một bài học hoặc luyện tập để xem lịch sử của bạn tại đây."
+    }
+  },
+  "quiz": {
+    "question_types": {
+      "single_choice": "Chọn 1 đáp án đúng",
+      "multiple_choice": "Chọn tất cả đáp án đúng",
+      "text_input": "Nhập câu trả lời",
+      "audio": "Nghe và chọn đáp án",
+      "image": "Quan sát hình ảnh và chọn đáp án"
+    },
+    "audio_player": {
+      "play_button": "▶️",
+      "press_to_play": "Nhấn để phát âm thanh"
+    },
+    "image_placeholder": "🖼️ Hình ảnh câu hỏi",
+    "explanation_label": "Giải thích:",
+    "points_label": "điểm"
+  },
+  "test_screen": {
+    "loading": "Đang tải...",
+    "config": {
+      "reading_test": {
+        "title": "Bài đọc",
+        "exit_title": "Thoát bài đọc?",
+        "exit_message": "Bạn có muốn quay lại danh sách bài đọc?"
+      },
+      "listening_test": {
+        "title": "Bài nghe",
+        "exit_title": "Thoát bài nghe?",
+        "exit_message": "Bạn có muốn quay lại danh sách bài nghe?"
+      },
+      "lesson_test": {
+        "title": "Kiểm tra bài học",
+        "exit_title": "Thoát bài kiểm tra?",
+        "exit_message": "Bạn có muốn quay lại bài học?"
+      },
+      "default": {
+        "title": "Bài test",
+        "exit_title": "Thoát bài test?",
+        "exit_message": "Bạn có muốn quay lại?"
+      }
+    }
+  },
+  "daily_login": {
+    "title": "Điểm danh hàng ngày",
+    "subtitle": "Duy trì thói quen tốt mỗi ngày",
+    "consecutive_days": "ngày liên tiếp",
+    "motivation": {
+      "start_streak": "Bắt đầu chuỗi điểm danh của bạn!",
+      "keep_going": "Tuyệt vời! Hãy tiếp tục!",
+      "excellent": "Xuất sắc! Bạn đang làm rất tốt!",
+      "legendary": "Đỉnh cao! Bạn là huyền thoại!"
+    },
+    "check_in_button": "Điểm danh ngay 🎯",
+    "already_checked": "✓ Đã điểm danh hôm nay",
+    "close": "Đóng",
+    "day_names": {
+      "sun": "CN",
+      "mon": "T2",
+      "tue": "T3",
+      "wed": "T4",
+      "thu": "T5",
+      "fri": "T6",
+      "sat": "T7"
+    }
+  },
+  "welcome_modal": {
+    "title": "Chào mừng, {{username}}!",
+    "message": "{{pokemonName}} sẵn sàng đồng hành cùng bạn trong hành trình này!",
+    "lets_begin": "Bắt đầu thôi! 🚀"
+  },
+  "tabs": {
+    "home": "Trang chủ",
+    "learn": "Học",
+    "abilities": "Năng lực",
+    "abilities_subtitle": "Luyện tập và nâng cao kỹ năng tiếng Nhật của bạn",
+    "reading": "Đọc",
+    "listening": "Nghe",
+    "speaking": "Nói",
+    "battle": "Chiến đấu",
+    "quiz_demo": "Demo Quiz",
+    "ai_speaking": "AI"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "logout": "Đăng xuất",
+    "logout_title": "Đăng xuất",
+    "logout_message": "Bạn có chắc chắn muốn đăng xuất không?",
+    "cancel": "Hủy",
+    "language": "Ngôn ngữ",
+    "language_subtitle": "Chọn ngôn ngữ ưa thích của bạn"
+  },
+  "profile": {
+    "title": "Hồ sơ",
+    "joined": "Tham gia",
+    "points": "Điểm",
+    "streak": "Streak",
+    "league": "Giải đấu",
+    "collection": "Bộ sưu tập",
+    "collection_description": "Xem toàn bộ Pokédex của bạn",
+    "account_details": "Chi tiết tài khoản",
+    "account_details_description": "Xem và cập nhật thông tin cá nhân của bạn",
+    "manage_account": "Quản lý thông tin",
+    "edit_now": "Chỉnh sửa ngay",
+    "achievements": "Thành tích",
+    "achievements_earned": "huy hiệu đã đạt được",
+    "view_all": "Xem tất cả",
+    "level_beginner": "Sơ cấp N5",
+    "league_silver": "Bạc",
+    "achievement_perfect_week": "Tuần Hoàn Hảo",
+    "achievement_scholar": "Học Giả",
+    "achievement_fire": "Lửa Nhiệt Huyết",
+    "achievement_wise": "Thông Thái",
+    "achievement_diligent": "Chăm Chỉ",
+    "your_progress": "Tiến độ của bạn",
+    "progress_description": "Đây là tiến độ của bạn. Hoàn thành các bài học để lên cấp!",
+    "xp": "Điểm",
+    "level": "Cấp độ",
+    "level_small": "Cấp",
+    "current_xp": "Điểm hiện tại",
+    "next_level": "Cấp tiếp theo",
+    "experience_progress": "Tiến độ kinh nghiệm",
+    "to": "đến"
+  },
+  "account_details": {
+    "title": "Chi tiết tài khoản",
+    "subtitle": "Giữ thông tin liên hệ luôn chính xác",
+    "hero_hint": "Xem và quản lý toàn bộ dữ liệu cá nhân của bạn",
+    "member_since": "Thành viên từ {{date}}",
+    "overview_title": "Tổng quan tài khoản",
+    "overview_subtitle": "Các thông tin này chỉ mình bạn thấy",
+    "email": "Email",
+    "rank": "Hạng giải đấu",
+    "level": "Cấp độ",
+    "joined": "Ngày tham gia",
+    "points": "Điểm",
+    "pokemon_owned": "Pokémon đã sở hữu",
+    "stats_title": "Thông tin nổi bật",
+    "stats_subtitle": "Tóm tắt hành trình của bạn",
+    "form_title": "Thông tin cá nhân",
+    "form_subtitle": "Chỉ mình bạn mới thấy phần này",
+    "name": "Họ và tên",
+    "name_placeholder": "Nhập họ và tên",
+    "phone": "Số điện thoại",
+    "phone_placeholder": "Nhập số điện thoại",
+    "avatar": "Avatar URL",
+    "avatar_placeholder": "https://example.com/avatar.png",
+    "save": "Lưu thay đổi",
+    "not_available": "—",
+    "update_success": "Cập nhật hồ sơ thành công",
+    "update_error": "Không thể cập nhật hồ sơ",
+    "nothing_to_update": "Bạn chưa thay đổi thông tin nào"
+  },
+  "ownership": {
+    "owned": "Đã sở hữu",
+    "not_owned": "Chưa sở hữu"
+  },
+  "pokemon_detail": {
+    "tabs": {
+      "intro": "Giới thiệu",
+      "evolution": "Tiến hóa"
+    },
+    "next_evolution_title": "Tiến hóa tiếp theo đề xuất",
+    "can_evolve_to": "có thể tiến hóa thành",
+    "level_label": "Level",
+    "exp_unknown": "EXP chưa xác định",
+    "load_error": "Không tải được dữ liệu",
+    "require_level": "Yêu cầu Lv. {{level}}",
+    "weakness_section": {
+      "title": "Thông tin khắc hệ",
+      "weak_against": "Yếu thế trước",
+      "takes_more_damage": "Nhận thêm sát thương"
+    }
+  },
+  "lesson_card": {
+    "lesson_description": "Bài học N{{level}}"
+  },
+  "collection": {
+    "title": "Bộ sưu tập của bạn",
+    "progress": "{{owned}} / {{total}} Pokémon",
+    "filters": {
+      "all": "Tất cả",
+      "owned": "Đã sở hữu",
+      "unowned": "Chưa có"
+    },
+    "search_placeholder": "Tìm kiếm theo tên hoặc số thứ tự...",
+    "search_results": "Tìm thấy {{count}} kết quả",
+    "load_error": "Không thể tải dữ liệu Pokémon"
+  },
+  "gacha": {
+    "title": "Mở",
+    "no_banners": "Không có banner nào đang hoạt động",
+    "select_banner": "Chọn banner",
+    "rate_up_text": "Tăng tỉ lệ nhận {{pokemon}}!",
+    "cost_per_roll": "Chi phí: {{cost}} mỗi lần",
+    "wish_single": "Mở 1 lần",
+    "wish_ten": "Mở 10 lần",
+    "pity_title": "Bảo hiểm",
+    "pity_description": "Còn {{remaining}} lần quay nữa đảm bảo 5★",
+    "pity_guaranteed": "Lần quay tiếp theo chắc chắn nhận 5★!",
+    "history": "Lịch sử",
+    "history_title": "Lịch sử mở",
+    "history_empty": "Chưa có lịch sử",
+    "history_empty_desc": "Lịch sử quay gacha của bạn sẽ hiển thị ở đây",
+    "wish_count": "Mở {{count}} lần",
+    "history_just_now": "Vừa xong",
+    "history_minutes_ago": "{{minutes}} phút trước",
+    "history_hours_ago": "{{hours}} giờ trước",
+    "history_days_ago": "{{days}} ngày trước",
+    "featured_pokemon": "Pokémon nổi bật",
+    "banner_pokemon": "Pokémon có sẵn",
+    "details_title": "Thể lệ & Tỉ lệ",
+    "details_banner_info": "Chi phí: {{cost}} mỗi lần quay • Bảo hiểm: {{pity}} lần quay",
+    "details_rates_title": "Tỉ lệ nhận",
+    "details_rarity_star": "{{star}} sao",
+    "details_pokemon_count": "Pokémon",
+    "details_pokemon_list_title": "Danh sách Pokémon",
+    "details_no_pokemon": "Không có Pokémon nào trong banner này",
+    "details_loading": "Đang tải chi tiết banner...",
+    "details_error": "Không thể tải chi tiết banner",
+    "details_error_desc": "Vui lòng thử lại sau",
+    "banner_info": "Thông tin Banner",
+    "no_items": "Không có vật phẩm nào",
+    "pokemon": "Pokémon"
+  },
+  "error_state": {
+    "default_title": "Đã xảy ra lỗi",
+    "default_description": "Có lỗi xảy ra khi tải dữ liệu. Vui lòng thử lại.",
+    "default_retry": "Thử lại",
+    "pokemon_footer": "⚡ Đừng bỏ cuộc! Hãy thử lại để tiếp tục hành trình!"
+  },
+  "search": {
+    "placeholder": "Tìm kiếm bài học...",
+    "found_results": "Tìm thấy {{count}} kết quả"
+  },
+  "reward_shop": {
+    "title": "ポイント交換",
+    "subtitle": "Cửa hàng Điểm thưởng",
+    "your_points": "Điểm của bạn:",
+    "exchange": "Đổi",
+    "loading": "Đang tải...",
+    "no_products": "Không có sản phẩm nào",
+    "days": "ngày",
+    "already_owned": "Đã có",
+    "insufficient_points": "Điểm không đủ",
+    "purchase_success": "Mua thành công",
+    "purchase_failed": "Mua thất bại"
+  },
+  "reward_progress": {
+    "title": "Tiến độ bài học",
+    "completed_lessons": "Đã hoàn thành <highlight>{{completed}}</highlight> / {{total}} bài",
+    "premium_badge": {
+      "both": "Gói Premium: XP & Coin x1.2",
+      "xp": "Gói Premium: XP x1.2",
+      "coin": "Gói Premium: Coin x1.2"
+    },
+    "milestone_label": "Mốc {{step}}",
+    "status": {
+      "claimed": "Đã nhận",
+      "locked": "Chưa mở hết"
+    },
+    "footer_message": "Hoàn thành <highlight>{{total}}</highlight> bài học để mở khóa Rương Báu"
+  },
+  "leaderboard": {
+    "title": "Bảng xếp hạng",
+    "rank": "Hạng",
+    "rank_label": "Rank {{rank}}",
+    "you": "Bạn",
+    "loading_more": "Đang tải thêm...",
+    "all_loaded": "Đã hiển thị tất cả",
+    "error_loading": "Có lỗi xảy ra khi tải dữ liệu",
+    "no_data": "Không có dữ liệu",
+    "your_position": "Vị trí của bạn",
+    "loaded_count": "Đã tải {{current}} / {{total}} người chơi",
+    "elo": "ELO"
+  },
+  "zod": {
+    "errors": {
+      "auth": {
+        "too_small": {
+          "string": "Mật khẩu phải có ít nhất {{minimum}} ký tự"
+        },
+        "invalid_email": {
+          "email": "Email không hợp lệ"
+        },
+        "invalid_password": {
+          "password": "Mật khẩu không hợp lệ"
+        },
+        "invalid_otp": {
+          "otp": "OTP không hợp lệ"
+        }
+      }
+    }
+  },
+  "exercise_history": {
+    "title": "Lịch sử bài tập",
+    "subtitle": "Xem lại các bài tập và bài test đã làm",
+    "exercises_tab": "Bài tập",
+    "tests_tab": "Bài kiểm tra",
+    "statistics": "Thống kê",
+    "total_attempts": "Tổng số lần làm",
+    "total_time": "Tổng thời gian",
+    "completed": "Hoàn thành",
+    "failed": "Thất bại",
+    "skipped": "Bỏ qua",
+    "abandoned": "Bỏ dở",
+    "empty_title": "Chưa có bài tập nào",
+    "empty_description": "Bạn chưa hoàn thành bài tập nào. Hãy bắt đầu học để xem lịch sử của bạn ở đây!",
+    "empty_exercises_title": "Chưa có bài tập nào",
+    "empty_exercises_description": "Bạn chưa hoàn thành bài tập nào. Hãy bắt đầu học để xem lịch sử của bạn ở đây!",
+    "empty_tests_title": "Chưa có bài kiểm tra nào",
+    "empty_tests_description": "Bạn chưa hoàn thành bài kiểm tra nào. Hãy làm bài test để xem lịch sử của bạn ở đây!",
+    "load_error": "Không thể tải lịch sử bài tập",
+    "retry": "Thử lại",
+    "correct": "đúng",
+    "incorrect": "sai",
+    "in_progress": "Đang làm",
+    "not_started": "Chưa bắt đầu",
+    "review_requirement": "Cần đạt 80% để xem review",
+    "test": "Bài kiểm tra",
+    "exercise": "Bài tập",
+    "unknown_exercise": "Bài tập không xác định",
+    "unknown_item": "Không xác định",
+    "filters": {
+      "all_levels": "Tất cả cấp độ",
+      "all_types": "Tất cả loại"
+    },
+    "skill_types": {
+      "reading": "Đọc hiểu",
+      "listening": "Nghe hiểu",
+      "speaking": "Nói",
+      "vocabulary": "Từ vựng",
+      "grammar": "Ngữ pháp",
+      "kanji": "Kanji"
+    },
+    "just_now": "Vừa xong",
+    "minutes_ago": "{{minutes}} phút trước",
+    "hours_ago": "{{hours}} giờ trước",
+    "days_ago": "{{days}} ngày trước"
+  },
+  "achievements": {
+    "title": "Sổ tay Thành tích",
+    "loading": "Đang tải danh sách thành tích...",
+    "empty": "Chưa có thành tích nào.",
+    "error": "Không thể tải dữ liệu thành tích. Vui lòng thử lại sau.",
+    "status": {
+      "completed": "Đã hoàn thành",
+      "claimed": "Đã nhận thưởng",
+      "in_progress": "Đang tiến độ",
+      "locked": "Chưa mở khóa"
+    },
+    "condition_types": {
+      "learning_streak": "Chuỗi {{days}} ngày học liên tiếp"
+    },
+    "reward": {
+      "receive_button": "Nhận thưởng",
+      "receive_success": "Đã nhận thưởng thành công!",
+      "receive_error": "Nhận thưởng thất bại. Vui lòng thử lại.",
+      "days_ago": "{{days}} ngày trước",
+      "status": {
+        "not_started": "Chưa bắt đầu",
+        "in_progress": "Đang làm",
+        "completed": "Hoàn thành",
+        "fail": "Thất bại",
+        "failed": "Thất bại",
+        "abandoned": "Bỏ dở",
+        "skipped": "Bỏ qua"
+      }
+    }
+  },
+  "dictionary": {
+    "title": "Từ điển",
+    "search_placeholder": "Tìm kiếm từ, kanji, hoặc cụm từ...",
+    "camera": "Camera",
+    "radical": "Bộ",
+    "voice": "Giọng nói",
+    "handwriting": "Viết tay",
+    "no_results": "Không tìm thấy kết quả",
+    "try_different_search": "Thử tìm kiếm với từ khóa khác",
+    "start_searching": "Bắt đầu tìm kiếm",
+    "search_description": "Nhập tiếng Nhật hoặc tiếng Anh để tìm kiếm từ, kanji, câu, và nhiều hơn nữa",
+    "recent_searches": "Tìm kiếm gần đây",
+    "tips": "Mẹo",
+    "tips_sync_account": "• Đăng nhập tài khoản PokeNihongo để được đồng bộ dữ liệu và sử dụng trên nhiều thiết bị.",
+    "tips_conjugation": "• PokeNihongo có thể chuyển thành te, ta, bị động... ở dạng nguyên thể, thử 食べた",
+    "tips_katakana": "• Tra cứu katakana: viết hoa chữ đó, ví dụ: BETONAMU",
+    "hot_keywords": "Từ khoá hot",
+    "back": "Quay lại",
+    "meanings": "Nghĩa",
+    "example": "Ví dụ:",
+    "related_words": "Từ liên quan",
+    "add_to_flashcard": "Thêm từ vào sổ tay",
+    "create_flashcard_deck": "Tạo sổ tay mới",
+    "create_new_flashcard_deck": "Tạo sổ tay mới",
+    "flashcard_name": "Tên sổ tay",
+    "flashcard_name_placeholder": "Nhập tên sổ tay...",
+    "cancel": "Hủy",
+    "create": "Tạo",
+    "created_date": "Ngày tạo:",
+    "words_count": "từ",
+    "no_flashcard_decks": "Bạn chưa có sổ tay nào.",
+    "no_flashcard_decks_description": "Tạo sổ tay mới để bắt đầu!",
+    "notes_label": "Ghi chú (Tùy chọn)",
+    "notes_placeholder": "Thêm ghi chú về từ này...",
+    "add_word_success_title": "Thành công",
+    "add_word_success_description": "Đã thêm từ vào sổ tay thành công!",
+    "add_word_error_title": "Lỗi",
+    "add_word_error_description": "Không thể thêm từ vào sổ tay. Vui lòng thử lại.",
+    "add_word_conflict_title": "Đã tồn tại",
+    "add_word_conflict_description": "Từ này đã có trong sổ tay được chọn.",
+    "create_deck_success_title": "Thành công",
+    "create_deck_success_description": "Đã tạo sổ tay thành công!",
+    "create_deck_error_title": "Lỗi",
+    "create_deck_error_description": "Không thể tạo sổ tay. Vui lòng thử lại.",
+    "tabs": {
+      "word": "Từ",
+      "kanji": "Kanji",
+      "sentence": "Câu",
+      "grammar": "Ngữ pháp",
+      "japan_japan": "Nhật - Nhật"
+    }
+  },
+  "flashcard_detail": {
+    "title": "Bộ flashcard",
+    "cards_label": "thẻ",
+    "filter_word": "Từ",
+    "filter_mean": "Nghĩa",
+    "filter_phonetic": "Phiên âm",
+    "search_placeholder": "Tìm kiếm từ vựng...",
+    "practice_title": "Luyện tập",
+    "practice_subtitle": "Ôn lại bộ thẻ này ngay",
+    "empty_title": "Chưa có thẻ nào",
+    "empty_description": "Hãy điều chỉnh bộ lọc hoặc thêm từ mới vào bộ thẻ này.",
+    "loading_more": "Đang đồng bộ...",
+    "items_per_page": "Số bản ghi mỗi trang",
+    "note_button": "Ghi chú",
+    "note_modal_title": "Ghi chú",
+    "note_modal_placeholder": "Thêm ghi chú tại đây...",
+    "note_modal_cancel": "Hủy",
+    "note_modal_save": "Lưu",
+    "note_update_success_title": "Đã lưu ghi chú",
+    "note_update_success_desc": "Ghi chú của bạn đã được cập nhật.",
+    "note_update_error_title": "Có lỗi xảy ra",
+    "note_update_error_desc": "Không thể cập nhật ghi chú. Vui lòng thử lại.",
+    "unknown_word": "Chưa rõ"
+  },
+  "flashcard_list": {
+    "title": "Bộ flashcard",
+    "search_placeholder": "Tìm kiếm bộ flashcard...",
+    "hero_title": "Quản lý bộ flashcard",
+    "hero_subtitle": "Xem tiến độ và mở nhanh bộ thẻ để ôn luyện.",
+    "empty_title": "Chưa có bộ flashcard",
+    "empty_description": "Tạo bộ flashcard đầu tiên để bắt đầu luyện tập.",
+    "loading_more": "Đang tải thêm...",
+    "items_per_page": "Số bản ghi mỗi trang",
+    "cards_count": "thẻ",
+    "created_at": "Ngày tạo",
+    "view_detail": "Xem chi tiết",
+    "review_now": "Ôn ngay",
+    "status": {
+      "active": "Đang hoạt động",
+      "inactive": "Tạm dừng",
+      "archived": "Đã lưu trữ"
+    },
+    "pagination": {
+      "10": "10",
+      "20": "20",
+      "50": "50"
+    },
+    "create_modal_title": "Tạo bộ flashcard mới",
+    "create_modal_placeholder": "Nhập tên bộ flashcard",
+    "create_modal_submit": "Tạo mới",
+    "create_error_required": "Tên bộ flashcard không được để trống",
+    "create_success_title": "Tạo bộ flashcard thành công",
+    "create_success_desc": "Bạn có thể thêm từ mới ngay bây giờ.",
+    "create_error_title": "Tạo bộ flashcard thất bại",
+    "create_error_desc": "Không thể tạo bộ flashcard. Vui lòng thử lại."
+  },
+  "empty_state": {
+    "default_title": "Không có dữ liệu",
+    "default_description": "Hiện tại chưa có dữ liệu để hiển thị",
+    "footer_message": "🎮 Hãy tiếp tục hành trình học tập của bạn!"
+  },
+  "subscription": {
+    "title": "Gói Dịch Vụ",
+    "subtitle": "Nâng cấp trải nghiệm học tập của bạn",
+    "balance": "Số dư",
+    "price": "Giá",
+    "purchase": "Mua ngay",
+    "purchased": "Đã mua",
+    "lifetime": "Trọn đời",
+    "popular": "PHỔ BIẾN",
+    "purchase_success": "Mua gói dịch vụ thành công!",
+    "purchase_failed": "Mua gói dịch vụ thất bại",
+    "insufficient_balance": "Số dư không đủ để mua gói này",
+    "data_refreshed": "Đã làm mới dữ liệu",
+    "balance_short": "Số dư",
+    "poke_coin_title": "Sử dụng PokeCoin",
+    "poke_coin_insufficient": "Cần tối thiểu 10.000₫ để trừ PokeCoin.",
+    "poke_coin_hint": "Bội số 10.000₫",
+    "poke_coin_max": "Tối đa {{amount}}₫",
+    "poke_coin_using": "Đang trừ",
+    "from_poke_coin": "từ PokeCoin",
+    "continue_payment": "Tiếp tục thanh toán",
+    "pending_invoice_title": "Bạn có hóa đơn đang chờ",
+    "pending_invoice_desc": "Hoàn tất thanh toán để kích hoạt quyền lợi.",
+    "pending_invoice_amount": "Tổng cần thanh toán: {{amount}}₫",
+    "pending_invoice_discount": "Đã trừ PokeCoin: -{{amount}}₫"
+  }
 }

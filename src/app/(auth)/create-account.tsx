@@ -2,12 +2,13 @@ import AuthScreenLayout from '@components/layouts/AuthScreenLayout';
 import BackScreen from '@components/molecules/Back';
 import BounceButton from '@components/ui/BounceButton';
 import { Input } from '@components/ui/Input';
-import { useToast } from '@components/ui/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMinimalAlert } from '@hooks/useMinimalAlert';
 import { CreateAccountFormDataRequest, ICreateAccountFormDataRequest } from '@models/user/user.request';
 // import { IRegisterFormDataRequest, RegisterFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
+import { useAuthStore } from '@stores/auth/auth.config';
 import { useEmailSelector } from '@stores/user/user.selectors';
 import { saveSecureStorage } from '@utils/secure-storage';
 import { router } from 'expo-router';
@@ -25,7 +26,10 @@ export default function CreateAccountScreen() {
      */
     const { t } = useTranslation();
     const email = useEmailSelector();
-    const { toast } = useToast();
+    const { showAlert } = useMinimalAlert();
+    const setAccessToken = useAuthStore((state) => state.setAccessToken);
+
+
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
 
@@ -49,13 +53,13 @@ export default function CreateAccountScreen() {
             const res = await authService.register(data);
 
             if (res.data.statusCode === 201) {
-                toast({ variant: 'Success', description: res.data.message });
-                saveSecureStorage('accessToken', res.data.data.accessToken);
-                saveSecureStorage('refreshToken', res.data.data.refreshToken);
+                showAlert(res.data.message, 'success');
+                await setAccessToken(res.data.data.accessToken);
+                try { await saveSecureStorage('refreshToken', res.data.data.refreshToken); } catch { }
                 router.replace(ROUTES.STARTER.SELECT_LEVEL);
             }
         } catch (error: any) {
-            toast({ variant: 'destructive', description: error.message });
+            showAlert(error.message, 'error');
         }
     };
 

@@ -6,7 +6,7 @@ import { createGlobalSlice } from './global.slices'
 export const useGlobalStore = create<ZUSTAND.IGlobalState>()(
     devtools(
         (set, get, api) => ({
-            ...createGlobalSlice(set),
+            ...createGlobalSlice(set, get),
         }),
     )
 )

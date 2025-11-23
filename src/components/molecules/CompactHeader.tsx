@@ -1,3 +1,5 @@
+import { IUserEntity } from "@models/user/user.entity";
+import { ROUTES } from "@routes/routes";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
@@ -5,25 +7,16 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import ExpProgressBar from "../atoms/ExpProgressBar";
 import LevelBadge from "../atoms/LevelBadge";
 import UserAvatar from "../atoms/UserAvatar";
-import { ROUTES } from "@routes/routes";
-
-interface User {
-  name: string;
-  level: number;
-  currentExp: number;
-  expToNextLevel: number;
-  avatar?: string;
-}
 
 interface CompactHeaderProps {
-  user: User;
+  user: IUserEntity;
   onPress: () => void;
   style?: any;
 }
 
 export default function CompactHeader({ user, onPress, style }: CompactHeaderProps) {
   const handleAvatarPress = () => {
-    router.push(ROUTES.APP.PROFILE);
+    router.push(ROUTES.ME.PROFILE);
   };
 
   return (
@@ -39,22 +32,22 @@ export default function CompactHeader({ user, onPress, style }: CompactHeaderPro
         style={styles.gradient}
       >
         {/* Level Badge */}
-        <LevelBadge level={user.level} size="small" />
+        <LevelBadge level={user?.level?.levelNumber ?? 0} size="small" />
 
         {/* Progress Bar */}
         <View style={styles.progressContainer}>
           <ExpProgressBar
-            currentExp={user.currentExp}
-            expToNextLevel={user.expToNextLevel}
+            currentExp={user?.exp}
+            expToNextLevel={user?.level?.requiredExp ?? 0}
             size="small"
           />
         </View>
 
         {/* Avatar */}
-        <UserAvatar 
-          name={user.name} 
-          avatar={user.avatar} 
-          size="small" 
+        <UserAvatar
+          name={user?.name ?? ""}
+          avatar={user?.avatar ?? undefined}
+          size="small"
           onPress={handleAvatarPress}
         />
       </LinearGradient>

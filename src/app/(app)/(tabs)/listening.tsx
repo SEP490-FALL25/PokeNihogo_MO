@@ -1,238 +1,218 @@
 import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
-import { IconSymbol } from "@components/ui/IconSymbol";
+import { TestStatus } from "@constants/test.enum";
+import { useUserTests } from "@hooks/useUserTest";
+import { router } from "expo-router";
+import { HeadphonesIcon } from "lucide-react-native";
 import React from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import {
+  Animated,
+  RefreshControl,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-const sampleListeningExercises = [
-  {
-    id: 1,
-    title: "Basic Greetings",
-    description: "Listen to common Japanese greetings and responses",
-    level: "Beginner",
-    duration: "3:45",
-    icon: "hand.wave.fill",
-    color: "#10b981",
-    progress: 100,
-  },
-  {
-    id: 2,
-    title: "Numbers & Counting",
-    description: "Practice listening to Japanese numbers",
-    level: "Beginner",
-    duration: "5:20",
-    icon: "number.circle.fill",
-    color: "#f59e0b",
-    progress: 75,
-  },
-  {
-    id: 3,
-    title: "Daily Conversations",
-    description: "Real-life Japanese conversations",
-    level: "Intermediate",
-    duration: "8:15",
-    icon: "bubble.left.and.bubble.right.fill",
-    color: "#3b82f6",
-    progress: 30,
-  },
-  {
-    id: 4,
-    title: "News & Weather",
-    description: "Japanese news broadcasts and weather reports",
-    level: "Intermediate",
-    duration: "12:30",
-    icon: "cloud.sun.fill",
-    color: "#8b5cf6",
-    progress: 0,
-  },
-  {
-    id: 5,
-    title: "Anime Dialogues",
-    description: "Popular anime conversations for practice",
-    level: "Advanced",
-    duration: "15:45",
-    icon: "tv.fill",
-    color: "#ef4444",
-    progress: 0,
-  },
-  {
-    id: 6,
-    title: "Business Japanese",
-    description: "Formal business conversations and meetings",
-    level: "Advanced",
-    duration: "20:00",
-    icon: "briefcase.fill",
-    color: "#06b6d4",
-    progress: 0,
-  },
-];
+type UserTestItem = {
+  id: number;
+  limit: number;
+  status: string;
+  test: {
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+    levelN: number;
+    testType: string;
+    status: string;
+    limit: number;
+  };
+};
 
 const ListeningCard: React.FC<{
-  exercise: (typeof sampleListeningExercises)[0];
+  item: UserTestItem;
   onPress: () => void;
-}> = ({ exercise, onPress }) => {
+}> = ({ item, onPress }) => {
   return (
     <TouchableOpacity
-      style={[styles.listeningCard, { borderLeftColor: exercise.color }]}
+      style={[styles.listeningCard, { borderLeftColor: "#10b981" }]}
       onPress={onPress}
       activeOpacity={0.8}
     >
       <View style={styles.cardHeader}>
-        <View
-          style={[styles.iconContainer, { backgroundColor: exercise.color }]}
-        >
-          <IconSymbol name={exercise.icon as any} size={24} color="#ffffff" />
+        <View style={[styles.iconContainer, { backgroundColor: "#10b981" }]}>
+          {/* <IconSymbol name={"headphones" as any} size={24} color="#ffffff" /> */}
+          <HeadphonesIcon size={24} color="#ffffff" />
         </View>
         <View style={styles.exerciseInfo}>
-          <ThemedText type="subtitle" style={styles.exerciseTitle}>
-            {exercise.title}
-          </ThemedText>
+          <View style={styles.materialHeaderRow}>
+            <ThemedText type="subtitle" style={styles.exerciseTitle}>
+              {item.test?.name}
+            </ThemedText>
+            <View style={styles.levelBadge}>
+              <ThemedText style={styles.levelText}>
+                N{item.test?.levelN}
+              </ThemedText>
+            </View>
+          </View>
           <ThemedText style={styles.exerciseDescription}>
-            {exercise.description}
+            {item.test?.description}
           </ThemedText>
-        </View>
-        <View style={styles.playButton}>
-          <IconSymbol
-            name={"play.circle.fill" as any}
-            size={32}
-            color={exercise.color}
-          />
         </View>
       </View>
 
       <View style={styles.cardFooter}>
         <View style={styles.metaInfo}>
-          <View style={styles.levelBadge}>
-            <ThemedText style={styles.levelText}>{exercise.level}</ThemedText>
-          </View>
           <ThemedText style={styles.durationText}>
-            ⏱️ {exercise.duration}
+            {item.limit} / {item.test?.limit}
           </ThemedText>
         </View>
-
-        {exercise.progress > 0 && (
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${exercise.progress}%`,
-                    backgroundColor: exercise.color,
-                  },
-                ]}
-              />
-            </View>
-            <ThemedText style={styles.progressText}>
-              {exercise.progress}%
-            </ThemedText>
-          </View>
-        )}
       </View>
     </TouchableOpacity>
   );
 };
 
 export default function ListeningScreen() {
-  const handleListeningPress = (exerciseId: number) => {
-    console.log(`Listening exercise ${exerciseId} pressed`);
-    // Navigate to listening detail screen
+  const { t } = useTranslation();
+  const [isLoaded, setIsLoaded] = React.useState(false);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const slideAnim = React.useRef(new Animated.Value(30)).current;
+
+  const {
+    data: userTestsData,
+    isLoading,
+    error,
+    refetch,
+    isRefetching,
+  } = useUserTests({
+    type: TestStatus.LISTENING_TEST,
+    currentPage: 1,
+    pageSize: 10,
+  });
+
+  const items: UserTestItem[] =
+    (userTestsData as any)?.data?.data?.results ?? [];
+  const refreshing = isRefetching;
+
+  const handleRefresh = React.useCallback(async () => {
+    await refetch();
+  }, [refetch]);
+
+  React.useEffect(() => {
+    const ready = !isLoading;
+    if (ready && !isLoaded) {
+      setIsLoaded(true);
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isLoading, isLoaded, fadeAnim, slideAnim]);
+
+  const handleListeningPress = (testId: number) => {
+    router.push({
+      pathname: "/test",
+      params: { testId: String(testId), testType: "LISTENING_TEST" },
+    });
   };
 
   return (
-    <HomeLayout>
+    <HomeLayout
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }
+    >
       <ThemedText type="title" style={styles.title}>
-        🎧 Listening Practice
+        🎧 {t("listening.title")}
       </ThemedText>
       <ThemedText style={styles.subtitle}>
-        Improve your Japanese listening skills with audio exercises
-      </ThemedText>
-      <ThemedText type="subtitle" style={styles.sectionTitle}>
-        🎵 Audio Exercises
+        {t("listening.subtitle")}
       </ThemedText>
 
-      <View style={styles.exercisesContainer}>
-        {sampleListeningExercises.map((exercise) => (
-          <ListeningCard
-            key={exercise.id}
-            exercise={exercise}
-            onPress={() => handleListeningPress(exercise.id)}
-          />
-        ))}
-      </View>
-
-      <ThemedView style={styles.statsCard}>
+      <Animated.View
+        style={[
+          styles.statsCard,
+          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        ]}
+      >
         <ThemedText type="subtitle" style={styles.statsTitle}>
-          📊 Listening Progress
+          📊 {t("listening.progress_title")}
         </ThemedText>
         <View style={styles.statsGrid}>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>15</ThemedText>
-            <ThemedText style={styles.statLabel}>Exercises Done</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("listening.exercises_done")}</ThemedText>
           </View>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>2.5h</ThemedText>
-            <ThemedText style={styles.statLabel}>Total Time</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("listening.total_time")}</ThemedText>
           </View>
           <View style={styles.statItem}>
             <ThemedText style={styles.statNumber}>88%</ThemedText>
-            <ThemedText style={styles.statLabel}>Accuracy</ThemedText>
+            <ThemedText style={styles.statLabel}>{t("listening.accuracy")}</ThemedText>
           </View>
         </View>
-      </ThemedView>
+      </Animated.View>
+
+      <ThemedText type="subtitle" style={styles.sectionTitle}>
+        🎵 {t("listening.audio_exercises")}
+      </ThemedText>
+
+      <View style={styles.exercisesContainer}>
+        {isLoading && (
+          <ThemedText style={{ textAlign: "center" }}>Loading...</ThemedText>
+        )}
+        {!!error && (
+          <ThemedText style={{ textAlign: "center", color: "#ef4444" }}>
+            {error instanceof Error ? error.message : "Error"}
+          </ThemedText>
+        )}
+        {!isLoading &&
+          !error &&
+          items.map((item) => (
+            <Animated.View
+              key={item.id}
+              style={{
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              }}
+            >
+              <ListeningCard
+                item={item}
+                onPress={() => handleListeningPress(item.test?.id)}
+              />
+            </Animated.View>
+          ))}
+      </View>
 
       <ThemedView style={styles.tipsCard}>
         <ThemedText type="subtitle" style={styles.tipsTitle}>
-          🎯 Listening Tips
+          🎯 {t("listening.tips_title")}
         </ThemedText>
         <View style={styles.tipsList}>
           <ThemedText style={styles.tipItem}>
-            • Listen multiple times - first for general understanding, then for
-            details
+            • {t("listening.tip_1")}
           </ThemedText>
           <ThemedText style={styles.tipItem}>
-            • Focus on intonation and rhythm patterns
+            • {t("listening.tip_2")}
           </ThemedText>
           <ThemedText style={styles.tipItem}>
-            • Use subtitles initially, then try without them
+            • {t("listening.tip_3")}
           </ThemedText>
           <ThemedText style={styles.tipItem}>
-            • Practice with different accents and speaking speeds
+            • {t("listening.tip_4")}
           </ThemedText>
         </View>
-      </ThemedView>
-
-      <ThemedView style={styles.controlsCard}>
-        <ThemedText type="subtitle" style={styles.controlsTitle}>
-          🎛️ Audio Controls
-        </ThemedText>
-        <View style={styles.controlsRow}>
-          <TouchableOpacity style={styles.controlButton}>
-            <IconSymbol
-              name={"backward.fill" as any}
-              size={24}
-              color="#6b7280"
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.controlButton}>
-            <IconSymbol
-              name={"play.circle.fill" as any}
-              size={48}
-              color="#3b82f6"
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.controlButton}>
-            <IconSymbol
-              name={"forward.fill" as any}
-              size={24}
-              color="#6b7280"
-            />
-          </TouchableOpacity>
-        </View>
-        <ThemedText style={styles.controlsHint}>
-          Tap any exercise above to start listening practice
-        </ThemedText>
       </ThemedView>
     </HomeLayout>
   );
@@ -307,10 +287,17 @@ const styles = StyleSheet.create({
   cardFooter: {
     gap: 8,
   },
-  metaInfo: {
+  materialHeaderRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 8,
+  },
+  metaInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    width: "100%",
   },
   levelBadge: {
     backgroundColor: "#f3f4f6",
@@ -353,6 +340,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 16,
     padding: 20,
+    marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -391,6 +379,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 16,
     padding: 20,
+    marginTop: 16,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

@@ -1,18 +1,11 @@
+import { IUserEntity } from "@models/user/user.entity";
 import React, { useState } from "react";
-import { Animated, Modal, Pressable, StyleSheet } from "react-native";
+import { Animated, InteractionManager, Modal, Pressable, StyleSheet } from "react-native";
 import CompactHeader from "../molecules/CompactHeader";
 import ExpandedContent from "../molecules/ExpandedContent";
 
-interface User {
-  name: string;
-  level: number;
-  currentExp: number;
-  expToNextLevel: number;
-  avatar?: string;
-}
-
 interface UserProfileHeaderAtomicProps {
-  user: User;
+  user: IUserEntity;
   style?: any;
 }
 
@@ -38,14 +31,22 @@ export default function UserProfileHeaderAtomic({
       toValue: -300,
       duration: 250,
       useNativeDriver: true,
-    }).start(() => setIsExpanded(false));
+    }).start(() => {
+      // Use InteractionManager to defer state update until after interactions complete
+      InteractionManager.runAfterInteractions(() => {
+        setIsExpanded(false);
+      });
+    });
   };
 
   return (
     <>
       {/* Compact Header Bar */}
-      <CompactHeader user={user} onPress={handleOpen} style={style} />
-
+      <CompactHeader
+        user={user}
+        onPress={handleOpen}
+        style={style}
+      />
       {/* Overlay Modal */}
       <Modal
         visible={isExpanded}

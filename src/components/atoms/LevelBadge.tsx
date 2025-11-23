@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
+import { StyleSheet, Text, View } from "react-native";
 
 interface LevelBadgeProps {
   level: number;
@@ -7,9 +8,14 @@ interface LevelBadgeProps {
   style?: any;
 }
 
-export default function LevelBadge({ level, size = "small", style }: LevelBadgeProps) {
+export default function LevelBadge({
+  level,
+  size = "small",
+  style,
+}: LevelBadgeProps) {
   const isLarge = size === "large";
-
+  const { t } = useTranslation();
+  const levelText = isLarge ? t("profile.level") : t("profile.level_small");
   return (
     <View
       style={[
@@ -21,7 +27,7 @@ export default function LevelBadge({ level, size = "small", style }: LevelBadgeP
       <Text
         style={[styles.text, isLarge ? styles.textLarge : styles.textSmall]}
       >
-        {isLarge ? `Level ${level}` : `Lv ${level}`}
+        {levelText} {level}
       </Text>
     </View>
   );

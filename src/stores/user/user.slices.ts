@@ -1,3 +1,4 @@
+import { ZUSTAND } from "../../types/IZustand"
 
 export const createUserSlice = (
     set: any
@@ -16,6 +17,7 @@ export const createUserSlice = (
 })
 
 // Cần khai báo set bên ngoài slice nếu bạn dùng slice độc lập
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let set: any
 export const bindSet = (_set: any) => {
     set = _set

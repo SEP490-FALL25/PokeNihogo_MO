@@ -4,7 +4,9 @@ import { IconSymbol } from "@components/ui/IconSymbol";
 import { ROUTES } from "@routes/routes";
 import { router } from "expo-router";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
+import { CopilotStep, walkthroughable } from "react-native-copilot";
 
 const { width } = Dimensions.get("window");
 
@@ -13,6 +15,10 @@ interface NavigationButtonProps {
   icon: any;
   onPress: () => void;
   color?: string;
+  // Optional tour props
+  tourStepName?: string;
+  tourOrder?: number;
+  tourText?: string;
 }
 
 const NavigationButton: React.FC<NavigationButtonProps> = ({
@@ -20,22 +26,50 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
   icon,
   onPress,
   color = "#3b82f6",
+  tourStepName,
+  tourOrder,
+  tourText,
 }) => {
+  const WTTouchable = walkthroughable(TouchableOpacity);
+
+  const ButtonContent = (
+    <>
+      <View style={[styles.iconContainer, { backgroundColor: color }]}>
+        <IconSymbol name={icon} size={24} color="#ffffff" />
+      </View>
+      <ThemedText style={styles.buttonText}>{title}</ThemedText>
+    </>
+  );
+
+  if (tourStepName && tourOrder && tourText) {
+    return (
+      <CopilotStep text={tourText} order={tourOrder} name={tourStepName}>
+        <WTTouchable
+          style={[styles.navButton, { borderColor: color }]}
+          onPress={onPress}
+          activeOpacity={0.8}
+        >
+          {ButtonContent}
+        </WTTouchable>
+      </CopilotStep>
+    );
+  }
+
   return (
     <TouchableOpacity
       style={[styles.navButton, { borderColor: color }]}
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <View style={[styles.iconContainer, { backgroundColor: color }]}>
-        <IconSymbol name={icon} size={24} color="#ffffff" />
-      </View>
-      <ThemedText style={styles.buttonText}>{title}</ThemedText>
+      {ButtonContent}
     </TouchableOpacity>
   );
 };
 
 const MainNavigation: React.FC = () => {
+  const { t } = useTranslation();
+  // const WTView = walkthroughable(View);
+  
   const handleLearn = () => {
     // Navigate to learning screen
     console.log("Learn pressed");
@@ -63,7 +97,7 @@ const MainNavigation: React.FC = () => {
   const handleUserInfo = () => {
     // Navigate to user info screen
     console.log("User Info pressed");
-    router.push(ROUTES.APP.PROFILE);
+    router.push(ROUTES.ME.PROFILE);
   };
 
   const handleOther = () => {
@@ -76,42 +110,46 @@ const MainNavigation: React.FC = () => {
   return (
     <ThemedView style={styles.container}>
       <ThemedText type="subtitle" style={styles.title}>
-        🎯 Main Navigation
+        🎯 {t("navigation.title")}
       </ThemedText>
 
       <View style={styles.grid}>
         <NavigationButton
-          title="Learn"
+          title={t("navigation.learn")}
           icon="book.fill"
           onPress={handleLearn}
           color="#10b981"
+          tourStepName="navigation"
+          tourOrder={6}
+          tourText={t("tour.navigation_description")}
         />
+
         <NavigationButton
-          title="Reading"
+          title={t("navigation.reading")}
           icon="book.fill"
           onPress={handleReading}
           color="#f59e0b"
         />
         <NavigationButton
-          title="Listening"
+          title={t("navigation.listening")}
           icon="speaker.wave.2.fill"
           onPress={handleListening}
           color="#8b5cf6"
         />
         <NavigationButton
-          title="Battle"
+          title={t("navigation.battle")}
           icon="gamecontroller.fill"
           onPress={handleBattle}
           color="#ef4444"
         />
         <NavigationButton
-          title="User Info"
+          title={t("navigation.user_info")}
           icon="person.fill"
           onPress={handleUserInfo}
           color="#06b6d4"
         />
         <NavigationButton
-          title="Other"
+          title={t("navigation.other")}
           icon="ellipsis.circle"
           onPress={handleOther}
           color="#6b7280"

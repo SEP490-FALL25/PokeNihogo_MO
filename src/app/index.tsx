@@ -1,20 +1,27 @@
-// File: app/index.tsx
-
+import SplashScreen from '@app/splash';
 import useAuth from '@hooks/useAuth';
 import { ROUTES } from '@routes/routes';
 import { Redirect } from 'expo-router';
 import React from 'react';
 import '../../global.css';
-import SplashScreen from './splash';
 
 export default function IndexScreen() {
-    const { isLoggedIn, isLoading: isAuthLoading } = useAuth();
+    const { isAuthenticated, isLoading: isUserLoading, user } = useAuth();
 
-    if (isAuthLoading) {
+    if (isUserLoading) {
         return <SplashScreen />;
     }
 
-    const href = isLoggedIn ? ROUTES.TABS.HOME : ROUTES.AUTH.WELCOME;
+    // If not authenticated, redirect to welcome screen
+    if (!isAuthenticated) {
+        return <Redirect href={ROUTES.AUTH.WELCOME} />;
+    }
 
-    return <Redirect href={href} />;
+    // If authenticated but user doesn't have level yet, redirect to select-level
+    if (isAuthenticated && (user?.data?.level === null || user?.data?.level === undefined)) {
+        return <Redirect href={ROUTES.STARTER.SELECT_LEVEL} />;
+    }
+
+    // If authenticated and has level, redirect to home
+    return <Redirect href={ROUTES.TABS.HOME} />;
 }

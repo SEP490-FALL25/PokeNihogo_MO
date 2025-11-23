@@ -1,14 +1,15 @@
 import AuthScreenLayout from '@components/layouts/AuthScreenLayout';
 import BounceButton from '@components/ui/BounceButton';
 import { Input } from '@components/ui/Input';
-import { useToast } from '@components/ui/Toast';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMinimalAlert } from '@hooks/useMinimalAlert';
 import { IPasswordFormDataRequest, PasswordFormDataRequest } from '@models/user/user.request';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
+import { useAuthStore } from '@stores/auth/auth.config';
 import { useEmailSelector } from '@stores/user/user.selectors';
-import { saveSecureStorage } from '@utils/secure-storage';
 import { router } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { ArrowLeft } from 'lucide-react-native';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -23,7 +24,9 @@ export default function PasswordScreen() {
      */
     const { t } = useTranslation();
     const email = useEmailSelector();
-    const { toast } = useToast();
+    const { showAlert } = useMinimalAlert();
+    const setAccessToken = useAuthStore((state) => state.setAccessToken);
+
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
 
@@ -47,15 +50,17 @@ export default function PasswordScreen() {
             const res = await authService.login(data);
 
             if (res.data.statusCode === 200) {
-                saveSecureStorage('accessToken', res.data.data.accessToken);
-                saveSecureStorage('refreshToken', res.data.data.refreshToken);
+                await setAccessToken(res.data.data.accessToken);
+                // persist refresh token for future refresh
+                try { await SecureStore.setItemAsync('refreshToken', res.data.data.refreshToken); } catch { }
                 if (res.data.data.level !== null) {
                     router.replace(ROUTES.TABS.HOME);
+                } else {
+                    router.replace(ROUTES.STARTER.SELECT_LEVEL);
                 }
-                router.replace(ROUTES.STARTER.SELECT_LEVEL);
             }
         } catch (error: any) {
-            toast({ variant: 'destructive', description: error.message });
+            showAlert(error.message, 'error');
         }
     };
     //-----------------------End-----------------------//
@@ -71,11 +76,11 @@ export default function PasswordScreen() {
             console.log(res);
 
             if (res.data.statusCode === 200) {
-                toast({ variant: 'Success', description: res.data.message });
+                showAlert(res.data.message, 'success');
                 router.push({ pathname: ROUTES.AUTH.OTP, params: { type: res.data.data.type } });
             }
         } catch (error: any) {
-            toast({ variant: 'destructive', description: error.message });
+            showAlert(error.message, 'error');
         }
     };
     //-----------------------End-----------------------//

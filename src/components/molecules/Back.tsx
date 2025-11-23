@@ -8,6 +8,8 @@ type BackScreenProps = {
   onPress?: () => void;
   noWrapper?: boolean;
   title?: string;
+  children?: React.ReactNode;
+  className?: string;
 };
 
 const BackScreen: React.FC<BackScreenProps> = ({
@@ -15,9 +17,11 @@ const BackScreen: React.FC<BackScreenProps> = ({
   onPress,
   noWrapper,
   title,
+  children,
+  className,
 }) => {
   const Button = (
-    <View className="flex-row w-full items-center py-3">
+    <View className={`flex-row w-full items-center py-3 ${className}`}>
       <View className="w-12 items-start">
         <TouchableOpacity
           accessibilityLabel="Go back"
@@ -30,10 +34,12 @@ const BackScreen: React.FC<BackScreenProps> = ({
       </View>
 
       <View className="flex-1">
-        <Text className="text-xl text-center font-semibold text-white">{title}</Text>
+        <Text className={`text-2xl text-center font-semibold text-${color}`}>{title}</Text>
       </View>
 
-      <View className="w-12" />
+      <View className="w-12">
+        {children}
+      </View>
     </View>
   );
 

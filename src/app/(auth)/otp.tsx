@@ -1,7 +1,8 @@
 import AuthScreenLayout from '@components/layouts/AuthScreenLayout';
 import BackScreen from '@components/molecules/Back';
 import BounceButton from '@components/ui/BounceButton';
-import { useToast } from '@components/ui/Toast';
+import { AuthType } from '@constants/auth.enum';
+import { useMinimalAlert } from '@hooks/useMinimalAlert';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
 import { useEmailSelector } from '@stores/user/user.selectors';
@@ -16,7 +17,7 @@ export default function OTPScreen() {
      * Define variables
      */
     const { t } = useTranslation();
-    const { toast } = useToast();
+    const { showAlert } = useMinimalAlert();
     const email = useEmailSelector();
     const { type } = useLocalSearchParams<{ type: string }>();
     //-----------------------End-----------------------//
@@ -50,18 +51,20 @@ export default function OTPScreen() {
         setIsSubmitting(true);
         try {
             const res = await authService.verifyOtp({ email, code, type });
-            console.log(res);
 
-            if (res.data.statusCode === 201) {
-                toast({ variant: 'Success', description: res.data.message });
+            if (res.data.statusCode === 201 && type === AuthType.REGISTER) {
+                showAlert(res.data.message, 'success');
                 router.replace(ROUTES.AUTH.CREATE_ACCOUNT);
-            } else if (res.data.statusCode === 200) {
-                toast({ variant: 'Success', description: res.data.message });
+            } else if (res.data.statusCode === 201 && type === AuthType.LOGIN) {
+                showAlert(res.data.message, 'success');
+                router.replace(ROUTES.AUTH.PASSWORD);
+            } else if (res.data.statusCode === 200 && type === AuthType.FORGOT_PASSWORD) {
+                showAlert(res.data.message, 'success');
                 saveSecureStorage('accessToken', res.data.data.accessToken);
                 router.replace(ROUTES.AUTH.RESET_PASSWORD);
             }
         } catch (error: any) {
-            toast({ variant: 'destructive', description: error.message });
+            showAlert(error.message, 'error');
         } finally {
             setIsSubmitting(false);
         }
@@ -71,14 +74,13 @@ export default function OTPScreen() {
         if (timer > 0) return;
         try {
             const res = await authService.resendOtp(email);
-            console.log(res);
 
             if (res.data.statusCode === 201) {
-                toast({ description: res.data.data.message });
+                showAlert(res.data.data.message, 'success');
                 setTimer(60);
             }
         } catch (error: any) {
-            toast({ variant: 'destructive', description: error.message });
+            showAlert(error.message, 'error');
             setTimer(60);
         }
     };

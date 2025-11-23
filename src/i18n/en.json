@@ -1,114 +1,1331 @@
 {
-    "common": {
-        "start": "GET STARTED",
-        "i-already-have-an-account": "I ALREADY HAVE AN ACCOUNT",
-        "learn": "Learn",
-        "learn-again": "Learn again",
-        "learn-forever": "Learn forever",
-        "home": "Home",
-        "explore": "Explore",
-        "welcome": "Welcome",
-        "demo": "DEMO",
-        "continue": "Continue",
-        "next": "Next",
-        "finish": "Finish",
-        "processing": "Processing..."
+  "common": {
+    "start": "GET STARTED",
+    "i-already-have-an-account": "I ALREADY HAVE AN ACCOUNT",
+    "learn": "Learn",
+    "learn-again": "Learn again",
+    "learn-forever": "Learn forever",
+    "home": "Home",
+    "explore": "Explore",
+    "welcome": "Welcome",
+    "demo": "DEMO",
+    "continue": "Continue",
+    "next": "Next",
+    "finish": "Finish",
+    "complete": "Complete",
+    "retry": "Retry",
+    "processing": "Processing...",
+    "loading": "Loading...",
+    "position_saved": "Position saved!",
+    "simple_dialog": "Simple Dialog",
+    "simple_dialog_test": "This is a simple dialog test",
+    "close": "Close",
+    "cancel": "Cancel",
+    "exit": "Exit",
+    "shop": "Shop",
+    "open-shop": "Open Shop",
+    "error": "Error",
+    "something_wrong": "Something went wrong. Please try again."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "enter-your-email": "Enter your email",
+    "enter-your-password": "Enter your password",
+    "log-in": "Log in",
+    "welcome-back": "Welcome back!",
+    "forgot-your-password": "Forgot your password?",
+    "dont-have-an-account": "Don't have an account?",
+    "sign-up": "Sign up",
+    "login-success": "Logged in successfully",
+    "login-failed": "Login failed",
+    "sign-in-with-google": "Sign in with Google",
+    "already-have-an-account": "Already have an account?",
+    "create-account": "Create account",
+    "confirm-password": "Confirm password",
+    "name": "Name",
+    "enter-your-name": "Enter your name",
+    "enter-code": "Enter code",
+    "we-sent-a-6-digit-code-to": "We sent a 6-digit code to",
+    "didnt-receive-a-code": "Didn't receive a code?",
+    "resend": "Resend",
+    "verify": "Verify",
+    "logged-in-successfully": "Logged in successfully!",
+    "invalid-otp-please-try-again": "Invalid OTP. Please try again.",
+    "an-unexpected-error-occurred": "An unexpected error occurred.",
+    "a-new-code-has-been-sent-to-your-email": "A new code has been sent to your email.",
+    "complete-profile": "Complete profile",
+    "whats-your-name": "What's your name?",
+    "next": "Next",
+    "reset-your-password": "Reset your password",
+    "create-new-password": "Create new password",
+    "new-password-description": "Enter your new password.",
+    "new-password": "New password",
+    "confirm-new-password": "Confirm new password",
+    "enter-new-password": "Enter new password",
+    "enter-confirm-new-password": "Enter confirm new password",
+    "save-password": "Save password",
+    "select_level": {
+      "title": "What is your current level?",
+      "n5": "N5 (Beginner)",
+      "n4": "N4 (Elementary)",
+      "n3": "N3 (Intermediate)",
+      "take_test": "I'm not sure, give me a test!",
+      "test_result_title": "🎉 Placement Test Result",
+      "test_result_desc": "Based on the test results, we recommend you start with level {{level}}",
+      "recommended_from_test": "✨ Recommended from test"
     },
-    "auth": {
-        "email": "Email",
-        "password": "Password",
-        "enter-your-email": "Enter your email",
-        "enter-your-password": "Enter your password",
-        "log-in": "Log in",
-        "welcome-back": "Welcome back!",
-        "forgot-your-password": "Forgot your password?",
-        "dont-have-an-account": "Don't have an account?",
-        "sign-up": "Sign up",
-        "login-success": "Logged in successfully",
-        "login-failed": "Login failed",
-        "sign-in-with-google": "Sign in with Google",
-        "already-have-an-account": "Already have an account?",
-        "create-account": "Create account",
-        "confirm-password": "Confirm password",
-        "name": "Name",
-        "enter-your-name": "Enter your name",
-        "enter-code": "Enter code",
-        "we-sent-a-6-digit-code-to": "We sent a 6-digit code to",
-        "didnt-receive-a-code": "Didn't receive a code?",
-        "resend": "Resend",
-        "verify": "Verify",
-        "logged-in-successfully": "Logged in successfully!",
-        "invalid-otp-please-try-again": "Invalid OTP. Please try again.",
-        "an-unexpected-error-occurred": "An unexpected error occurred.",
-        "a-new-code-has-been-sent-to-your-email": "A new code has been sent to your email.",
-        "complete-profile": "Complete profile",
-        "whats-your-name": "What's your name?",
-        "next": "Next",
-        "reset-your-password": "Reset your password",
-        "create-new-password": "Create new password",
-        "new-password-description": "Enter your new password.",
-        "new-password": "New password",
-        "confirm-new-password": "Confirm new password",
-        "enter-new-password": "Enter new password",
-        "enter-confirm-new-password": "Enter confirm new password",
-        "save-password": "Save password",
-        "select_level": {
-            "title": "What is your current level?",
-            "n5": "N5 (Beginner)",
-            "n4": "N4 (Elementary)",
-            "n3": "N3 (Intermediate)",
-            "take_test": "I'm not sure, give me a test!",
-            "test_result_title": "🎉 Placement Test Result",
-            "test_result_desc": "Based on the test results, we recommend you start with level {{level}}",
-            "recommended_from_test": "✨ Recommended from test"
-        },
-        "placement_test": {
-            "no_questions": "No questions available.",
-            "recommended_title": "Your recommended level",
-            "recommended_desc": "Based on your answers, we recommend: {{level}}",
-            "choose_starter": "Choose Starter Pokémon",
-            "progress_title": "Placement Test",
-            "progress": "Question {{current}} of {{total}}",
-            "speak_question": "Speak question",
-            "stop_speaking": "Stop speaking",
-            "play_audio": "Play audio",
-            "pause_audio": "Pause audio",
-            "audio_question_instruction": "Listen to the audio and choose the correct answer"
-        },
-        "choose_starter": {
-            "title": "Choose your Partner!",
-            "confirm": "Confirm"
-        },
-        "mascots": {
-            "pikachu": "Please choose the level that suits you!",
-            "eevee": "Each level will have different challenges!",
-            "bulbasaur": "Start with N5 to learn from basics!",
-            "charmander": "N3 will be the biggest challenge!",
-            "squirtle": "Choose your level and start the journey!",
-            "jigglypuff": "Music will help you focus!",
-            "meowth": "Don't worry, we'll learn step by step!",
-            "psyduck": "Choose your level and let's solve puzzles together!",
-            "snorlax": "Take your time, choose the level that suits you best!",
-            "mew": "Let's fly into the Japanese world together!",
-            "togepi": "Small steps today, success tomorrow!"
-        }
+    "placement_test": {
+      "no_questions": "No questions available.",
+      "loading": "Loading questions...",
+      "fetch_error": "An error occurred while loading questions. Please try again.",
+      "recommended_title": "Your recommended level",
+      "recommended_desc": "Based on your answers, we recommend: {{level}}",
+      "choose_starter": "Choose Starter Pokémon",
+      "progress_title": "Placement Test",
+      "progress": "Question {{current}} of {{total}}",
+      "speak_question": "Speak question",
+      "stop_speaking": "Stop speaking",
+      "play_audio": "Play audio",
+      "pause_audio": "Pause audio",
+      "audio_question_instruction": "Listen to the audio and choose the correct answer"
     },
-    "zod": {
-        "errors": {
-            "auth": {
-                "too_small": {
-                    "string": "Password must be at least {{minimum}} characters"
-                },
-                "invalid_email": {
-                    "email": "Email is invalid"
-                },
-                "invalid_password": {
-                    "password": "Password is invalid"
-                },
-                "invalid_otp": {
-                    "otp": "OTP is invalid"
-                }
-            }
-        }
+    "choose_starter": {
+      "title": "Choose your Partner!",
+      "confirm": "Confirm",
+      "loading": "Loading starter Pokemon...",
+      "fetch_error": "Failed to load starter Pokemon. Please try again.",
+      "select_error": "Failed to select starter. Please try again."
+    },
+    "congrats": {
+      "celebration": "Hurray!!",
+      "welcome": "Welcome",
+      "profile_created": "Your profile has been created successfully.",
+      "your_starter": "Your starter",
+      "continue_to_home": "CONTINUE TO HOME"
+    },
+    "mascots": {
+      "pikachu": "Please choose the level that suits you!",
+      "eevee": "Each level will have different challenges!",
+      "bulbasaur": "Start with N5 to learn from basics!",
+      "charmander": "N3 will be the biggest challenge!",
+      "squirtle": "Choose your level and start the journey!",
+      "jigglypuff": "Music will help you focus!",
+      "meowth": "Don't worry, we'll learn step by step!",
+      "psyduck": "Choose your level and let's solve puzzles together!",
+      "snorlax": "Take your time, choose the level that suits you best!",
+      "mew": "Let's fly into the Japanese world together!",
+      "togepi": "Small steps today, success tomorrow!"
     }
+  },
+  "reading": {
+    "title": "Reading Practice",
+    "subtitle": "Improve your Japanese reading skills with various texts",
+    "materials_title": "Reading Materials",
+    "progress_title": "Reading Progress",
+    "articles_read": "Articles Read",
+    "words_learned": "Words Learned",
+    "comprehension": "Comprehension",
+    "tips_title": "Reading Tips",
+    "tip_1": "Start with simple texts and gradually increase difficulty",
+    "tip_2": "Look up unknown words but try to guess meaning from context first",
+    "tip_3": "Read aloud to improve pronunciation and rhythm",
+    "tip_4": "Practice reading different types of texts (news, stories, etc.)"
+  },
+  "listening": {
+    "title": "Listening Practice",
+    "subtitle": "Improve your Japanese listening skills with audio exercises",
+    "audio_exercises": "Audio Exercises",
+    "progress_title": "Listening Progress",
+    "exercises_done": "Exercises Done",
+    "total_time": "Total Time",
+    "accuracy": "Accuracy",
+    "tips_title": "Listening Tips",
+    "tip_1": "Listen multiple times - first for general understanding, then for details",
+    "tip_2": "Focus on intonation and rhythm patterns",
+    "tip_3": "Use subtitles initially, then try without them",
+    "tip_4": "Practice with different accents and speaking speeds",
+    "controls_title": "Audio Controls",
+    "controls_hint": "Tap any exercise above to start listening practice"
+  },
+  "speaking": {
+    "title": "Speaking Practice",
+    "subtitle": "Improve your Japanese speaking skills with interactive exercises",
+    "exercises_title": "Speaking Exercises",
+    "recorder_title": "Record Exercise",
+    "recorder_description": "Select an exercise and start recording to practice pronunciation",
+    "default_exercise": "Pronunciation Exercise",
+    "recording_complete": "Recording Complete!",
+    "recording_description": "You can listen to your recording, record again, or upload to server for analysis",
+    "upload_to_server": "Upload to Server",
+    "upload_success": "Success",
+    "upload_success_message": "Recording has been uploaded to server!",
+    "upload_error": "Error",
+    "upload_error_message": "Unable to upload recording to server.",
+    "progress_title": "Speaking Progress",
+    "exercises_done": "Exercises Done",
+    "practice_time": "Practice Time",
+    "pronunciation": "Pronunciation",
+    "tips_title": "Speaking Tips",
+    "tip_1": "Practice speaking out loud regularly, even if alone",
+    "tip_2": "Record yourself and listen back to identify areas for improvement",
+    "tip_3": "Focus on pronunciation and intonation patterns",
+    "tip_4": "Try to think in Japanese rather than translating from English",
+    "controls_title": "Recording Controls",
+    "controls_hint": "Tap any exercise above to start speaking practice"
+  },
+  "battle": {
+    "title": "Battle Arena",
+    "subtitle": "Challenge other players in Japanese language battles",
+    "available_battles": "Available Battles",
+    "statistics_title": "Battle Statistics",
+    "battles_won": "Battles Won",
+    "battles_lost": "Battles Lost",
+    "win_rate": "Win Rate",
+    "top_players": "Top Players",
+    "tips_title": "Battle Tips",
+    "tip_1": "Practice regularly to improve your reaction time",
+    "tip_2": "Focus on accuracy over speed in the beginning",
+    "tip_3": "Study your mistakes to avoid repeating them",
+    "tip_4": "Join battles that match your current skill level",
+    "season_info": {
+      "ends_in": "Ends in",
+      "days_label": "days"
+    },
+    "rank_modal": {
+      "title": "Rank tiers & ELO thresholds",
+      "description": "ELO milestones required to rank up. Your current ELO: <highlight>{{eloScore}}</highlight>.",
+      "current_badge": "Current rank",
+      "empty_state": "Rank thresholds are being updated.",
+      "range_between": "{{min}} - {{max}} ELO",
+      "range_min": "≥ {{min}} ELO"
+    },
+    "stats": {
+      "total_wins": "Total Wins",
+      "win_rate": "Win Rate",
+      "win_streak": "Win Streak"
+    },
+    "lobby": {
+      "title": "⚡ BATTLE LOBBY",
+      "history_button": "History",
+      "alerts": {
+        "top_rewards_title": "Top Rewards",
+        "top_rewards_message": "View season reward tiers (WIP).",
+        "rank_info_title": "Rank System",
+        "rank_info_message": "Details about rank tiers, promotion, and point protection (WIP).",
+        "queue_error_message": "Unable to find a match.",
+        "match_cancelled_title": "Notice",
+        "match_cancelled_default": "The match has been cancelled."
+      },
+      "queue_status": {
+        "searching": "Searching...",
+        "waiting": "Waiting"
+      },
+      "buttons": {
+        "find_match": "FIND MATCH NOW",
+        "queueing": "⏳ MATCHING..."
+      },
+      "queue_messages": [
+        "Searching for a suitable opponent...",
+        "Balancing MMR...",
+        "Setting up the room..."
+      ],
+      "sections": {
+        "leaderboard_title": "Leaderboard",
+        "leaderboard_subtitle": "Top players this season",
+        "rewards_title": "Rewards",
+        "rewards_subtitle": "Skins, badges, gems",
+        "rank_info_title": "Rank info",
+        "rank_info_subtitle": "Promotion rules and point protection"
+      },
+      "history": {
+        "title": "Battle History",
+        "empty": "No battle history",
+        "stats": {
+          "wins": "Wins",
+          "losses": "Losses",
+          "win_rate": "Win Rate"
+        },
+        "filters": {
+          "all": "All ({{count}})",
+          "wins": "Wins ({{count}})",
+          "losses": "Losses ({{count}})"
+        },
+        "list": {
+          "win_badge": "WIN",
+          "loss_badge": "LOSS",
+          "score": "Score: {{score}}"
+        },
+        "detail": {
+          "win_title": "🎉 VICTORY",
+          "loss_title": "💔 DEFEAT",
+          "opponent_label": "Opponent",
+          "score_label": "Score",
+          "mmr_change_label": "MMR Change",
+          "mmr_current_label": "Current MMR",
+          "accuracy_label": "Accuracy",
+          "duration_label": "Duration"
+        }
+      }
+    },
+    "rewards": {
+      "title": "Season Rewards",
+      "subtitle": "Rewards for {{season}}",
+      "loading": "Loading rewards...",
+      "empty": "No rewards available for this season.",
+      "error": "Failed to load rewards. Please try again.",
+      "no_rewards": "No rewards for this rank",
+      "empty_for_league": "No rewards for this league",
+      "no_rewards_for_rank": "No rewards for this tier",
+      "rank_order": "Order: {{order}}",
+      "rank_rewards_count": "{{count}} tier(s)",
+      "ranks": {
+        "top1": "Top 1",
+        "top2-10": "Top 2-10",
+        "top11-50": "Top 11-50",
+        "top51-100": "Top 51-100",
+        "default": "Rank {{order}}"
+      },
+      "types": {
+        "pokemon": "Pokémon",
+        "gem": "Gem",
+        "coin": "Coin",
+        "item": "Item",
+        "skin": "Skin",
+        "badge": "Badge",
+        "daily_request": "Daily Request",
+        "event": "Event",
+        "poke_coins": "Coins"
+      },
+      "targets": {
+        "exp": "EXP",
+        "point": "Point",
+        "level": "Level"
+      }
+    },
+    "season_ended": {
+      "title": "Season Ended",
+      "ended_message": "The season has ended",
+      "elo": "ELO",
+      "continue": "Continue",
+      "rewards_title": "Season Rewards",
+      "claiming": "Claiming...",
+      "claim": "Claim Rewards"
+    },
+    "new_season": {
+      "title": "New Season",
+      "elo": "ELO",
+      "message": "Good luck in the new season!"
+    },
+    "first_time": {
+      "title": "Welcome!",
+      "message": "Welcome to the battle system! Join your first season now.",
+      "joining": "Joining...",
+      "join": "Join Now"
+    },
+    "arena": {
+      "title": "BATTLE ARENA",
+      "round": "ROUND {{round}}/3",
+      "waiting_opponent": "Waiting for opponent...",
+      "opponent_label": "Opponent",
+      "you_label": "You",
+      "vs": "VS",
+      "type_advantage_player": "You have type advantage (Fog: Opponent's vision is blurred!)",
+      "type_advantage_opponent": "Opponent has advantage (Confusion: You are confused!)",
+      "waiting_round_start": "Waiting for round to start...",
+      "question_label": "Question",
+      "question_loading": "Question is loading...",
+      "points_this_turn": "Points this turn",
+      "points_description": "Starts at 100 points, minimum 50 points based on answer time.",
+      "confirm_button": "CONFIRM",
+      "waiting_opponent_complete": "Waiting for opponent to complete...",
+      "loading_match_info": "Loading match information...",
+      "turn": "Turn {{turn}}",
+      "debuff": {
+        "discomfort_vision": "Blurred vision",
+        "add_question": "Add question",
+        "decrease_point": "Decrease points",
+        "title": "Debuff",
+        "affected_by": "You are affected by debuff:",
+        "add_question_description": "+{{value}} questions",
+        "decrease_point_description": "-{{value}} points per question",
+        "discomfort_vision_description": "Blurred vision",
+        "next_turn_warning": "Next turn you will be affected by debuff: {{debuff}}"
+      }
+    },
+    "result": {
+      "title": "BATTLE RESULT",
+      "match_label": "Match #{{matchId}}",
+      "loading_title": "Loading results...",
+      "loading_subtitle": "Please wait a moment",
+      "back_to_home": "Back to Home",
+      "total_points": "Total points",
+      "points_diff": "+{{points}} points",
+      "round_details": "Round details",
+      "round_1": "Round 1",
+      "round_2": "Round 2",
+      "round_3": "Round 3",
+      "round_default": "Round",
+      "end_battle": "End Battle",
+      "summary": "Summary",
+      "you": "You",
+      "opponent": "Opponent"
+    }
+  },
+  "navigation": {
+    "title": "Main Navigation",
+    "tour_start_learning": "Start Learning",
+    "tour_description": "Start your journey here!",
+    "learn": "Learn",
+    "reading": "Reading",
+    "listening": "Listening",
+    "battle": "Battle",
+    "user_info": "User Info",
+    "other": "Other"
+  },
+  "tour": {
+    "header_title": "Your Profile",
+    "header_description": "Tap here to view your profile, level, and progress",
+    "pokemon_title": "Your Pokemon Partner",
+    "pokemon_description": "This is your Pokemon partner! You can drag it around the screen to any position you like",
+    "store_title": "Shop",
+    "store_description": "Visit the shop to buy items, Pokemon, and rewards",
+    "quest_title": "Daily Quests",
+    "quest_description": "Complete daily quests to earn rewards and experience",
+    "gacha_title": "Gacha",
+    "gacha_description": "Try your luck with the gacha to get new Pokemon and items",
+    "navigation_title": "Learn Button",
+    "navigation_description": "Tap the Learn button to start your Japanese learning journey"
+  },
+  "lessons": {
+    "title": "Lessons",
+    "progress_title": "Learning Progress",
+    "overall_progress": "Overall Progress",
+    "level_progress": "Level Progress",
+    "lessons_completed": "Lessons completed",
+    "total_lessons": "Total Lessons",
+    "lessons_list": "Lessons List",
+    "lessons_count": "lessons",
+    "load_more": "Load More",
+    "end_of_results": "That's all the results",
+    "no_lessons": "No lessons available",
+    "no_lessons_description": "You don't have any lessons in this category. Please contact admin to add lessons.",
+    "error_loading_lessons": "Error loading lessons",
+    "error_loading_lessons_description": "Unable to load lessons list. Please check your network connection and try again.",
+    "select_level": "Select Level",
+    "all_levels": "All",
+    "categories": "Lesson Categories",
+    "categories_count": "categories",
+    "contact_admin": "Try selecting a different level or contact admin to add content",
+    "lesson_status": {
+      "completed": "Completed",
+      "in_progress": "In Progress",
+      "not_started": "Not Started"
+    },
+    "lesson_types": {
+      "vocabulary": "Vocabulary",
+      "grammar": "Grammar",
+      "reading": "Reading",
+      "listening": "Listening",
+      "kanji": "Kanji"
+    },
+    "difficulty": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "level_names": {
+      "N5": "Beginner",
+      "N4": "Elementary",
+      "N3": "Intermediate"
+    },
+    "skill_categories": {
+      "title": "Skill Categories",
+      "reading": "Reading",
+      "speaking": "Speaking",
+      "listening": "Listening"
+    },
+    "level_categories": {
+      "title": "Learning Levels",
+      "n5_basic": "N5 - Basic",
+      "n4_intermediate": "N4 - Intermediate",
+      "n3_advanced": "N3 - Advanced"
+    },
+    "view_all_categories": "View All Categories",
+    "lesson_info": {
+      "title": "Lesson Information",
+      "lesson_type": "Lesson Type",
+      "level": "Level",
+      "difficulty": "Difficulty",
+      "estimated_time": "Estimated Time",
+      "minutes": "minutes",
+      "reward": "Reward",
+      "status": "Status"
+    },
+    "hide_meaning": "Hide meaning",
+    "press_to_see_meaning": "Press to see meaning",
+    "no_meaning": "No meaning",
+    "no_description": "No description available",
+    "stroke": "stroke",
+    "do_vocab_exercise": "Do vocabulary exercise",
+    "do_grammar_exercise": "Do grammar exercise",
+    "do_kanji_exercise": "Do kanji exercise",
+    "usage": "Usage example"
+  },
+  "lesson_detail": {
+    "about_title": "About this lesson",
+    "stats": {
+      "total_content": "Total content",
+      "sections": "Learning sections"
+    },
+    "content_list": {
+      "title": "Content list",
+      "subtitle": "Pick a section to study"
+    },
+    "cards": {
+      "start_learning": "Start learning",
+      "vocabulary": {
+        "title": "Vocabulary",
+        "subtitle": "Learn new Japanese words"
+      },
+      "grammar": {
+        "title": "Grammar",
+        "subtitle": "Sentence structures and patterns"
+      },
+      "kanji": {
+        "title": "Kanji",
+        "subtitle": "Japanese Chinese characters"
+      }
+    },
+    "test": {
+      "button": "Start test",
+      "locked_hint": "Complete every section before starting the test"
+    },
+    "status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "in_progress": "In progress",
+      "abandoned": "Abandoned",
+      "pending": "Pending",
+      "unknown": "No data yet"
+    }
+  },
+  "content_list": {
+    "activity": {
+      "learn": {
+        "vocabulary": "Learn vocabulary",
+        "kanji": "Learn kanji",
+        "grammar": "Learn grammar"
+      },
+      "match": "Card matching game",
+      "scramble": {
+        "kanji": "Scramble kanji",
+        "vocabulary": "Scramble vocabulary"
+      },
+      "fill_blank": {
+        "kanji": "Fill in the Blank - Kanji",
+        "vocabulary": "Fill in the Blank - Vocabulary"
+      },
+      "word_chain": {
+        "kanji": "Word Chain - Kanji",
+        "vocabulary": "Word Chain - Vocabulary"
+      },
+      "test": {
+        "vocabulary": "Vocabulary test",
+        "kanji": "Kanji test",
+        "grammar": "Grammar test"
+      },
+      "reflex": "Reflex practice",
+      "default_in_lesson": "{{title}} in lesson"
+    },
+    "banner": {
+      "vocabulary": "Lesson vocabulary",
+      "kanji": "Lesson kanji",
+      "grammar": "Lesson grammar"
+    },
+    "empty_states": {
+      "vocabulary": "No vocabulary available",
+      "kanji": "No kanji available",
+      "grammar": "No grammar available"
+    },
+    "kanji_modal": {
+      "title": "Kanji explanation",
+      "on_reading": "On reading",
+      "kun_reading": "Kun reading",
+      "stroke_count": "Stroke count",
+      "stroke_value": "{{count}} strokes",
+      "details_heading": "📖 Detailed explanation"
+    },
+    "flashcard": {
+      "progress": {
+        "deck": "{{reviewed}}/{{total}} cards in flashcard deck",
+        "vocabulary": "{{reviewed}}/{{total}} vocabulary cards reviewed",
+        "grammar": "{{reviewed}}/{{total}} grammar cards reviewed",
+        "kanji": "{{reviewed}}/{{total}} kanji cards reviewed"
+      },
+      "no_explanation": "No explanation available",
+      "on_label": "On reading",
+      "kun_label": "Kun reading",
+      "usage_label": "Usage:",
+      "no_details": "No detailed description",
+      "empty_state": "No data to display",
+      "complete_title": "Completed!",
+      "complete_subtitle": "You can review again by tapping the refresh icon.",
+      "unknown_label": "Unknown",
+      "known_label": "Known",
+      "options": {
+        "title": "Customize card display",
+        "offset_title": "Offset stack",
+        "offset_description": "Cards behind are slightly offset to show how many remain.",
+        "overlap_title": "Overlap stack",
+        "overlap_description": "Cards behind overlap to stay focused on the current card.",
+        "close": "Close"
+      }
+    },
+    "scramble": {
+      "no_content": "No content available",
+      "score": "Score",
+      "lives": "Lives",
+      "hint": "Hint",
+      "meaning": "Meaning",
+      "hint_text": "Hint",
+      "your_answer": "Your answer",
+      "select_letters": "Select letters",
+      "game_over": "Game Over!",
+      "complete": "Congratulations!",
+      "game_over_message": "You scored {{score}} points!",
+      "complete_message": "You completed all words with {{score}} points!",
+      "final_score": "Final Score: {{score}}",
+      "play_again": "Play Again"
+    },
+    "fill_blank": {
+      "title": "Fill in the Blank",
+      "no_content": "No content available",
+      "score": "Score",
+      "lives": "Lives",
+      "hint": "Hint",
+      "meaning": "Meaning",
+      "hint_text": "Hint",
+      "complete_sentence": "Complete the sentence",
+      "select_answer": "Select your answer",
+      "submit": "Submit",
+      "game_over": "Game Over!",
+      "complete": "Congratulations!",
+      "game_over_message": "You scored {{score}} points!",
+      "complete_message": "You completed all questions with {{score}} points!",
+      "final_score": "Final Score: {{score}}",
+      "play_again": "Play Again"
+    },
+    "word_chain": {
+      "title": "Word Chain (Shiritori)",
+      "no_content": "No content available",
+      "score": "Score",
+      "lives": "Lives",
+      "time": "Time",
+      "chain_length": "Chain: {{length}} words",
+      "current_word": "Current Word",
+      "next_starts_with": "Next word must start with",
+      "chain": "Word Chain",
+      "enter_word": "Enter a word starting with",
+      "input_placeholder": "Type a word...",
+      "submit": "Submit",
+      "game_over": "Game Over!",
+      "complete": "Congratulations!",
+      "game_over_message": "You scored {{score}} points with a chain of {{chainLength}} words!",
+      "complete_message": "You created a chain of {{chainLength}} words with {{score}} points!",
+      "final_score": "Final Score: {{score}}",
+      "play_again": "Play Again"
+    }
+  },
+  "quiz_screen": {
+    "title": "Take the quiz",
+    "loading": "Loading...",
+    "alerts": {
+      "load_quiz_failed": "Unable to load the quiz. Please try again.",
+      "load_questions_failed": "Unable to load questions. Please try again.",
+      "missing_attempt_retry": "Could not find this exercise. Please try again.",
+      "missing_attempt": "Exercise not found.",
+      "check_status_failed": "Unable to check submission status.",
+      "submit_missing_result": "Result data was not received.",
+      "submit_failed": "Could not submit.",
+      "save_failed": "Unable to save your progress. Please try again.",
+      "continue_failed": "Unable to resume your exercise. Please try again.",
+      "new_attempt_failed": "Could not create a new exercise.",
+      "new_attempt_retry_failed": "Could not create a new exercise. Please try again."
+    },
+    "modals": {
+      "exit": {
+        "title": "Leave this quiz?",
+        "message": "Do you want to save your answered questions?",
+        "discard": "Don't save",
+        "save": "Save and exit",
+        "saving": "Saving..."
+      },
+      "resume": {
+        "title": "Resume your quiz?",
+        "message": "You have saved progress. Continue where you left off or start over?",
+        "new_attempt": "Start a new quiz",
+        "creating": "Creating...",
+        "continue": "Continue saved quiz",
+        "loading": "Loading..."
+      }
+    }
+  },
+  "quiz_completion": {
+    "title": "Submission summary",
+    "labels": {
+      "total_questions": "Total questions:",
+      "answered": "Answered:",
+      "unanswered": "Unanswered:",
+      "unanswered_list": "Unanswered questions:",
+      "question_number": "Question {{number}}",
+      "status": "Status:"
+    },
+    "status": {
+      "completed": "Completed",
+      "in_progress": "In progress",
+      "failed": "Failed",
+      "not_started": "Not started"
+    },
+    "buttons": {
+      "continue": "Keep working",
+      "submit": "Submit"
+    }
+  },
+  "quiz_progress": {
+    "label": "Completed {{current}}/{{total}}",
+    "expand": "Expand",
+    "collapse": "Collapse"
+  },
+  "review_stats": {
+    "correct_count": "Correct answers:",
+    "unanswered_count": "Unanswered questions:",
+    "incorrect_count": "Incorrect answers:",
+    "status_label": "Status:",
+    "status_failed": "Failed",
+    "status_passed": "Passed",
+    "expand": "Expand",
+    "collapse": "Collapse"
+  },
+  "home": {
+    "welcome_back": "Welcome back, {{username}}! 👋",
+    "ready_to_continue": "Ready to continue your Japanese learning journey?",
+    "test_tour_guide": "🧪 Test Tour Guide",
+    "clear_overlay_position": "🗑️ Clear Overlay Position",
+    "test_daily_login_modal": "🎉 Test Daily Login Modal",
+    "quick_start": "🚀 Quick Start",
+    "start_new_lesson": "Start New Lesson",
+    "learning_path": "📚 Your Learning Path",
+    "current_level": "Current Level: {{level}}",
+    "next_goal": "Next Goal: {{level}}",
+    "basic_japanese": "Basic Japanese - Hiragana & Katakana",
+    "intermediate_japanese": "Intermediate Japanese - Kanji & Grammar",
+    "partner_pokemon": "Your Partner Pokémon",
+    "take_care_description": "Take care of your partner Pokémon and evolve together!",
+    "take_care_me": "Take care of me!",
+    "partner_pokemon_short": "Partner Pokémon",
+    "exercise_types": {
+      "vocabulary": "Vocabulary",
+      "kanji": "Kanji",
+      "grammar": "Grammar",
+      "exercise": "Exercise"
+    },
+    "exercise_status": {
+      "completed": "Completed",
+      "failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "recent_exercises": "Recent exercises",
+    "see_all": "See all",
+    "srs_types": {
+      "vocabulary": "Vocabulary",
+      "vocabulary_lower": "vocabulary",
+      "kanji": "Kanji",
+      "kanji_lower": "kanji",
+      "grammar": "Grammar",
+      "grammar_lower": "grammar"
+    },
+    "srs_insights": {
+      "review_now": "Review now",
+      "vocabulary_title": "New word",
+      "kanji_title": "Kanji",
+      "grammar_title": "Grammar",
+      "grammar_level": "Level {{level}}",
+      "action": "Start review"
+    },
+    "ai": {
+      "assistant_badge": "AI Assistant",
+      "items_to_review": "{{count}} items to review",
+      "locked_title": "Upgrade to unlock",
+      "unlocked_title": "Personalized for today",
+      "locked_subtitle": "Upgrade to AI Coach for personalized study tips.",
+      "focus_message": "You need to focus on {{topic}} the most.",
+      "no_insight_message": "Keep studying and the assistant will recommend what to improve next.",
+      "highlight_count": "{{count}} {{topic}} items",
+      "highlight_hint": "Focus for 5 minutes to remember longer",
+      "locked_highlight_title": "Members-only benefit",
+      "locked_highlight_subtitle": "Unlock the roadmap and smart reminders",
+      "conversation": {
+        "title": "Conversation",
+        "connecting": "Connecting...",
+        "loading": "Loading...",
+        "connection_error": "Unable to connect. Please try again.",
+        "empty_message": "Start recording to practice conversation!",
+        "locked_title": "Feature Locked",
+        "locked_description": "You need to subscribe to Premium to use AI Conversation feature",
+        "subscribe_button": "Subscribe Now",
+        "hero_title": "Practice speaking like you're in Japan",
+        "hero_subtitle": "AI Kaiwa replies instantly, fixes pronunciation, and saves every conversation.",
+        "hero_badge": "Ultra Kaiwa",
+        "hero_stats_response_value": "24/7",
+        "hero_stats_response_label": "Instant replies",
+        "hero_stats_speed_value": "x3",
+        "hero_stats_speed_label": "Faster progress",
+        "hero_stats_consistency_value": "10'",
+        "hero_stats_consistency_label": "Daily habit",
+        "feature_feedback": "Realtime pronunciation feedback",
+        "feature_library": "Real-life conversation prompts",
+        "feature_rewards": "Earn extra XP & coins",
+        "social_proof": "12,000+ learners already upgraded to Ultra Kaiwa",
+        "guarantee_title": "Cancel anytime",
+        "guarantee_subtitle": "If it isn’t for you, stop with one tap.",
+        "cta_secondary": "See everything in Ultra",
+        "processing_speech_to_text": "Recognizing speech...",
+        "processing_ai": "Processing with AI...",
+        "processing_tts": "Generating speech...",
+        "processing_default": "Processing...",
+        "no_audio_detected": "No audio detected. Please try again.",
+        "sending_audio": "Sending audio...",
+        "server_connection_error": "Unable to connect to server.",
+        "audio_send_error": "Error sending audio.",
+        "connecting_to_ai": "Connecting to AI..."
+      }
+    },
+    "insight_locked": {
+      "badge": "Premium feature",
+      "title": "Unlock personalized assistant",
+      "description": "Automatically analyzes mistakes, suggests flashcards to review, and reminds you daily.",
+      "button": "Upgrade now"
+    },
+    "insight_empty": {
+      "title": "You’re doing great!",
+      "description": "As you practice more, the AI assistant will highlight what to focus on next."
+    },
+    "recent_empty": {
+      "title": "No recent exercises yet",
+      "description": "Finish a lesson or practice session and your history will appear here."
+    }
+  },
+  "quiz": {
+    "question_types": {
+      "single_choice": "Choose 1 correct answer",
+      "multiple_choice": "Choose all correct answers",
+      "text_input": "Enter your answer",
+      "audio": "Listen and choose answer",
+      "image": "Observe image and choose answer"
+    },
+    "audio_player": {
+      "play_button": "▶️",
+      "press_to_play": "Press to play audio"
+    },
+    "image_placeholder": "🖼️ Question image",
+    "explanation_label": "Explanation:",
+    "points_label": "points"
+  },
+  "test_screen": {
+    "loading": "Loading...",
+    "config": {
+      "reading_test": {
+        "title": "Reading test",
+        "exit_title": "Leave reading test?",
+        "exit_message": "Do you want to return to the reading list?"
+      },
+      "listening_test": {
+        "title": "Listening test",
+        "exit_title": "Leave listening test?",
+        "exit_message": "Do you want to return to the listening list?"
+      },
+      "lesson_test": {
+        "title": "Lesson test",
+        "exit_title": "Leave lesson test?",
+        "exit_message": "Do you want to return to the lesson?"
+      },
+      "default": {
+        "title": "Test",
+        "exit_title": "Leave test?",
+        "exit_message": "Do you want to go back?"
+      }
+    }
+  },
+  "daily_login": {
+    "title": "Daily Check-in",
+    "subtitle": "Maintain good habits every day",
+    "consecutive_days": "consecutive days",
+    "motivation": {
+      "start_streak": "Start your check-in streak!",
+      "keep_going": "Great! Keep going!",
+      "excellent": "Excellent! You're doing great!",
+      "legendary": "Amazing! You're a legend!"
+    },
+    "check_in_button": "Check-in now 🎯",
+    "already_checked": "✓ Already checked in today",
+    "close": "Close",
+    "day_names": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    }
+  },
+  "welcome_modal": {
+    "title": "Welcome, {{username}}!",
+    "message": "{{pokemonName}} is ready to join you on your journey!",
+    "lets_begin": "Let's Begin! 🚀"
+  },
+  "tabs": {
+    "home": "Home",
+    "learn": "Learn",
+    "abilities": "Abilities",
+    "abilities_subtitle": "Practice and improve your Japanese skills",
+    "reading": "Reading",
+    "listening": "Listening",
+    "speaking": "Speaking",
+    "battle": "Battle",
+    "quiz_demo": "Quiz Demo",
+    "ai_speaking": "AI",
+    "subtabs": {
+      "listening": "Listening",
+      "reading": "Reading",
+      "speaking": "Speaking"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "logout": "Logout",
+    "logout_title": "Logout",
+    "logout_message": "Are you sure you want to logout?",
+    "cancel": "Cancel",
+    "language": "Language",
+    "language_subtitle": "Choose your preferred language"
+  },
+  "profile": {
+    "title": "Profile",
+    "joined": "Joined",
+    "points": "Points",
+    "streak": "Streak",
+    "league": "League",
+    "collection": "Collection",
+    "collection_description": "View your complete Pokédex",
+    "account_details": "Account details",
+    "account_details_description": "Review and update your personal info",
+    "manage_account": "Manage your info",
+    "edit_now": "Edit now",
+    "achievements": "Achievements",
+    "achievements_earned": "badges earned",
+    "view_all": "View All",
+    "level_beginner": "Beginner N5",
+    "league_silver": "Silver",
+    "achievement_perfect_week": "Perfect Week",
+    "achievement_scholar": "Scholar",
+    "achievement_fire": "Fire Passion",
+    "achievement_wise": "Wise",
+    "achievement_diligent": "Diligent",
+    "your_progress": "Your Progress",
+    "progress_description": "Here's your progress. Complete the lessons to level up!",
+    "xp": "XP",
+    "level": "Level",
+    "level_small": "Lv",
+    "current_xp": "Current XP",
+    "next_level": "Next Level",
+    "experience_progress": "Experience Progress",
+    "to": "to"
+  },
+  "account_details": {
+    "title": "Account details",
+    "subtitle": "Keep your contact information up to date",
+    "hero_hint": "View all personal data and manage it in one place",
+    "member_since": "Member since {{date}}",
+    "overview_title": "Account overview",
+    "overview_subtitle": "These details stay private to you",
+    "email": "Email",
+    "rank": "League rank",
+    "level": "Level",
+    "joined": "Joined",
+    "points": "Points",
+    "pokemon_owned": "Pokémon owned",
+    "stats_title": "Highlights",
+    "stats_subtitle": "Quick snapshot of your journey",
+    "form_title": "Personal information",
+    "form_subtitle": "Only you can see these details",
+    "name": "Full name",
+    "name_placeholder": "Enter your name",
+    "phone": "Phone number",
+    "phone_placeholder": "Enter your phone number",
+    "avatar": "Avatar URL",
+    "avatar_placeholder": "https://example.com/avatar.png",
+    "save": "Save changes",
+    "not_available": "—",
+    "update_success": "Your profile has been updated",
+    "update_error": "Unable to update profile",
+    "nothing_to_update": "Nothing to update yet"
+  },
+  "ownership": {
+    "owned": "Owned",
+    "not_owned": "Not owned"
+  },
+  "pokemon_detail": {
+    "tabs": {
+      "intro": "Overview",
+      "evolution": "Evolution"
+    },
+    "next_evolution_title": "Suggested next evolution",
+    "can_evolve_to": "can evolve into",
+    "level_label": "Level",
+    "exp_unknown": "EXP unknown",
+    "load_error": "Failed to load data",
+    "require_level": "Requires Lv. {{level}}",
+    "weakness_section": {
+      "title": "Type weaknesses",
+      "weak_against": "Weak against",
+      "takes_more_damage": "Takes increased damage"
+    }
+  },
+  "lesson_card": {
+    "lesson_description": "Lesson N{{level}}"
+  },
+  "collection": {
+    "title": "Your Collection",
+    "progress": "{{owned}} / {{total}} Pokémon",
+    "filters": {
+      "all": "All",
+      "owned": "Owned",
+      "unowned": "Unowned"
+    },
+    "search_placeholder": "Search by name or Pokédex number...",
+    "search_results": "Found {{count}} results",
+    "load_error": "Unable to load Pokémon data"
+  },
+  "gacha": {
+    "title": "Gacha",
+    "no_banners": "No active banners available",
+    "select_banner": "Select Banner",
+    "rate_up_text": "Increased rate for {{pokemon}}!",
+    "cost_per_roll": "Cost: {{cost}} per roll",
+    "wish_single": "Open x1",
+    "wish_ten": "Open x10 (Guaranteed {{guarantee}} or higher)",
+    "pity_title": "Pity",
+    "pity_description": "{{remaining}} wishes until guaranteed 5★",
+    "pity_guaranteed": "Next wish is guaranteed 5★!",
+    "history": "History",
+    "history_title": "Gacha History",
+    "history_empty": "No gacha history yet",
+    "history_empty_desc": "Your gacha pulls will appear here",
+    "wish_count": "Open {{count}} times",
+    "history_just_now": "Just now",
+    "history_minutes_ago": "{{minutes}} min ago",
+    "history_hours_ago": "{{hours}} hr ago",
+    "history_days_ago": "{{days}} days ago",
+    "featured_pokemon": "Featured Pokémon",
+    "banner_pokemon": "Available Pokémon",
+    "details_title": "Banner Details",
+    "details_banner_info": "Cost: {{cost}} per roll • Hard Pity: {{pity}} wishes",
+    "details_rates_title": "Drop Rates",
+    "details_rarity_star": "{{star}}★ Star",
+    "details_pokemon_count": "Pokémon",
+    "details_pokemon_list_title": "Available Pokémon",
+    "details_no_pokemon": "No Pokémon available in this banner",
+    "details_loading": "Loading banner details...",
+    "details_error": "Failed to load banner details",
+    "details_error_desc": "Please try again later",
+    "banner_info": "Banner Information",
+    "no_items": "No items available",
+    "pokemon": "Pokémon"
+  },
+  "error_state": {
+    "default_title": "An error occurred",
+    "default_description": "An error occurred while loading data. Please try again.",
+    "default_retry": "Retry",
+    "pokemon_footer": "⚡ Don't give up! Try again to continue your journey!"
+  },
+  "search": {
+    "placeholder": "Search lessons...",
+    "found_results": "Found {{count}} results"
+  },
+  "reward_shop": {
+    "title": "Point Exchange",
+    "subtitle": "Reward Shop",
+    "your_points": "Your points:",
+    "exchange": "Exchange",
+    "loading": "Loading...",
+    "no_products": "No products available",
+    "days": "days",
+    "already_owned": "Already owned",
+    "insufficient_points": "Insufficient points",
+    "purchase_success": "Purchase successful",
+    "purchase_failed": "Purchase failed"
+  },
+  "reward_progress": {
+    "title": "Lesson Progress",
+    "completed_lessons": "Completed <highlight>{{completed}}</highlight> / {{total}} lessons",
+    "premium_badge": {
+      "both": "Premium: XP & Coins x1.2",
+      "xp": "Premium: XP x1.2",
+      "coin": "Premium: Coins x1.2"
+    },
+    "milestone_label": "Milestone {{step}}",
+    "status": {
+      "claimed": "Claimed",
+      "locked": "Not unlocked yet"
+    },
+    "footer_message": "Complete <highlight>{{total}}</highlight> lessons to unlock the Treasure Chest"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "rank": "Rank",
+    "rank_label": "Rank {{rank}}",
+    "you": "You",
+    "loading_more": "Loading more...",
+    "all_loaded": "All displayed",
+    "error_loading": "Error loading data",
+    "no_data": "No data",
+    "your_position": "Your position",
+    "loaded_count": "Loaded {{current}} / {{total}} players",
+    "elo": "ELO"
+  },
+  "zod": {
+    "errors": {
+      "auth": {
+        "too_small": {
+          "string": "Password must be at least {{minimum}} characters"
+        },
+        "invalid_email": {
+          "email": "Email is invalid"
+        },
+        "invalid_password": {
+          "password": "Password is invalid"
+        },
+        "invalid_otp": {
+          "otp": "OTP is invalid"
+        }
+      }
+    }
+  },
+  "exercise_history": {
+    "title": "Exercise History",
+    "subtitle": "Review your completed exercises and tests",
+    "exercises_tab": "Exercises",
+    "tests_tab": "Tests",
+    "statistics": "Statistics",
+    "total_attempts": "Total Attempts",
+    "total_time": "Total Time",
+    "completed": "Completed",
+    "failed": "Failed",
+    "skipped": "Skipped",
+    "abandoned": "Abandoned",
+    "empty_title": "No exercises yet",
+    "empty_description": "You haven't completed any exercises. Start learning to see your history here!",
+    "empty_exercises_title": "No exercises yet",
+    "empty_exercises_description": "You haven't completed any exercises. Start learning to see your history here!",
+    "empty_tests_title": "No tests yet",
+    "empty_tests_description": "You haven't completed any tests. Take a test to see your history here!",
+    "load_error": "Unable to load exercise history",
+    "retry": "Retry",
+    "correct": "correct",
+    "incorrect": "incorrect",
+    "in_progress": "In Progress",
+    "not_started": "Not Started",
+    "review_requirement": "Need 80% to review",
+    "test": "Test",
+    "exercise": "Exercise",
+    "unknown_exercise": "Unknown exercise",
+    "unknown_item": "Unknown",
+    "filters": {
+      "all_levels": "All levels",
+      "all_types": "All types"
+    },
+    "skill_types": {
+      "reading": "Reading",
+      "listening": "Listening",
+      "speaking": "Speaking",
+      "vocabulary": "Vocabulary",
+      "grammar": "Grammar",
+      "kanji": "Kanji"
+    },
+    "just_now": "Just now",
+    "minutes_ago": "{{minutes}} min ago",
+    "hours_ago": "{{hours}} hr ago",
+    "days_ago": "{{days}} days ago"
+  },
+  "achievements": {
+    "title": "Achievement Book",
+    "loading": "Loading achievements...",
+    "empty": "No achievements yet.",
+    "error": "Unable to load achievements. Please try again later.",
+    "status": {
+      "completed": "Completed",
+      "claimed": "Reward Claimed",
+      "in_progress": "In progress",
+      "locked": "Locked"
+    },
+    "condition_types": {
+      "learning_streak": "{{days}} consecutive days of learning"
+    },
+    "reward": {
+      "receive_button": "Receive Reward",
+      "receive_success": "Reward received successfully!",
+      "receive_error": "Failed to receive reward. Please try again.",
+      "days_ago": "{{days}} days ago",
+      "status": {
+        "not_started": "Not Started",
+        "in_progress": "In Progress",
+        "completed": "Completed",
+        "fail": "Failed",
+        "failed": "Failed",
+        "abandoned": "Abandoned",
+        "skipped": "Skipped"
+      }
+    }
+  },
+  "dictionary": {
+    "title": "Dictionary",
+    "search_placeholder": "Search for words, kanji, or phrases...",
+    "camera": "Camera",
+    "radical": "Radical",
+    "voice": "Voice",
+    "handwriting": "Write",
+    "no_results": "No results found",
+    "try_different_search": "Try searching with different keywords",
+    "start_searching": "Start searching",
+    "search_description": "Type Japanese or English to search for words, kanji, sentences, and more",
+    "recent_searches": "Recent Searches",
+    "tips": "Tips",
+    "tips_sync_account": "• Sign in to your PokeNihongo account to sync data and use across multiple devices.",
+    "tips_conjugation": "• PokeNihongo can convert to te, ta, passive forms... in dictionary form, try 食べた",
+    "tips_katakana": "• Search katakana: write in uppercase, example: BETONAMU",
+    "hot_keywords": "Hot Keywords",
+    "back": "Back",
+    "meanings": "Meanings",
+    "example": "Example:",
+    "related_words": "Related Words",
+    "add_to_flashcard": "Add word to flashcard",
+    "create_flashcard_deck": "Create new flashcard deck",
+    "create_new_flashcard_deck": "Create New Flashcard Deck",
+    "flashcard_name": "Flashcard Name",
+    "flashcard_name_placeholder": "Enter flashcard name...",
+    "cancel": "Cancel",
+    "create": "Create",
+    "created_date": "Created:",
+      "words_count": "words",
+      "no_flashcard_decks": "You don't have any flashcard decks yet.",
+      "no_flashcard_decks_description": "Create a new flashcard deck to get started!",
+      "notes_label": "Notes (Optional)",
+      "notes_placeholder": "Add your notes about this word...",
+      "add_word_success_title": "Success",
+      "add_word_success_description": "Word added to flashcard deck successfully!",
+      "add_word_error_title": "Error",
+      "add_word_error_description": "Failed to add word to flashcard deck. Please try again.",
+      "add_word_conflict_title": "Already Exists",
+      "add_word_conflict_description": "This word already exists in the selected flashcard deck.",
+      "create_deck_success_title": "Success",
+      "create_deck_success_description": "Flashcard deck created successfully!",
+      "create_deck_error_title": "Error",
+      "create_deck_error_description": "Failed to create flashcard deck. Please try again.",
+      "tabs": {
+        "word": "Word",
+        "kanji": "Kanji",
+        "sentence": "Sentence",
+        "grammar": "Grammar",
+        "japan_japan": "Japan - Japan"
+      }
+  },
+  "flashcard_detail": {
+    "title": "Flashcard Deck",
+    "cards_label": "cards",
+    "filter_word": "Word",
+    "filter_mean": "Mean",
+    "filter_phonetic": "Phonetic",
+    "search_placeholder": "Search vocabulary...",
+    "practice_title": "Practice",
+    "practice_subtitle": "Review this deck now",
+    "empty_title": "No cards yet",
+    "empty_description": "Try adjusting filters or add more words into this deck.",
+    "loading_more": "Syncing latest changes...",
+    "items_per_page": "Items per page",
+    "note_button": "Note",
+    "note_modal_title": "Add note",
+    "note_modal_placeholder": "Add your notes here...",
+    "note_modal_cancel": "Cancel",
+    "note_modal_save": "Done",
+    "note_update_success_title": "Note saved",
+    "note_update_success_desc": "Your note has been updated.",
+    "note_update_error_title": "Something went wrong",
+    "note_update_error_desc": "Unable to update note. Please try again.",
+    "unknown_word": "Unknown"
+  },
+  "flashcard_list": {
+    "title": "Flashcard decks",
+    "search_placeholder": "Search flashcard decks...",
+    "hero_title": "Manage your flashcards",
+    "hero_subtitle": "Check progress quickly and jump into any deck.",
+    "empty_title": "No flashcard decks yet",
+    "empty_description": "Create your first deck to start learning.",
+    "loading_more": "Loading more decks...",
+    "items_per_page": "Items per page",
+    "cards_count": "cards",
+    "created_at": "Created",
+    "view_detail": "View detail",
+    "review_now": "Review now",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "archived": "Archived"
+    },
+    "pagination": {
+      "10": "10",
+      "20": "20",
+      "50": "50"
+    },
+    "create_modal_title": "Create a new flashcard deck",
+    "create_modal_placeholder": "Enter deck name",
+    "create_modal_submit": "Create",
+    "create_error_required": "Deck name cannot be empty",
+    "create_success_title": "Deck created",
+    "create_success_desc": "You can start adding new cards now.",
+    "create_error_title": "Failed to create deck",
+    "create_error_desc": "Could not create the deck. Please try again."
+  },
+  "empty_state": {
+    "default_title": "No data available",
+    "default_description": "There is currently no data to display",
+    "footer_message": "🎮 Keep going on your learning journey!"
+  },
+  "subscription": {
+    "title": "Service Packages",
+    "subtitle": "Upgrade your learning experience",
+    "balance": "Balance",
+    "price": "Price",
+    "purchase": "Buy now",
+    "purchased": "Purchased",
+    "lifetime": "Lifetime",
+    "popular": "POPULAR",
+    "purchase_success": "Subscription purchased successfully!",
+    "purchase_failed": "Subscription purchase failed",
+    "insufficient_balance": "Insufficient balance to buy this package",
+    "data_refreshed": "Data refreshed successfully",
+    "balance_short": "Balance",
+    "poke_coin_title": "Use PokeCoin",
+    "poke_coin_insufficient": "Need at least 10,000₫ to apply PokeCoin.",
+    "poke_coin_hint": "Multiples of 10,000₫",
+    "poke_coin_max": "Up to {{amount}}₫",
+    "poke_coin_using": "Applying",
+    "from_poke_coin": "from PokeCoin",
+    "continue_payment": "Continue payment",
+    "pending_invoice_title": "You have a pending invoice",
+    "pending_invoice_desc": "Complete the payment to activate your benefits.",
+    "pending_invoice_amount": "Amount due: {{amount}}₫",
+    "pending_invoice_discount": "PokeCoin applied: -{{amount}}₫"
+  }
 }

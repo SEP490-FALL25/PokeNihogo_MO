@@ -1,11 +1,14 @@
 import ExpProgressBar from "@/components/atoms/ExpProgressBar";
 import LevelBadge from "@/components/atoms/LevelBadge";
 import UserAvatar from "@/components/atoms/UserAvatar";
+import { IUserEntity } from "@models/user/user.entity";
 import { ROUTES } from "@routes/routes";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
+  InteractionManager,
   Pressable,
   StyleSheet,
   Text,
@@ -13,16 +16,10 @@ import {
   View,
 } from "react-native";
 
-interface User {
-  name: string;
-  level: number;
-  currentExp: number;
-  expToNextLevel: number;
-  avatar?: string;
-}
+
 
 interface ExpandedContentProps {
-  user: User;
+  user: IUserEntity;
   onClose: () => void;
   style?: any;
 }
@@ -32,9 +29,16 @@ export default function ExpandedContent({
   onClose,
   style,
 }: ExpandedContentProps) {
+  const { t } = useTranslation();
+
   const handleAvatarPress = () => {
     onClose(); // Close the modal first
-    router.push(ROUTES.APP.PROFILE);
+    // Wait for animation to complete (250ms) and interactions to finish before navigating
+    InteractionManager.runAfterInteractions(() => {
+      setTimeout(() => {
+        router.push(ROUTES.ME.PROFILE);
+      }, 250); // Match the animation duration
+    });
   };
 
   return (
@@ -58,8 +62,8 @@ export default function ExpandedContent({
           {/* Large Avatar */}
           <View style={styles.avatarContainer}>
             <UserAvatar
-              name={user.name}
-              avatar={user.avatar}
+              name={user?.name ?? ""}
+              avatar={user?.avatar ?? undefined}
               size="large"
               onPress={handleAvatarPress}
             />
@@ -70,7 +74,7 @@ export default function ExpandedContent({
 
           {/* Level Badge Large */}
           <LevelBadge
-            level={user.level}
+            level={user.level.levelNumber}
             size="large"
             style={styles.levelBadge}
           />
@@ -79,27 +83,27 @@ export default function ExpandedContent({
           <View style={styles.statsGrid}>
             <View style={styles.statCard}>
               <Text style={styles.statValue}>
-                {user.currentExp.toLocaleString()}
+                {user.exp.toLocaleString()}
               </Text>
-              <Text style={styles.statLabel}>Current XP</Text>
+              <Text style={styles.statLabel}>{t("profile.current_xp")}</Text>
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statValue}>
-                {user.expToNextLevel.toLocaleString()}
+                {user.level.requiredExp.toLocaleString()}
               </Text>
-              <Text style={styles.statLabel}>Next Level</Text>
+              <Text style={styles.statLabel}>{t("profile.next_level")}</Text>
             </View>
           </View>
 
           {/* Progress Section */}
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>
-              <Text style={styles.progressTitle}>Experience Progress</Text>
+              <Text style={styles.progressTitle}>{t("profile.experience_progress")}</Text>
             </View>
 
             <ExpProgressBar
-              currentExp={user.currentExp}
-              expToNextLevel={user.expToNextLevel}
+              currentExp={user.exp}
+              expToNextLevel={user.level.requiredExp}
               size="large"
             />
           </View>

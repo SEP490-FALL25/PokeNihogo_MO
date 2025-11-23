@@ -4,13 +4,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { ROUTES } from "@routes/routes";
 import { usePathname, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Animated,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+// import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface Tab {
   name: string;
@@ -26,69 +29,99 @@ interface TabButtonProps {
   onPress: () => void;
 }
 
-const TAB_CONFIG: Tab[] = [
+const getTabConfig = (t: (key: string) => string): Tab[] => [
   {
     name: "learn",
-    icon: "book",
-    label: "Learn",
+    icon: "library",
+    label: t("tabs.learn"),
     route: ROUTES.TABS.LEARN,
-    color: "#10b981",
+    color: "#06b6d4",
   },
   {
-    name: "reading",
-    icon: "text",
-    label: "Reading",
-    route: ROUTES.TABS.READING,
+    name: "abilities",
+    icon: "trophy",
+    label: t("tabs.abilities"),
+    route: ROUTES.TABS.ABILITIES,
     color: "#f59e0b",
   },
   {
     name: "home",
     icon: "home",
-    label: "Home",
+    label: t("tabs.home"),
     route: ROUTES.TABS.HOME,
     color: "#3b82f6",
   },
   {
-    name: "listening",
-    icon: "volume-high",
-    label: "Listening",
-    route: ROUTES.TABS.LISTENING,
+    name: "ai-speaking",
+    icon: "chatbox",
+    label: t("tabs.ai_speaking"),
+    route: ROUTES.TABS.AI_CONVERSATION,
     color: "#8b5cf6",
   },
   {
     name: "battle",
     icon: "game-controller",
-    label: "Battle",
+    label: t("tabs.battle"),
     route: ROUTES.TABS.BATTLE,
     color: "#ef4444",
   },
 ];
 
 const CustomTab = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
+  // const insets = useSafeAreaInsets();
 
-  const isActive = useCallback((route: string) => {
-    const cleanRoute = route.replace("/(app)/(tabs)", "");
-    const cleanPathname = pathname.replace("/(app)/(tabs)", "");
-    return cleanPathname === cleanRoute || pathname === route;
-  }, [pathname]);
+  const isActive = useCallback(
+    (route: string) => {
+      const cleanRoute = route.replace(ROUTES.TABS.ROOT, "");
+      const cleanPathname = pathname.replace(ROUTES.TABS.ROOT, "");
+      return cleanPathname === cleanRoute || pathname === route;
+    },
+    [pathname]
+  );
 
-  const handleTabPress = useCallback((route: string) => {
-    router.push(route as any);
-  }, [router]);
+  const handleTabPress = useCallback(
+    (tab: Tab) => {
+      router.push(tab.route as any);
+    },
+    [router]
+  );
+
+  const tabConfig = getTabConfig(t);
 
   return (
     <View style={styles.container}>
-      <View style={styles.tabBar}>
-        {TAB_CONFIG.map((tab) => (
-          <TabButton
-            key={tab.name}
-            tab={tab}
-            active={isActive(tab.route)}
-            onPress={() => handleTabPress(tab.route)}
-          />
-        ))}
+      <View
+        style={[
+          styles.tabBar,
+          Platform.select({
+            ios: {
+              shadowColor: COLORS.SHADOW,
+              shadowOffset: { width: 0, height: -4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+            },
+            android: {
+              elevation: 12,
+              borderTopWidth: StyleSheet.hairlineWidth,
+              borderTopColor: "#eeeeee",
+            },
+          }),
+          // { paddingBottom: Math.max(12, insets.bottom) },
+        ]}
+      >
+        {tabConfig.map((tab) => {
+          return (
+            <TabButton
+              key={tab.name}
+              tab={tab}
+              active={isActive(tab.route)}
+              onPress={() => handleTabPress(tab)}
+            />
+          );
+        })}
       </View>
     </View>
   );
@@ -96,7 +129,11 @@ const CustomTab = () => {
 
 const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
   const bounceAnim = useRef(new Animated.Value(active ? 1 : 0)).current;
-  const scaleAnim = useRef(new Animated.Value(active ? 1.2 : 1)).current;
+  const scaleAnim = useRef(
+    new Animated.Value(
+      active ? DIMENSIONS.SCALE_ACTIVE : DIMENSIONS.SCALE_INACTIVE
+    )
+  ).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -109,10 +146,21 @@ const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
         toValue: active ? DIMENSIONS.SCALE_ACTIVE : DIMENSIONS.SCALE_INACTIVE,
         ...ANIMATION_CONFIG.SPRING,
       }),
-      Animated.timing(rotateAnim, {
-        toValue: active ? 1 : 0,
-        ...ANIMATION_CONFIG.TIMING,
-      }),
+      // Chỉ rotate khi active, với sequence animation
+      ...(active
+        ? [
+          Animated.sequence([
+            Animated.timing(rotateAnim, {
+              toValue: 1,
+              ...ANIMATION_CONFIG.ROTATE_TIMING,
+            }),
+            Animated.timing(rotateAnim, {
+              toValue: 0,
+              ...ANIMATION_CONFIG.ROTATE_TIMING,
+            }),
+          ]),
+        ]
+        : []),
     ]).start();
   }, [active, bounceAnim, scaleAnim, rotateAnim]);
 
@@ -123,7 +171,7 @@ const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
 
   const rotate = rotateAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: ["0deg", "360deg"],
+    outputRange: ["0deg", "10deg"],
   });
 
   return (
@@ -139,12 +187,25 @@ const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
             {
               transform: [{ translateY }, { scale: scaleAnim }, { rotate }],
             },
+            Platform.OS === "android" && { zIndex: active ? 2 : 1 },
           ]}
         >
           <View
             style={[
               styles.iconBackground,
-              active && { backgroundColor: tab.color, shadowColor: tab.color },
+              Platform.select({
+                ios: [
+                  active && {
+                    backgroundColor: tab.color,
+                    shadowColor: tab.color,
+                  },
+                ],
+                android: {
+                  // Only show solid background when active; keep inactive transparent
+                  backgroundColor: active ? tab.color : "transparent",
+                  elevation: active ? 10 : 0,
+                },
+              }),
             ]}
           >
             <Ionicons
@@ -158,7 +219,9 @@ const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
         <Text
           style={[
             styles.label,
-            active && { color: tab.color, fontWeight: "600" },
+            active && { color: tab.color },
+            Platform.OS === "ios" && active ? { fontWeight: "600" } : null,
+            Platform.OS === "android" ? { marginTop: 40 } : null,
           ]}
         >
           {tab.label}
@@ -178,14 +241,15 @@ const COLORS = {
 const DIMENSIONS = {
   ICON_SIZE: 48,
   ICON_RADIUS: 16,
-  BOUNCE_HEIGHT: 35,
+  BOUNCE_HEIGHT: 30,
   SCALE_ACTIVE: 1.2,
   SCALE_INACTIVE: 1,
 } as const;
 
 const ANIMATION_CONFIG = {
   SPRING: { tension: 50, friction: 7, useNativeDriver: true },
-  TIMING: { duration: 600, useNativeDriver: true },
+  TIMING: { duration: 250, useNativeDriver: true },
+  ROTATE_TIMING: { duration: 200, useNativeDriver: true },
 } as const;
 
 const styles = StyleSheet.create({
@@ -245,6 +309,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 10,
+    borderWidth: 0,
   },
   label: {
     fontSize: 13,

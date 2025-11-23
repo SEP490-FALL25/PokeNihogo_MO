@@ -1,0 +1,11 @@
+export enum ExerciseAttemptStatus {
+  NOT_STARTED = "NOT_STARTED",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  FAIL = "FAIL",
+  FAILED = "FAILED",
+  ABANDONED = "ABANDONED",
+  SKIPPED = "SKIPPED",
+  PENDING = "PENDING",
+}
+

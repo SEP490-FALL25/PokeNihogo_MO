@@ -1,0 +1,152 @@
+import { ExerciseAttemptStatus } from "@constants/exercise.enum";
+import {
+    ICheckCompletionResponse,
+    IExerciseHistoryListResponse,
+    ISubmitCompletionResponse,
+} from "@models/user-exercise-attempt/user-exercise-attempt.response";
+import userExerciseAttemptService from "@services/user-exercise-attempt";
+import { useGlobalStore } from "@stores/global/global.config";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
+
+export const useUserExerciseAttempt = (lessonId: string) => {
+  return useQuery({
+    queryKey: ["user-exercise-attempt-latest", lessonId],
+    queryFn: async () => {
+      const res =
+        await userExerciseAttemptService.getLatestExerciseAttempt(lessonId);
+      return res.data;
+    },
+    enabled: !!lessonId,
+    staleTime: 0, // Always consider data stale to ensure fresh data
+    refetchOnMount: "always", // Always refetch when component mounts
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+};
+
+export const useUserExerciseQuestions = (exerciseAttemptId: string) => {
+  const language = useGlobalStore((state) => state.language);
+
+  return useQuery({
+    queryKey: ["user-exercise-questions", exerciseAttemptId, language],
+    queryFn: async () => {
+      const res =
+        await userExerciseAttemptService.getExerciseQuestions(
+          exerciseAttemptId
+        );
+      return res.data;
+    },
+    enabled: !!exerciseAttemptId,
+    staleTime: 0, // Always consider data stale to ensure fresh data
+    refetchOnMount: "always", // Always refetch when component mounts
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+};
+
+export const useCheckCompletion = () => {
+  return useMutation({
+    mutationFn: async (
+      exerciseAttemptId: string
+    ): Promise<ICheckCompletionResponse> => {
+      const res =
+        await userExerciseAttemptService.checkCompleted(exerciseAttemptId);
+      return res.data;
+    },
+  });
+};
+
+export const useSubmitCompletion = () => {
+  return useMutation({
+    mutationFn: async ({
+      exerciseAttemptId,
+      time,
+    }: {
+      exerciseAttemptId: string;
+      time: number;
+    }): Promise<ISubmitCompletionResponse> => {
+      const res = await userExerciseAttemptService.submitCompletion(
+        exerciseAttemptId,
+        time
+      );
+      return res.data;
+    },
+  });
+};
+
+export const useReviewResult = (exerciseAttemptId: string) => {
+  return useQuery({
+    queryKey: ["review-result", exerciseAttemptId],
+    queryFn: async () => {
+      const res =
+        await userExerciseAttemptService.getReviewResult(exerciseAttemptId);
+      return res.data;
+    },
+    enabled: !!exerciseAttemptId,
+    staleTime: 0, // Always consider data stale to ensure fresh data
+    refetchOnMount: "always", // Always refetch when component mounts
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+};
+
+export const useCheckReviewAccess = () => {
+  return useMutation({
+    mutationFn: async (exerciseAttemptId: string) => {
+      const res = await userExerciseAttemptService.getReviewResult(exerciseAttemptId);
+      return res.data;
+    },
+  });
+};
+
+export const useAbandonExercise = () => {
+  return useMutation({
+    mutationFn: async ({ exerciseAttemptId, time }: { exerciseAttemptId: string, time: number }) => {
+      const res = await userExerciseAttemptService.abandonExercise(exerciseAttemptId, time);
+      return res.data;
+    },
+  });
+};
+
+export const useContinueAndAbandonExercise = () => {
+  return useMutation({
+    mutationFn: async ({ exerciseAttemptId, status }: { exerciseAttemptId: string; status: ExerciseAttemptStatus }) => {
+      const res = await userExerciseAttemptService.continueAndAbandonExercise(exerciseAttemptId, status);
+      return res.data;
+    },
+  });
+};
+
+export const useCreateNewExerciseAttempt = () => {
+  return useMutation({
+    mutationFn: async (exerciseId: string) => {
+      const res = await userExerciseAttemptService.createNewExerciseAttempt(exerciseId);
+      return res.data;
+    },
+  });
+};
+
+export const useExerciseHistory = (params?: {
+  limit?: number;
+  levelJlpt?: number;
+  exerciseType?: string;
+}) => {
+  return useInfiniteQuery({
+    queryKey: ["exercise-history", params],
+    queryFn: ({ pageParam = 0 }) =>
+      userExerciseAttemptService.getExerciseHistory({
+        ...params,
+        offset: pageParam as number,
+        limit: params?.limit ?? 20,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      // Axios wraps response in { data: ... }
+      // lastPage = { data: { statusCode, message, data: { results, totalCount, hasMore } } }
+      const response = lastPage.data as IExerciseHistoryListResponse;
+      const responseData = response?.data;
+      if (!responseData || !responseData.hasMore) return undefined;
+      return (params?.limit ?? 20) * allPages.length;
+    },
+  });
+};

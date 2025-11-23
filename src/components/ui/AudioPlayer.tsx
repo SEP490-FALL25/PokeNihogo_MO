@@ -1,20 +1,21 @@
 // ============================================================================
 // IMPORTS
 // ============================================================================
-import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
+import { Loader2, Volume2 } from "lucide-react-native";
 import React from "react";
-import { Animated, TouchableOpacity, View } from "react-native";
+import { Animated, Easing, TouchableOpacity, View } from "react-native";
 
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
 interface AudioPlayerProps {
-  audioUrl: string;
+  audioUrl?: string | null;
   onPlaybackStatusUpdate?: (status: any) => void;
   style?: any;
   buttonStyle?: any;
   disabled?: boolean;
+  iconColor?: string;
 }
 
 // ============================================================================
@@ -26,6 +27,7 @@ export default function AudioPlayer({
   style,
   buttonStyle,
   disabled = false,
+  iconColor = "#3b82f6",
 }: AudioPlayerProps) {
   // ============================================================================
   // STATE & REFS
@@ -34,6 +36,7 @@ export default function AudioPlayer({
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const rotateAnim = React.useRef(new Animated.Value(0)).current;
 
   // ============================================================================
   // EFFECTS
@@ -57,6 +60,10 @@ export default function AudioPlayer({
    * @param shouldAutoPlay - Whether to start playing immediately after loading
    */
   const loadAudio = async (shouldAutoPlay = false) => {
+    if (!audioUrl) {
+      console.warn("AudioPlayer: No audioUrl provided");
+      return;
+    }
     try {
       setIsLoading(true);
       const { sound: newSound } = await Audio.Sound.createAsync(
@@ -146,14 +153,36 @@ export default function AudioPlayer({
     }
   }, [isPlaying, scaleAnim]);
 
+  // Loading spinner rotation
+  React.useEffect(() => {
+    let loop: Animated.CompositeAnimation | undefined;
+    if (isLoading) {
+      rotateAnim.setValue(0);
+      loop = Animated.loop(
+        Animated.timing(rotateAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      );
+      loop.start();
+    }
+    return () => {
+      if (loop) loop.stop();
+    };
+  }, [isLoading, rotateAnim]);
+
   // ============================================================================
   // RENDER
   // ============================================================================
+  const isDisabled = disabled || isLoading || !audioUrl;
+
   return (
     <View style={style}>
       <TouchableOpacity
         onPress={playAudio}
-        disabled={disabled || isLoading}
+        disabled={isDisabled}
         activeOpacity={0.8}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         style={[
@@ -164,19 +193,42 @@ export default function AudioPlayer({
             alignItems: "center",
             justifyContent: "center",
             borderWidth: 1,
-            borderColor: isPlaying ? "#3b82f6" : "#e5e7eb",
-            backgroundColor: isPlaying ? "rgba(59,130,246,0.1)" : "#ffffff",
-            opacity: disabled || isLoading ? 0.5 : 1,
+            borderColor: isPlaying
+              ? iconColor
+              : buttonStyle?.borderColor || "#e5e7eb",
+            backgroundColor: isPlaying
+              ? iconColor === "#ffffff"
+                ? "rgba(255,255,255,0.2)"
+                : "rgba(59,130,246,0.1)"
+              : buttonStyle?.backgroundColor || "#ffffff",
+            opacity: isDisabled ? 0.5 : 1,
           },
           buttonStyle,
         ]}
       >
-        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-          <Ionicons
-            name={isLoading ? "hourglass" : "volume-high"}
-            size={18}
-            color="#3b82f6"
-          />
+        <Animated.View
+          style={{
+            transform: [
+              { scale: scaleAnim },
+              // rotate only while loading
+              ...(isLoading
+                ? [
+                    {
+                      rotate: rotateAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ["0deg", "360deg"],
+                      }),
+                    },
+                  ]
+                : []),
+            ],
+          }}
+        >
+          {isLoading ? (
+            <Loader2 size={18} color={iconColor} />
+          ) : (
+            <Volume2 size={18} color={iconColor} />
+          )}
         </Animated.View>
       </TouchableOpacity>
     </View>
