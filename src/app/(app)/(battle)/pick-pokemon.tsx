@@ -560,6 +560,11 @@ export default function PickPokemonScreen() {
 
     const handleRoundStarting = (payload: any) => {
       console.log("[PICK_POKEMON] round-starting event:", payload);
+      if (payload?.startTime) {
+        const offset = new Date(payload.startTime).getTime() - Date.now();
+        setServerTimeOffset(offset);
+        console.log("[PICK] Sync Offset (STARTING):", offset);
+      }
       if (
         payload?.matchId &&
         payload?.roundNumber &&
@@ -587,12 +592,12 @@ export default function PickPokemonScreen() {
       // Hủy listener này ngay lập tức
       socket.off("round-started", handleRoundStarted);
 
-      // 1. Tính offset
-      if (payload?.startTime) {
-        const offset = new Date(payload.startTime).getTime() - Date.now();
-        setServerTimeOffset(offset);
-        console.log("[PICK_POKEMON] Sync Offset before enter:", offset);
-      }
+      // // 1. Tính offset
+      // if (payload?.startTime) {
+      //   const offset = new Date(payload.startTime).getTime() - Date.now();
+      //   setServerTimeOffset(offset);
+      //   console.log("[PICK_POKEMON] Sync Offset before enter:", offset);
+      // }
 
       // 2. Handover
       setStartRoundPayload(payload);
