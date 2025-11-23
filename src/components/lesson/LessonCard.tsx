@@ -24,7 +24,10 @@ const LessonCard: React.FC<LessonCardProps> = React.memo(
         // Navigate to lesson detail
         router.push({
           pathname: ROUTES.LESSON.DETAIL,
-          params: { id: lesson.lessonId.toString() },
+          params: { 
+            id: lesson.lessonId.toString(),
+            status: lesson.status || "NOT_STARTED",
+          },
         });
       }
     }, [onPress, lesson]);

@@ -626,6 +626,7 @@
         "categories": "レッスンカテゴリ",
         "categories_count": "カテゴリ",
         "contact_admin": "別のレベルを選択するか、管理者に連絡してコンテンツを追加してください",
+        "complete_previous_lesson": "前のレッスンを先に完了する必要があります",
         "level_categories": {
             "title": "学習レベル",
             "n5_basic": "N5 - 基礎",

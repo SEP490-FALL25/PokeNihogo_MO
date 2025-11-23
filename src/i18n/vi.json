@@ -422,6 +422,7 @@
       "in_progress": "Đang học",
       "not_started": "Chưa bắt đầu"
     },
+    "complete_previous_lesson": "Bạn phải hoàn thành bài trước đó trước",
     "lesson_types": {
       "vocabulary": "Từ vựng",
       "grammar": "Ngữ pháp",

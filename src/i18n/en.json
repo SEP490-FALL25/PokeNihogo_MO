@@ -422,6 +422,7 @@
       "in_progress": "In Progress",
       "not_started": "Not Started"
     },
+    "complete_previous_lesson": "You must complete the previous lesson first",
     "lesson_types": {
       "vocabulary": "Vocabulary",
       "grammar": "Grammar",

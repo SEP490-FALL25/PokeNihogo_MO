@@ -274,14 +274,18 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
             const normalizedStatus = (reward.status || "").toUpperCase();
             const isClaimed = normalizedStatus === ExerciseAttemptStatus.COMPLETED;
             const isCurrentStep = rewardStep === currentStep;
-            const isAvailable =
-              !isClaimed &&
-              (normalizedStatus === ExerciseAttemptStatus.IN_PROGRESS ||
-                (completedSteps >= rewardStep - 1 && isCurrentStep));
-            const isLocked = !isClaimed && !isAvailable;
-            const isReached = isClaimed || isCurrentStep;
-            const isSelected = selectedReward?.id === reward.id;
             const isBig = reward.isBigReward;
+            
+            // Logic xử lý: Phần quà cuối (isBigReward) chỉ được nhận khi status là COMPLETED
+            // Status đã được set đúng ở lesson-details, nên chỉ cần check isClaimed
+            const isAvailable = isBig
+              ? isClaimed
+              : !isClaimed &&
+                (normalizedStatus === ExerciseAttemptStatus.IN_PROGRESS ||
+                  (completedSteps >= rewardStep - 1 && isCurrentStep));
+            const isLocked = !isClaimed && !isAvailable;
+            const isReached = isBig ? isClaimed : (isClaimed || isCurrentStep);
+            const isSelected = selectedReward?.id === reward.id;
             const primaryDetail = rewardDetails[0];
             const rewardTitle =
               reward.name ??
