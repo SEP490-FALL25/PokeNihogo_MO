@@ -36,9 +36,9 @@ import { TYPE_MATCHUPS } from "../../../../mock-data/type-matchups";
 const BASE_POINT_PER_QUESTION = 100;
 const MIN_POINT_PER_QUESTION = 50;
 
-interface BattleArenaScreenProps {}
+interface BattleArenaScreenProps { }
 
-export default function BattleArenaScreen({}: BattleArenaScreenProps) {
+export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { t } = useTranslation();
@@ -274,9 +274,9 @@ export default function BattleArenaScreen({}: BattleArenaScreenProps) {
         const parseAnswerText = (a: any) =>
           a.answerJp
             ? a.answerJp
-                .split("+")
-                .find((p: string) => p.startsWith("vi:"))
-                ?.replace("vi:", "") || a.answerJp
+              .split("+")
+              .find((p: string) => p.startsWith("vi:"))
+              ?.replace("vi:", "") || a.answerJp
             : a.answer || a.text || a;
         const opts = ans.map(parseAnswerText);
 
@@ -411,7 +411,7 @@ export default function BattleArenaScreen({}: BattleArenaScreenProps) {
       (r) =>
         r.roundNumber === roundNumber ||
         matchRound.rounds.indexOf(r) ===
-          (roundNumber === "ONE" ? 0 : roundNumber === "TWO" ? 1 : 2)
+        (roundNumber === "ONE" ? 0 : roundNumber === "TWO" ? 1 : 2)
     );
     if (!round) return null;
     const participant = round.participants.find(
@@ -440,7 +440,7 @@ export default function BattleArenaScreen({}: BattleArenaScreenProps) {
       (r) =>
         r.roundNumber === roundNumber ||
         matchRound.rounds.indexOf(r) ===
-          (roundNumber === "ONE" ? 0 : roundNumber === "TWO" ? 1 : 2)
+        (roundNumber === "ONE" ? 0 : roundNumber === "TWO" ? 1 : 2)
     );
     if (!round) return null;
     const participant = round.participants.find(
@@ -517,11 +517,11 @@ export default function BattleArenaScreen({}: BattleArenaScreenProps) {
     const opponentStrong =
       TYPE_MATCHUPS[opponentType as keyof typeof TYPE_MATCHUPS]
         ?.strongAgainst || [];
-    if (playerStrong.includes(opponentType)) {
+    if (playerStrong.includes(opponentType as never)) {
       setTypeAdvantage("player");
       setShowFog(true);
       setTimeout(() => setShowFog(false), 2000);
-    } else if (opponentStrong.includes(playerType)) {
+    } else if (opponentStrong.includes(playerType as never)) {
       setTypeAdvantage("opponent");
       setShowConfusion(true);
       setTimeout(() => setShowConfusion(false), 2000);
@@ -665,7 +665,7 @@ export default function BattleArenaScreen({}: BattleArenaScreenProps) {
                   isWaitingForOpponent
                     ? "#fbbf24"
                     : questionTimeRemaining !== null &&
-                        questionTimeRemaining < 10
+                      questionTimeRemaining < 10
                       ? "#ef4444"
                       : "#64748b"
                 }
@@ -675,7 +675,7 @@ export default function BattleArenaScreen({}: BattleArenaScreenProps) {
                   color: isWaitingForOpponent
                     ? "#fbbf24"
                     : questionTimeRemaining !== null &&
-                        questionTimeRemaining < 10
+                      questionTimeRemaining < 10
                       ? "#ef4444"
                       : "#94a3b8",
                 }}
@@ -749,7 +749,7 @@ export default function BattleArenaScreen({}: BattleArenaScreenProps) {
 
           {/* Content */}
           {(!roundStarted && !currentQuestion) ||
-          (roundStarted && !currentQuestion && !isWaitingForOpponent) ? (
+            (roundStarted && !currentQuestion && !isWaitingForOpponent) ? (
             <View className="flex-1 justify-center items-center bg-black/40 rounded-2xl p-6">
               <ActivityIndicator size="large" color="#22d3ee" />
               <ThemedText className="text-gray-400 mt-4 font-bold">
@@ -815,8 +815,8 @@ export default function BattleArenaScreen({}: BattleArenaScreenProps) {
                           key={idx}
                           style={
                             typeAdvantage === "opponent" &&
-                            !isAnswerSubmitted &&
-                            roundStarted
+                              !isAnswerSubmitted &&
+                              roundStarted
                               ? { transform: [{ translateX: shakeAnimation }] }
                               : {}
                           }

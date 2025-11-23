@@ -1,7 +1,7 @@
 import { CountdownTimer } from "@components/atoms/CountdownTimer";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { ThemedText } from "@components/ThemedText";
-import { useUserStatsSeason, SeasonResponseType } from "@hooks/useSeason";
+import { useUserStatsSeason } from "@hooks/useSeason";
 import { Crown, Info } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,11 +13,9 @@ interface SeasonInfoProps {
 }
 
 const DEFAULT_RANK_RULES: RankRule[] = [
-    { name: "N5", min: 0, max: 999 },
-    { name: "N4", min: 1000, max: 1499 },
+    { name: "N5", min: 0, max: 1000 },
+    { name: "N4", min: 1001, max: 1499 },
     { name: "N3", min: 1500, max: 1899 },
-    { name: "N2", min: 1900, max: 2199 },
-    { name: "N1", min: 2200, max: null },
 ];
 
 export default function SeasonInfo({ insetsTop }: SeasonInfoProps) {
