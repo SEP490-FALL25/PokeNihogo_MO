@@ -1,7 +1,6 @@
 import DiscomfortVision from "@components/atoms/DiscomfortVision";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { HapticPressable } from "@components/HapticPressable";
-import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { getSocket } from "@configs/socket";
 import useAuth from "@hooks/useAuth";
@@ -29,6 +28,7 @@ import {
   Image,
   ImageBackground,
   StyleSheet,
+  Text,
   View,
 } from "react-native";
 import { TYPE_MATCHUPS } from "../../../../mock-data/type-matchups";
@@ -613,11 +613,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
         >
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#22d3ee" />
-            <ThemedText
-              style={{ color: "#93c5fd", marginTop: 16, fontSize: 16 }}
-            >
+            <Text className="text-white text-center text-lg font-bold">
               {t("battle.arena.loading_match_info")}
-            </ThemedText>
+            </Text>
           </View>
         </ImageBackground>
       </ThemedView>
@@ -646,13 +644,13 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
           {/* Header */}
           <View className="flex-row justify-between mb-4">
             <View className="flex-row gap-3 items-center">
-              <ThemedText className="text-yellow-400 font-bold text-xl">
+              <Text className="text-yellow-400 font-bold text-xl">
                 {t("battle.arena.title")}
-              </ThemedText>
+              </Text>
               <View className="px-3 py-1 bg-cyan-500/20 border border-cyan-500/40 rounded-full">
-                <ThemedText className="text-cyan-400 font-bold text-xs">
+                <Text className="text-white font-bold text-xs">
                   {t("battle.arena.round", { round: currentRound })}
-                </ThemedText>
+                </Text>
               </View>
             </View>
             <View className="flex-row gap-2 items-center">
@@ -670,7 +668,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                       : "#64748b"
                 }
               />
-              <ThemedText
+              <Text
                 style={{
                   color: isWaitingForOpponent
                     ? "#fbbf24"
@@ -685,7 +683,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                   : questionTimeRemaining !== null
                     ? `${Math.floor(questionTimeRemaining / 60)}:${String(questionTimeRemaining % 60).padStart(2, "0")}`
                     : t("battle.arena.turn", { turn: currentTurn })}
-              </ThemedText>
+              </Text>
             </View>
           </View>
 
@@ -699,14 +697,14 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                   resizeMode="contain"
                 />
               )}
-              <ThemedText className="text-gray-200 font-bold mt-2">
+              <Text className="text-gray-200 font-bold mt-2">
                 {t("battle.arena.opponent_label")}
-              </ThemedText>
+              </Text>
             </View>
             <View className="px-4 py-2 bg-black/70 rounded-full mx-4">
-              <ThemedText className="text-white font-bold">
+              <Text className="text-white font-bold">
                 {t("battle.arena.vs")}
-              </ThemedText>
+              </Text>
             </View>
             <View className="items-center flex-1">
               {playerPokemon?.pokemon?.imageUrl && (
@@ -716,9 +714,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                   resizeMode="contain"
                 />
               )}
-              <ThemedText className="text-gray-200 font-bold mt-2">
+              <Text className="text-gray-200 font-bold mt-2">
                 {t("battle.arena.you_label")}
-              </ThemedText>
+              </Text>
             </View>
           </View>
 
@@ -731,16 +729,16 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 {typeAdvantage === "player" ? (
                   <>
                     <Zap size={16} color="#86efac" />
-                    <ThemedText className="text-green-300 font-bold text-xs">
+                    <Text className="text-green-300 font-bold text-xs">
                       {t("battle.arena.type_advantage_player")}
-                    </ThemedText>
+                    </Text>
                   </>
                 ) : (
                   <>
                     <Shield size={16} color="#fca5a5" />
-                    <ThemedText className="text-red-300 font-bold text-xs">
+                    <Text className="text-red-300 font-bold text-xs">
                       {t("battle.arena.type_advantage_opponent")}
-                    </ThemedText>
+                    </Text>
                   </>
                 )}
               </View>
@@ -752,16 +750,16 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             (roundStarted && !currentQuestion && !isWaitingForOpponent) ? (
             <View className="flex-1 justify-center items-center bg-black/40 rounded-2xl p-6">
               <ActivityIndicator size="large" color="#22d3ee" />
-              <ThemedText className="text-gray-400 mt-4 font-bold">
+              <Text className="text-gray-400 mt-4 font-bold">
                 {t("battle.arena.waiting_round_start")}
-              </ThemedText>
+              </Text>
             </View>
           ) : isWaitingForOpponent ? (
             <View className="flex-1 justify-center items-center bg-black/40 rounded-2xl p-6">
               <ActivityIndicator size="large" color="#fbbf24" />
-              <ThemedText className="text-yellow-400 mt-4 font-bold">
+              <Text className="text-yellow-400 mt-4 font-bold">
                 {t("battle.arena.waiting_opponent_complete")}
-              </ThemedText>
+              </Text>
             </View>
           ) : (
             <DiscomfortVision
@@ -773,21 +771,21 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                 style={{ borderRadius: 24, padding: 2 }}
               >
                 <View className="bg-black/40 rounded-2xl p-6">
-                  <ThemedText className="text-yellow-400 font-bold text-sm mb-2">
+                  <Text className="text-yellow-400 font-bold text-sm mb-2">
                     {t("battle.arena.question_label")}
-                  </ThemedText>
-                  <ThemedText className="text-white text-lg font-bold mb-4 leading-7">
+                  </Text>
+                  <Text className="text-white text-lg font-bold mb-4 leading-7">
                     {currentQuestion?.question}
-                  </ThemedText>
+                  </Text>
 
                   <View className="mb-6">
                     <View className="flex-row justify-between mb-2">
-                      <ThemedText className="text-gray-400 font-bold">
+                      <Text className="text-gray-400 font-bold">
                         {t("battle.arena.points_this_turn")}
-                      </ThemedText>
-                      <ThemedText className="text-yellow-400 font-bold">
+                      </Text>
+                      <Text className="text-yellow-400 font-bold">
                         {currentQuestionPoints}
-                      </ThemedText>
+                      </Text>
                     </View>
                     <View className="h-2.5 bg-gray-700/50 rounded-full overflow-hidden">
                       <Animated.View
@@ -826,11 +824,11 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                             disabled={isAnswerSubmitted}
                             className={`p-4 rounded-2xl border-2 flex-row justify-between items-center ${showFeedback ? (isCorrect ? "border-green-500 bg-green-500/20" : "border-red-500 bg-red-500/20") : isSelected ? "border-cyan-400 bg-cyan-500/20" : "border-white/20 bg-white/5"}`}
                           >
-                            <ThemedText
+                            <Text
                               className={`font-bold flex-1 ${showFeedback ? (isCorrect ? "text-green-300" : isWrong ? "text-red-300" : "text-gray-200") : "text-gray-200"}`}
                             >
                               {opt}
-                            </ThemedText>
+                            </Text>
                             {showFeedback &&
                               (isCorrect ? (
                                 <CheckCircle size={24} color="#22c55e" />
@@ -852,9 +850,9 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                         colors={["#22c55e", "#16a34a"]}
                         style={{ paddingVertical: 16 }}
                       >
-                        <ThemedText className="text-white font-bold text-center text-base">
+                        <Text className="text-white font-bold text-center text-base">
                           {t("battle.arena.confirm_button")}
-                        </ThemedText>
+                        </Text>
                       </TWLinearGradient>
                     </HapticPressable>
                   )}
