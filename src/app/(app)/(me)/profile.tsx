@@ -11,11 +11,13 @@ import { formatDateToMMYYYY } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import {
+  Award,
   BookOpen,
   Calendar,
   ChevronRight,
   Cog,
   Crown,
+  Gift,
   History,
   Shield,
   Sparkles,
@@ -435,6 +437,44 @@ export default function ProfileScreen() {
                   <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('exercise_history.title')}</Text>
                   <Text className="text-sm font-semibold text-slate-500 tracking-wide">
                     {t('exercise_history.subtitle')}
+                  </Text>
+                </View>
+
+                <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center">
+                  <ChevronRight size={20} color="#64748b" strokeWidth={2.8} />
+                </View>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Reward History Card */}
+          <TouchableOpacity
+            onPress={() => router.push(ROUTES.ME.REWARD_HISTORY)}
+            activeOpacity={0.7}
+            className="mb-6"
+          >
+            <LinearGradient
+              colors={['#ffffff', '#fefefe']}
+              style={styles.collectionCard}
+              className="p-6 rounded-3xl overflow-hidden shadow-lg"
+            >
+              {/* Decorative Element */}
+              <View className="absolute -top-10 -right-10 w-35 h-35 rounded-full bg-purple-50 opacity-40" />
+
+              {/* Header */}
+              <View className="flex-row items-center mb-5">
+                <LinearGradient
+                  colors={['#a855f7', '#9333ea']}
+                  style={styles.collectionIconContainer}
+                  className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
+                >
+                  <Gift size={24} color="white" strokeWidth={2.5} />
+                </LinearGradient>
+
+                <View className="flex-1">
+                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('reward_history.title')}</Text>
+                  <Text className="text-sm font-semibold text-slate-500 tracking-wide">
+                    {t('reward_history.subtitle')}
                   </Text>
                 </View>
 

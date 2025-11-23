@@ -1168,6 +1168,31 @@
     "hours_ago": "{{hours}} giờ trước",
     "days_ago": "{{days}} ngày trước"
   },
+  "reward_history": {
+    "title": "Lịch sử nhận thưởng",
+    "subtitle": "Xem lại các phần thưởng đã nhận",
+    "statistics": "Thống kê",
+    "total_rewards": "Tổng phần thưởng",
+    "total_exp": "Tổng EXP",
+    "reward_received": "Đã nhận phần thưởng",
+    "reward_type": "Loại phần thưởng",
+    "reward_item": "Số lượng",
+    "empty_title": "Chưa có phần thưởng nào",
+    "empty_description": "Bạn chưa nhận được phần thưởng nào. Hãy hoàn thành bài học và bài tập để nhận phần thưởng!",
+    "load_error": "Không thể tải lịch sử phần thưởng",
+    "retry": "Thử lại",
+    "just_now": "Vừa xong",
+    "minutes_ago": "{{minutes}} phút trước",
+    "hours_ago": "{{hours}} giờ trước",
+    "days_ago": "{{days}} ngày trước",
+    "source": {
+      "exercise": "Bài tập",
+      "lesson": "Bài học",
+      "test": "Bài kiểm tra",
+      "daily_login": "Đăng nhập hàng ngày",
+      "achievement": "Thành tích"
+    }
+  },
   "achievements": {
     "title": "Sổ tay Thành tích",
     "loading": "Đang tải danh sách thành tích...",

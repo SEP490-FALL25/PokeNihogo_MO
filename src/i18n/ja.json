@@ -1051,6 +1051,31 @@
             "skipped": "スキップ"
         }
     },
+    "reward_history": {
+        "title": "報酬履歴",
+        "subtitle": "受け取った報酬を確認",
+        "statistics": "統計",
+        "total_rewards": "総報酬数",
+        "total_exp": "総EXP",
+        "reward_received": "報酬を受け取りました",
+        "reward_type": "報酬タイプ",
+        "reward_item": "数量",
+        "empty_title": "まだ報酬がありません",
+        "empty_description": "まだ報酬を受け取っていません。レッスンや練習を完了して報酬を獲得しましょう！",
+        "load_error": "報酬履歴を読み込めませんでした",
+        "retry": "再試行",
+        "just_now": "たった今",
+        "minutes_ago": "{{minutes}}分前",
+        "hours_ago": "{{hours}}時間前",
+        "days_ago": "{{days}}日前",
+        "source": {
+            "exercise": "練習",
+            "lesson": "レッスン",
+            "test": "テスト",
+            "daily_login": "デイリーログイン",
+            "achievement": "実績"
+        }
+    },
     "dictionary": {
         "title": "辞書",
         "search_placeholder": "単語、漢字、フレーズを検索...",
