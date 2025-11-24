@@ -52,7 +52,7 @@ export default function BattleLobbyScreen() {
   });
   const queueMessages =
     Array.isArray(queueMessagesTranslation) &&
-    queueMessagesTranslation.length > 0
+      queueMessagesTranslation.length > 0
       ? (queueMessagesTranslation as string[])
       : [t("battle.lobby.queue_status.searching")];
   const [showHistory, setShowHistory] = useState(false);
@@ -89,6 +89,9 @@ export default function BattleLobbyScreen() {
   const hasCheckedMatchTracking = useRef(false);
   const lastProcessedMatchId = useRef<number | null>(null);
   const lastProcessedStatus = useRef<string | null>(null);
+
+  // [FIX 1] Cờ chặn update: Mặc định là TRUE để chặn ngay khi component mount
+  const isBlockingUpdates = useRef(true);
 
   const shimmer = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -191,7 +194,7 @@ export default function BattleLobbyScreen() {
       t("battle.lobby.alerts.rank_info_title"),
       t("battle.lobby.alerts.rank_info_message")
     );
-  const handleSeasonEndedContinue = () => {};
+  const handleSeasonEndedContinue = () => { };
 
   const handleClaimRewardComplete = async () => {
     setShowSeasonEndedModal(false);
@@ -243,7 +246,8 @@ export default function BattleLobbyScreen() {
       data: IBattleMatchTrackingResponse | undefined,
       forceProcess: boolean = false
     ) => {
-      if (!data) return;
+      // [FIX 2] Nếu cờ chặn đang bật, TUYỆT ĐỐI KHÔNG XỬ LÝ (tránh hiện modal do data cũ)
+      if (!data || isBlockingUpdates.current) return;
 
       const currentMatchId = data.matchId || data.match?.id;
       const currentStatus = data.type;
@@ -286,7 +290,6 @@ export default function BattleLobbyScreen() {
 
       switch (data.type) {
         case BATTLE_STATUS.MATCH_TRACKING_STATUS.MATCH_FOUND:
-          // ... (giữ nguyên logic match found)
           if (
             data.match &&
             data.opponent &&
@@ -323,14 +326,12 @@ export default function BattleLobbyScreen() {
           }
           break;
 
-        // 🔥 FIX: Gộp ROUND_STARTING vào case Pick Pokemon
         case BATTLE_STATUS.MATCH_TRACKING_STATUS.ROUND_STARTING:
         case BATTLE_STATUS.MATCH_TRACKING_STATUS.ROUND_SELECTING_POKEMON:
         case BATTLE_STATUS.MATCH_TRACKING_STATUS.BETWEEN_ROUNDS:
           const pickPokemonMatchId = data.matchId || data.match?.id;
           if (!pickPokemonMatchId) break;
 
-          // 🔥 FIX: Lấy roundNumber để truyền sang Pick Screen (có thể dùng để hiển thị)
           const pickRoundNumber =
             (data as any).round?.roundNumber || data.roundNumber || "ONE";
 
@@ -346,12 +347,14 @@ export default function BattleLobbyScreen() {
             });
           }
 
-          // 🔥 Trao tay dữ liệu (quan trọng cho ROUND_STARTING)
           setStartRoundPayload(data);
 
           setInQueue(false);
           setGlobalInQueue(false);
+          setShowAcceptModal(false);
+          setMatchedPlayer(null);
           hideGlobalMatchFound();
+
           queryClient.invalidateQueries({ queryKey: ["list-match-round"] });
           queryClient.invalidateQueries({
             queryKey: ["list-user-pokemon-round"],
@@ -361,7 +364,7 @@ export default function BattleLobbyScreen() {
             pathname: ROUTES.APP.PICK_POKEMON,
             params: {
               matchId: String(pickPokemonMatchId),
-              roundNumber: pickRoundNumber, // Truyền thêm roundNumber
+              roundNumber: pickRoundNumber,
             },
           });
           break;
@@ -370,7 +373,6 @@ export default function BattleLobbyScreen() {
           const arenaMatchId = data.matchId || data.match?.id;
           if (!arenaMatchId) break;
 
-          // 🔥 FIX: Lấy roundNumber chính xác
           const arenaRoundNumber =
             (data as any).round?.roundNumber || data.roundNumber || "ONE";
 
@@ -385,14 +387,17 @@ export default function BattleLobbyScreen() {
 
           setInQueue(false);
           setGlobalInQueue(false);
+          setShowAcceptModal(false);
+          setMatchedPlayer(null);
           hideGlobalMatchFound();
+
           queryClient.invalidateQueries({ queryKey: ["list-match-round"] });
 
           router.replace({
             pathname: ROUTES.APP.ARENA,
             params: {
               matchId: String(arenaMatchId),
-              roundNumber: arenaRoundNumber, // Truyền đúng Round Number
+              roundNumber: arenaRoundNumber,
             },
           });
           break;
@@ -419,9 +424,6 @@ export default function BattleLobbyScreen() {
     ]
   );
 
-  // ... (Giữ nguyên các phần còn lại của file battle.tsx)
-  // ... (checkMatchTrackingAndNavigate, useFocusEffect, useEffects...)
-
   const checkMatchTrackingAndNavigate = useCallback(() => {
     if (hasCheckedMatchTracking.current) return;
     if (responseType !== "ACTIVE" || isLoadingSeason || isLoadingMatchTracking)
@@ -446,44 +448,10 @@ export default function BattleLobbyScreen() {
   const hasInitializedSeasonCheck = useRef(false);
   const isBattleScreenFocused = useRef(false);
 
+  // --- [FIX 3] useEffect thông thường cũng phải tuân thủ cờ chặn ---
   useEffect(() => {
-    if (
-      !isLoadingSeason &&
-      responseType === "ACTIVE" &&
-      !isLoadingMatchTracking &&
-      isBattleScreenFocused.current
-    ) {
-      if (hasCheckedMatchTracking.current)
-        hasCheckedMatchTracking.current = false;
-      const checkMatchStatus = async () => {
-        if (hasCheckedMatchTracking.current) return;
-        try {
-          hasCheckedMatchTracking.current = true;
-          const trackingResult = await refetchMatchTracking();
-          const data = trackingResult.data?.data?.data as
-            | IBattleMatchTrackingResponse
-            | undefined;
-          if (data) handleMatchTrackingData(data, true);
-          setTimeout(() => {
-            hasCheckedMatchTracking.current = false;
-          }, 1000);
-        } catch (error) {
-          hasCheckedMatchTracking.current = false;
-        }
-      };
-      const timer = setTimeout(checkMatchStatus, 300);
-      return () => clearTimeout(timer);
-    }
-    if (responseType !== "ACTIVE") hasInitializedSeasonCheck.current = false;
-  }, [
-    isLoadingSeason,
-    responseType,
-    isLoadingMatchTracking,
-    refetchMatchTracking,
-    handleMatchTrackingData,
-  ]);
+    if (isBlockingUpdates.current) return; // Chặn ngay!
 
-  useEffect(() => {
     if (
       matchTrackingData &&
       responseType === "ACTIVE" &&
@@ -520,14 +488,32 @@ export default function BattleLobbyScreen() {
     handleMatchTrackingData,
   ]);
 
+  // --- [FIX 4] useFocusEffect: LOGIC QUAN TRỌNG NHẤT ---
   useFocusEffect(
     useCallback(() => {
+      console.log("BattleLobby FOCUSED -> Resetting State & Refetching...");
+      
+      // 1. CHẶN NGAY LẬP TỨC
+      isBlockingUpdates.current = true;
       isBattleScreenFocused.current = true;
+
+      // 2. Dọn dẹp UI ngay lập tức
+      setShowAcceptModal(false);
+      setMatchedPlayer(null);
+      setInQueue(false);
+      setGlobalInQueue(false);
+
+      // 3. Xóa cache cũ để React Query không trả về data "Match Found" của trận trước
+      queryClient.removeQueries({ queryKey: ["match-tracking"] });
+      queryClient.removeQueries({ queryKey: ["battle-tracking"] }); // remove cả key dự phòng nếu có
+
+      // 4. Reset các ref kiểm tra
       hasCheckedMatchTracking.current = false;
       lastProcessedMatchId.current = null;
       lastProcessedStatus.current = null;
 
       const checkAndNavigate = async () => {
+        // Đợi một chút nếu season chưa load xong (vẫn giữ trạng thái Block)
         if (responseType !== "ACTIVE" || isLoadingSeason) {
           const retryTimer = setTimeout(async () => {
             if (
@@ -544,32 +530,49 @@ export default function BattleLobbyScreen() {
       };
 
       const performCheck = async () => {
-        if (hasCheckedMatchTracking.current || responseType !== "ACTIVE")
-          return;
         try {
           hasCheckedMatchTracking.current = true;
+          
+          // 5. Gọi API lấy dữ liệu MỚI
           const trackingResult = await refetchMatchTracking();
           const data = trackingResult.data?.data?.data as
             | IBattleMatchTrackingResponse
             | undefined;
-          if (data) handleMatchTrackingData(data, true);
+          
+          // 6. MỞ CỔNG: Chỉ sau khi API có kết quả mới thì mới cho phép xử lý
+          console.log("Refetch done. Unblocking updates.");
+          isBlockingUpdates.current = false; 
+
+          if (data) {
+             handleMatchTrackingData(data, true);
+          }
+          
           setTimeout(() => {
             hasCheckedMatchTracking.current = false;
           }, 2000);
         } catch (error) {
-          hasCheckedMatchTracking.current = false;
+           // Mở cổng kể cả khi lỗi để user không bị treo
+           console.log("Refetch failed. Unblocking updates.");
+           isBlockingUpdates.current = false;
+           hasCheckedMatchTracking.current = false;
         }
       };
 
       checkAndNavigate();
+
       return () => {
+        // [FIX 5] Khi rời màn hình (Blur), đóng cổng lại ngay!
+        console.log("BattleLobby BLURRED -> Blocking updates.");
         isBattleScreenFocused.current = false;
+        isBlockingUpdates.current = true; 
+        setShowAcceptModal(false); 
       };
     }, [
       responseType,
       isLoadingSeason,
       refetchMatchTracking,
       handleMatchTrackingData,
+      queryClient,
     ])
   );
 
@@ -601,6 +604,9 @@ export default function BattleLobbyScreen() {
     socketRef.current = socket;
 
     const onMatchingEvent = async (payload: any) => {
+      // [FIX 6] Socket cũng phải tôn trọng cờ chặn
+      if (isBlockingUpdates.current) return;
+
       if (payload?.type === BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_FOUND) {
         const match = payload?.match;
         if (match && "opponent" in payload) {
@@ -625,7 +631,7 @@ export default function BattleLobbyScreen() {
           hideGlobalMatchFound();
           try {
             clearLastMatchResult();
-          } catch (e) {}
+          } catch (e) { }
           queryClient.invalidateQueries({ queryKey: ["list-match-round"] });
           queryClient.invalidateQueries({
             queryKey: ["list-user-pokemon-round"],
@@ -660,8 +666,8 @@ export default function BattleLobbyScreen() {
           Alert.alert(
             t("common.error"),
             payload.reason ||
-              payload.message ||
-              t("battle.lobby.alerts.queue_error_message")
+            payload.message ||
+            t("battle.lobby.alerts.queue_error_message")
           );
       }
     };
@@ -680,7 +686,7 @@ export default function BattleLobbyScreen() {
             params: { matchId: String(matchId) },
           } as any);
         }
-      } catch (e) {}
+      } catch (e) { }
     };
     socket.on("match-completed", onMatchCompleted);
 

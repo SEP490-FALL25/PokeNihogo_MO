@@ -139,11 +139,19 @@ export default function BattleResultScreen() {
         return result;
     }, [lastResult, currentUserId, matchIdParam, t]);
 
-    const handleBack = () => {
-        try { clearLast(); } catch { }
-        // Invalidate query tags for user battle stats
-        queryClient.invalidateQueries({ queryKey: ['user-matching-history'] });
-        queryClient.invalidateQueries({ queryKey: ['user-stats-season'] });
+    const handleBack = async () => {
+        try { clearLast(); } catch { /* noop */ }
+
+        try {
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['user-matching-history'] }),
+                queryClient.refetchQueries({ queryKey: ['user-stats-season'], type: 'all' }),
+                queryClient.removeQueries({ queryKey: ['leaderboard'] }),
+            ]);
+        } catch (error) {
+            console.warn('[BattleResult] Failed to refresh battle queries', error);
+        }
+
         // Navigate directly to battle tab instead of using router.back()
         router.replace(ROUTES.TABS.BATTLE);
     };
@@ -170,7 +178,7 @@ export default function BattleResultScreen() {
                         <ThemedText style={{ color: "#94a3b8", fontSize: 14, textAlign: "center", marginBottom: 24 }}>
                             {t("battle.result.loading_subtitle")}
                         </ThemedText>
-                        <ThemedText onPress={handleBack} style={{ color: "#93c5fd", fontSize: 14, textDecorationLine: "underline" }}>
+                        <ThemedText onPress={() => { void handleBack(); }} style={{ color: "#93c5fd", fontSize: 14, textDecorationLine: "underline" }}>
                             {t("battle.result.back_to_home")}
                         </ThemedText>
                     </View>
@@ -353,7 +361,7 @@ export default function BattleResultScreen() {
 
                     {/* Footer actions */}
                     <View className="items-center mt-8">
-                        <Pressable onPress={handleBack} style={{ borderRadius: 999, overflow: "hidden" }}>
+                        <Pressable onPress={() => { void handleBack(); }} style={{ borderRadius: 999, overflow: "hidden" }}>
                             <TWLinearGradient
                                 colors={["#06b6d4", "#3b82f6"]}
                                 start={{ x: 0, y: 0 }}

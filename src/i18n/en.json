@@ -350,7 +350,39 @@
         "add_question_description": "+{{value}} questions",
         "decrease_point_description": "-{{value}} points per question",
         "discomfort_vision_description": "Blurred vision",
-        "next_turn_warning": "Next turn you will be affected by debuff: {{debuff}}"
+        "next_turn_warning": "Next turn you will be affected by debuff: {{debuff}}",
+        "next_turn_warning_label": "Incoming debuff",
+        "next_turn_warning_generic": "Next turn you will receive an opponent debuff."
+      }
+    },
+    "pick": {
+      "title": "PICK PHASE",
+      "round_indicator": "Round {{current}}/{{total}}",
+      "vs": "VS",
+      "opponent_label": "Opponent",
+      "opponent_label_with_name": "Opponent ({{name}})",
+      "you_label": "You",
+      "loading_match": "Loading match info...",
+      "loading_pokemon": "Loading Pokémon...",
+      "empty_by_type": "You don't have Pokémon of {{type}} type",
+      "empty_default": "No Pokémon available",
+      "filters": {
+        "elemental_fallback": "Elemental"
+      },
+      "status": {
+        "opponent_turn": "SELECTING",
+        "player_turn": "PICK NOW",
+        "selection_badge": "Selecting",
+        "picked_badge": "Picked"
+      },
+      "primary_button": {
+        "pick": "Pick",
+        "wait": "Wait for your turn"
+      },
+      "alerts": {
+        "pokemon_chosen_title": "Pokémon already picked",
+        "pokemon_chosen_message": "Please choose another Pokémon because it has already been selected.",
+        "choose_error": "Unable to pick Pokémon. Please try again."
       }
     },
     "result": {

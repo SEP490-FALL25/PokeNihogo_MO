@@ -23,12 +23,13 @@ export const useListMatchRound = (matchId?: string | number) => {
 /**
  * List user pokemon round
  * @param typeId Type ID
+ * @param matchId Current match identifier to bust cache between matches
  * @returns List user pokemon round data
  */
-export const useListUserPokemonRound = (typeId: number) => {
+export const useListUserPokemonRound = (typeId: number, matchId?: string | number) => {
     const language = useGlobalStore((state) => state.language);
     const { data, isLoading, isError } = useQuery({
-        queryKey: ['list-user-pokemon-round', language, typeId],
+        queryKey: ['list-user-pokemon-round', language, typeId, matchId ?? 'global'],
         queryFn: () => battleService.getListUserPokemonRound(typeId),
         refetchOnMount: false,
         refetchOnWindowFocus: false,
