@@ -441,7 +441,7 @@ export default function PickPokemonScreen() {
     if (!elemental) return "";
     return (
       elemental.display_name?.[
-        language as keyof typeof elemental.display_name
+      language as keyof typeof elemental.display_name
       ] ||
       elemental.display_name?.vi ||
       elemental.display_name?.en ||
@@ -537,7 +537,6 @@ export default function PickPokemonScreen() {
     if (!accessToken || !matchId) return;
 
     const socket = getSocket("matching", accessToken);
-    console.log("[PICK_POKEMON] Joining matching rooms, matchId:", matchId);
     socket.emit("join-matching-room", { matchId });
     socket.emit("join-user-match-room", { matchId });
 
@@ -559,11 +558,9 @@ export default function PickPokemonScreen() {
     };
 
     const handleRoundStarting = (payload: any) => {
-      console.log("[PICK_POKEMON] round-starting event:", payload);
       if (payload?.startTime) {
         const offset = new Date(payload.startTime).getTime() - Date.now();
         setServerTimeOffset(offset);
-        console.log("[PICK] Sync Offset (STARTING):", offset);
       }
       if (
         payload?.matchId &&
@@ -584,20 +581,14 @@ export default function PickPokemonScreen() {
 
     // 🔥 QUAN TRỌNG: ĐỊNH NGHĨA HANDLER RIÊNG
     const handleRoundStarted = (payload: any) => {
-      console.log(
-        "[PICK_POKEMON] 🔥 Socket received round-started -> NAVIGATING NOW:",
-        payload
-      );
-
       // Hủy listener này ngay lập tức
       socket.off("round-started", handleRoundStarted);
 
-      // // 1. Tính offset
-      // if (payload?.startTime) {
-      //   const offset = new Date(payload.startTime).getTime() - Date.now();
-      //   setServerTimeOffset(offset);
-      //   console.log("[PICK_POKEMON] Sync Offset before enter:", offset);
-      // }
+      // 1. Tính offset
+      if (payload?.startTime) {
+        const offset = new Date(payload.startTime).getTime() - Date.now();
+        setServerTimeOffset(offset);
+      }
 
       // 2. Handover
       setStartRoundPayload(payload);
@@ -976,11 +967,10 @@ export default function PickPokemonScreen() {
                 <HapticPressable
                   key={elem?.id}
                   onPress={() => setTypeId(elem?.id)}
-                  className={`px-4 py-2 rounded-full border ${
-                    elem?.id === typeId
-                      ? "border-cyan-400 bg-cyan-500/20"
-                      : "border-white/20 bg-white/5"
-                  }`}
+                  className={`px-4 py-2 rounded-full border ${elem?.id === typeId
+                    ? "border-cyan-400 bg-cyan-500/20"
+                    : "border-white/20 bg-white/5"
+                    }`}
                 >
                   <ThemedText
                     style={{
@@ -1014,11 +1004,10 @@ export default function PickPokemonScreen() {
                         currentTypeFilter === type ? null : type
                       )
                     }
-                    className={`px-4 py-2 rounded-full border ${
-                      currentTypeFilter === type
-                        ? "border-cyan-400 bg-cyan-500/20"
-                        : "border-white/20 bg-white/5"
-                    }`}
+                    className={`px-4 py-2 rounded-full border ${currentTypeFilter === type
+                      ? "border-cyan-400 bg-cyan-500/20"
+                      : "border-white/20 bg-white/5"
+                      }`}
                   >
                     <ThemedText
                       style={{
@@ -1044,11 +1033,10 @@ export default function PickPokemonScreen() {
               disabled={
                 choosePokemonMutation.isPending || !battleContext?.isPlayerTurn
               }
-              className={`w-full py-4 rounded-xl border-2 items-center justify-center ${
-                battleContext?.isPlayerTurn && !choosePokemonMutation.isPending
-                  ? "bg-green-500/20 border-green-500"
-                  : "bg-gray-500/20 border-gray-500"
-              }`}
+              className={`w-full py-4 rounded-xl border-2 items-center justify-center ${battleContext?.isPlayerTurn && !choosePokemonMutation.isPending
+                ? "bg-green-500/20 border-green-500"
+                : "bg-gray-500/20 border-gray-500"
+                }`}
             >
               {choosePokemonMutation.isPending ? (
                 <ActivityIndicator size="small" color="#86efac" />
@@ -1111,13 +1099,11 @@ export default function PickPokemonScreen() {
                     className="relative"
                   >
                     <View
-                      className={`w-32 h-44 rounded-3xl overflow-hidden border-white/20 ${
-                        isSelected ? "opacity-50" : "opacity-100"
-                      } ${
-                        isCurrentlySelected
+                      className={`w-32 h-44 rounded-3xl overflow-hidden border-white/20 ${isSelected ? "opacity-50" : "opacity-100"
+                        } ${isCurrentlySelected
                           ? "scale-105 border-green-400 border-2"
                           : "scale-100"
-                      }`}
+                        }`}
                       style={{ borderWidth: isCurrentlySelected ? 2 : 1 }}
                     >
                       <TWLinearGradient
