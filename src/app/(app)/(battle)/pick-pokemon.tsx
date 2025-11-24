@@ -64,7 +64,7 @@ export default function PickPokemonScreen() {
   const {
     data: listUserPokemonRound,
     isLoading: isLoadingListUserPokemonRound,
-  } = useListUserPokemonRound(typeId);
+  } = useListUserPokemonRound(typeId, matchId);
 
   const setStartRoundPayload = useMatchingStore((s) => s.setStartRoundPayload);
   const setServerTimeOffset = useMatchingStore((s) => s.setServerTimeOffset);
