@@ -59,7 +59,10 @@ const Input = React.forwardRef<TextInput, InputProps>(
     ref
   ) => {
     const [showPassword, setShowPassword] = React.useState(false);
-    const activeVariant = error ? 'destructive' : variant;
+    // Khi variant là 'original', giữ variant để text color luôn là màu tối
+    // Chỉ đổi container variant để hiển thị border đỏ khi có lỗi
+    const containerVariant = error && variant !== 'original' ? 'destructive' : variant;
+    const textVariant = variant === 'original' ? 'original' : (error ? 'destructive' : variant);
 
     return (
       <View style={[{ marginBottom: 16 }, containerStyle]}>
@@ -76,12 +79,18 @@ const Input = React.forwardRef<TextInput, InputProps>(
           </Text>
         )}
         {/* View container chính với bo viền và màu nền */}
-        <View className={cn(inputContainerVariants({ variant: activeVariant, className }))}>
+        <View 
+          className={cn(inputContainerVariants({ 
+            variant: error && variant === 'original' ? 'original' : containerVariant, 
+            className 
+          }))}
+          style={error && variant === 'original' ? { borderColor: '#ef4444' } : undefined}
+        >
           {/* Thêm một View bao bọc bên trong để xử lý lỗi trên iOS */}
           <View className="flex-1 flex-row items-center px-5">
             <TextInput
               ref={ref}
-              className={cn(textInputVariants({ variant: activeVariant }))}
+              className={cn(textInputVariants({ variant: textVariant }))}
               style={[{ fontSize: 16 }, style]}
               secureTextEntry={isPassword && !showPassword}
               placeholderTextColor={variant === 'original' ? '#9ca3af' : '#FFFFFF99'}
@@ -117,3 +126,4 @@ Input.displayName = 'Input';
 
 export { Input, inputContainerVariants as inputVariants };
 export type { InputProps };
+

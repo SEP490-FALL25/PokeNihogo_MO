@@ -63,6 +63,8 @@ export default function AccountDetailsScreen() {
     [userProfile?.name, userProfile?.phoneNumber, userProfile?.avatar]
   );
 
+  const hasInitializedRef = React.useRef(false);
+
   const {
     control,
     handleSubmit,
@@ -74,9 +76,13 @@ export default function AccountDetailsScreen() {
     mode: 'onChange',
   });
 
+  // Chỉ reset một lần khi userProfile load lần đầu, không reset lại khi user đang edit
   useEffect(() => {
-    reset(initialValues);
-  }, [initialValues, reset]);
+    if (userProfile && !hasInitializedRef.current) {
+      reset(initialValues);
+      hasInitializedRef.current = true;
+    }
+  }, [userProfile, initialValues, reset]);
 
   const { mutateAsync, isPending } = useUpdateProfile();
 
@@ -91,6 +97,8 @@ export default function AccountDetailsScreen() {
     try {
       await mutateAsync(payload);
       showAlert(t('account_details.update_success'), 'success');
+      // Reset form với giá trị mới sau khi update thành công
+      hasInitializedRef.current = false;
       router.back();
     } catch (error: any) {
       showAlert(error?.message || t('account_details.update_error'), 'error');

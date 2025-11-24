@@ -68,26 +68,22 @@ export type IResetPasswordFormDataRequest = z.infer<typeof ResetPasswordFormData
  * Update profile form data request
  */
 export const UpdateProfileFormDataRequest = z.object({
-    name: z
-        .string()
-        .trim()
-        .min(2)
-        .max(256)
-        .optional()
-        .or(z.literal('')),
-    phoneNumber: z
-        .string()
-        .trim()
-        .min(9)
-        .max(15)
-        .optional()
-        .or(z.literal('')),
-    avatar: z
-        .string()
-        .trim()
-        .url()
-        .optional()
-        .or(z.literal('')),
+    name: z.union([
+        z.literal(''),
+        z.string().trim().min(1, { message: 'Name cannot be empty' }).max(256, { message: 'Name must be at most 256 characters' }),
+    ]),
+    phoneNumber: z.union([
+        z.literal(''),
+        z.string()
+            .trim()
+            .regex(/^\d+$/, { message: 'Phone number must contain only digits' })
+            .min(9, { message: 'Phone number must be at least 9 digits' })
+            .max(15, { message: 'Phone number must be at most 15 digits' }),
+    ]),
+    avatar: z.union([
+        z.literal(''),
+        z.string().trim().url({ message: 'Avatar must be a valid URL' }),
+    ]),
 });
 export type IUpdateProfileFormDataRequest = z.infer<typeof UpdateProfileFormDataRequest>;
 
