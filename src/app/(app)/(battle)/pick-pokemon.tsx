@@ -21,7 +21,7 @@ import { useGlobalStore } from "@stores/global/global.config";
 import { useMatchingStore } from "@stores/matching/matching.config";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Clock, Info, Timer, Zap } from "lucide-react-native";
+import { Clock, Info, ShieldAlert, Star, Timer, Zap } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -30,6 +30,7 @@ import {
   Image,
   ImageBackground,
   ScrollView,
+  Text,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -480,6 +481,38 @@ export default function PickPokemonScreen() {
       return pokemon.nameTranslations?.ja || pokemon.nameJp || "";
     }
     return pokemon.nameTranslations?.en || pokemon.nameJp || "";
+  };
+
+  const getPokemonRarity = (pokemon: any) => {
+    return pokemon?.rarity || pokemon?.pokemon?.rarity || "COMMON";
+  };
+
+  const getPokemonTypes = (pokemon: any) => {
+    return pokemon?.types || pokemon?.pokemon?.types || [];
+  };
+
+  const getPokemonWeaknesses = (pokemon: any) => {
+    return pokemon?.weaknesses || pokemon?.pokemon?.weaknesses || [];
+  };
+
+  const getTypeDisplayName = (type: any) => {
+    return (
+      type?.display_name?.[language as keyof typeof type.display_name] ||
+      type?.display_name?.vi ||
+      type?.type_name ||
+      ""
+    );
+  };
+
+  const rarityStyles: Record<
+    string,
+    { bg: string; border: string; text: string }
+  > = {
+    COMMON: { bg: "rgba(148, 163, 184, 0.2)", border: "#cbd5f5", text: "#e2e8f0" },
+    UNCOMMON: { bg: "rgba(16, 185, 129, 0.2)", border: "#34d399", text: "#bbf7d0" },
+    RARE: { bg: "rgba(59, 130, 246, 0.2)", border: "#60a5fa", text: "#bfdbfe" },
+    EPIC: { bg: "rgba(147, 51, 234, 0.25)", border: "#c084fc", text: "#f3e8ff" },
+    LEGENDARY: { bg: "rgba(251, 191, 36, 0.25)", border: "#facc15", text: "#fef3c7" },
   };
 
   const [selectedPokemonId, setSelectedPokemonId] = useState<number | null>(
@@ -1066,7 +1099,7 @@ export default function PickPokemonScreen() {
               {choosePokemonMutation.isPending ? (
                 <ActivityIndicator size="small" color="#86efac" />
               ) : (
-                <ThemedText
+                <Text
                   style={{
                     color: battleContext?.isPlayerTurn ? "#86efac" : "#9ca3af",
                     fontSize: 16,
@@ -1074,7 +1107,7 @@ export default function PickPokemonScreen() {
                   }}
                 >
                   {battleContext?.isPlayerTurn ? "Chọn" : "Chờ đến lượt bạn"}
-                </ThemedText>
+                </Text>
               )}
             </HapticPressable>
           </View>
@@ -1109,27 +1142,35 @@ export default function PickPokemonScreen() {
               </ThemedText>
             </View>
           ) : (
-            <View className="flex-row flex-wrap gap-4 pb-8 justify-center">
+            <View className="flex-row flex-wrap pb-8 justify-between">
               {displayPokemons.map((pokemon: any) => {
                 const isSelected =
                   (battleContext?.playerPicks || []).includes(pokemon.id) ||
                   (battleContext?.opponentPicks || []).includes(pokemon.id);
                 const isCurrentlySelected = selectedPokemonId === pokemon.id;
                 const canPick = pokemon?.canPick !== false;
+                const rarity = getPokemonRarity(pokemon);
+                const rarityStyle = rarityStyles[rarity] || rarityStyles.COMMON;
+                const types = getPokemonTypes(pokemon);
+                const weaknesses = getPokemonWeaknesses(pokemon);
                 return (
                   <HapticPressable
                     key={pokemon.id}
                     onPress={() => handlePickPokemon(pokemon.id)}
                     disabled={isSelected || !canPick}
                     className="relative"
+                    style={{ width: "31%", marginBottom: 16 }}
                   >
                     <View
-                      className={`w-32 h-44 rounded-3xl overflow-hidden border-white/20 ${isSelected ? "opacity-50" : "opacity-100"
+                      className={`h-52 rounded-3xl overflow-hidden border-white/20 ${isSelected ? "opacity-50" : "opacity-100"
                         } ${isCurrentlySelected
                           ? "scale-105 border-green-400 border-2"
                           : "scale-100"
                         }`}
-                      style={{ borderWidth: isCurrentlySelected ? 2 : 1 }}
+                      style={{
+                        borderWidth: isCurrentlySelected ? 2 : 1,
+                        width: "100%",
+                      }}
                     >
                       <TWLinearGradient
                         colors={[
@@ -1147,29 +1188,155 @@ export default function PickPokemonScreen() {
                           borderRadius: 24,
                         }}
                       />
+                      <View
+                        className="flex-row items-center"
+                        style={{
+                          position: "absolute",
+                          top: 10,
+                          left: 10,
+                          paddingHorizontal: 10,
+                          paddingVertical: 6,
+                          borderRadius: 999,
+                          borderWidth: 1,
+                          backgroundColor: rarityStyle.bg,
+                          borderColor: rarityStyle.border,
+                        }}
+                      >
+                        <Star
+                          size={12}
+                          color={rarityStyle.text}
+                          fill={rarityStyle.text}
+                          style={{ marginRight: 4 }}
+                        />
+                        <ThemedText
+                          style={{
+                            color: rarityStyle.text,
+                            fontSize: 11,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {rarity}
+                        </ThemedText>
+                      </View>
                       <Image
                         source={{ uri: pokemon.imageUrl }}
                         style={{
-                          width: 80,
-                          height: 80,
+                          width: 100,
+                          height: 100,
                           alignSelf: "center",
-                          marginTop: 30,
+                          marginTop: 34,
                         }}
                         resizeMode="contain"
                       />
-                      <View className="px-3 pb-3 pt-1">
+                      <View className="px-3 pb-3 pt-1 gap-2">
+                        {isCurrentlySelected && (
+                          <View className="self-center px-3 py-1 rounded-full border border-green-400/70 bg-green-500/10">
+                            <ThemedText
+                              style={{
+                                color: "#bbf7d0",
+                                fontSize: 10,
+                                fontWeight: "700",
+                              }}
+                            >
+                              Đang chọn
+                            </ThemedText>
+                          </View>
+                        )}
                         <ThemedText
                           numberOfLines={1}
                           style={{
                             color: "#ffffff",
-                            fontSize: 12,
+                            fontSize: 13,
                             fontWeight: "800",
                             textAlign: "center",
                           }}
                         >
                           {getPokemonName(pokemon)}
                         </ThemedText>
+                        {types?.length > 0 && (
+                          <View className="flex-row flex-wrap gap-1 justify-center">
+                            {types.slice(0, 3).map((type: any) => (
+                              <View
+                                key={type.id}
+                                className="px-2 py-1 rounded-full border"
+                                style={{
+                                  borderColor: type?.color_hex || "#38bdf8",
+                                  backgroundColor: `${type?.color_hex || "#38bdf8"}25`,
+                                }}
+                              >
+                                <ThemedText
+                                  style={{
+                                    color: "#f8fafc",
+                                    fontSize: 10,
+                                    fontWeight: "700",
+                                  }}
+                                >
+                                  {getTypeDisplayName(type)}
+                                </ThemedText>
+                              </View>
+                            ))}
+                          </View>
+                        )}
+                        {weaknesses?.length > 0 && (
+                          <View
+                            className="rounded-2xl px-2 py-1 border border-red-400/30 bg-red-500/10 flex-row items-center"
+                          >
+                            <ShieldAlert size={12} color="#fca5a5" style={{ marginRight: 6 }} />
+                            <View style={{ flex: 1 }}>
+                              <ThemedText
+                                style={{
+                                  color: "#fca5a5",
+                                  fontSize: 10,
+                                  fontWeight: "700",
+                                }}
+                                numberOfLines={1}
+                              >
+                                {weaknesses
+                                  .slice(0, 2)
+                                  .map(
+                                    (weak: any) =>
+                                      weak?.display_name?.[
+                                      language as keyof typeof weak.display_name
+                                      ] ||
+                                      weak?.display_name?.vi ||
+                                      weak?.type_name
+                                  )
+                                  .join(" • ")}
+                              </ThemedText>
+                              <ThemedText
+                                style={{
+                                  color: "#f87171",
+                                  fontSize: 9,
+                                  fontWeight: "600",
+                                }}
+                              >
+                                {weaknesses
+                                  .slice(0, 2)
+                                  .map((weak: any) =>
+                                    weak?.effectiveness_multiplier
+                                      ? `x${Number(
+                                        weak.effectiveness_multiplier
+                                      ).toFixed(1)}`
+                                      : "x1.5"
+                                  )
+                                  .join("  ")}
+                              </ThemedText>
+                            </View>
+                          </View>
+                        )}
                       </View>
+                      {isCurrentlySelected && (
+                        <View
+                          className="absolute inset-0 rounded-3xl border-2 border-green-400 pointer-events-none"
+                          style={{
+                            shadowColor: "#22c55e",
+                            shadowOpacity: 0.45,
+                            shadowRadius: 18,
+                            shadowOffset: { width: 0, height: 0 },
+                            elevation: 8,
+                          }}
+                        />
+                      )}
                       {(isSelected || !canPick) && (
                         <View className="absolute inset-0 bg-black/60 rounded-3xl items-center justify-center">
                           {isSelected && (
