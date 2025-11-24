@@ -353,6 +353,36 @@
         "next_turn_warning": "Turn sau bạn sẽ bị ảnh hưởng bởi bùa bất lợi: {{debuff}}"
       }
     },
+    "pick": {
+      "title": "GIAI ĐOẠN CHỌN",
+      "round_indicator": "Hiệp {{current}}/{{total}}",
+      "vs": "VS",
+      "opponent_label": "Đối thủ",
+      "opponent_label_with_name": "Đối thủ ({{name}})",
+      "you_label": "Bạn",
+      "loading_match": "Đang tải thông tin trận đấu...",
+      "loading_pokemon": "Đang tải Pokémon...",
+      "empty_by_type": "Bạn không có Pokémon hệ {{type}}",
+      "empty_default": "Không có Pokémon nào",
+      "filters": {
+        "elemental_fallback": "Nguyên tố"
+      },
+      "status": {
+        "opponent_turn": "ĐANG CHỌN",
+        "player_turn": "CHỌN NGAY",
+        "selection_badge": "Đang chọn",
+        "picked_badge": "Đã chọn"
+      },
+      "primary_button": {
+        "pick": "Chọn",
+        "wait": "Chờ đến lượt bạn"
+      },
+      "alerts": {
+        "pokemon_chosen_title": "Pokémon đã được chọn",
+        "pokemon_chosen_message": "Vui lòng chọn Pokémon khác vì nó đã được chọn.",
+        "choose_error": "Không thể chọn Pokémon. Vui lòng thử lại."
+      }
+    },
     "result": {
       "title": "KẾT QUẢ TRẬN ĐẤU",
       "match_label": "Match #{{matchId}}",

@@ -23,6 +23,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Clock, Info, ShieldAlert, Star, Timer, Zap } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -37,6 +38,7 @@ import {
 
 export default function PickPokemonScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useLocalSearchParams();
   const matchId = params.matchId as string;
 
@@ -60,6 +62,12 @@ export default function PickPokemonScreen() {
       if (currentUserId !== undefined) return p.user.id !== currentUserId;
       return p.user.name !== "Bạn";
     })?.user.name || "";
+  const displayOpponentName = opponentName || t("battle.pick.opponent_label");
+  const opponentPicksLabel = opponentName
+    ? t("battle.pick.opponent_label_with_name", { name: opponentName })
+    : t("battle.pick.opponent_label");
+  const playerLabel = t("battle.pick.you_label");
+  const totalRounds = matchRound?.rounds?.length ?? 3;
 
   const [typeId, setTypeId] = useState<number>(1);
   const {
@@ -281,6 +289,29 @@ export default function PickPokemonScreen() {
     delaySeconds: number;
     message: string;
   } | null>(null);
+  const parseRoundNumber = (roundValue?: string | null) => {
+    if (!roundValue) return null;
+    if (roundValue === "ONE") return 1;
+    if (roundValue === "TWO") return 2;
+    if (roundValue === "THREE") return 3;
+    const numericRound = Number(roundValue);
+    return Number.isNaN(numericRound) ? null : numericRound;
+  };
+  const displayedRoundNumber = useMemo(() => {
+    const fromStarting = parseRoundNumber(roundStartingData?.roundNumber);
+    if (fromStarting) return fromStarting;
+    const fromCurrent = parseRoundNumber(battleContext?.currentRound?.roundNumber);
+    if (fromCurrent) return fromCurrent;
+    return (battleContext?.currentRoundIndex ?? 0) + 1;
+  }, [
+    battleContext?.currentRound?.roundNumber,
+    battleContext?.currentRoundIndex,
+    roundStartingData?.roundNumber,
+  ]);
+  const roundIndicatorText = t("battle.pick.round_indicator", {
+    current: displayedRoundNumber,
+    total: totalRounds,
+  });
 
   const playerPulseAnim = useRef(new Animated.Value(1)).current;
   const opponentPulseAnim = useRef(new Animated.Value(1)).current;
@@ -561,8 +592,8 @@ export default function PickPokemonScreen() {
     if (isAlreadyPicked) {
       setSelectedPokemonId(null);
       Alert.alert(
-        "Pokemon đã được chọn",
-        "Vui lòng chọn Pokemon khác vì đối thủ hoặc bạn đã chọn Pokemon này."
+        t("battle.pick.alerts.pokemon_chosen_title"),
+        t("battle.pick.alerts.pokemon_chosen_message")
       );
       return;
     }
@@ -573,7 +604,7 @@ export default function PickPokemonScreen() {
       });
       setSelectedPokemonId(null);
     } catch (error) {
-      Alert.alert("Lỗi", "Không thể chọn Pokemon. Vui lòng thử lại.");
+      Alert.alert(t("common.error"), t("battle.pick.alerts.choose_error"));
     }
   };
 
@@ -705,7 +736,7 @@ export default function PickPokemonScreen() {
             <ThemedText
               style={{ color: "#93c5fd", marginTop: 16, fontSize: 16 }}
             >
-              Đang tải thông tin trận đấu...
+              {t("battle.pick.loading_match")}
             </ThemedText>
           </View>
         </ImageBackground>
@@ -726,30 +757,12 @@ export default function PickPokemonScreen() {
             <ThemedText
               style={{ color: "#fbbf24", fontSize: 20, fontWeight: "800" }}
             >
-              PICK PHASE
+              {t("battle.pick.title")}
             </ThemedText>
             <View className="flex-row items-center gap-2">
               <Clock size={16} color="#22d3ee" />
               <ThemedText style={{ color: "#cbd5e1", fontSize: 14 }}>
-                Round{" "}
-                {(() => {
-                  if (roundStartingData?.roundNumber) {
-                    const roundNum = roundStartingData.roundNumber;
-                    if (roundNum === "ONE") return "1";
-                    if (roundNum === "TWO") return "2";
-                    if (roundNum === "THREE") return "3";
-                    return roundNum;
-                  }
-                  if (battleContext?.currentRound?.roundNumber) {
-                    const roundNum = battleContext.currentRound.roundNumber;
-                    if (roundNum === "ONE") return "1";
-                    if (roundNum === "TWO") return "2";
-                    if (roundNum === "THREE") return "3";
-                    return roundNum;
-                  }
-                  return (battleContext?.currentRoundIndex ?? 0) + 1;
-                })()}
-                /3
+                {roundIndicatorText}
               </ThemedText>
             </View>
           </View>
@@ -774,11 +787,7 @@ export default function PickPokemonScreen() {
                 }}
               >
                 <UserAvatar
-                  name={
-                    matchRound?.match.participants.find(
-                      (p) => p.user.name === opponentName
-                    )?.user.name ?? ""
-                  }
+                  name={displayOpponentName}
                   size="large"
                 />
               </Animated.View>
@@ -792,9 +801,7 @@ export default function PickPokemonScreen() {
                   zIndex: 2,
                 }}
               >
-                {matchRound?.match.participants.find(
-                  (p) => p.user.name === opponentName
-                )?.user.name ?? ""}
+                {displayOpponentName}
               </ThemedText>
 
               {battleContext?.isOpponentTurn && (
@@ -820,7 +827,7 @@ export default function PickPokemonScreen() {
                       marginLeft: 8,
                     }}
                   >
-                    ĐANG CHỌN
+                    {t("battle.pick.status.opponent_turn")}
                   </ThemedText>
                 </Animated.View>
               )}
@@ -863,7 +870,7 @@ export default function PickPokemonScreen() {
                     opacity: 0.85,
                   }}
                 >
-                  VS
+                  {t("battle.pick.vs")}
                 </ThemedText>
               </View>
             </TWLinearGradient>
@@ -883,7 +890,7 @@ export default function PickPokemonScreen() {
                   zIndex: 2,
                 }}
               >
-                <UserAvatar name={"Bạn"} size="large" />
+                <UserAvatar name={playerLabel} size="large" />
               </Animated.View>
 
               <ThemedText
@@ -895,7 +902,7 @@ export default function PickPokemonScreen() {
                   zIndex: 2,
                 }}
               >
-                Bạn
+                {playerLabel}
               </ThemedText>
 
               {battleContext?.isPlayerTurn && (
@@ -921,7 +928,7 @@ export default function PickPokemonScreen() {
                       marginLeft: 8,
                     }}
                   >
-                    CHỌN NGAY
+                    {t("battle.pick.status.player_turn")}
                   </ThemedText>
                 </Animated.View>
               )}
@@ -936,11 +943,7 @@ export default function PickPokemonScreen() {
               <ThemedText
                 style={{ color: "#94a3b8", fontSize: 12, marginBottom: 8 }}
               >
-                Đối thủ (
-                {matchRound?.match.participants.find(
-                  (p) => p.user.name === opponentName
-                )?.user.name ?? ""}
-                )
+                {opponentPicksLabel}
               </ThemedText>
               <View className="flex-row flex-wrap gap-2">
                 {[0, 1, 2].map((idx) => {
@@ -980,7 +983,7 @@ export default function PickPokemonScreen() {
               <ThemedText
                 style={{ color: "#94a3b8", fontSize: 12, marginBottom: 8 }}
               >
-                Bạn
+                {playerLabel}
               </ThemedText>
               <View className="flex-row flex-wrap gap-2">
                 {[0, 1, 2].map((idx) => {
@@ -1042,7 +1045,7 @@ export default function PickPokemonScreen() {
                     ] ||
                       elem?.display_name?.vi ||
                       elem?.type_name ||
-                      "Elemental"}
+                      t("battle.pick.filters.elemental_fallback")}
                   </ThemedText>
                 </HapticPressable>
               ))}
@@ -1106,7 +1109,9 @@ export default function PickPokemonScreen() {
                     fontWeight: "700",
                   }}
                 >
-                  {battleContext?.isPlayerTurn ? "Chọn" : "Chờ đến lượt bạn"}
+                  {battleContext?.isPlayerTurn
+                    ? t("battle.pick.primary_button.pick")
+                    : t("battle.pick.primary_button.wait")}
                 </Text>
               )}
             </HapticPressable>
@@ -1123,7 +1128,7 @@ export default function PickPokemonScreen() {
               <ThemedText
                 style={{ color: "#64748b", marginTop: 16, fontSize: 14 }}
               >
-                Đang tải Pokemon...
+                {t("battle.pick.loading_pokemon")}
               </ThemedText>
             </View>
           ) : !displayPokemons || displayPokemons.length === 0 ? (
@@ -1137,8 +1142,10 @@ export default function PickPokemonScreen() {
                 }}
               >
                 {currentElementalName
-                  ? `Bạn không có Pokemon hệ ${currentElementalName}`
-                  : "Không có Pokemon nào"}
+                  ? t("battle.pick.empty_by_type", {
+                    type: currentElementalName,
+                  })
+                  : t("battle.pick.empty_default")}
               </ThemedText>
             </View>
           ) : (
@@ -1238,7 +1245,7 @@ export default function PickPokemonScreen() {
                                 fontWeight: "700",
                               }}
                             >
-                              Đang chọn
+                              {t("battle.pick.status.selection_badge")}
                             </ThemedText>
                           </View>
                         )}
@@ -1348,7 +1355,7 @@ export default function PickPokemonScreen() {
                                   fontWeight: "700",
                                 }}
                               >
-                                Đã chọn
+                                {t("battle.pick.status.picked_badge")}
                               </ThemedText>
                             </View>
                           )}
