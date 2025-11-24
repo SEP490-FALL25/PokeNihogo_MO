@@ -1190,7 +1190,22 @@
       "lesson": "Bài học",
       "test": "Bài kiểm tra",
       "daily_login": "Đăng nhập hàng ngày",
-      "achievement": "Thành tích"
+      "achievement": "Thành tích",
+      "attendance": "Điểm danh",
+      "season_reward": "Phần thưởng mùa giải",
+      "other": "Khác"
+    },
+    "filter": {
+      "title": "Bộ lọc",
+      "all": "Tất cả",
+      "source_type": "Nguồn thưởng",
+      "select_source_type": "Chọn nguồn thưởng",
+      "date_range": "Khoảng thời gian",
+      "date_from": "Từ ngày",
+      "date_to": "Đến ngày",
+      "select_date": "Chọn ngày",
+      "clear": "Xóa",
+      "confirm": "Xác nhận"
     }
   },
   "achievements": {

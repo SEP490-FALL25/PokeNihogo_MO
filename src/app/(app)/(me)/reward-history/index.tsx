@@ -1,14 +1,17 @@
 import BackScreen from '@components/molecules/Back';
+import { Select } from '@components/ui/Select';
 import { Skeleton } from '@components/ui/Skeleton';
+import { RewardSourceType } from '@constants/reward.enum';
 import { useRewardHistory } from '@hooks/useRewardHistory';
 import { IRewardHistoryItem } from '@models/reward/reward.response';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Award, Gift, Sparkles } from 'lucide-react-native';
-import React, { useMemo } from 'react';
+import { Award, Calendar, Filter, Gift, Sparkles, X } from 'lucide-react-native';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   RefreshControl,
   StatusBar,
@@ -195,9 +198,357 @@ const RewardCard: React.FC<RewardCardProps> = ({ item, t }) => {
   );
 };
 
+// Date Picker Button Component
+interface DatePickerButtonProps {
+  value: string;
+  onSelect: (date: string) => void;
+  placeholder?: string;
+  t?: (key: string) => string;
+}
+
+const DatePickerButton: React.FC<DatePickerButtonProps> = ({
+  value,
+  onSelect,
+  placeholder = 'Select date',
+  t,
+}) => {
+  const [showPicker, setShowPicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(
+    value ? new Date(value) : null
+  );
+
+  const formatDate = (date: Date | null): string => {
+    if (!date) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleConfirm = () => {
+    if (selectedDate) {
+      onSelect(formatDate(selectedDate));
+    }
+    setShowPicker(false);
+  };
+
+  const handleClear = () => {
+    setSelectedDate(null);
+    onSelect('');
+    setShowPicker(false);
+  };
+
+  // Generate calendar days
+  const getCalendarDays = () => {
+    const today = new Date();
+    const currentDate = selectedDate || today;
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    const days: (number | null)[] = [];
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(day);
+    }
+    
+    return { days, year, month };
+  };
+
+  const { days, year, month } = getCalendarDays();
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    const current = selectedDate || new Date();
+    const newDate = new Date(current);
+    if (direction === 'prev') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setSelectedDate(newDate);
+  };
+
+  const selectDay = (day: number) => {
+    const current = selectedDate || new Date();
+    const newDate = new Date(current.getFullYear(), current.getMonth(), day);
+    setSelectedDate(newDate);
+  };
+
+  const isSelected = (day: number | null): boolean => {
+    if (!day || !selectedDate) return false;
+    const current = selectedDate;
+    return (
+      current.getDate() === day &&
+      current.getMonth() === month &&
+      current.getFullYear() === year
+    );
+  };
+
+  const isToday = (day: number | null): boolean => {
+    if (!day) return false;
+    const today = new Date();
+    return (
+      today.getDate() === day &&
+      today.getMonth() === month &&
+      today.getFullYear() === year
+    );
+  };
+
+  return (
+    <>
+      <Pressable
+        onPress={() => setShowPicker(true)}
+        className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex-row items-center justify-between"
+      >
+        <Text
+          className={`text-sm ${value ? 'text-slate-800' : 'text-slate-400'}`}
+        >
+          {value || placeholder}
+        </Text>
+        <Calendar size={18} color="#64748b" strokeWidth={2} />
+      </Pressable>
+
+      <Modal
+        visible={showPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPicker(false)}
+      >
+        <Pressable
+          className="flex-1 bg-black/50 items-center justify-center px-4"
+          onPress={() => setShowPicker(false)}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl p-6 w-full max-w-sm"
+          >
+            {/* Calendar Header */}
+            <View className="flex-row items-center justify-between mb-4">
+              <Pressable
+                onPress={() => navigateMonth('prev')}
+                className="p-2"
+              >
+                <Text className="text-xl font-bold text-slate-600">‹</Text>
+              </Pressable>
+              <Text className="text-lg font-bold text-slate-800">
+                {monthNames[month]} {year}
+              </Text>
+              <Pressable
+                onPress={() => navigateMonth('next')}
+                className="p-2"
+              >
+                <Text className="text-xl font-bold text-slate-600">›</Text>
+              </Pressable>
+            </View>
+
+            {/* Week Days */}
+            <View className="flex-row mb-2">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                <View key={day} className="flex-1 items-center py-2">
+                  <Text className="text-xs font-bold text-slate-500">{day}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Calendar Grid */}
+            <View className="flex-row flex-wrap mb-4">
+              {days.map((day, index) => (
+                <Pressable
+                  key={index}
+                  onPress={() => day && selectDay(day)}
+                  className={`w-[14.28%] aspect-square items-center justify-center ${
+                    isSelected(day)
+                      ? 'bg-purple-500 rounded-xl'
+                      : isToday(day)
+                      ? 'bg-purple-100 rounded-xl'
+                      : ''
+                  }`}
+                >
+                  {day && (
+                    <Text
+                      className={`text-sm font-semibold ${
+                        isSelected(day)
+                          ? 'text-white'
+                          : isToday(day)
+                          ? 'text-purple-600'
+                          : 'text-slate-700'
+                      }`}
+                    >
+                      {day}
+                    </Text>
+                  )}
+                </Pressable>
+              ))}
+            </View>
+
+            {/* Actions */}
+            <View className="flex-row gap-2">
+              <Pressable
+                onPress={handleClear}
+                className="flex-1 bg-slate-100 rounded-xl py-3 items-center"
+              >
+                <Text className="text-sm font-bold text-slate-600">
+                  {t ? t('reward_history.filter.clear') : 'Clear'}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={handleConfirm}
+                className="flex-1 bg-purple-500 rounded-xl py-3 items-center"
+              >
+                <Text className="text-sm font-bold text-white">
+                  {t ? t('reward_history.filter.confirm') : 'Confirm'}
+                </Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
+  );
+};
+
+// Filter Component
+interface FilterSectionProps {
+  sourceType: RewardSourceType | undefined;
+  dateFrom: string;
+  dateTo: string;
+  onSourceTypeChange: (value: string) => void;
+  onDateFromChange: (value: string) => void;
+  onDateToChange: (value: string) => void;
+  onClearFilters: () => void;
+  t: (key: string) => string;
+}
+
+const FilterSection: React.FC<FilterSectionProps> = ({
+  sourceType,
+  dateFrom,
+  dateTo,
+  onSourceTypeChange,
+  onDateFromChange,
+  onDateToChange,
+  onClearFilters,
+  t,
+}) => {
+  const [showFilters, setShowFilters] = useState(false);
+  const hasActiveFilters = sourceType || dateFrom || dateTo;
+  const activeFilterCount = [sourceType, dateFrom, dateTo].filter(Boolean).length;
+
+  const sourceTypeOptions = [
+    { label: t('reward_history.filter.all'), value: '' },
+    { label: t('reward_history.source.exercise'), value: RewardSourceType.EXERCISE },
+    { label: t('reward_history.source.lesson'), value: RewardSourceType.LESSON },
+    { label: t('reward_history.source.daily_login'), value: RewardSourceType.DAILY_REQUEST },
+    { label: t('reward_history.source.achievement'), value: RewardSourceType.ACHIEVEMENT_REWARD },
+    { label: t('reward_history.source.attendance'), value: RewardSourceType.ATTENDANCE },
+    { label: t('reward_history.source.season_reward'), value: RewardSourceType.SEASON_REWARD },
+    { label: t('reward_history.source.other'), value: RewardSourceType.OTHER },
+  ];
+
+  return (
+    <View className="mb-4">
+      <Pressable
+        onPress={() => setShowFilters(!showFilters)}
+        className="bg-white rounded-2xl p-4 flex-row items-center justify-between shadow-sm"
+      >
+        <View className="flex-row items-center">
+          <Filter size={20} color="#a855f7" strokeWidth={2.5} />
+          <Text className="ml-2 text-base font-bold text-slate-800">
+            {t('reward_history.filter.title')}
+          </Text>
+          {hasActiveFilters && (
+            <View className="ml-2 bg-purple-500 rounded-full px-2 py-0.5">
+              <Text className="text-xs font-bold text-white">{activeFilterCount}</Text>
+            </View>
+          )}
+        </View>
+        {hasActiveFilters && (
+          <Pressable
+            onPress={(e) => {
+              e.stopPropagation();
+              onClearFilters();
+            }}
+            className="ml-2"
+          >
+            <X size={18} color="#ef4444" strokeWidth={2.5} />
+          </Pressable>
+        )}
+      </Pressable>
+
+      {showFilters && (
+        <View className="mt-2 bg-white rounded-2xl p-4 shadow-sm">
+          {/* Source Type Filter */}
+          <View className="mb-4">
+            <Text className="text-sm font-semibold text-slate-600 mb-2">
+              {t('reward_history.filter.source_type')}
+            </Text>
+            <Select
+              options={sourceTypeOptions}
+              selectedValue={sourceType || ''}
+              onValueChange={onSourceTypeChange}
+              placeholder={t('reward_history.filter.select_source_type')}
+            />
+          </View>
+
+          {/* Date Range Filter */}
+          <View className="mb-4">
+            <Text className="text-sm font-semibold text-slate-600 mb-2">
+              {t('reward_history.filter.date_range')}
+            </Text>
+            <View className="flex-row gap-2">
+              <View className="flex-1">
+                <Text className="text-xs font-semibold text-slate-500 mb-1">
+                  {t('reward_history.filter.date_from')}
+                </Text>
+                <DatePickerButton
+                  value={dateFrom}
+                  onSelect={onDateFromChange}
+                  placeholder={t('reward_history.filter.select_date')}
+                  t={t}
+                />
+              </View>
+              <View className="flex-1">
+                <Text className="text-xs font-semibold text-slate-500 mb-1">
+                  {t('reward_history.filter.date_to')}
+                </Text>
+                <DatePickerButton
+                  value={dateTo}
+                  onSelect={onDateToChange}
+                  placeholder={t('reward_history.filter.select_date')}
+                  t={t}
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+};
+
 export default function RewardHistoryScreen() {
   const { t } = useTranslation();
   const pageSize = 10;
+  const [sourceType, setSourceType] = useState<RewardSourceType | undefined>(undefined);
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+
+  // Convert date strings to ISO format for API
+  const dateFromISO = dateFrom ? new Date(dateFrom).toISOString() : undefined;
+  const dateToISO = dateTo ? new Date(dateTo).toISOString() : undefined;
 
   const {
     data: rewardData,
@@ -210,6 +561,9 @@ export default function RewardHistoryScreen() {
     isRefetching,
   } = useRewardHistory({
     pageSize,
+    sourceType: sourceType || undefined,
+    dateFrom: dateFromISO,
+    dateTo: dateToISO,
   });
 
   // Get rewards list sorted by createdAt (newest first)
@@ -245,6 +599,16 @@ export default function RewardHistoryScreen() {
     }
   };
 
+  const handleSourceTypeChange = (value: string) => {
+    setSourceType(value ? (value as RewardSourceType) : undefined);
+  };
+
+  const handleClearFilters = () => {
+    setSourceType(undefined);
+    setDateFrom('');
+    setDateTo('');
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-slate-100">
       <StatusBar barStyle="dark-content" />
@@ -254,6 +618,18 @@ export default function RewardHistoryScreen() {
 
       {/* Content */}
       <View className="flex-1 px-4">
+        {/* Filter Section */}
+        <FilterSection
+          sourceType={sourceType}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
+          onSourceTypeChange={handleSourceTypeChange}
+          onDateFromChange={setDateFrom}
+          onDateToChange={setDateTo}
+          onClearFilters={handleClearFilters}
+          t={t}
+        />
+
         {isLoading ? (
           <View className="flex-1">
             {/* Statistics Skeleton */}

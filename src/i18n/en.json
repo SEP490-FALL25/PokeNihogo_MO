@@ -1182,7 +1182,22 @@
       "lesson": "Lesson",
       "test": "Test",
       "daily_login": "Daily Login",
-      "achievement": "Achievement"
+      "achievement": "Achievement",
+      "attendance": "Attendance",
+      "season_reward": "Season Reward",
+      "other": "Other"
+    },
+    "filter": {
+      "title": "Filters",
+      "all": "All",
+      "source_type": "Reward Source",
+      "select_source_type": "Select reward source",
+      "date_range": "Date Range",
+      "date_from": "From Date",
+      "date_to": "To Date",
+      "select_date": "Select date",
+      "clear": "Clear",
+      "confirm": "Confirm"
     }
   },
   "achievements": {

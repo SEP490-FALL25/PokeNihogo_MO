@@ -1,3 +1,4 @@
+import { RewardSourceType } from "@constants/reward.enum";
 import { IRewardHistoryResponse } from "@models/reward/reward.response";
 import rewardService from "@services/reward";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -5,6 +6,9 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 type GetRewardHistoryParams = {
   currentPage?: number;
   pageSize?: number;
+  sourceType?: RewardSourceType;
+  dateFrom?: string; // ISO string
+  dateTo?: string; // ISO string
 };
 
 /**
