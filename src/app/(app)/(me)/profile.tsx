@@ -127,6 +127,29 @@ const AchievementBadge: React.FC<AchievementBadgeProps> = ({ name, icon, colors,
   </View>
 );
 
+const CARD_PALETTES = {
+  collection: {
+    gradient: ['#e0f2fe', '#bae6fd'],
+    accent: '#dbeafe',
+  },
+  exercise: {
+    gradient: ['#f5f3ff', '#ede9fe'],
+    accent: '#e0e7ff',
+  },
+  rewards: {
+    gradient: ['#fdf2ff', '#fae8ff'],
+    accent: '#f5d0fe',
+  },
+  dictionary: {
+    gradient: ['#fff7ed', '#ffedd5'],
+    accent: '#fed7aa',
+  },
+  flashcards: {
+    gradient: ['#ecfdf5', '#d1fae5'],
+    accent: '#a7f3d0',
+  },
+} as const;
+
 export default function ProfileScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -312,208 +335,242 @@ export default function ProfileScreen() {
               />
             )}
           </View>
+  
+          {/* Progress & Milestones Section */}
+          <View className="mb-8">
+            <Text className="text-xs font-bold text-slate-400 uppercase tracking-[2px] mb-1">
+              {t('profile.section_progress_title', { defaultValue: 'Progress & history' })}
+            </Text>
+            <Text className="text-xl font-extrabold text-slate-900 mb-4">
+              {t('profile.section_progress_subtitle', { defaultValue: 'Keep tabs on your journey' })}
+            </Text>
 
-          {/* Pokemon Collection Card */}
-          <TouchableOpacity
-            onPress={() => router.push(ROUTES.ME.POKEMON_COLLECTION)}
-            activeOpacity={0.7}
-            className="mb-6"
-          >
-            <LinearGradient
-              colors={['#ffffff', '#fefefe']}
-              style={styles.collectionCard}
-              className="p-6 rounded-3xl overflow-hidden shadow-lg"
+            {/* Pokemon Collection Card */}
+            <TouchableOpacity
+              onPress={() => router.push(ROUTES.ME.POKEMON_COLLECTION)}
+              activeOpacity={0.7}
+              className="mb-4"
             >
-              {/* Decorative Element */}
-              <View className="absolute -top-10 -right-10 w-35 h-35 rounded-full bg-teal-50 opacity-40" />
+              <LinearGradient
+                colors={CARD_PALETTES.collection.gradient}
+                style={styles.collectionCard}
+                className="p-6 rounded-3xl overflow-hidden shadow-lg"
+              >
+                {/* Decorative Element */}
+                <View
+                  className="absolute -top-10 -right-10 w-35 h-35 rounded-full opacity-40"
+                  style={{ backgroundColor: CARD_PALETTES.collection.accent }}
+                />
 
-              {/* Header */}
-              <View className="flex-row items-center mb-5">
-                <LinearGradient
-                  colors={['#14b8a6', '#0d9488']}
-                  style={styles.collectionIconContainer}
-                  className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
-                >
-                  <Sparkles size={24} color="white" strokeWidth={2.5} />
-                </LinearGradient>
+                {/* Header */}
+                <View className="flex-row items-center mb-5">
+                  <LinearGradient
+                    colors={['#14b8a6', '#0d9488']}
+                    style={styles.collectionIconContainer}
+                    className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
+                  >
+                    <Sparkles size={24} color="white" strokeWidth={2.5} />
+                  </LinearGradient>
 
-                <View className="flex-1">
-                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('profile.collection')}</Text>
-                  <Text className="text-sm font-semibold text-slate-500 tracking-wide">
-                    {t('profile.collection_description')}
-                  </Text>
+                  <View className="flex-1">
+                    <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('profile.collection')}</Text>
+                    <Text className="text-sm font-semibold text-slate-500 tracking-wide">
+                      {t('profile.collection_description')}
+                    </Text>
+                  </View>
+
+                  <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center">
+                    <ChevronRight size={20} color="#64748b" strokeWidth={2.8} />
+                  </View>
                 </View>
 
-                <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center">
-                  <ChevronRight size={20} color="#64748b" strokeWidth={2.8} />
+                {/* Pokemon Preview */}
+                <View className="flex-row justify-center gap-2.5 pt-5 border-t border-slate-100">
+                  {pokemonsData?.data?.results?.map((p: IPokemon) => (
+                    <Image
+                      key={p?.id}
+                      source={{ uri: p?.imageUrl }}
+                      className="w-24 h-24 rounded-2xl"
+                      resizeMode="contain"
+                    />
+                  ))}
                 </View>
-              </View>
+              </LinearGradient>
+            </TouchableOpacity>
 
-              {/* Pokemon Preview */}
-              <View className="flex-row justify-center gap-2.5 pt-5 border-t border-slate-100">
-                {pokemonsData?.data?.results?.map((p: IPokemon) => (
-                  <Image
-                    key={p?.id}
-                    source={{ uri: p?.imageUrl }}
-                    className="w-24 h-24 rounded-2xl"
-                    resizeMode="contain"
-                  />
-                ))}
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          {/* Exercise History Card */}
-          <TouchableOpacity
-            onPress={() => router.push(ROUTES.ME.EXERCISE_HISTORY)}
-            activeOpacity={0.7}
-            className="mb-6"
-          >
-            <LinearGradient
-              colors={['#ffffff', '#fefefe']}
-              style={styles.collectionCard}
-              className="p-6 rounded-3xl overflow-hidden shadow-lg"
+            {/* Exercise History Card */}
+            <TouchableOpacity
+              onPress={() => router.push(ROUTES.ME.EXERCISE_HISTORY)}
+              activeOpacity={0.7}
+              className="mb-4"
             >
-              {/* Decorative Element */}
-              <View className="absolute -top-10 -right-10 w-35 h-35 rounded-full bg-indigo-50 opacity-40" />
+              <LinearGradient
+                colors={CARD_PALETTES.exercise.gradient}
+                style={styles.collectionCard}
+                className="p-6 rounded-3xl overflow-hidden shadow-lg"
+              >
+                {/* Decorative Element */}
+                <View
+                  className="absolute -top-10 -right-10 w-35 h-35 rounded-full opacity-40"
+                  style={{ backgroundColor: CARD_PALETTES.exercise.accent }}
+                />
 
-              {/* Header */}
-              <View className="flex-row items-center mb-5">
-                <LinearGradient
-                  colors={['#6366f1', '#4f46e5']}
-                  style={styles.collectionIconContainer}
-                  className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
-                >
-                  <History size={24} color="white" strokeWidth={2.5} />
-                </LinearGradient>
+                {/* Header */}
+                <View className="flex-row items-center mb-5">
+                  <LinearGradient
+                    colors={['#6366f1', '#4f46e5']}
+                    style={styles.collectionIconContainer}
+                    className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
+                  >
+                    <History size={24} color="white" strokeWidth={2.5} />
+                  </LinearGradient>
 
-                <View className="flex-1">
-                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('exercise_history.title')}</Text>
-                  <Text className="text-sm font-semibold text-slate-500 tracking-wide">
-                    {t('exercise_history.subtitle')}
-                  </Text>
+                  <View className="flex-1">
+                    <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('exercise_history.title')}</Text>
+                    <Text className="text-sm font-semibold text-slate-500 tracking-wide">
+                      {t('exercise_history.subtitle')}
+                    </Text>
+                  </View>
+
+                  <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center">
+                    <ChevronRight size={20} color="#64748b" strokeWidth={2.8} />
+                  </View>
                 </View>
+              </LinearGradient>
+            </TouchableOpacity>
 
-                <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center">
-                  <ChevronRight size={20} color="#64748b" strokeWidth={2.8} />
-                </View>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          {/* Reward History Card */}
-          <TouchableOpacity
-            onPress={() => router.push(ROUTES.ME.REWARD_HISTORY)}
-            activeOpacity={0.7}
-            className="mb-6"
-          >
-            <LinearGradient
-              colors={['#ffffff', '#fefefe']}
-              style={styles.collectionCard}
-              className="p-6 rounded-3xl overflow-hidden shadow-lg"
+            {/* Reward History Card */}
+            <TouchableOpacity
+              onPress={() => router.push(ROUTES.ME.REWARD_HISTORY)}
+              activeOpacity={0.7}
+              className="mb-2"
             >
-              {/* Decorative Element */}
-              <View className="absolute -top-10 -right-10 w-35 h-35 rounded-full bg-purple-50 opacity-40" />
+              <LinearGradient
+                colors={CARD_PALETTES.rewards.gradient}
+                style={styles.collectionCard}
+                className="p-6 rounded-3xl overflow-hidden shadow-lg"
+              >
+                {/* Decorative Element */}
+                <View
+                  className="absolute -top-10 -right-10 w-35 h-35 rounded-full opacity-40"
+                  style={{ backgroundColor: CARD_PALETTES.rewards.accent }}
+                />
 
-              {/* Header */}
-              <View className="flex-row items-center mb-5">
-                <LinearGradient
-                  colors={['#a855f7', '#9333ea']}
-                  style={styles.collectionIconContainer}
-                  className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
-                >
-                  <Gift size={24} color="white" strokeWidth={2.5} />
-                </LinearGradient>
+                {/* Header */}
+                <View className="flex-row items-center mb-5">
+                  <LinearGradient
+                    colors={['#a855f7', '#9333ea']}
+                    style={styles.collectionIconContainer}
+                    className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
+                  >
+                    <Gift size={24} color="white" strokeWidth={2.5} />
+                  </LinearGradient>
 
-                <View className="flex-1">
-                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('reward_history.title')}</Text>
-                  <Text className="text-sm font-semibold text-slate-500 tracking-wide">
-                    {t('reward_history.subtitle')}
-                  </Text>
+                  <View className="flex-1">
+                    <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('reward_history.title')}</Text>
+                    <Text className="text-sm font-semibold text-slate-500 tracking-wide">
+                      {t('reward_history.subtitle')}
+                    </Text>
+                  </View>
+
+                  <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center">
+                    <ChevronRight size={20} color="#64748b" strokeWidth={2.8} />
+                  </View>
                 </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
 
-                <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center">
-                  <ChevronRight size={20} color="#64748b" strokeWidth={2.8} />
-                </View>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
+          {/* Study Toolkit Section */}
+          <View className="mb-8">
+            <Text className="text-xs font-bold text-slate-400 uppercase tracking-[2px] mb-1">
+              {t('profile.section_learning_title', { defaultValue: 'Study toolkit' })}
+            </Text>
+            <Text className="text-xl font-extrabold text-slate-900 mb-4">
+              {t('profile.section_learning_subtitle', { defaultValue: 'Jump into your resources' })}
+            </Text>
 
-          {/* Dictionary Card */}
-          <TouchableOpacity
-            onPress={() => router.push(ROUTES.ME.DICTIONARY)}
-            activeOpacity={0.7}
-            className="mb-6"
-          >
-            <LinearGradient
-              colors={['#ffffff', '#fefefe']}
-              style={styles.collectionCard}
-              className="p-6 rounded-3xl overflow-hidden shadow-lg"
+            {/* Dictionary Card */}
+            <TouchableOpacity
+              onPress={() => router.push(ROUTES.ME.DICTIONARY)}
+              activeOpacity={0.7}
+              className="mb-4"
             >
-              {/* Decorative Element */}
-              <View className="absolute -top-10 -right-10 w-35 h-35 rounded-full bg-amber-50 opacity-40" />
+              <LinearGradient
+                colors={CARD_PALETTES.dictionary.gradient}
+                style={styles.collectionCard}
+                className="p-6 rounded-3xl overflow-hidden shadow-lg"
+              >
+                {/* Decorative Element */}
+                <View
+                  className="absolute -top-10 -right-10 w-35 h-35 rounded-full opacity-40"
+                  style={{ backgroundColor: CARD_PALETTES.dictionary.accent }}
+                />
 
-              {/* Header */}
-              <View className="flex-row items-center mb-5">
-                <LinearGradient
-                  colors={['#f59e0b', '#d97706']}
-                  style={styles.collectionIconContainer}
-                  className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
-                >
-                  <BookOpen size={24} color="white" strokeWidth={2.5} />
-                </LinearGradient>
+                {/* Header */}
+                <View className="flex-row items-center mb-5">
+                  <LinearGradient
+                    colors={['#f59e0b', '#d97706']}
+                    style={styles.collectionIconContainer}
+                    className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
+                  >
+                    <BookOpen size={24} color="white" strokeWidth={2.5} />
+                  </LinearGradient>
 
-                <View className="flex-1">
-                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('dictionary.title')}</Text>
-                  <Text className="text-sm font-semibold text-slate-500 tracking-wide">
-                    {t('dictionary.search_description')}
-                  </Text>
+                  <View className="flex-1">
+                    <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">{t('dictionary.title')}</Text>
+                    <Text className="text-sm font-semibold text-slate-500 tracking-wide">
+                      {t('dictionary.search_description')}
+                    </Text>
+                  </View>
+
+                  <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center">
+                    <ChevronRight size={20} color="#64748b" strokeWidth={2.8} />
+                  </View>
                 </View>
+              </LinearGradient>
+            </TouchableOpacity>
 
-                <View className="w-10 h-10 bg-slate-50 rounded-xl items-center justify-center">
-                  <ChevronRight size={20} color="#64748b" strokeWidth={2.8} />
-                </View>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          {/* Flashcard Decks Card */}
-          <TouchableOpacity
-            onPress={() => router.push(ROUTES.ME.FLASHCARDS)}
-            activeOpacity={0.7}
-            className="mb-6"
-          >
-            <LinearGradient
-              colors={['#e0f2fe', '#bae6fd']}
-              style={styles.collectionCard}
-              className="p-6 rounded-3xl overflow-hidden shadow-lg"
+            {/* Flashcard Decks Card */}
+            <TouchableOpacity
+              onPress={() => router.push(ROUTES.ME.FLASHCARDS)}
+              activeOpacity={0.7}
             >
-              <View className="absolute -top-10 -right-10 w-35 h-35 rounded-full bg-sky-50 opacity-40" />
+              <LinearGradient
+                colors={CARD_PALETTES.flashcards.gradient}
+                style={styles.collectionCard}
+                className="p-6 rounded-3xl overflow-hidden shadow-lg"
+              >
+                <View
+                  className="absolute -top-10 -right-10 w-35 h-35 rounded-full opacity-40"
+                  style={{ backgroundColor: CARD_PALETTES.flashcards.accent }}
+                />
 
-              <View className="flex-row items-center mb-5">
-                <LinearGradient
-                  colors={['#0ea5e9', '#0284c7']}
-                  style={styles.collectionIconContainer}
-                  className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
-                >
-                  <StickyNote size={24} color="white" strokeWidth={2.5} />
+                <View className="flex-row items-center mb-5">
+                  <LinearGradient
+                    colors={['#0ea5e9', '#0284c7']}
+                    style={styles.collectionIconContainer}
+                    className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
+                  >
+                    <StickyNote size={24} color="white" strokeWidth={2.5} />
+                  </LinearGradient>
+
+                    <View className="flex-1">
+                      <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">
+                        {t('flashcard_list.title')}
+                      </Text>
+                      <Text className="text-sm font-semibold text-slate-600 tracking-wide">
+                        {t('flashcard_list.hero_subtitle')}
+                      </Text>
+                    </View>
+
+                    <View className="w-10 h-10 bg-white/80 rounded-xl items-center justify-center">
+                      <ChevronRight size={20} color="#0284c7" strokeWidth={2.8} />
+                    </View>
+                  </View>
                 </LinearGradient>
-
-                <View className="flex-1">
-                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">
-                    {t('flashcard_list.title')}
-                  </Text>
-                  <Text className="text-sm font-semibold text-slate-600 tracking-wide">
-                    {t('flashcard_list.hero_subtitle')}
-                  </Text>
-                </View>
-
-                <View className="w-10 h-10 bg-white/80 rounded-xl items-center justify-center">
-                  <ChevronRight size={20} color="#0284c7" strokeWidth={2.8} />
-                </View>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
 
           {/* Achievements Section */}
           <LinearGradient
