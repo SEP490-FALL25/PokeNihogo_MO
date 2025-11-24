@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Lock } from "lucide-react-native";
 import React from "react";
 import { Animated, StyleSheet, View, ViewStyle } from "react-native";
 
@@ -32,7 +32,7 @@ export const LockOverlay: React.FC<LockOverlayProps> = ({
   radiusStep = 2,
   particleSize = 14,
   lockIconColor = "#64748B",
-  lockIconSize = 48,
+  lockIconSize = 40,
   particleDelay = DEFAULT_PARTICLE_DELAY,
   shakeSegmentDuration = DEFAULT_SHAKE_SEGMENT,
   shakePauseDuration = DEFAULT_SHAKE_PAUSE,
@@ -141,11 +141,7 @@ export const LockOverlay: React.FC<LockOverlayProps> = ({
           transform: [{ rotateZ: shakeRotate }],
         }}
       >
-        <MaterialCommunityIcons
-          name="lock"
-          size={lockIconSize}
-          color={lockIconColor}
-        />
+        <Lock size={lockIconSize} color={lockIconColor} strokeWidth={2.8} />
       </Animated.View>
       {particleConfigs.map((particle, index) => (
         <Animated.View
