@@ -52,7 +52,7 @@ export default function BattleLobbyScreen() {
   });
   const queueMessages =
     Array.isArray(queueMessagesTranslation) &&
-    queueMessagesTranslation.length > 0
+      queueMessagesTranslation.length > 0
       ? (queueMessagesTranslation as string[])
       : [t("battle.lobby.queue_status.searching")];
   const [showHistory, setShowHistory] = useState(false);
@@ -191,7 +191,7 @@ export default function BattleLobbyScreen() {
       t("battle.lobby.alerts.rank_info_title"),
       t("battle.lobby.alerts.rank_info_message")
     );
-  const handleSeasonEndedContinue = () => {};
+  const handleSeasonEndedContinue = () => { };
 
   const handleClaimRewardComplete = async () => {
     setShowSeasonEndedModal(false);
@@ -286,7 +286,6 @@ export default function BattleLobbyScreen() {
 
       switch (data.type) {
         case BATTLE_STATUS.MATCH_TRACKING_STATUS.MATCH_FOUND:
-          // ... (giữ nguyên logic match found)
           if (
             data.match &&
             data.opponent &&
@@ -330,7 +329,6 @@ export default function BattleLobbyScreen() {
           const pickPokemonMatchId = data.matchId || data.match?.id;
           if (!pickPokemonMatchId) break;
 
-          // 🔥 FIX: Lấy roundNumber để truyền sang Pick Screen (có thể dùng để hiển thị)
           const pickRoundNumber =
             (data as any).round?.roundNumber || data.roundNumber || "ONE";
 
@@ -346,12 +344,15 @@ export default function BattleLobbyScreen() {
             });
           }
 
-          // 🔥 Trao tay dữ liệu (quan trọng cho ROUND_STARTING)
           setStartRoundPayload(data);
 
+          // [FIX QUAN TRỌNG]: Tắt hết modal và state thừa trước khi chuyển trang
           setInQueue(false);
           setGlobalInQueue(false);
+          setShowAcceptModal(false); // <--- QUAN TRỌNG
+          setMatchedPlayer(null);    // <--- QUAN TRỌNG
           hideGlobalMatchFound();
+
           queryClient.invalidateQueries({ queryKey: ["list-match-round"] });
           queryClient.invalidateQueries({
             queryKey: ["list-user-pokemon-round"],
@@ -361,7 +362,7 @@ export default function BattleLobbyScreen() {
             pathname: ROUTES.APP.PICK_POKEMON,
             params: {
               matchId: String(pickPokemonMatchId),
-              roundNumber: pickRoundNumber, // Truyền thêm roundNumber
+              roundNumber: pickRoundNumber,
             },
           });
           break;
@@ -370,7 +371,6 @@ export default function BattleLobbyScreen() {
           const arenaMatchId = data.matchId || data.match?.id;
           if (!arenaMatchId) break;
 
-          // 🔥 FIX: Lấy roundNumber chính xác
           const arenaRoundNumber =
             (data as any).round?.roundNumber || data.roundNumber || "ONE";
 
@@ -383,16 +383,20 @@ export default function BattleLobbyScreen() {
 
           setStartRoundPayload(data);
 
+          // [FIX QUAN TRỌNG]: Tắt hết modal và state thừa trước khi chuyển trang
           setInQueue(false);
           setGlobalInQueue(false);
+          setShowAcceptModal(false); // <--- QUAN TRỌNG
+          setMatchedPlayer(null);    // <--- QUAN TRỌNG
           hideGlobalMatchFound();
+
           queryClient.invalidateQueries({ queryKey: ["list-match-round"] });
 
           router.replace({
             pathname: ROUTES.APP.ARENA,
             params: {
               matchId: String(arenaMatchId),
-              roundNumber: arenaRoundNumber, // Truyền đúng Round Number
+              roundNumber: arenaRoundNumber,
             },
           });
           break;
@@ -418,9 +422,6 @@ export default function BattleLobbyScreen() {
       setStartRoundPayload,
     ]
   );
-
-  // ... (Giữ nguyên các phần còn lại của file battle.tsx)
-  // ... (checkMatchTrackingAndNavigate, useFocusEffect, useEffects...)
 
   const checkMatchTrackingAndNavigate = useCallback(() => {
     if (hasCheckedMatchTracking.current) return;
@@ -520,8 +521,20 @@ export default function BattleLobbyScreen() {
     handleMatchTrackingData,
   ]);
 
+  // --- Reset state khi quay lại màn hình battle ---
   useFocusEffect(
     useCallback(() => {
+      // 1. Reset UI ngay lập tức
+      setShowAcceptModal(false);
+      setMatchedPlayer(null);
+      setInQueue(false);
+      setGlobalInQueue(false);
+
+      // 2. Xóa dữ liệu cũ trong Cache để tránh hiện lại trạng thái Match Found của trận trước
+      queryClient.removeQueries({ queryKey: ["match-tracking"] });
+      queryClient.removeQueries({ queryKey: ["battle-tracking"] });
+
+      // 3. Reset tracking refs
       isBattleScreenFocused.current = true;
       hasCheckedMatchTracking.current = false;
       lastProcessedMatchId.current = null;
@@ -570,6 +583,7 @@ export default function BattleLobbyScreen() {
       isLoadingSeason,
       refetchMatchTracking,
       handleMatchTrackingData,
+      queryClient,
     ])
   );
 
@@ -617,6 +631,7 @@ export default function BattleLobbyScreen() {
           socket.emit("join-matching-room", { matchId: payload.matchId });
           socket.emit("join-user-match-room", { matchId: payload.matchId });
 
+          // [FIX]: Tắt modal trước khi chuyển trang
           setShowAcceptModal(false);
           setStatusMatch(null);
           setMatchedPlayer(null);
@@ -625,7 +640,7 @@ export default function BattleLobbyScreen() {
           hideGlobalMatchFound();
           try {
             clearLastMatchResult();
-          } catch (e) {}
+          } catch (e) { }
           queryClient.invalidateQueries({ queryKey: ["list-match-round"] });
           queryClient.invalidateQueries({
             queryKey: ["list-user-pokemon-round"],
@@ -660,8 +675,8 @@ export default function BattleLobbyScreen() {
           Alert.alert(
             t("common.error"),
             payload.reason ||
-              payload.message ||
-              t("battle.lobby.alerts.queue_error_message")
+            payload.message ||
+            t("battle.lobby.alerts.queue_error_message")
           );
       }
     };
@@ -680,7 +695,7 @@ export default function BattleLobbyScreen() {
             params: { matchId: String(matchId) },
           } as any);
         }
-      } catch (e) {}
+      } catch (e) { }
     };
     socket.on("match-completed", onMatchCompleted);
 
