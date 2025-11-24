@@ -350,7 +350,9 @@
         "add_question_description": "+{{value}} câu hỏi",
         "decrease_point_description": "-{{value}} điểm mỗi câu",
         "discomfort_vision_description": "Tầm nhìn bị mờ",
-        "next_turn_warning": "Turn sau bạn sẽ bị ảnh hưởng bởi bùa bất lợi: {{debuff}}"
+        "next_turn_warning": "Turn sau bạn sẽ bị ảnh hưởng bởi bùa bất lợi: {{debuff}}",
+        "next_turn_warning_label": "Cảnh báo ván sau",
+        "next_turn_warning_generic": "Ván sau bạn sẽ nhận một hiệu ứng bất lợi từ đối thủ."
       }
     },
     "pick": {

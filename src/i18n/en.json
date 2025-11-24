@@ -350,7 +350,9 @@
         "add_question_description": "+{{value}} questions",
         "decrease_point_description": "-{{value}} points per question",
         "discomfort_vision_description": "Blurred vision",
-        "next_turn_warning": "Next turn you will be affected by debuff: {{debuff}}"
+        "next_turn_warning": "Next turn you will be affected by debuff: {{debuff}}",
+        "next_turn_warning_label": "Incoming debuff",
+        "next_turn_warning_generic": "Next turn you will receive an opponent debuff."
       }
     },
     "pick": {

@@ -3,6 +3,7 @@ import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { HapticPressable } from "@components/HapticPressable";
 import { ThemedView } from "@components/ThemedView";
 import { getSocket } from "@configs/socket";
+import { MATCH_DEBUFF_TYPE } from "@constants/battle.enum";
 import useAuth from "@hooks/useAuth";
 import { useListMatchRound } from "@hooks/useBattle";
 import useOwnedPokemons from "@hooks/useOwnedPokemons";
@@ -12,7 +13,15 @@ import { useAuthStore } from "@stores/auth/auth.config";
 import { useMatchingStore } from "@stores/matching/matching.config";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { CheckCircle, Clock, Shield, XCircle, Zap } from "lucide-react-native";
+import {
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Shield,
+  ShieldAlert,
+  XCircle,
+  Zap,
+} from "lucide-react-native";
 import React, {
   useCallback,
   useEffect,
@@ -82,7 +91,10 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
   const [showConfusion, setShowConfusion] = useState(false);
   const [isWaitingForOpponent, setIsWaitingForOpponent] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
-  const [nextQuestionDebuff, setNextQuestionDebuff] = useState<any>(null);
+  const [upcomingDebuff, setUpcomingDebuff] = useState<{
+    debuff: any;
+    roundQuestionId?: number | null;
+  } | null>(null);
   const [roundStarted, setRoundStarted] = useState(false);
   const [roundData, setRoundData] = useState<any>(null);
   const [questionTimeRemaining, setQuestionTimeRemaining] = useState<
@@ -104,6 +116,53 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     inputRange: [0, 1],
     outputRange: ["0%", "100%"],
   });
+  const upcomingDebuffTimeoutRef =
+    useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const getDebuffDisplay = useCallback(
+    (debuff?: { typeDebuff?: string | null; valueDebuff?: number | null }) => {
+      if (!debuff?.typeDebuff) return null;
+      switch (debuff.typeDebuff) {
+        case MATCH_DEBUFF_TYPE.ADD_QUESTION:
+          return {
+            title: t("battle.arena.debuff.add_question"),
+            description:
+              typeof debuff.valueDebuff === "number"
+                ? t("battle.arena.debuff.add_question_description", {
+                  value: debuff.valueDebuff,
+                })
+                : null,
+          };
+        case MATCH_DEBUFF_TYPE.DECREASE_POINT:
+          return {
+            title: t("battle.arena.debuff.decrease_point"),
+            description:
+              typeof debuff.valueDebuff === "number"
+                ? t("battle.arena.debuff.decrease_point_description", {
+                  value: debuff.valueDebuff,
+                })
+                : null,
+          };
+        case MATCH_DEBUFF_TYPE.DISCOMFORT_VISION:
+          return {
+            title: t("battle.arena.debuff.discomfort_vision"),
+            description: t(
+              "battle.arena.debuff.discomfort_vision_description"
+            ),
+          };
+        default:
+          return {
+            title: t("battle.arena.debuff.title"),
+            description: null,
+          };
+      }
+    },
+    [t]
+  );
+  const currentDebuffDisplay = useMemo(
+    () => getDebuffDisplay(currentQuestion?.debuff),
+    [currentQuestion?.debuff, getDebuffDisplay]
+  );
 
   // --- LOGIC XỬ LÝ ROUND STARTED (Dùng chung) ---
   const handleRoundStartedData = useCallback((payload: any) => {
@@ -149,7 +208,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
 
       pointProgress.setValue(1);
       setCurrentQuestionPoints(BASE_POINT_PER_QUESTION);
-      setNextQuestionDebuff(null);
+      setUpcomingDebuff(null);
 
       setCurrentQuestion({
         id: qData.id || qBank?.id,
@@ -280,6 +339,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             : a.answer || a.text || a;
         const opts = ans.map(parseAnswerText);
 
+        const nextRoundQuestionId = nextQ.roundQuestionId || nextQ.id;
         setCurrentQuestion({
           id: qBank.id,
           question: qBank.questionJp || nextQ.question,
@@ -287,11 +347,18 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
           answers: ans,
           correctAnswer: ans.findIndex((a: any) => a.isCorrect),
           endTimeQuestion: nextQ.endTimeQuestion,
-          roundQuestionId: nextQ.roundQuestionId || nextQ.id,
+          roundQuestionId: nextRoundQuestionId,
           debuff: nextQ.debuff,
         });
 
-        setNextQuestionDebuff(null);
+        if (nextQ.debuff) {
+          setUpcomingDebuff({
+            debuff: nextQ.debuff,
+            roundQuestionId: nextRoundQuestionId,
+          });
+        } else {
+          setUpcomingDebuff(null);
+        }
 
         if (nextQ.endTimeQuestion && nextQ.timeLimitMs) {
           const end = new Date(nextQ.endTimeQuestion).getTime();
@@ -362,6 +429,32 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
       socket.off("waiting-for-opponent");
     };
   }, [accessToken, matchId]);
+
+  useEffect(() => {
+    if (
+      !upcomingDebuff?.roundQuestionId ||
+      !currentQuestion?.roundQuestionId
+    ) {
+      return;
+    }
+
+    if (upcomingDebuff.roundQuestionId === currentQuestion.roundQuestionId) {
+      if (upcomingDebuffTimeoutRef.current) {
+        clearTimeout(upcomingDebuffTimeoutRef.current);
+      }
+      upcomingDebuffTimeoutRef.current = setTimeout(() => {
+        setUpcomingDebuff(null);
+        upcomingDebuffTimeoutRef.current = null;
+      }, 2000);
+    }
+
+    return () => {
+      if (upcomingDebuffTimeoutRef.current) {
+        clearTimeout(upcomingDebuffTimeoutRef.current);
+        upcomingDebuffTimeoutRef.current = null;
+      }
+    };
+  }, [currentQuestion?.roundQuestionId, upcomingDebuff]);
 
   // Timer
   useEffect(() => {
@@ -741,6 +834,43 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
                     </Text>
                   </>
                 )}
+              </View>
+            </View>
+          )}
+
+          {upcomingDebuff?.debuff && (
+            <View className="px-5 mb-3">
+              <View className="flex-row items-center gap-3 rounded-2xl border border-amber-400/40 bg-amber-400/10 px-4 py-3">
+                <AlertTriangle size={20} color="#fbbf24" />
+                <View className="flex-1">
+                  <Text className="text-amber-200 font-bold text-xs tracking-wide uppercase">
+                    {t("battle.arena.debuff.next_turn_warning_label")}
+                  </Text>
+                  <Text className="text-amber-50 text-sm font-semibold">
+                    {t("battle.arena.debuff.next_turn_warning_generic")}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+
+          {currentDebuffDisplay && (
+            <View className="px-5 mb-3">
+              <View className="flex-row items-center gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3">
+                <ShieldAlert size={20} color="#f87171" />
+                <View className="flex-1">
+                  <Text className="text-red-200 font-bold text-xs tracking-wide uppercase">
+                    {t("battle.arena.debuff.affected_by")}
+                  </Text>
+                  <Text className="text-white font-semibold">
+                    {currentDebuffDisplay.title}
+                  </Text>
+                  {currentDebuffDisplay.description ? (
+                    <Text className="text-red-100 text-xs mt-1">
+                      {currentDebuffDisplay.description}
+                    </Text>
+                  ) : null}
+                </View>
               </View>
             </View>
           )}

@@ -584,7 +584,9 @@
                 "add_question_description": "+{{value}}問題",
                 "decrease_point_description": "問題ごとに-{{value}}ポイント",
                 "discomfort_vision_description": "視界がぼやける",
-                "next_turn_warning": "次のターン、あなたはデバフの影響を受けます: {{debuff}}"
+                "next_turn_warning": "次のターン、あなたはデバフの影響を受けます: {{debuff}}",
+                "next_turn_warning_label": "次のデバフ",
+                "next_turn_warning_generic": "次の問題で相手からのデバフを受けます。"
             }
         },
         "pick": {
