@@ -11,20 +11,17 @@ import { formatDateToMMYYYY } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import {
-  Award,
   BookOpen,
   Calendar,
   ChevronRight,
   Cog,
-  Crown,
   Gift,
   History,
   Shield,
   Sparkles,
   Star,
   StickyNote,
-  Trophy,
-  UserRound
+  Trophy
 } from 'lucide-react-native';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -230,7 +227,11 @@ export default function ProfileScreen() {
           </BackScreen>
 
           {/* Avatar Section */}
-          <View className="items-center pt-2">
+          <TouchableOpacity
+            onPress={() => router.push(ROUTES.ME.ACCOUNT_DETAILS)}
+            activeOpacity={0.8}
+            className="items-center pt-2"
+          >
             {/* Progress Ring with Enhanced Glow */}
             <View className="w-38 h-38 items-center justify-center mb-5 relative">
               <View style={styles.progressGlow} />
@@ -250,7 +251,7 @@ export default function ProfileScreen() {
                   name={userProfile?.name ?? ""}
                   avatar={userProfile?.avatar ?? undefined}
                   size="large"
-                  onPress={() => { }}
+                  onPress={() => router.push(ROUTES.ME.ACCOUNT_DETAILS)}
                 />
               </View>
 
@@ -284,7 +285,7 @@ export default function ProfileScreen() {
               <Calendar size={15} color="rgba(255,255,255,0.95)" strokeWidth={2.5} />
               <Text className="text-sm font-semibold text-white/95 tracking-wide">{t('profile.joined')} {formatDateToMMYYYY(userProfile?.createdAt)}</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         </LinearGradient>
 
         {/* Main Content */}
@@ -311,53 +312,6 @@ export default function ProfileScreen() {
               />
             )}
           </View>
-
-          {/* Account Details CTA */}
-          <TouchableOpacity
-            onPress={() => router.push(ROUTES.ME.ACCOUNT_DETAILS)}
-            activeOpacity={0.7}
-            className="mb-6"
-          >
-            <LinearGradient
-              colors={['#ecfeff', '#e0f2fe']}
-              style={styles.collectionCard}
-              className="p-6 rounded-3xl overflow-hidden shadow-lg"
-            >
-              <View className="absolute -top-10 -right-10 w-35 h-35 rounded-full bg-cyan-50 opacity-40" />
-
-              <View className="flex-row items-center mb-2">
-                <LinearGradient
-                  colors={['#0891b2', '#0ea5e9']}
-                  style={styles.collectionIconContainer}
-                  className="w-13 h-13 rounded-2xl items-center justify-center mr-3.5 shadow-lg"
-                >
-                  <UserRound size={24} color="white" strokeWidth={2.5} />
-                </LinearGradient>
-
-                <View className="flex-1">
-                  <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">
-                    {t('profile.account_details')}
-                  </Text>
-                  <Text className="text-sm font-semibold text-slate-600 tracking-wide">
-                    {t('profile.account_details_description')}
-                  </Text>
-                </View>
-
-                <View className="w-10 h-10 bg-white/80 rounded-xl items-center justify-center">
-                  <ChevronRight size={20} color="#0284c7" strokeWidth={2.8} />
-                </View>
-              </View>
-
-              <View className="flex-row items-center justify-between pt-4 border-t border-slate-100">
-                <Text className="text-sm font-bold text-slate-600">
-                  {t('profile.manage_account')}
-                </Text>
-                <Text className="text-sm font-extrabold text-cyan-600">
-                  {t('profile.edit_now')}
-                </Text>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
 
           {/* Pokemon Collection Card */}
           <TouchableOpacity
