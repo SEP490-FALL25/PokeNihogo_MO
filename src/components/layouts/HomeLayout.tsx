@@ -4,8 +4,9 @@ import RewardShopModal from "@components/Organism/ShopPokemon";
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
 import HomeTourGuide from "@components/ui/HomeTourGuide";
 import { useWalletUser } from "@hooks/useWallet";
-import { router } from "expo-router";
-import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { router, useFocusEffect } from "expo-router";
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ImageBackground, ScrollView, StyleSheet, View } from "react-native";
 import { CopilotStep, walkthroughable } from "react-native-copilot";
@@ -13,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import useAuth from "@hooks/useAuth";
 import { ROUTES } from "@routes/routes";
+import { useAuthStore } from "@stores/auth/auth.config";
 
 interface HomeLayoutProps {
   children?: React.ReactNode;
@@ -35,11 +37,34 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     const { t } = useTranslation();
     const scrollViewRef = useRef<ScrollView>(null);
     const { user } = useAuth();
+    const queryClient = useQueryClient();
+    const { accessToken } = useAuthStore();
     console.log(user)
     const [isShopVisible, setIsShopVisible] = useState(false);
-    const [showDailyQuests, setShowDailyQuests] = useState(false);
 
     useWalletUser();
+
+    // Refetch user profile khi component mount và khi screen được focus
+    // để đảm bảo dữ liệu người dùng luôn được cập nhật mới nhất
+    useEffect(() => {
+      if (accessToken) {
+        // Refetch user profile khi mount
+        queryClient.invalidateQueries({ 
+          queryKey: ['user-profile', accessToken] 
+        });
+      }
+    }, [accessToken, queryClient]);
+
+    // Refetch user profile mỗi khi screen được focus
+    useFocusEffect(
+      useCallback(() => {
+        if (accessToken) {
+          queryClient.invalidateQueries({ 
+            queryKey: ['user-profile', accessToken] 
+          });
+        }
+      }, [accessToken, queryClient])
+    );
 
     // Note: Main pokemon logic moved to tab layout level to prevent re-mounting
 
