@@ -1,8 +1,15 @@
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
-import { IconSymbol } from "@components/ui/IconSymbol";
 import { ROUTES } from "@routes/routes";
 import { router } from "expo-router";
+import {
+  BookMarked,
+  BookOpen,
+  Headphones,
+  Mic2,
+  Sword,
+  User,
+} from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -12,7 +19,7 @@ const { width } = Dimensions.get("window");
 
 interface NavigationButtonProps {
   title: string;
-  icon: any;
+  icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   onPress: () => void;
   color?: string;
   // Optional tour props
@@ -23,7 +30,7 @@ interface NavigationButtonProps {
 
 const NavigationButton: React.FC<NavigationButtonProps> = ({
   title,
-  icon,
+  icon: Icon,
   onPress,
   color = "#3b82f6",
   tourStepName,
@@ -35,7 +42,7 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
   const ButtonContent = (
     <>
       <View style={[styles.iconContainer, { backgroundColor: color }]}>
-        <IconSymbol name={icon} size={24} color="#ffffff" />
+        <Icon size={24} color="#ffffff" strokeWidth={2.5} />
       </View>
       <ThemedText style={styles.buttonText}>{title}</ThemedText>
     </>
@@ -68,43 +75,29 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
 
 const MainNavigation: React.FC = () => {
   const { t } = useTranslation();
-  // const WTView = walkthroughable(View);
-  
+
   const handleLearn = () => {
-    // Navigate to learning screen
-    console.log("Learn pressed");
     router.push(ROUTES.TABS.LEARN);
   };
 
   const handleReading = () => {
-    // Navigate to reading screen
-    console.log("Reading pressed");
     router.push(ROUTES.TABS.READING);
   };
 
   const handleListening = () => {
-    // Navigate to listening screen
-    console.log("Listening pressed");
     router.push(ROUTES.TABS.LISTENING);
   };
 
   const handleBattle = () => {
-    // Navigate to battle screen
-    console.log("Battle pressed");
     router.push(ROUTES.TABS.BATTLE);
   };
 
   const handleUserInfo = () => {
-    // Navigate to user info screen
-    console.log("User Info pressed");
     router.push(ROUTES.ME.PROFILE);
   };
 
-  const handleOther = () => {
-    // Navigate to other features screen
-    console.log("Other pressed");
-    // TODO: Create other features screen
-    // router.push(ROUTES.MAIN_NAVIGATION.OTHER);
+  const handleSpeaking = () => {
+    router.push(ROUTES.TABS.SPEAKING);
   };
 
   return (
@@ -116,7 +109,7 @@ const MainNavigation: React.FC = () => {
       <View style={styles.grid}>
         <NavigationButton
           title={t("navigation.learn")}
-          icon="book.fill"
+          icon={BookOpen}
           onPress={handleLearn}
           color="#10b981"
           tourStepName="navigation"
@@ -126,33 +119,33 @@ const MainNavigation: React.FC = () => {
 
         <NavigationButton
           title={t("navigation.reading")}
-          icon="book.fill"
+          icon={BookMarked}
           onPress={handleReading}
           color="#f59e0b"
         />
         <NavigationButton
           title={t("navigation.listening")}
-          icon="speaker.wave.2.fill"
+          icon={Headphones}
           onPress={handleListening}
           color="#8b5cf6"
         />
         <NavigationButton
           title={t("navigation.battle")}
-          icon="gamecontroller.fill"
+          icon={Sword}
           onPress={handleBattle}
           color="#ef4444"
         />
         <NavigationButton
           title={t("navigation.user_info")}
-          icon="person.fill"
+          icon={User}
           onPress={handleUserInfo}
           color="#06b6d4"
         />
         <NavigationButton
-          title={t("navigation.other")}
-          icon="ellipsis.circle"
-          onPress={handleOther}
-          color="#6b7280"
+          title={t("navigation.speaking")}
+          icon={Mic2}
+          onPress={handleSpeaking}
+          color="#fb7185"
         />
       </View>
     </ThemedView>
