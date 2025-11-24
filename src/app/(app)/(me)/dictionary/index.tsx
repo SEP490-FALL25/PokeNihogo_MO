@@ -1,9 +1,8 @@
-import BackScreen from "@components/molecules/Back";
 import type { AlertType } from "@components/atoms/MinimalAlert";
+import BackScreen from "@components/molecules/Back";
 import { HOT_KEYWORDS, JLPT_LEVELS } from "@constants/dictionary.constants";
 import { FlashcardContentType } from "@constants/flashcard.enum";
 import { useDebounce } from "@hooks/useDebounce";
-import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import {
   useDictionarySearch,
   useSearchHistory,
@@ -14,6 +13,7 @@ import {
   useCreateFlashcardDeck,
   useFlashcardDecks,
 } from "@hooks/useFlashcard";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { DictionaryResult } from "@services/dictionary";
 import { formatDateVN } from "@utils/date";
 import { AxiosError } from "axios";
@@ -440,7 +440,7 @@ export default function DictionaryScreen() {
     isAudioLoading,
     isAudioPlaying,
     isSpeaking,
-    toast,
+    showAlert,
     t,
     wordDetailData?.data,
   ]);

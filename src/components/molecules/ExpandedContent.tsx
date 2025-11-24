@@ -89,7 +89,7 @@ export default function ExpandedContent({
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statValue}>
-                {user.level.requiredExp.toLocaleString()}
+                {user.level.levelNumber + 1}
               </Text>
               <Text style={styles.statLabel}>{t("profile.next_level")}</Text>
             </View>
@@ -103,6 +103,7 @@ export default function ExpandedContent({
 
             <ExpProgressBar
               currentExp={user.exp}
+              currentLevel={user.level.levelNumber}
               expToNextLevel={user.level.requiredExp}
               size="large"
             />

@@ -1,6 +1,5 @@
 "use client";
 
-import { Ionicons } from "@expo/vector-icons";
 import { ROUTES } from "@routes/routes";
 import { usePathname, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef } from "react";
@@ -14,10 +13,17 @@ import {
   View,
 } from "react-native";
 // import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  BookOpen,
+  Home,
+  MessageSquare,
+  Sword,
+  Trophy,
+} from "lucide-react-native";
 
 interface Tab {
   name: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   label: string;
   route: string;
   color: string;
@@ -32,35 +38,35 @@ interface TabButtonProps {
 const getTabConfig = (t: (key: string) => string): Tab[] => [
   {
     name: "learn",
-    icon: "library",
+    icon: BookOpen,
     label: t("tabs.learn"),
     route: ROUTES.TABS.LEARN,
     color: "#06b6d4",
   },
   {
     name: "abilities",
-    icon: "trophy",
+    icon: Trophy,
     label: t("tabs.abilities"),
     route: ROUTES.TABS.ABILITIES,
     color: "#f59e0b",
   },
   {
     name: "home",
-    icon: "home",
+    icon: Home,
     label: t("tabs.home"),
     route: ROUTES.TABS.HOME,
     color: "#3b82f6",
   },
   {
     name: "ai-speaking",
-    icon: "chatbox",
+    icon: MessageSquare,
     label: t("tabs.ai_speaking"),
     route: ROUTES.TABS.AI_CONVERSATION,
     color: "#8b5cf6",
   },
   {
     name: "battle",
-    icon: "game-controller",
+    icon: Sword,
     label: t("tabs.battle"),
     route: ROUTES.TABS.BATTLE,
     color: "#ef4444",
@@ -128,6 +134,7 @@ const CustomTab = () => {
 };
 
 const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
+  const Icon = tab.icon;
   const bounceAnim = useRef(new Animated.Value(active ? 1 : 0)).current;
   const scaleAnim = useRef(
     new Animated.Value(
@@ -208,10 +215,10 @@ const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
               }),
             ]}
           >
-            <Ionicons
-              name={tab.icon}
+            <Icon
               size={24}
               color={active ? COLORS.WHITE : COLORS.GRAY_LIGHT}
+              strokeWidth={2.4}
             />
           </View>
         </Animated.View>
