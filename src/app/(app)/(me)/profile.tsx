@@ -319,7 +319,7 @@ export default function ProfileScreen() {
               <StatItem
                 icon={Star}
                 value={userProfile.exp.toLocaleString()}
-                label={t('profile.points')}
+                label={t('profile.current_xp')}
                 color="#f59e0b"
                 accentColor="#fbbf24"
               />

@@ -37,6 +37,7 @@ export default function CompactHeader({ user, onPress, style }: CompactHeaderPro
         {/* Progress Bar */}
         <View style={styles.progressContainer}>
           <ExpProgressBar
+            currentLevel={user?.level?.levelNumber ?? 0}
             currentExp={user?.exp}
             expToNextLevel={user?.level?.requiredExp ?? 0}
             size="small"
