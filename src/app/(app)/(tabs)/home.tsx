@@ -5,7 +5,6 @@ import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import WelcomeModal from "@components/ui/WelcomeModal";
 import { SubscriptionFeatureKey } from "@constants/subscription.enum";
-import useAuthHook from "@hooks/useAuth";
 import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useSrsReview } from "@hooks/useSrsReview";
 import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
@@ -40,6 +39,7 @@ import {
 import { useCopilot } from "react-native-copilot";
 import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
+import { useAuth } from "@hooks/useAuth";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -316,7 +316,7 @@ const InsightCard: React.FC<{
 export default function HomeScreen() {
   const { t } = useTranslation();
   const srsTypeConfig = useSrsTypeConfig();
-  const { user } = useAuthHook();
+  const { user } = useAuth();
   const { showAlert } = useMinimalAlert();
 
   // Modal state management
