@@ -493,6 +493,20 @@ export default function PickPokemonScreen() {
     setSelectedPokemonId(pokemonId);
   };
 
+  useEffect(() => {
+    if (!selectedPokemonId) return;
+    const isSelected =
+      (battleContext?.playerPicks || []).includes(selectedPokemonId) ||
+      (battleContext?.opponentPicks || []).includes(selectedPokemonId);
+    if (isSelected) {
+      setSelectedPokemonId(null);
+    }
+  }, [
+    battleContext?.playerPicks,
+    battleContext?.opponentPicks,
+    selectedPokemonId,
+  ]);
+
   const [infoPokemonId, setInfoPokemonId] = useState<number | null>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const handleShowInfo = (pokemonId: number, e?: any) => {
@@ -508,6 +522,17 @@ export default function PickPokemonScreen() {
   const choosePokemonMutation = useChoosePokemon();
   const handleChoosePokemon = async () => {
     if (!selectedPokemonId || !battleContext?.currentRoundId) return;
+    const isAlreadyPicked =
+      (battleContext.playerPicks || []).includes(selectedPokemonId) ||
+      (battleContext.opponentPicks || []).includes(selectedPokemonId);
+    if (isAlreadyPicked) {
+      setSelectedPokemonId(null);
+      Alert.alert(
+        "Pokemon đã được chọn",
+        "Vui lòng chọn Pokemon khác vì đối thủ hoặc bạn đã chọn Pokemon này."
+      );
+      return;
+    }
     try {
       await choosePokemonMutation.mutateAsync({
         matchId: battleContext.currentRoundId,
