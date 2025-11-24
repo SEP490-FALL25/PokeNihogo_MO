@@ -55,8 +55,8 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
       <View className="flex-row">
         <View className="flex-1 items-center mr-2">
           <View
-            className="bg-gradient-to-br from-purple-400 to-purple-500 rounded-2xl px-4 py-3 mb-2 w-full items-center"
-            style={{ backgroundColor: "#a855f7" }}
+            className="bg-gradient-to-br from-green-400 to-green-500 rounded-2xl px-4 py-3 mb-2 w-full items-center"
+            style={{ backgroundColor: "#22C55E" }}
           >
             <Text className="text-3xl font-extrabold text-white">
               {totalRewards}
@@ -121,8 +121,8 @@ const getSourceTypeInfo = (sourceType: string) => {
     case "EXERCISE":
       return {
         icon: Award,
-        color: "#a855f7",
-        bgColor: "#f3e8ff",
+        color: "#22C55E",
+        bgColor: "#dcfce7",
       };
     case "LESSON":
       return {
@@ -412,11 +412,12 @@ const DatePickerButton: React.FC<DatePickerButtonProps> = ({
                   onPress={() => day && selectDay(day)}
                   className={`w-[14.28%] p-3 aspect-square items-center justify-center ${
                     isSelected(day)
-                      ? "bg-purple-500 rounded-xl"
+                      ? "bg-green-500 rounded-xl"
                       : isToday(day)
-                        ? "bg-purple-100 rounded-xl"
+                        ? "bg-green-100 rounded-xl"
                         : ""
                   }`}
+                  style={isSelected(day) ? { backgroundColor: "#22C55E" } : undefined}
                 >
                   {day && (
                     <Text
@@ -424,7 +425,7 @@ const DatePickerButton: React.FC<DatePickerButtonProps> = ({
                         isSelected(day)
                           ? "text-white"
                           : isToday(day)
-                            ? "text-purple-600"
+                            ? "text-green-600"
                             : "text-slate-700"
                       }`}
                     >
@@ -447,7 +448,8 @@ const DatePickerButton: React.FC<DatePickerButtonProps> = ({
               </Pressable>
               <Pressable
                 onPress={handleConfirm}
-                className="flex-1 bg-purple-500 rounded-xl py-3 items-center"
+                className="flex-1 bg-green-500 rounded-xl py-3 items-center"
+                style={{ backgroundColor: "#22C55E" }}
               >
                 <Text className="text-sm font-bold text-white">
                   {t ? t("reward_history.filter.confirm") : "Confirm"}
@@ -525,12 +527,12 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         className="bg-white rounded-2xl p-4 flex-row items-center justify-between shadow-sm"
       >
         <View className="flex-row items-center">
-          <Filter size={20} color="#a855f7" strokeWidth={2.5} />
+          <Filter size={20} color="#22C55E" strokeWidth={2.5} />
           <Text className="ml-2 text-base font-bold text-slate-800">
             {t("reward_history.filter.title")}
           </Text>
           {hasActiveFilters && (
-            <View className="ml-2 bg-purple-500 rounded-full px-2 py-0.5">
+            <View className="ml-2 bg-green-500 rounded-full px-2 py-0.5" style={{ backgroundColor: "#22C55E" }}>
               <Text className="text-xs font-bold text-white">
                 {activeFilterCount}
               </Text>
@@ -719,7 +721,8 @@ export default function RewardHistoryScreen() {
             </Text>
             <Pressable
               onPress={handleRefresh}
-              className="bg-purple-500 px-6 py-3 rounded-2xl"
+              className="bg-green-500 px-6 py-3 rounded-2xl"
+              style={{ backgroundColor: "#22C55E" }}
             >
               <Text className="text-white font-bold">
                 {t("reward_history.retry")}
@@ -749,7 +752,7 @@ export default function RewardHistoryScreen() {
               <RefreshControl
                 refreshing={isRefetching}
                 onRefresh={handleRefresh}
-                colors={["#a855f7"]}
+                colors={["#22C55E"]}
               />
             }
             ListHeaderComponent={
@@ -762,7 +765,7 @@ export default function RewardHistoryScreen() {
             ListFooterComponent={
               isFetchingNextPage ? (
                 <View className="py-4">
-                  <ActivityIndicator size="large" color="#a855f7" />
+                  <ActivityIndicator size="large" color="#22C55E" />
                 </View>
               ) : null
             }
@@ -775,14 +778,14 @@ export default function RewardHistoryScreen() {
 
 const styles = StyleSheet.create({
   card: {
-    shadowColor: "#a855f7",
+    shadowColor: "#22C55E",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 6,
   },
   statsCard: {
-    shadowColor: "#a855f7",
+    shadowColor: "#22C55E",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 10,
