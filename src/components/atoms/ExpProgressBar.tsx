@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 interface ExpProgressBarProps {
   currentExp: number;
+  currentLevel: number;
   expToNextLevel: number;
   size?: "small" | "large";
   showText?: boolean;
@@ -12,6 +13,7 @@ interface ExpProgressBarProps {
 
 export default function ExpProgressBar({
   currentExp = 0,
+  currentLevel = 0,
   expToNextLevel = 0,
   size = "small",
   showText = true,
@@ -60,7 +62,7 @@ export default function ExpProgressBar({
         <Text style={styles.remainingText}>
           {expToNextLevel.toLocaleString()} {t("profile.xp")}{" "}
           {t("profile.to")} {t("profile.level")}{" "}
-          {Math.floor(currentExp / 1000) + 1}
+          {currentLevel + 1}
         </Text>
       )}
     </View>
