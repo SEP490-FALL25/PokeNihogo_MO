@@ -1073,7 +1073,22 @@
             "lesson": "レッスン",
             "test": "テスト",
             "daily_login": "デイリーログイン",
-            "achievement": "実績"
+            "achievement": "実績",
+            "attendance": "出席",
+            "season_reward": "シーズン報酬",
+            "other": "その他"
+        },
+        "filter": {
+            "title": "フィルター",
+            "all": "すべて",
+            "source_type": "報酬ソース",
+            "select_source_type": "報酬ソースを選択",
+            "date_range": "期間",
+            "date_from": "開始日",
+            "date_to": "終了日",
+            "select_date": "日付を選択",
+            "clear": "クリア",
+            "confirm": "確認"
         }
     },
     "dictionary": {
