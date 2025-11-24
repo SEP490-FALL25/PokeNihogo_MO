@@ -90,6 +90,9 @@ export default function BattleLobbyScreen() {
   const lastProcessedMatchId = useRef<number | null>(null);
   const lastProcessedStatus = useRef<string | null>(null);
 
+  // [FIX 1] Cờ chặn update: Mặc định là TRUE để chặn ngay khi component mount
+  const isBlockingUpdates = useRef(true);
+
   const shimmer = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const loop = Animated.loop(
@@ -243,7 +246,8 @@ export default function BattleLobbyScreen() {
       data: IBattleMatchTrackingResponse | undefined,
       forceProcess: boolean = false
     ) => {
-      if (!data) return;
+      // [FIX 2] Nếu cờ chặn đang bật, TUYỆT ĐỐI KHÔNG XỬ LÝ (tránh hiện modal do data cũ)
+      if (!data || isBlockingUpdates.current) return;
 
       const currentMatchId = data.matchId || data.match?.id;
       const currentStatus = data.type;
@@ -322,7 +326,6 @@ export default function BattleLobbyScreen() {
           }
           break;
 
-        // 🔥 FIX: Gộp ROUND_STARTING vào case Pick Pokemon
         case BATTLE_STATUS.MATCH_TRACKING_STATUS.ROUND_STARTING:
         case BATTLE_STATUS.MATCH_TRACKING_STATUS.ROUND_SELECTING_POKEMON:
         case BATTLE_STATUS.MATCH_TRACKING_STATUS.BETWEEN_ROUNDS:
@@ -346,11 +349,10 @@ export default function BattleLobbyScreen() {
 
           setStartRoundPayload(data);
 
-          // [FIX QUAN TRỌNG]: Tắt hết modal và state thừa trước khi chuyển trang
           setInQueue(false);
           setGlobalInQueue(false);
-          setShowAcceptModal(false); // <--- QUAN TRỌNG
-          setMatchedPlayer(null);    // <--- QUAN TRỌNG
+          setShowAcceptModal(false);
+          setMatchedPlayer(null);
           hideGlobalMatchFound();
 
           queryClient.invalidateQueries({ queryKey: ["list-match-round"] });
@@ -383,11 +385,10 @@ export default function BattleLobbyScreen() {
 
           setStartRoundPayload(data);
 
-          // [FIX QUAN TRỌNG]: Tắt hết modal và state thừa trước khi chuyển trang
           setInQueue(false);
           setGlobalInQueue(false);
-          setShowAcceptModal(false); // <--- QUAN TRỌNG
-          setMatchedPlayer(null);    // <--- QUAN TRỌNG
+          setShowAcceptModal(false);
+          setMatchedPlayer(null);
           hideGlobalMatchFound();
 
           queryClient.invalidateQueries({ queryKey: ["list-match-round"] });
@@ -447,44 +448,10 @@ export default function BattleLobbyScreen() {
   const hasInitializedSeasonCheck = useRef(false);
   const isBattleScreenFocused = useRef(false);
 
+  // --- [FIX 3] useEffect thông thường cũng phải tuân thủ cờ chặn ---
   useEffect(() => {
-    if (
-      !isLoadingSeason &&
-      responseType === "ACTIVE" &&
-      !isLoadingMatchTracking &&
-      isBattleScreenFocused.current
-    ) {
-      if (hasCheckedMatchTracking.current)
-        hasCheckedMatchTracking.current = false;
-      const checkMatchStatus = async () => {
-        if (hasCheckedMatchTracking.current) return;
-        try {
-          hasCheckedMatchTracking.current = true;
-          const trackingResult = await refetchMatchTracking();
-          const data = trackingResult.data?.data?.data as
-            | IBattleMatchTrackingResponse
-            | undefined;
-          if (data) handleMatchTrackingData(data, true);
-          setTimeout(() => {
-            hasCheckedMatchTracking.current = false;
-          }, 1000);
-        } catch (error) {
-          hasCheckedMatchTracking.current = false;
-        }
-      };
-      const timer = setTimeout(checkMatchStatus, 300);
-      return () => clearTimeout(timer);
-    }
-    if (responseType !== "ACTIVE") hasInitializedSeasonCheck.current = false;
-  }, [
-    isLoadingSeason,
-    responseType,
-    isLoadingMatchTracking,
-    refetchMatchTracking,
-    handleMatchTrackingData,
-  ]);
+    if (isBlockingUpdates.current) return; // Chặn ngay!
 
-  useEffect(() => {
     if (
       matchTrackingData &&
       responseType === "ACTIVE" &&
@@ -521,26 +488,32 @@ export default function BattleLobbyScreen() {
     handleMatchTrackingData,
   ]);
 
-  // --- Reset state khi quay lại màn hình battle ---
+  // --- [FIX 4] useFocusEffect: LOGIC QUAN TRỌNG NHẤT ---
   useFocusEffect(
     useCallback(() => {
-      // 1. Reset UI ngay lập tức
+      console.log("BattleLobby FOCUSED -> Resetting State & Refetching...");
+      
+      // 1. CHẶN NGAY LẬP TỨC
+      isBlockingUpdates.current = true;
+      isBattleScreenFocused.current = true;
+
+      // 2. Dọn dẹp UI ngay lập tức
       setShowAcceptModal(false);
       setMatchedPlayer(null);
       setInQueue(false);
       setGlobalInQueue(false);
 
-      // 2. Xóa dữ liệu cũ trong Cache để tránh hiện lại trạng thái Match Found của trận trước
+      // 3. Xóa cache cũ để React Query không trả về data "Match Found" của trận trước
       queryClient.removeQueries({ queryKey: ["match-tracking"] });
-      queryClient.removeQueries({ queryKey: ["battle-tracking"] });
+      queryClient.removeQueries({ queryKey: ["battle-tracking"] }); // remove cả key dự phòng nếu có
 
-      // 3. Reset tracking refs
-      isBattleScreenFocused.current = true;
+      // 4. Reset các ref kiểm tra
       hasCheckedMatchTracking.current = false;
       lastProcessedMatchId.current = null;
       lastProcessedStatus.current = null;
 
       const checkAndNavigate = async () => {
+        // Đợi một chút nếu season chưa load xong (vẫn giữ trạng thái Block)
         if (responseType !== "ACTIVE" || isLoadingSeason) {
           const retryTimer = setTimeout(async () => {
             if (
@@ -557,26 +530,42 @@ export default function BattleLobbyScreen() {
       };
 
       const performCheck = async () => {
-        if (hasCheckedMatchTracking.current || responseType !== "ACTIVE")
-          return;
         try {
           hasCheckedMatchTracking.current = true;
+          
+          // 5. Gọi API lấy dữ liệu MỚI
           const trackingResult = await refetchMatchTracking();
           const data = trackingResult.data?.data?.data as
             | IBattleMatchTrackingResponse
             | undefined;
-          if (data) handleMatchTrackingData(data, true);
+          
+          // 6. MỞ CỔNG: Chỉ sau khi API có kết quả mới thì mới cho phép xử lý
+          console.log("Refetch done. Unblocking updates.");
+          isBlockingUpdates.current = false; 
+
+          if (data) {
+             handleMatchTrackingData(data, true);
+          }
+          
           setTimeout(() => {
             hasCheckedMatchTracking.current = false;
           }, 2000);
         } catch (error) {
-          hasCheckedMatchTracking.current = false;
+           // Mở cổng kể cả khi lỗi để user không bị treo
+           console.log("Refetch failed. Unblocking updates.");
+           isBlockingUpdates.current = false;
+           hasCheckedMatchTracking.current = false;
         }
       };
 
       checkAndNavigate();
+
       return () => {
+        // [FIX 5] Khi rời màn hình (Blur), đóng cổng lại ngay!
+        console.log("BattleLobby BLURRED -> Blocking updates.");
         isBattleScreenFocused.current = false;
+        isBlockingUpdates.current = true; 
+        setShowAcceptModal(false); 
       };
     }, [
       responseType,
@@ -615,6 +604,9 @@ export default function BattleLobbyScreen() {
     socketRef.current = socket;
 
     const onMatchingEvent = async (payload: any) => {
+      // [FIX 6] Socket cũng phải tôn trọng cờ chặn
+      if (isBlockingUpdates.current) return;
+
       if (payload?.type === BATTLE_STATUS.BATTLE_TYPE_EVENT.MATCH_FOUND) {
         const match = payload?.match;
         if (match && "opponent" in payload) {
@@ -631,7 +623,6 @@ export default function BattleLobbyScreen() {
           socket.emit("join-matching-room", { matchId: payload.matchId });
           socket.emit("join-user-match-room", { matchId: payload.matchId });
 
-          // [FIX]: Tắt modal trước khi chuyển trang
           setShowAcceptModal(false);
           setStatusMatch(null);
           setMatchedPlayer(null);
