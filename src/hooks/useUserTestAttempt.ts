@@ -42,8 +42,17 @@ export const useSubmitTestCompletion = () => {
 
 export const useCheckReviewAccessTest = () => {
   return useMutation({
-    mutationFn: async (userTestAttemptId: string) => {
-      const res = await userTestService.getReviewResult(userTestAttemptId);
+    mutationFn: async ({
+      userTestAttemptId,
+      testType,
+    }: {
+      userTestAttemptId: string;
+      testType?: string;
+    }) => {
+      const isLessonTest = (testType || "").toUpperCase() === "LESSON_TEST";
+      const res = isLessonTest
+        ? await userTestService.getLessonTestReview(userTestAttemptId)
+        : await userTestService.getReviewResult(userTestAttemptId);
       return res.data;
     },
   });

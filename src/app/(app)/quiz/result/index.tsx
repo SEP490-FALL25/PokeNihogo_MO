@@ -16,12 +16,20 @@ import React, { useCallback, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function QuizResultScreen() {
-  const { resultId, resultData, message, timeSpent, origin } = useLocalSearchParams<{
+  const {
+    resultId,
+    resultData,
+    message,
+    timeSpent,
+    origin,
+    testType,
+  } = useLocalSearchParams<{
     resultId?: string;
     resultData?: string;
     message?: string;
     timeSpent?: string;
     origin?: string; // expected 'quiz' if coming from quiz flow
+    testType?: string;
   }>();
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -72,7 +80,7 @@ export default function QuizResultScreen() {
 
   const handleViewAnswers = useCallback(async () => {
     if (!resultId) return;
-const comingFromQuiz = origin === "quiz";
+    const comingFromQuiz = origin === "quiz";
     if (comingFromQuiz) {
       // Check review access first (quiz flow)
       checkReviewAccess(resultId, {
@@ -101,8 +109,10 @@ const comingFromQuiz = origin === "quiz";
 
     // Directly check review access via test hook when entering from other routes
     setIsFetchingReview(true);
-    checkReviewAccessTest(resultId, {
-      onSuccess: (data: any) => {
+    checkReviewAccessTest(
+      { userTestAttemptId: resultId, testType },
+      {
+        onSuccess: (data: any) => {
         if (data?.statusCode === 403) {
           const errorMsg = data?.message || "Bạn không đủ điều kiện để xem đáp án";
           openErrorModal(errorMsg);
@@ -115,17 +125,27 @@ const comingFromQuiz = origin === "quiz";
           params: {
             sessionId: resultId,
             reviewData: JSON.stringify(data),
+              testType: testType || "",
           },
         });
         setIsFetchingReview(false);
       },
-      onError: (error: Error) => {
-        const errorMsg = parseAxiosErrorMessage(error, "Không thể xem đáp án");
-        openErrorModal(errorMsg);
-        setIsFetchingReview(false);
-      },
-    });
-  }, [checkReviewAccess, checkReviewAccessTest, openErrorModal, origin, parseAxiosErrorMessage, resultId]);
+        onError: (error: Error) => {
+          const errorMsg = parseAxiosErrorMessage(error, "Không thể xem đáp án");
+          openErrorModal(errorMsg);
+          setIsFetchingReview(false);
+        },
+      }
+    );
+  }, [
+    checkReviewAccess,
+    checkReviewAccessTest,
+    openErrorModal,
+    origin,
+    parseAxiosErrorMessage,
+    resultId,
+    testType,
+  ]);
 
   const answeredSummary = useMemo(() => {
     if (!result) return "-";

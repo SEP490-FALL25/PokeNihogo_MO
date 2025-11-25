@@ -41,7 +41,9 @@ export default function QuizReviewScreen() {
   const { data: reviewDataFromApi, isLoading, error } = useReviewResultUnified(
     sessionId,
     "quiz",
-    reviewDataFromParams || undefined
+    {
+      initialData: reviewDataFromParams || undefined,
+    }
   );
   
   // Use reviewData from params if available, otherwise use API data

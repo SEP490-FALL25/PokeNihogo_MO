@@ -13,7 +13,6 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
-import { CopilotStep, walkthroughable } from "react-native-copilot";
 
 const { width } = Dimensions.get("window");
 
@@ -22,10 +21,6 @@ interface NavigationButtonProps {
   icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
   onPress: () => void;
   color?: string;
-  // Optional tour props
-  tourStepName?: string;
-  tourOrder?: number;
-  tourText?: string;
 }
 
 const NavigationButton: React.FC<NavigationButtonProps> = ({
@@ -33,42 +28,17 @@ const NavigationButton: React.FC<NavigationButtonProps> = ({
   icon: Icon,
   onPress,
   color = "#3b82f6",
-  tourStepName,
-  tourOrder,
-  tourText,
 }) => {
-  const WTTouchable = walkthroughable(TouchableOpacity);
-
-  const ButtonContent = (
-    <>
-      <View style={[styles.iconContainer, { backgroundColor: color }]}>
-        <Icon size={24} color="#ffffff" strokeWidth={2.5} />
-      </View>
-      <ThemedText style={styles.buttonText}>{title}</ThemedText>
-    </>
-  );
-
-  if (tourStepName && tourOrder && tourText) {
-    return (
-      <CopilotStep text={tourText} order={tourOrder} name={tourStepName}>
-        <WTTouchable
-          style={[styles.navButton, { borderColor: color }]}
-          onPress={onPress}
-          activeOpacity={0.8}
-        >
-          {ButtonContent}
-        </WTTouchable>
-      </CopilotStep>
-    );
-  }
-
   return (
     <TouchableOpacity
       style={[styles.navButton, { borderColor: color }]}
       onPress={onPress}
       activeOpacity={0.8}
     >
-      {ButtonContent}
+      <View style={[styles.iconContainer, { backgroundColor: color }]}>
+        <Icon size={24} color="#ffffff" strokeWidth={2.5} />
+      </View>
+      <ThemedText style={styles.buttonText}>{title}</ThemedText>
     </TouchableOpacity>
   );
 };
@@ -112,9 +82,6 @@ const MainNavigation: React.FC = () => {
           icon={BookOpen}
           onPress={handleLearn}
           color="#10b981"
-          tourStepName="navigation"
-          tourOrder={6}
-          tourText={t("tour.navigation_description")}
         />
 
         <NavigationButton

@@ -71,7 +71,7 @@ export default function TestScreen() {
     handleSubmitPress,
     handleExitConfirm,
     handleCompletionSubmit,
-  } = useTestLogic({ userTestAttemptId, sets });
+  } = useTestLogic({ userTestAttemptId, sets, testType });
 
   const scrollRef = useRef<ScrollView | null>(null);
   const questionOffsetsRef = useRef<Record<string, number>>({});

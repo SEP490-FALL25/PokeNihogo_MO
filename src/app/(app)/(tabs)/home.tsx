@@ -5,6 +5,7 @@ import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import WelcomeModal from "@components/ui/WelcomeModal";
 import { SubscriptionFeatureKey } from "@constants/subscription.enum";
+import { useAuth } from "@hooks/useAuth";
 import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useSrsReview } from "@hooks/useSrsReview";
 import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
@@ -36,10 +37,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useCopilot } from "react-native-copilot";
+import { CopilotStep, useCopilot, walkthroughable } from "react-native-copilot";
 import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
-import { useAuth } from "@hooks/useAuth";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -548,6 +548,7 @@ export default function HomeScreen() {
     router.push(ROUTES.APP.SUBSCRIPTION);
   };
 
+  const WTTouchable = walkthroughable(TouchableOpacity);
   const { copilotEvents } = useCopilot();
 
   // Handle tour step changes for auto-scroll
@@ -703,20 +704,26 @@ export default function HomeScreen() {
 
               {/* Lock Overlay */}
               {isPersonalizationLocked && (
-                <TouchableOpacity
-                  style={styles.lockOverlay}
-                  onPress={handleUnlockPress}
-                  activeOpacity={0.9}
+                <CopilotStep
+                  text={t("tour.ai_unlock_description", "Upgrade to Premium to unlock personalized AI assistant with smart features")}
+                  order={5}
+                  name="ai_unlock"
                 >
-                  <View style={styles.lockOverlayContent}>
-                    <View style={styles.lockIconContainer}>
-                      <Lock size={48} color="#d97706" />
+                  <WTTouchable
+                    style={styles.lockOverlay}
+                    onPress={handleUnlockPress}
+                    activeOpacity={0.9}
+                  >
+                    <View style={styles.lockOverlayContent}>
+                      <View style={styles.lockIconContainer}>
+                        <Lock size={48} color="#d97706" />
+                      </View>
+                      <ThemedText style={styles.lockOverlayText}>
+                        {t("home.ai.unlock_button", "Mở khóa ngay")}
+                      </ThemedText>
                     </View>
-                    <ThemedText style={styles.lockOverlayText}>
-                      {t("home.ai.unlock_button", "Mở khóa ngay")}
-                    </ThemedText>
-                  </View>
-                </TouchableOpacity>
+                  </WTTouchable>
+                </CopilotStep>
               )}
             </View>
 
@@ -866,12 +873,34 @@ const styles = StyleSheet.create({
   welcomeSection: {
     marginBottom: 8,
   },
+  welcomeHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 6,
+  },
   welcomeTitle: {
     fontSize: 28,
     fontWeight: "700",
     color: "#111827",
-    marginBottom: 6,
     letterSpacing: -0.5,
+    flex: 1,
+  },
+  tourButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "rgba(59, 130, 246, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(59, 130, 246, 0.2)",
+  },
+  tourButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#3b82f6",
   },
   welcomeSubtitle: {
     fontSize: 15,

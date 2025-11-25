@@ -17,6 +17,8 @@ import {
   useUserExerciseQuestions,
 } from "@hooks/useUserExerciseAttempt";
 import { ROUTES } from "@routes/routes";
+import userExerciseAttemptService from "@services/user-exercise-attempt";
+import { useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import React, {
   useCallback,
@@ -25,6 +27,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   Animated,
@@ -33,7 +36,6 @@ import {
   Text,
   View,
 } from "react-native";
-import { useTranslation } from "react-i18next";
 
 // Simple types matching BE response structure
 type ExerciseQuestion = {
@@ -52,10 +54,13 @@ type ExerciseSession = {
 };
 
 export default function QuizScreen() {
-  const { exerciseAttemptId: exerciseAttemptIdParam } = useLocalSearchParams<{
-    exerciseAttemptId?: string;
-  }>();
+  const { exerciseAttemptId: exerciseAttemptIdParam, lessonId: lessonIdParam } =
+    useLocalSearchParams<{
+      exerciseAttemptId?: string;
+      lessonId?: string;
+    }>();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
   // Parse exerciseAttemptId từ params (chắc chắn có khi vào màn hình này)
   const exerciseAttemptId = exerciseAttemptIdParam || "";
@@ -88,10 +93,15 @@ export default function QuizScreen() {
     useSubmitCompletion();
   const { mutate: abandonExercise, isPending: isAbandoning } =
     useAbandonExercise();
-  const { mutate: continueAndAbandonExercise, isPending: isContinuing } =
-    useContinueAndAbandonExercise();
-  const { mutate: createNewExerciseAttempt, isPending: isCreatingNew } =
-    useCreateNewExerciseAttempt();
+  const {
+    mutate: continueAndAbandonExercise,
+    mutateAsync: continueAndAbandonExerciseAsync,
+    isPending: isContinuing,
+  } = useContinueAndAbandonExercise();
+  const {
+    mutateAsync: createNewExerciseAttemptAsync,
+    isPending: isCreatingNew,
+  } = useCreateNewExerciseAttempt();
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showExitConfirmModal, setShowExitConfirmModal] = useState(false);
   const [showResumeModal, setShowResumeModal] = useState(false);
@@ -99,6 +109,9 @@ export default function QuizScreen() {
     []
   );
   const [exerciseId, setExerciseId] = useState<number | null>(null);
+  const [lessonId, setLessonId] = useState<number | null>(
+    lessonIdParam ? parseInt(lessonIdParam, 10) : null
+  );
   const [isTimerPaused, setIsTimerPaused] = useState(false);
   const [hasCheckedResume, setHasCheckedResume] = useState(false);
 
@@ -129,6 +142,17 @@ export default function QuizScreen() {
         // Store exerciseId for creating new attempt if needed
         if (exercise.id) {
           setExerciseId(exercise.id);
+        }
+
+        const detectedLessonId =
+          exercise.lessonId ||
+          exercise.lesson?.id ||
+          exercise.lessonExercise?.lessonId ||
+          exercise.lessonExercise?.lesson?.id ||
+          exercise.testSet?.lessonId ||
+          null;
+        if (detectedLessonId) {
+          setLessonId(Number(detectedLessonId));
         }
 
         // Check if there's a saved session (time > 0 or answeredQuestions > 0)
@@ -294,6 +318,22 @@ export default function QuizScreen() {
     [session, scaleAnims, currentExerciseAttemptId, upsertAnswerLog]
   );
 
+  const refetchLatestLessonAttempt = useCallback(async () => {
+    if (!lessonId) return;
+    const lessonIdStr = lessonId.toString();
+    try {
+      const response = await userExerciseAttemptService.getLatestExerciseAttempt(
+        lessonIdStr
+      );
+      queryClient.setQueryData(
+        ["user-exercise-attempt-latest", lessonIdStr],
+        response.data
+      );
+    } catch (error) {
+      console.error("Error refreshing latest lesson attempt:", error);
+    }
+  }, [lessonId, queryClient]);
+
   const handleCheckCompletion = () => {
     if (!currentExerciseAttemptId) {
       showError("quiz_screen.alerts.missing_attempt", "Không tìm thấy bài tập.");
@@ -333,6 +373,7 @@ export default function QuizScreen() {
       },
       {
         onSuccess: (response) => {
+          queryClient.invalidateQueries({ queryKey: ["wallet-user"] });
           // Navigate to result screen with response data
           if (response.data) {
             // Pass data as JSON string in params
@@ -411,6 +452,7 @@ export default function QuizScreen() {
       {
         onSuccess: () => {
           setShowExitConfirmModal(false);
+          refetchLatestLessonAttempt();
           router.back();
         },
         onError: (error) => {
@@ -452,46 +494,49 @@ export default function QuizScreen() {
     );
   };
 
-  const handleStartNewExercise = () => {
-    if (!exerciseId) {
+  const handleStartNewExercise = async () => {
+    if (!exerciseId || !currentExerciseAttemptId) {
       showError("quiz_screen.alerts.missing_attempt", "Không tìm thấy bài tập.");
       return;
     }
 
-    createNewExerciseAttempt(exerciseId.toString(), {
-      onSuccess: (response) => {
-        if (response.data?.id) {
-          const newExerciseAttemptId = response.data.id.toString();
-          // Update params to use new exerciseAttemptId
-          router.replace({
-            pathname: ROUTES.QUIZ.QUIZ,
-            params: {
-              exerciseAttemptId: newExerciseAttemptId,
-            },
-          });
-          // Reset states
-          setShowResumeModal(false);
-          setIsTimerPaused(false);
-          setHasCheckedResume(false);
-          setSelections({});
-          setElapsedSeconds(0);
-          // Clear current session to force reload
-          setSession(null);
-        } else {
-          showError(
-            "quiz_screen.alerts.new_attempt_failed",
-            "Không thể tạo bài tập mới."
-          );
-        }
-      },
-      onError: (error) => {
-        console.error("Error creating new exercise:", error);
+    try {
+      const [, createResponse] = await Promise.all([
+        continueAndAbandonExerciseAsync({
+          exerciseAttemptId: currentExerciseAttemptId.toString(),
+          status: ExerciseAttemptStatus.SKIPPED,
+        }),
+        createNewExerciseAttemptAsync(exerciseId.toString()),
+      ]);
+
+      if (createResponse?.data?.id) {
+        const newExerciseAttemptId = createResponse.data.id.toString();
+        router.replace({
+          pathname: ROUTES.QUIZ.QUIZ,
+          params: {
+            exerciseAttemptId: newExerciseAttemptId,
+            lessonId: lessonId?.toString() || "",
+          },
+        });
+        setShowResumeModal(false);
+        setIsTimerPaused(false);
+        setHasCheckedResume(false);
+        setSelections({});
+        setElapsedSeconds(0);
+        setSession(null);
+      } else {
         showError(
-          "quiz_screen.alerts.new_attempt_retry_failed",
-          "Không thể tạo bài tập mới. Vui lòng thử lại."
+          "quiz_screen.alerts.new_attempt_failed",
+          "Không thể tạo bài tập mới."
         );
-      },
-    });
+      }
+    } catch (error) {
+      console.error("Error creating new exercise:", error);
+      showError(
+        "quiz_screen.alerts.new_attempt_retry_failed",
+        "Không thể tạo bài tập mới. Vui lòng thử lại."
+      );
+    }
   };
 
   // const canSubmit = session

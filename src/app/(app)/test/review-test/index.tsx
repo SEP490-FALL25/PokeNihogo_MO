@@ -4,28 +4,37 @@ import { ReviewQuestionCard } from "@components/test/review/ReviewQuestionCard";
 import { ReviewStatsSection } from "@components/test/review/ReviewStatsSection";
 import { useReviewResultUnified } from "@hooks/useReviewResultUnified";
 import {
-  calculateReviewStats,
-  getCorrectAnswers,
-  getQuestionsForGrid,
-  getSortedQuestions,
-  getUserSelectedAnswers,
-  parseExplanation,
+    calculateReviewStats,
+    getCorrectAnswers,
+    getQuestionsForGrid,
+    getSortedQuestions,
+    getUserSelectedAnswers,
+    parseExplanation,
 } from "@utils/review.utils";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useRef } from "react";
 import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 export default function TestReviewScreen() {
-  const { sessionId, reviewData: reviewDataParam } = useLocalSearchParams<{
-    sessionId: string;
+  const {
+    sessionId,
+    userTestAttemptId,
+    reviewData: reviewDataParam,
+    testType,
+  } = useLocalSearchParams<{
+    sessionId?: string;
+    userTestAttemptId?: string;
     reviewData?: string;
+    testType?: string;
   }>();
+
+  const resolvedSessionId = sessionId || userTestAttemptId;
 
   // If reviewData is passed as param, use it; otherwise fetch from API
   const reviewDataFromParams = useMemo(() => {
@@ -39,11 +48,13 @@ export default function TestReviewScreen() {
   }, [reviewDataParam]);
 
   const { data: reviewDataFromApi, isLoading, error } = useReviewResultUnified(
-    sessionId,
+    resolvedSessionId,
     "test",
-    reviewDataFromParams || undefined
+    {
+      initialData: reviewDataFromParams || undefined,
+      testType,
+    }
   );
-console.log("reviewDataFromApi", reviewDataFromApi);
   // Use reviewData from params if available, otherwise use API data
   const reviewData = reviewDataFromApi || reviewDataFromParams;
 
@@ -84,7 +95,7 @@ console.log("reviewDataFromApi", reviewDataFromApi);
     return null;
   }
 
-  if (shouldShowLoading || !reviewData?.data || !stats) {
+  if (!resolvedSessionId || shouldShowLoading || !reviewData?.data || !stats) {
     return (
       <QuizLayout>
         <View style={styles.center}>

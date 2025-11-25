@@ -17,7 +17,7 @@ export const RewardHistoryItemSchema = z.object({
   createdAt: z.string(),
   reward: z.object({
     id: z.number(),
-    nameKey: z.string(),
+    name: z.string(),
     rewardType: z.string(),
     rewardItem: z.number(),
     rewardTarget: z.string(),
