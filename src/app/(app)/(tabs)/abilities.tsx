@@ -3,29 +3,51 @@ import { ReadingContent } from "@components/abilities/ReadingContent";
 import { SpeakingContent } from "@components/abilities/SpeakingContent";
 import HomeLayout from "@components/layouts/HomeLayout";
 import { ThemedText } from "@components/ThemedText";
+import { useQueryClient } from "@tanstack/react-query";
+import { useFocusEffect } from "expo-router";
 import { BookOpen, HeadphonesIcon, Mic } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-    RefreshControl,
-    StyleSheet,
-    TouchableOpacity,
-    View
+  RefreshControl,
+  StyleSheet,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 type TabType = "listening" | "reading" | "speaking";
 
 export default function AbilitiesScreen() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = React.useState<TabType>("listening");
   const [refreshing, setRefreshing] = React.useState(false);
 
+  // Refetch data when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      // Invalidate all user-tests queries to trigger refetch
+      queryClient.invalidateQueries({ 
+        queryKey: ["user-tests"] 
+      });
+    }, [queryClient])
+  );
+
   const handleRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    // Simulating refresh - the child components will handle their own data fetching
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setRefreshing(false);
-  }, []);
+    try {
+      // Invalidate and refetch all user-tests queries
+      await queryClient.invalidateQueries({ 
+        queryKey: ["user-tests"] 
+      });
+      // Wait a bit for queries to refetch
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    } catch (error) {
+      console.error("Error refreshing abilities data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [queryClient]);
 
   const tabs = [
     {

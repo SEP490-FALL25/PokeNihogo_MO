@@ -196,9 +196,9 @@ export default function SubscriptionScreen() {
         });
     }, []);
 
-    const handleBrowserClose = useCallback(() => {
+    const handleBrowserClose = useCallback(async () => {
         // Refetch data after payment (when browser closes)
-        refetchAll();
+        await refetchAll();
     }, [refetchAll]);
 
     const handleBrowserError = useCallback((error: Error) => {
@@ -288,7 +288,7 @@ export default function SubscriptionScreen() {
                 discountAmount: normalizedDiscount,
             },
             {
-                onSuccess: (response) => {
+                onSuccess: async (response) => {
                     setSelectedDiscounts((prev) => ({
                         ...prev,
                         [packageItem.id]: 0,
@@ -304,6 +304,7 @@ export default function SubscriptionScreen() {
                         });
                     } else {
                         showAlert(responseData?.message || t('subscription.purchase_success'), 'success');
+                        await refetchAll();
                     }
                 },
                 onError: (error: any) => {
