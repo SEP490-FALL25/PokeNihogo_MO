@@ -985,7 +985,12 @@
     "current_xp": "Current EXP",
     "next_level": "Next Level",
     "experience_progress": "Experience Progress",
-    "to": "to"
+    "to": "to",
+    "level_prefix": "Lv",
+    "section_progress_title": "PROGRESS & HISTORY",
+    "section_progress_subtitle": "Keep tabs on your journey",
+    "section_learning_title": "STUDY TOOLKIT",
+    "section_learning_subtitle": "Jump into your resources"
   },
   "account_details": {
     "title": "Account details",

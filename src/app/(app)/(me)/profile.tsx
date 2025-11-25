@@ -287,7 +287,7 @@ export default function ProfileScreen() {
                 end={{ x: 1, y: 0 }}
               >
                 <Text className="text-sm font-extrabold text-white tracking-wide">
-                  Lv {userProfile?.level?.levelNumber || 1}
+                  {t('profile.level_prefix')} {userProfile?.level?.levelNumber || 1}
                 </Text>
               </LinearGradient>
             </View>
@@ -339,10 +339,10 @@ export default function ProfileScreen() {
           {/* Progress & Milestones Section */}
           <View className="mb-8">
             <Text className="text-xs font-bold text-slate-400 uppercase tracking-[2px] mb-1">
-              {t('profile.section_progress_title', { defaultValue: 'Progress & history' })}
+              {t('profile.section_progress_title')}
             </Text>
             <Text className="text-xl font-extrabold text-slate-900 mb-4">
-              {t('profile.section_progress_subtitle', { defaultValue: 'Keep tabs on your journey' })}
+              {t('profile.section_progress_subtitle')}
             </Text>
 
             {/* Pokemon Collection Card */}
@@ -484,10 +484,10 @@ export default function ProfileScreen() {
           {/* Study Toolkit Section */}
           <View className="mb-8">
             <Text className="text-xs font-bold text-slate-400 uppercase tracking-[2px] mb-1">
-              {t('profile.section_learning_title', { defaultValue: 'Study toolkit' })}
+              {t('profile.section_learning_title')}
             </Text>
             <Text className="text-xl font-extrabold text-slate-900 mb-4">
-              {t('profile.section_learning_subtitle', { defaultValue: 'Jump into your resources' })}
+              {t('profile.section_learning_subtitle')}
             </Text>
 
             {/* Dictionary Card */}

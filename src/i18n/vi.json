@@ -993,7 +993,12 @@
     "current_xp": "Kinh nghiệm hiện tại",
     "next_level": "Cấp tiếp theo",
     "experience_progress": "Tiến độ kinh nghiệm",
-    "to": "đến"
+    "to": "đến",
+    "level_prefix": "Lv",
+    "section_progress_title": "TIẾN ĐỘ & LỊCH SỬ",
+    "section_progress_subtitle": "Theo dõi hành trình của bạn",
+    "section_learning_title": "CÔNG CỤ HỌC TẬP",
+    "section_learning_subtitle": "Khám phá các tài nguyên học tập"
   },
   "account_details": {
     "title": "Chi tiết tài khoản",
