@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import useAuth from "@hooks/useAuth";
 import { ROUTES } from "@routes/routes";
+import userPokemonService from "@services/user-pokemon";
 import { useAuthStore } from "@stores/auth/auth.config";
 import { useUserStore } from "@stores/user/user.config";
 import starters from "../../../mock-data/starters.json";
@@ -45,9 +46,10 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     const { user } = useAuth();
     const queryClient = useQueryClient();
     const { accessToken } = useAuthStore();
-    const { isFirstTimeLogin, starterId } = useUserStore();
+    const { starterId } = useUserStore();
     console.log(user)
     const [isShopVisible, setIsShopVisible] = useState(false);
+    const [mainPokemonImageUrl, setMainPokemonImageUrl] = useState<string | null>(null);
 
     useWalletUser();
 
@@ -59,7 +61,53 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
       return starter?.image ?? STARTERS[0]?.image ?? "";
     }, [starterId]);
 
-    const shouldShowPokemonOverlay = isFirstTimeLogin === true && !!starterImageUri;
+    // Fetch main pokemon on mount and when screen is focused
+    useEffect(() => {
+      const fetchMainPokemon = async () => {
+        try {
+          const response = await userPokemonService.getOwnedPokemons();
+          const mainPokemon = response.data?.data?.results?.find(
+            (pokemon: any) => pokemon.isMain === true
+          );
+          setMainPokemonImageUrl(mainPokemon?.pokemon?.imageUrl || null);
+        } catch (error) {
+          console.error("Error fetching main pokemon:", error);
+          setMainPokemonImageUrl(null);
+        }
+      };
+
+      if (accessToken) {
+        fetchMainPokemon();
+      }
+    }, [accessToken]);
+
+    // Refetch main pokemon when screen is focused
+    useFocusEffect(
+      useCallback(() => {
+        const fetchMainPokemon = async () => {
+          try {
+            const response = await userPokemonService.getOwnedPokemons();
+            const mainPokemon = response.data?.data?.results?.find(
+              (pokemon: any) => pokemon.isMain === true
+            );
+            setMainPokemonImageUrl(mainPokemon?.pokemon?.imageUrl || null);
+          } catch (error) {
+            console.error("Error fetching main pokemon:", error);
+            setMainPokemonImageUrl(null);
+          }
+        };
+
+        if (accessToken) {
+          fetchMainPokemon();
+        }
+      }, [accessToken])
+    );
+
+    // Use main pokemon if available, otherwise use starter pokemon
+    const pokemonImageUri = mainPokemonImageUrl || starterImageUri;
+    
+    // Show overlay continuously when there's a pokemon image (not just during first time login)
+    const shouldShowPokemonOverlay = !!pokemonImageUri;
 
     // Refetch user profile khi component mount và khi screen được focus
     // để đảm bảo dữ liệu người dùng luôn được cập nhật mới nhất
@@ -181,7 +229,7 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
         {shouldShowPokemonOverlay && (
           <AnimatedPokemonOverlay
             visible
-            imageUri={starterImageUri}
+            imageUri={pokemonImageUri}
             imageSize={140}
             showBackground={false}
             style={styles.pokemonTourPlaceholder}
@@ -396,15 +444,9 @@ const styles = StyleSheet.create({
     zIndex: 1002,
   },
   pokemonTourPlaceholder: {
-    position: "absolute",
-    top: "50%", // Vị trí giữa màn hình
-    left: "50%",
-    marginTop: -75, // Để căn giữa (150px / 2)
-    marginLeft: -75, // Để căn giữa (150px / 2)
-    width: 150,
-    height: 150,
-    backgroundColor: "transparent", // Trong suốt
-    zIndex: 998, // Thấp hơn DraggableOverlay
-    pointerEvents: "none", // Không chặn touch events
+    // Position is now controlled by drag functionality in AnimatedPokemonOverlay
+    // Only keep non-positioning styles here
+    backgroundColor: "transparent",
+    zIndex: 998,
   },
 });
