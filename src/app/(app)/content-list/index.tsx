@@ -1158,6 +1158,7 @@ const VocabularyListScreen = () => {
           pathname: ROUTES.QUIZ.QUIZ,
           params: {
             exerciseAttemptId: exerciseAttemptId.toString(),
+            lessonId: id || "",
           },
         });
       };
