@@ -206,7 +206,7 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
                 />
               </WTView>
             </CopilotStep> */}
-            <CopilotStep text={t("tour.gacha_description")} order={5} name="gacha">
+            <CopilotStep text={t("tour.gacha_description")} order={4} name="gacha">
               <WTView style={{ marginTop: 12, alignSelf: "flex-end" }}>
                 <GachaIcon
                   onPress={() => router.push(ROUTES.APP.GACHA)}

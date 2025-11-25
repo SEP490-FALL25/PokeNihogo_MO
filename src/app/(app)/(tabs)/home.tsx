@@ -22,7 +22,6 @@ import {
   BookOpen,
   BookText,
   ChevronRight,
-  HelpCircle,
   Languages,
   Lock,
   Sparkles,
@@ -550,7 +549,7 @@ export default function HomeScreen() {
   };
 
   const WTTouchable = walkthroughable(TouchableOpacity);
-  const { copilotEvents, start } = useCopilot();
+  const { copilotEvents } = useCopilot();
 
   // Handle tour step changes for auto-scroll
   React.useEffect(() => {
@@ -577,23 +576,11 @@ export default function HomeScreen() {
       >
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
-          <View style={styles.welcomeHeader}>
-            <ThemedText type="subtitle" style={styles.welcomeTitle}>
-              {t("home.welcome_back", {
-                username,
-              })}
-            </ThemedText>
-            <TouchableOpacity
-              style={styles.tourButton}
-              onPress={() => start?.()}
-              activeOpacity={0.7}
-            >
-              <HelpCircle size={20} color="#3b82f6" />
-              <ThemedText style={styles.tourButtonText}>
-                {t("tour.start_tour", "Tour")}
-              </ThemedText>
-            </TouchableOpacity>
-          </View>
+          <ThemedText type="subtitle" style={styles.welcomeTitle}>
+            {t("home.welcome_back", {
+              username,
+            })}
+          </ThemedText>
           <ThemedText style={styles.welcomeSubtitle}>
             {t("home.ready_to_continue")}
           </ThemedText>
@@ -719,7 +706,7 @@ export default function HomeScreen() {
               {isPersonalizationLocked && (
                 <CopilotStep
                   text={t("tour.ai_unlock_description", "Upgrade to Premium to unlock personalized AI assistant with smart features")}
-                  order={4}
+                  order={5}
                   name="ai_unlock"
                 >
                   <WTTouchable
