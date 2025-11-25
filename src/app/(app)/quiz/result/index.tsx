@@ -74,8 +74,8 @@ export default function QuizResultScreen() {
   }, []);
 
   const handleGoHome = useCallback(() => {
-    // Navigate back to home
-    router.replace("/(app)/(tabs)/home");
+    // Navigate to learn screen
+    router.replace(ROUTES.TABS.LEARN);
   }, []);
 
   const handleViewAnswers = useCallback(async () => {
