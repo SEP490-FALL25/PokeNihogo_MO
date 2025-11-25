@@ -2,11 +2,12 @@ import GachaIcon from "@components/atoms/GachaIcon";
 import StoreIcon from "@components/atoms/StoreIcon";
 import RewardShopModal from "@components/Organism/ShopPokemon";
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
+import AnimatedPokemonOverlay from "@components/ui/AnimatedPokemonOverlay";
 import HomeTourGuide from "@components/ui/HomeTourGuide";
 import { useWalletUser } from "@hooks/useWallet";
 import { useQueryClient } from "@tanstack/react-query";
 import { router, useFocusEffect } from "expo-router";
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ImageBackground, ScrollView, StyleSheet, View } from "react-native";
 import { CopilotStep, walkthroughable } from "react-native-copilot";
@@ -15,6 +16,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import useAuth from "@hooks/useAuth";
 import { ROUTES } from "@routes/routes";
 import { useAuthStore } from "@stores/auth/auth.config";
+import { useUserStore } from "@stores/user/user.config";
+import starters from "../../../mock-data/starters.json";
+import { Starter } from "../../types/starter.types";
+
+const STARTERS = starters as Starter[];
 
 interface HomeLayoutProps {
   children?: React.ReactNode;
@@ -39,10 +45,21 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     const { user } = useAuth();
     const queryClient = useQueryClient();
     const { accessToken } = useAuthStore();
+    const { isFirstTimeLogin, starterId } = useUserStore();
     console.log(user)
     const [isShopVisible, setIsShopVisible] = useState(false);
 
     useWalletUser();
+
+    const starterImageUri = useMemo(() => {
+      if (!starterId) {
+        return STARTERS[0]?.image ?? "";
+      }
+      const starter = STARTERS.find((item) => item.id === starterId);
+      return starter?.image ?? STARTERS[0]?.image ?? "";
+    }, [starterId]);
+
+    const shouldShowPokemonOverlay = isFirstTimeLogin === true && !!starterImageUri;
 
     // Refetch user profile khi component mount và khi screen được focus
     // để đảm bảo dữ liệu người dùng luôn được cập nhật mới nhất
@@ -161,6 +178,15 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
             requests={dailyQuestsMock}
           /> */}
         </ImageBackground>
+        {shouldShowPokemonOverlay && (
+          <AnimatedPokemonOverlay
+            visible
+            imageUri={starterImageUri}
+            imageSize={140}
+            showBackground={false}
+            style={styles.pokemonTourPlaceholder}
+          />
+        )}
       </HomeTourGuide>
     );
   }

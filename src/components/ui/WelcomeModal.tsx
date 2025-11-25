@@ -1,7 +1,8 @@
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
+import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
+import { useCopilot } from "react-native-copilot";
 import { ThemedText } from "../ThemedText";
 import { ThemedView } from "../ThemedView";
 import { IconSymbol } from "./IconSymbol";
@@ -20,6 +21,15 @@ export default function WelcomeModal({
   pokemonName,
 }: WelcomeModalProps) {
   const { t } = useTranslation();
+  const { start } = useCopilot();
+
+  const handleBegin = useCallback(() => {
+    onClose();
+    // Delay to ensure modal close animation finishes before tour starts
+    setTimeout(() => {
+      start?.();
+    }, 300);
+  }, [onClose, start]);
   
   return (
     <Modal
@@ -35,10 +45,7 @@ export default function WelcomeModal({
             style={styles.gradientBackground}
           >
             <View style={styles.content}>
-              {/* Close Button */}
-              <Pressable style={styles.closeButton} onPress={onClose}>
-                <IconSymbol name="xmark" size={24} color="#ffffff" />
-              </Pressable>
+
 
               {/* Welcome Icon */}
               <View style={styles.iconContainer}>
@@ -55,7 +62,7 @@ export default function WelcomeModal({
               </ThemedText>
 
               {/* Action Button */}
-              <Pressable style={styles.actionButton} onPress={onClose}>
+              <Pressable style={styles.actionButton} onPress={handleBegin}>
                 <ThemedText style={styles.actionButtonText}>
                   {t("welcome_modal.lets_begin")}
                 </ThemedText>
