@@ -2,7 +2,6 @@ import GachaIcon from "@components/atoms/GachaIcon";
 import StoreIcon from "@components/atoms/StoreIcon";
 import RewardShopModal from "@components/Organism/ShopPokemon";
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
-import AnimatedPokemonOverlay from "@components/ui/AnimatedPokemonOverlay";
 import HomeTourGuide from "@components/ui/HomeTourGuide";
 import { useWalletUser } from "@hooks/useWallet";
 import { useQueryClient } from "@tanstack/react-query";
@@ -230,20 +229,21 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
           /> */}
         </ImageBackground>
         {/* Fake layer for copilot to track - fixed position, completely independent of AnimatedPokemonOverlay */}
-        {shouldShowPokemonOverlay && (
+        {/* Temporarily disabled WT for AnimatedPokemonOverlay */}
+        {/* {shouldShowPokemonOverlay && (
           <CopilotStep text={t("tour.pokemon_description")} order={2} name="pokemon">
             <WTView style={styles.pokemonTourFakeLayer} />
           </CopilotStep>
-        )}
+        )} */}
         {/* Actual overlay - renders independently so it can move freely */}
-        {shouldShowPokemonOverlay && (
+        {/* {shouldShowPokemonOverlay && (
           <AnimatedPokemonOverlay
             visible
             imageUri={pokemonImageUri}
             imageSize={140}
             showBackground={false}
           />
-        )}
+        )} */}
       </HomeTourGuide>
     );
   }

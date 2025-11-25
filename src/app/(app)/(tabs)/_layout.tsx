@@ -6,7 +6,7 @@ import CustomTab from "@components/ui/CustomTab";
 import DraggableOverlay from "@components/ui/Draggable";
 import userPokemonService from "@services/user-pokemon";
 import { View } from "react-native";
-import { CopilotStep, walkthroughable } from "react-native-copilot";
+import { walkthroughable } from "react-native-copilot";
 
 export default function TabLayout() {
   const { t } = useTranslation();
@@ -56,19 +56,22 @@ export default function TabLayout() {
       <CustomTab />
 
       {/* DraggableOverlay at tab level - persists across screen changes */}
+      {/* Temporarily disabled WT for AnimatedPokemonOverlay */}
       {mainPokemonImageUrl && (
-        <CopilotStep text={t("tour.pokemon_description")} order={2} name="pokemon">
-          <WTView>
-            <DraggableOverlay
-              imageUri={
-                mainPokemonImageUrl ||
-                "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
-              }
-              imageSize={100}
-              showBackground={false}
-            />
-          </WTView>
-        </CopilotStep>
+        <>
+          {/* <CopilotStep text={t("tour.pokemon_description")} order={2} name="pokemon">
+            <WTView> */}
+              <DraggableOverlay
+                imageUri={
+                  mainPokemonImageUrl ||
+                  "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
+                }
+                imageSize={100}
+                showBackground={false}
+              />
+            {/* </WTView>
+          </CopilotStep> */}
+        </>
       )}
     </>
   );

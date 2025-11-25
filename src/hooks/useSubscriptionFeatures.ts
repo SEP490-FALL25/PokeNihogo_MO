@@ -13,8 +13,10 @@ import { useGlobalStore } from "@stores/global/global.config";
  * }
  */
 export const useCheckFeature = (featureKey: string | SubscriptionFeatureKey): boolean => {
-    const hasFeature = useGlobalStore((state) => state.hasFeature);
-    return hasFeature(featureKey);
+    // Subscribe to subscriptionFeatureDetails to trigger re-render when state changes
+    const subscriptionFeatureDetails = useGlobalStore((state) => state.subscriptionFeatureDetails);
+    // Check if feature exists in the details
+    return Boolean(subscriptionFeatureDetails[featureKey]);
 };
 
 /**

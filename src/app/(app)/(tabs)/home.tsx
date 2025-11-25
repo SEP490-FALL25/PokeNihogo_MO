@@ -12,6 +12,7 @@ import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
 import { useRecentExercises } from "@hooks/useUserHistory";
 import { ISrsReviewItem } from "@models/srs/srs-review.response";
 import { IRecentExerciseItem } from "@models/user-history/user-history.response";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ROUTES } from "@routes/routes";
 import attendanceService from "@services/attendance";
 import { useUserStore } from "@stores/user/user.config";
@@ -42,6 +43,9 @@ import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+// Storage key for welcome modal shown state
+const WELCOME_MODAL_SHOWN_KEY = "@WelcomeModal:hasBeenShown";
 
 const normalizeDateKey = (dateString?: string) => {
   if (!dateString) return "";
@@ -407,12 +411,30 @@ export default function HomeScreen() {
   }, [starterId]);
 
   /**
-   * Show welcome modal for first-time users
+   * Check if welcome modal has been shown before
    */
   useEffect(() => {
-    if (isFirstTimeLogin === true) {
-      setShowWelcomeModal(true);
-    }
+    const checkWelcomeModalShown = async () => {
+      try {
+        const hasBeenShown = await AsyncStorage.getItem(WELCOME_MODAL_SHOWN_KEY);
+        if (hasBeenShown === "true") {
+          // Already shown, don't show again
+          return;
+        }
+        // Show welcome modal for first-time users
+        if (isFirstTimeLogin === true) {
+          setShowWelcomeModal(true);
+        }
+      } catch (error) {
+        console.error("Error checking welcome modal state:", error);
+        // On error, show modal if first time login
+        if (isFirstTimeLogin === true) {
+          setShowWelcomeModal(true);
+        }
+      }
+    };
+
+    checkWelcomeModalShown();
   }, [isFirstTimeLogin]);
 
   useEffect(() => {
@@ -565,6 +587,24 @@ export default function HomeScreen() {
 
     return () => {
       copilotEvents.off("stepChange", handleStepChange);
+    };
+  }, [copilotEvents]);
+
+  // Handle tour completion - save state when tour ends
+  React.useEffect(() => {
+    const handleTourStop = async () => {
+      try {
+        // Save state that welcome modal has been shown and tour completed
+        await AsyncStorage.setItem(WELCOME_MODAL_SHOWN_KEY, "true");
+      } catch (error) {
+        console.error("Error saving welcome modal state:", error);
+      }
+    };
+
+    copilotEvents.on("stop", handleTourStop);
+
+    return () => {
+      copilotEvents.off("stop", handleTourStop);
     };
   }, [copilotEvents]);
   return (

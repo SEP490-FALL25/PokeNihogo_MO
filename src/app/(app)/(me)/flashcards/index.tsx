@@ -2,14 +2,15 @@ import EmptyState from "@components/ui/EmptyState";
 import { EnhancedPagination } from "@components/ui/Pagination";
 import { Select } from "@components/ui/Select";
 import { useDebounce } from "@hooks/useDebounce";
-import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import {
   useCreateFlashcardDeck,
   useFlashcardDecks,
 } from "@hooks/useFlashcard";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { IFlashcardDeck } from "@models/flashcard/flashcard.common";
+import { useQueryClient } from "@tanstack/react-query";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import {
   ChevronLeft,
   Loader2,
@@ -82,6 +83,7 @@ const FlashcardDeckListScreen = () => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { showAlert } = useMinimalAlert();
+  const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
@@ -118,14 +120,31 @@ const FlashcardDeckListScreen = () => {
   const totalItems = pagination?.totalItem ?? 0;
   const totalPages = Math.max(pagination?.totalPage ?? 1, 1);
 
+  // Refetch data when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      // Invalidate all flashcard-decks queries to trigger refetch
+      queryClient.invalidateQueries({ 
+        queryKey: ["flashcard-decks"] 
+      });
+    }, [queryClient])
+  );
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
+      // Invalidate and refetch all flashcard-decks queries
+      await queryClient.invalidateQueries({ 
+        queryKey: ["flashcard-decks"] 
+      });
+      // Also manually refetch to ensure fresh data
       await refetch();
+    } catch (error) {
+      console.error("Error refreshing flashcard decks:", error);
     } finally {
       setRefreshing(false);
     }
-  }, [refetch]);
+  }, [queryClient, refetch]);
 
   const handleViewDeck = (deck: IFlashcardDeck) => {
     router.push({
