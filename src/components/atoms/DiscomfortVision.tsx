@@ -1,7 +1,8 @@
 import { MATCH_DEBUFF_TYPE } from "@constants/battle.enum";
 import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Animated, Platform, StyleSheet, View } from "react-native";
+import { Animated, Easing, Platform, StyleSheet, View } from "react-native";
 
 interface DiscomfortVisionProps {
     children: React.ReactNode;
@@ -25,32 +26,77 @@ interface DiscomfortVisionProps {
  * @param debuff - Debuff object with typeDebuff field
  * @param enabled - Optional override to enable/disable the effect
  */
-export default function DiscomfortVision({ children, debuff, enabled, style }: DiscomfortVisionProps) {
-    const isDiscomfortVision = debuff?.typeDebuff === MATCH_DEBUFF_TYPE.DISCOMFORT_VISION;
+export default function DiscomfortVision({
+    children,
+    debuff,
+    enabled,
+    style,
+}: DiscomfortVisionProps) {
+    const isDiscomfortVision =
+        debuff?.typeDebuff === MATCH_DEBUFF_TYPE.DISCOMFORT_VISION;
     const shouldApply = enabled !== undefined ? enabled : isDiscomfortVision;
 
-    // Debug logging
-    React.useEffect(() => {
-        if (debuff) {
-            console.log("[DiscomfortVision] Debuff received:", {
-                typeDebuff: debuff.typeDebuff,
-                isDiscomfortVision,
-                shouldApply,
-                valueDebuff: debuff.valueDebuff,
-            });
-        }
-    }, [debuff, isDiscomfortVision, shouldApply]);
-
-    // Animation for subtle pulsing effect to make it harder to read
     const opacityAnim = React.useRef(new Animated.Value(0.3)).current;
+    const stripeAnim = React.useRef(new Animated.Value(0)).current;
+    const [severity, setSeverity] = React.useState(1);
+    const decayTimer = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
     React.useEffect(() => {
         if (!shouldApply) {
-            opacityAnim.setValue(0);
+            setSeverity(0);
+            if (decayTimer.current) {
+                clearInterval(decayTimer.current);
+                decayTimer.current = null;
+            }
             return;
         }
 
-        // Start pulsing animation
+        setSeverity(1);
+
+        if (decayTimer.current) {
+            clearInterval(decayTimer.current);
+            decayTimer.current = null;
+        }
+
+        const durationMs = debuff?.valueDebuff ?? 4000;
+        const steps = 24;
+        const stepDuration = Math.max(50, durationMs / steps);
+        const minSeverity = 0.25;
+        let currentStep = 0;
+
+        decayTimer.current = setInterval(() => {
+            currentStep += 1;
+            setSeverity((prev) => {
+                const next =
+                    Math.max(
+                        minSeverity,
+                        1 - (currentStep / steps) * (1 - minSeverity)
+                    ) || minSeverity;
+                return Number.isFinite(next) ? next : minSeverity;
+            });
+            if (currentStep >= steps) {
+                if (decayTimer.current) {
+                    clearInterval(decayTimer.current);
+                    decayTimer.current = null;
+                }
+            }
+        }, stepDuration);
+
+        return () => {
+            if (decayTimer.current) {
+                clearInterval(decayTimer.current);
+                decayTimer.current = null;
+            }
+        };
+    }, [debuff?.valueDebuff, shouldApply]);
+
+    React.useEffect(() => {
+        if (!shouldApply) {
+            opacityAnim.stopAnimation(() => opacityAnim.setValue(0));
+            stripeAnim.stopAnimation(() => stripeAnim.setValue(0));
+            return;
+        }
+
         const pulseAnimation = Animated.loop(
             Animated.sequence([
                 Animated.timing(opacityAnim, {
@@ -66,86 +112,111 @@ export default function DiscomfortVision({ children, debuff, enabled, style }: D
             ])
         );
 
+        const stripeAnimation = Animated.loop(
+            Animated.timing(stripeAnim, {
+                toValue: 1,
+                duration: 4500,
+                easing: Easing.linear,
+                useNativeDriver: true,
+            })
+        );
+
         pulseAnimation.start();
+        stripeAnimation.start();
 
         return () => {
             pulseAnimation.stop();
+            stripeAnimation.stop();
         };
-    }, [shouldApply, opacityAnim]);
+    }, [opacityAnim, shouldApply, stripeAnim]);
 
-    if (!shouldApply) {
-        return <>{children}</>;
-    }
+    const overlayOpacity = opacityAnim.interpolate({
+        inputRange: [0.3, 0.6],
+        outputRange: [0.05 * severity, 0.25 * severity],
+    });
 
-    // Get blur intensity from valueDebuff
-    // valueDebuff is typically in milliseconds (e.g., 4000), we'll use a reasonable blur intensity
-    // Scale: 4000ms -> ~25 intensity (strong blur), 2000ms -> ~15 intensity (moderate blur)
+    const stripeTranslate = stripeAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0, -60],
+    });
+
     const blurIntensity = debuff?.valueDebuff
-        ? Math.min(Math.max(debuff.valueDebuff / 160, 15), 30)
-        : 20;
+        ? Math.min(Math.max(debuff.valueDebuff / 240, 10), 18)
+        : 12;
+    const adjustedBlur = blurIntensity * (0.4 + 0.6 * severity);
 
-    console.log("[DiscomfortVision] Applying blur effect, intensity:", blurIntensity);
-
-    // For web, use CSS filter blur as fallback
     const isWeb = Platform.OS === "web";
 
+    if (!shouldApply) {
+        return <View style={[styles.container, style]}>{children}</View>;
+    }
+
+    const overlayLayers = (
+        <>
+            <Animated.View
+                pointerEvents="none"
+                style={[
+                    StyleSheet.absoluteFill,
+                    styles.tintOverlay,
+                    { opacity: overlayOpacity },
+                ]}
+            />
+            <Animated.View
+                pointerEvents="none"
+                style={[
+                    StyleSheet.absoluteFill,
+                    styles.stripeOverlay,
+                    {
+                        transform: [{ translateY: stripeTranslate }],
+                        opacity: opacityAnim.interpolate({
+                            inputRange: [0.3, 0.6],
+                            outputRange: [0.12 * severity, 0.26 * severity],
+                        }),
+                    },
+                ]}
+            >
+                <LinearGradient
+                    colors={[
+                        "rgba(248,250,252,0.25)",
+                        "rgba(30,41,59,0.25)",
+                        "rgba(0,0,0,0)",
+                    ]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                />
+            </Animated.View>
+        </>
+    );
+
     if (isWeb) {
-        // Web fallback: Use CSS filter blur
+        const webBlurStyle: any = {
+            filter: `blur(${adjustedBlur / 2}px)`,
+            WebkitFilter: `blur(${adjustedBlur / 2}px)`,
+        };
+
         return (
             <View style={[styles.container, style]}>
                 <Animated.View
-                    style={[
-                        styles.content,
-                        {
-                            filter: `blur(${blurIntensity / 2}px)`,
-                            WebkitFilter: `blur(${blurIntensity / 2}px)`,
-                            opacity: opacityAnim.interpolate({
-                                inputRange: [0.3, 0.6],
-                                outputRange: [0.7, 0.9],
-                            }),
-                        },
-                    ]}
+                    style={[styles.content, webBlurStyle]}
                 >
                     {children}
                 </Animated.View>
-                {/* Dark overlay for web */}
-                <Animated.View
-                    style={[
-                        StyleSheet.absoluteFill,
-                        {
-                            backgroundColor: "rgba(0, 0, 0, 0.5)",
-                            opacity: opacityAnim,
-                        },
-                    ]}
-                />
+                {overlayLayers}
             </View>
         );
     }
 
     return (
         <View style={[styles.container, style]}>
-            {/* Use BlurView to wrap content - this applies blur to everything inside */}
+            <View style={styles.content}>{children}</View>
             <BlurView
-                intensity={blurIntensity}
+                pointerEvents="none"
+                intensity={adjustedBlur}
                 tint="dark"
-                style={StyleSheet.absoluteFill}
-            >
-                {/* Additional dark overlay with animation for extra difficulty */}
-                <Animated.View
-                    style={[
-                        StyleSheet.absoluteFill,
-                        {
-                            backgroundColor: "rgba(0, 0, 0, 0.5)",
-                            opacity: opacityAnim,
-                        },
-                    ]}
-                />
-
-                {/* Content */}
-                <View style={styles.content}>
-                    {children}
-                </View>
-            </BlurView>
+                style={[StyleSheet.absoluteFill, styles.blurLayer]}
+            />
+            {overlayLayers}
         </View>
     );
 }
@@ -156,8 +227,14 @@ const styles = StyleSheet.create({
         overflow: "hidden",
     },
     content: {
-        position: "relative",
-        zIndex: 1,
+        width: "100%",
+    },
+    blurLayer: {},
+    tintOverlay: {
+        backgroundColor: "rgba(15, 23, 42, 0.4)",
+    },
+    stripeOverlay: {
+        overflow: "hidden",
     },
 });
 

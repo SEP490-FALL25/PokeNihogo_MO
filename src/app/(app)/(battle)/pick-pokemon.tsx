@@ -21,8 +21,9 @@ import { useGlobalStore } from "@stores/global/global.config";
 import { useMatchingStore } from "@stores/matching/matching.config";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Clock, Info, Timer, Zap } from "lucide-react-native";
+import { Clock, Info, ShieldAlert, Star, Timer, Zap } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -30,12 +31,14 @@ import {
   Image,
   ImageBackground,
   ScrollView,
+  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
 export default function PickPokemonScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useLocalSearchParams();
   const matchId = params.matchId as string;
 
@@ -59,12 +62,18 @@ export default function PickPokemonScreen() {
       if (currentUserId !== undefined) return p.user.id !== currentUserId;
       return p.user.name !== "Bạn";
     })?.user.name || "";
+  const displayOpponentName = opponentName || t("battle.pick.opponent_label");
+  const opponentPicksLabel = opponentName
+    ? t("battle.pick.opponent_label_with_name", { name: opponentName })
+    : t("battle.pick.opponent_label");
+  const playerLabel = t("battle.pick.you_label");
+  const totalRounds = matchRound?.rounds?.length ?? 3;
 
   const [typeId, setTypeId] = useState<number>(1);
   const {
     data: listUserPokemonRound,
     isLoading: isLoadingListUserPokemonRound,
-  } = useListUserPokemonRound(typeId);
+  } = useListUserPokemonRound(typeId, matchId);
 
   const setStartRoundPayload = useMatchingStore((s) => s.setStartRoundPayload);
   const setServerTimeOffset = useMatchingStore((s) => s.setServerTimeOffset);
@@ -280,6 +289,29 @@ export default function PickPokemonScreen() {
     delaySeconds: number;
     message: string;
   } | null>(null);
+  const parseRoundNumber = (roundValue?: string | null) => {
+    if (!roundValue) return null;
+    if (roundValue === "ONE") return 1;
+    if (roundValue === "TWO") return 2;
+    if (roundValue === "THREE") return 3;
+    const numericRound = Number(roundValue);
+    return Number.isNaN(numericRound) ? null : numericRound;
+  };
+  const displayedRoundNumber = useMemo(() => {
+    const fromStarting = parseRoundNumber(roundStartingData?.roundNumber);
+    if (fromStarting) return fromStarting;
+    const fromCurrent = parseRoundNumber(battleContext?.currentRound?.roundNumber);
+    if (fromCurrent) return fromCurrent;
+    return (battleContext?.currentRoundIndex ?? 0) + 1;
+  }, [
+    battleContext?.currentRound?.roundNumber,
+    battleContext?.currentRoundIndex,
+    roundStartingData?.roundNumber,
+  ]);
+  const roundIndicatorText = t("battle.pick.round_indicator", {
+    current: displayedRoundNumber,
+    total: totalRounds,
+  });
 
   const playerPulseAnim = useRef(new Animated.Value(1)).current;
   const opponentPulseAnim = useRef(new Animated.Value(1)).current;
@@ -482,6 +514,38 @@ export default function PickPokemonScreen() {
     return pokemon.nameTranslations?.en || pokemon.nameJp || "";
   };
 
+  const getPokemonRarity = (pokemon: any) => {
+    return pokemon?.rarity || pokemon?.pokemon?.rarity || "COMMON";
+  };
+
+  const getPokemonTypes = (pokemon: any) => {
+    return pokemon?.types || pokemon?.pokemon?.types || [];
+  };
+
+  const getPokemonWeaknesses = (pokemon: any) => {
+    return pokemon?.weaknesses || pokemon?.pokemon?.weaknesses || [];
+  };
+
+  const getTypeDisplayName = (type: any) => {
+    return (
+      type?.display_name?.[language as keyof typeof type.display_name] ||
+      type?.display_name?.vi ||
+      type?.type_name ||
+      ""
+    );
+  };
+
+  const rarityStyles: Record<
+    string,
+    { bg: string; border: string; text: string }
+  > = {
+    COMMON: { bg: "rgba(148, 163, 184, 0.2)", border: "#cbd5f5", text: "#e2e8f0" },
+    UNCOMMON: { bg: "rgba(16, 185, 129, 0.2)", border: "#34d399", text: "#bbf7d0" },
+    RARE: { bg: "rgba(59, 130, 246, 0.2)", border: "#60a5fa", text: "#bfdbfe" },
+    EPIC: { bg: "rgba(147, 51, 234, 0.25)", border: "#c084fc", text: "#f3e8ff" },
+    LEGENDARY: { bg: "rgba(251, 191, 36, 0.25)", border: "#facc15", text: "#fef3c7" },
+  };
+
   const [selectedPokemonId, setSelectedPokemonId] = useState<number | null>(
     null
   );
@@ -492,6 +556,20 @@ export default function PickPokemonScreen() {
     if (isSelected) return;
     setSelectedPokemonId(pokemonId);
   };
+
+  useEffect(() => {
+    if (!selectedPokemonId) return;
+    const isSelected =
+      (battleContext?.playerPicks || []).includes(selectedPokemonId) ||
+      (battleContext?.opponentPicks || []).includes(selectedPokemonId);
+    if (isSelected) {
+      setSelectedPokemonId(null);
+    }
+  }, [
+    battleContext?.playerPicks,
+    battleContext?.opponentPicks,
+    selectedPokemonId,
+  ]);
 
   const [infoPokemonId, setInfoPokemonId] = useState<number | null>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
@@ -508,6 +586,17 @@ export default function PickPokemonScreen() {
   const choosePokemonMutation = useChoosePokemon();
   const handleChoosePokemon = async () => {
     if (!selectedPokemonId || !battleContext?.currentRoundId) return;
+    const isAlreadyPicked =
+      (battleContext.playerPicks || []).includes(selectedPokemonId) ||
+      (battleContext.opponentPicks || []).includes(selectedPokemonId);
+    if (isAlreadyPicked) {
+      setSelectedPokemonId(null);
+      Alert.alert(
+        t("battle.pick.alerts.pokemon_chosen_title"),
+        t("battle.pick.alerts.pokemon_chosen_message")
+      );
+      return;
+    }
     try {
       await choosePokemonMutation.mutateAsync({
         matchId: battleContext.currentRoundId,
@@ -515,7 +604,7 @@ export default function PickPokemonScreen() {
       });
       setSelectedPokemonId(null);
     } catch (error) {
-      Alert.alert("Lỗi", "Không thể chọn Pokemon. Vui lòng thử lại.");
+      Alert.alert(t("common.error"), t("battle.pick.alerts.choose_error"));
     }
   };
 
@@ -647,7 +736,7 @@ export default function PickPokemonScreen() {
             <ThemedText
               style={{ color: "#93c5fd", marginTop: 16, fontSize: 16 }}
             >
-              Đang tải thông tin trận đấu...
+              {t("battle.pick.loading_match")}
             </ThemedText>
           </View>
         </ImageBackground>
@@ -668,30 +757,12 @@ export default function PickPokemonScreen() {
             <ThemedText
               style={{ color: "#fbbf24", fontSize: 20, fontWeight: "800" }}
             >
-              PICK PHASE
+              {t("battle.pick.title")}
             </ThemedText>
             <View className="flex-row items-center gap-2">
               <Clock size={16} color="#22d3ee" />
               <ThemedText style={{ color: "#cbd5e1", fontSize: 14 }}>
-                Round{" "}
-                {(() => {
-                  if (roundStartingData?.roundNumber) {
-                    const roundNum = roundStartingData.roundNumber;
-                    if (roundNum === "ONE") return "1";
-                    if (roundNum === "TWO") return "2";
-                    if (roundNum === "THREE") return "3";
-                    return roundNum;
-                  }
-                  if (battleContext?.currentRound?.roundNumber) {
-                    const roundNum = battleContext.currentRound.roundNumber;
-                    if (roundNum === "ONE") return "1";
-                    if (roundNum === "TWO") return "2";
-                    if (roundNum === "THREE") return "3";
-                    return roundNum;
-                  }
-                  return (battleContext?.currentRoundIndex ?? 0) + 1;
-                })()}
-                /3
+                {roundIndicatorText}
               </ThemedText>
             </View>
           </View>
@@ -716,11 +787,7 @@ export default function PickPokemonScreen() {
                 }}
               >
                 <UserAvatar
-                  name={
-                    matchRound?.match.participants.find(
-                      (p) => p.user.name === opponentName
-                    )?.user.name ?? ""
-                  }
+                  name={displayOpponentName}
                   size="large"
                 />
               </Animated.View>
@@ -734,9 +801,7 @@ export default function PickPokemonScreen() {
                   zIndex: 2,
                 }}
               >
-                {matchRound?.match.participants.find(
-                  (p) => p.user.name === opponentName
-                )?.user.name ?? ""}
+                {displayOpponentName}
               </ThemedText>
 
               {battleContext?.isOpponentTurn && (
@@ -762,7 +827,7 @@ export default function PickPokemonScreen() {
                       marginLeft: 8,
                     }}
                   >
-                    ĐANG CHỌN
+                    {t("battle.pick.status.opponent_turn")}
                   </ThemedText>
                 </Animated.View>
               )}
@@ -805,7 +870,7 @@ export default function PickPokemonScreen() {
                     opacity: 0.85,
                   }}
                 >
-                  VS
+                  {t("battle.pick.vs")}
                 </ThemedText>
               </View>
             </TWLinearGradient>
@@ -825,7 +890,7 @@ export default function PickPokemonScreen() {
                   zIndex: 2,
                 }}
               >
-                <UserAvatar name={"Bạn"} size="large" />
+                <UserAvatar name={playerLabel} size="large" />
               </Animated.View>
 
               <ThemedText
@@ -837,7 +902,7 @@ export default function PickPokemonScreen() {
                   zIndex: 2,
                 }}
               >
-                Bạn
+                {playerLabel}
               </ThemedText>
 
               {battleContext?.isPlayerTurn && (
@@ -863,7 +928,7 @@ export default function PickPokemonScreen() {
                       marginLeft: 8,
                     }}
                   >
-                    CHỌN NGAY
+                    {t("battle.pick.status.player_turn")}
                   </ThemedText>
                 </Animated.View>
               )}
@@ -878,11 +943,7 @@ export default function PickPokemonScreen() {
               <ThemedText
                 style={{ color: "#94a3b8", fontSize: 12, marginBottom: 8 }}
               >
-                Đối thủ (
-                {matchRound?.match.participants.find(
-                  (p) => p.user.name === opponentName
-                )?.user.name ?? ""}
-                )
+                {opponentPicksLabel}
               </ThemedText>
               <View className="flex-row flex-wrap gap-2">
                 {[0, 1, 2].map((idx) => {
@@ -922,7 +983,7 @@ export default function PickPokemonScreen() {
               <ThemedText
                 style={{ color: "#94a3b8", fontSize: 12, marginBottom: 8 }}
               >
-                Bạn
+                {playerLabel}
               </ThemedText>
               <View className="flex-row flex-wrap gap-2">
                 {[0, 1, 2].map((idx) => {
@@ -984,7 +1045,7 @@ export default function PickPokemonScreen() {
                     ] ||
                       elem?.display_name?.vi ||
                       elem?.type_name ||
-                      "Elemental"}
+                      t("battle.pick.filters.elemental_fallback")}
                   </ThemedText>
                 </HapticPressable>
               ))}
@@ -1041,15 +1102,17 @@ export default function PickPokemonScreen() {
               {choosePokemonMutation.isPending ? (
                 <ActivityIndicator size="small" color="#86efac" />
               ) : (
-                <ThemedText
+                <Text
                   style={{
                     color: battleContext?.isPlayerTurn ? "#86efac" : "#9ca3af",
                     fontSize: 16,
                     fontWeight: "700",
                   }}
                 >
-                  {battleContext?.isPlayerTurn ? "Chọn" : "Chờ đến lượt bạn"}
-                </ThemedText>
+                  {battleContext?.isPlayerTurn
+                    ? t("battle.pick.primary_button.pick")
+                    : t("battle.pick.primary_button.wait")}
+                </Text>
               )}
             </HapticPressable>
           </View>
@@ -1065,7 +1128,7 @@ export default function PickPokemonScreen() {
               <ThemedText
                 style={{ color: "#64748b", marginTop: 16, fontSize: 14 }}
               >
-                Đang tải Pokemon...
+                {t("battle.pick.loading_pokemon")}
               </ThemedText>
             </View>
           ) : !displayPokemons || displayPokemons.length === 0 ? (
@@ -1079,32 +1142,42 @@ export default function PickPokemonScreen() {
                 }}
               >
                 {currentElementalName
-                  ? `Bạn không có Pokemon hệ ${currentElementalName}`
-                  : "Không có Pokemon nào"}
+                  ? t("battle.pick.empty_by_type", {
+                    type: currentElementalName,
+                  })
+                  : t("battle.pick.empty_default")}
               </ThemedText>
             </View>
           ) : (
-            <View className="flex-row flex-wrap gap-4 pb-8 justify-center">
+            <View className="flex-row flex-wrap pb-8 justify-between">
               {displayPokemons.map((pokemon: any) => {
                 const isSelected =
                   (battleContext?.playerPicks || []).includes(pokemon.id) ||
                   (battleContext?.opponentPicks || []).includes(pokemon.id);
                 const isCurrentlySelected = selectedPokemonId === pokemon.id;
                 const canPick = pokemon?.canPick !== false;
+                const rarity = getPokemonRarity(pokemon);
+                const rarityStyle = rarityStyles[rarity] || rarityStyles.COMMON;
+                const types = getPokemonTypes(pokemon);
+                const weaknesses = getPokemonWeaknesses(pokemon);
                 return (
                   <HapticPressable
                     key={pokemon.id}
                     onPress={() => handlePickPokemon(pokemon.id)}
                     disabled={isSelected || !canPick}
                     className="relative"
+                    style={{ width: "31%", marginBottom: 16 }}
                   >
                     <View
-                      className={`w-32 h-44 rounded-3xl overflow-hidden border-white/20 ${isSelected ? "opacity-50" : "opacity-100"
+                      className={`h-52 rounded-3xl overflow-hidden border-white/20 ${isSelected ? "opacity-50" : "opacity-100"
                         } ${isCurrentlySelected
                           ? "scale-105 border-green-400 border-2"
                           : "scale-100"
                         }`}
-                      style={{ borderWidth: isCurrentlySelected ? 2 : 1 }}
+                      style={{
+                        borderWidth: isCurrentlySelected ? 2 : 1,
+                        width: "100%",
+                      }}
                     >
                       <TWLinearGradient
                         colors={[
@@ -1122,29 +1195,155 @@ export default function PickPokemonScreen() {
                           borderRadius: 24,
                         }}
                       />
+                      <View
+                        className="flex-row items-center"
+                        style={{
+                          position: "absolute",
+                          top: 10,
+                          left: 10,
+                          paddingHorizontal: 10,
+                          paddingVertical: 6,
+                          borderRadius: 999,
+                          borderWidth: 1,
+                          backgroundColor: rarityStyle.bg,
+                          borderColor: rarityStyle.border,
+                        }}
+                      >
+                        <Star
+                          size={12}
+                          color={rarityStyle.text}
+                          fill={rarityStyle.text}
+                          style={{ marginRight: 4 }}
+                        />
+                        <ThemedText
+                          style={{
+                            color: rarityStyle.text,
+                            fontSize: 11,
+                            fontWeight: "700",
+                          }}
+                        >
+                          {rarity}
+                        </ThemedText>
+                      </View>
                       <Image
                         source={{ uri: pokemon.imageUrl }}
                         style={{
-                          width: 80,
-                          height: 80,
+                          width: 100,
+                          height: 100,
                           alignSelf: "center",
-                          marginTop: 30,
+                          marginTop: 34,
                         }}
                         resizeMode="contain"
                       />
-                      <View className="px-3 pb-3 pt-1">
+                      <View className="px-3 pb-3 pt-1 gap-2">
+                        {isCurrentlySelected && (
+                          <View className="self-center px-3 py-1 rounded-full border border-green-400/70 bg-green-500/10">
+                            <ThemedText
+                              style={{
+                                color: "#bbf7d0",
+                                fontSize: 10,
+                                fontWeight: "700",
+                              }}
+                            >
+                              {t("battle.pick.status.selection_badge")}
+                            </ThemedText>
+                          </View>
+                        )}
                         <ThemedText
                           numberOfLines={1}
                           style={{
                             color: "#ffffff",
-                            fontSize: 12,
+                            fontSize: 13,
                             fontWeight: "800",
                             textAlign: "center",
                           }}
                         >
                           {getPokemonName(pokemon)}
                         </ThemedText>
+                        {types?.length > 0 && (
+                          <View className="flex-row flex-wrap gap-1 justify-center">
+                            {types.slice(0, 3).map((type: any) => (
+                              <View
+                                key={type.id}
+                                className="px-2 py-1 rounded-full border"
+                                style={{
+                                  borderColor: type?.color_hex || "#38bdf8",
+                                  backgroundColor: `${type?.color_hex || "#38bdf8"}25`,
+                                }}
+                              >
+                                <ThemedText
+                                  style={{
+                                    color: "#f8fafc",
+                                    fontSize: 10,
+                                    fontWeight: "700",
+                                  }}
+                                >
+                                  {getTypeDisplayName(type)}
+                                </ThemedText>
+                              </View>
+                            ))}
+                          </View>
+                        )}
+                        {weaknesses?.length > 0 && (
+                          <View
+                            className="rounded-2xl px-2 py-1 border border-red-400/30 bg-red-500/10 flex-row items-center"
+                          >
+                            <ShieldAlert size={12} color="#fca5a5" style={{ marginRight: 6 }} />
+                            <View style={{ flex: 1 }}>
+                              <ThemedText
+                                style={{
+                                  color: "#fca5a5",
+                                  fontSize: 10,
+                                  fontWeight: "700",
+                                }}
+                                numberOfLines={1}
+                              >
+                                {weaknesses
+                                  .slice(0, 2)
+                                  .map(
+                                    (weak: any) =>
+                                      weak?.display_name?.[
+                                      language as keyof typeof weak.display_name
+                                      ] ||
+                                      weak?.display_name?.vi ||
+                                      weak?.type_name
+                                  )
+                                  .join(" • ")}
+                              </ThemedText>
+                              <ThemedText
+                                style={{
+                                  color: "#f87171",
+                                  fontSize: 9,
+                                  fontWeight: "600",
+                                }}
+                              >
+                                {weaknesses
+                                  .slice(0, 2)
+                                  .map((weak: any) =>
+                                    weak?.effectiveness_multiplier
+                                      ? `x${Number(
+                                        weak.effectiveness_multiplier
+                                      ).toFixed(1)}`
+                                      : "x1.5"
+                                  )
+                                  .join("  ")}
+                              </ThemedText>
+                            </View>
+                          </View>
+                        )}
                       </View>
+                      {isCurrentlySelected && (
+                        <View
+                          className="absolute inset-0 rounded-3xl border-2 border-green-400 pointer-events-none"
+                          style={{
+                            shadowColor: "#22c55e",
+                            shadowOpacity: 0.45,
+                            shadowRadius: 18,
+                            shadowOffset: { width: 0, height: 0 },
+                            elevation: 8,
+                          }}
+                        />
+                      )}
                       {(isSelected || !canPick) && (
                         <View className="absolute inset-0 bg-black/60 rounded-3xl items-center justify-center">
                           {isSelected && (
@@ -1156,7 +1355,7 @@ export default function PickPokemonScreen() {
                                   fontWeight: "700",
                                 }}
                               >
-                                Đã chọn
+                                {t("battle.pick.status.picked_badge")}
                               </ThemedText>
                             </View>
                           )}

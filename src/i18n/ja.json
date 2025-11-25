@@ -595,7 +595,39 @@
                 "add_question_description": "+{{value}}問題",
                 "decrease_point_description": "問題ごとに-{{value}}ポイント",
                 "discomfort_vision_description": "視界がぼやける",
-                "next_turn_warning": "次のターン、あなたはデバフの影響を受けます: {{debuff}}"
+                "next_turn_warning": "次のターン、あなたはデバフの影響を受けます: {{debuff}}",
+                "next_turn_warning_label": "次のデバフ",
+                "next_turn_warning_generic": "次の問題で相手からのデバフを受けます。"
+            }
+        },
+        "pick": {
+            "title": "ピックフェーズ",
+            "round_indicator": "ラウンド {{current}}/{{total}}",
+            "vs": "VS",
+            "opponent_label": "対戦相手",
+            "opponent_label_with_name": "対戦相手（{{name}}）",
+            "you_label": "あなた",
+            "loading_match": "対戦情報を読み込み中...",
+            "loading_pokemon": "ポケモンを読み込み中...",
+            "empty_by_type": "{{type}}タイプのポケモンを持っていません",
+            "empty_default": "利用できるポケモンがありません",
+            "filters": {
+                "elemental_fallback": "属性"
+            },
+            "status": {
+                "opponent_turn": "選択中",
+                "player_turn": "今すぐ選ぶ",
+                "selection_badge": "選択中",
+                "picked_badge": "選択済み"
+            },
+            "primary_button": {
+                "pick": "選ぶ",
+                "wait": "自分の番を待っています"
+            },
+            "alerts": {
+                "pokemon_chosen_title": "すでに選択されたポケモン",
+                "pokemon_chosen_message": "このポケモンは選択済みです。別のポケモンを選んでください。",
+                "choose_error": "ポケモンを選択できません。もう一度お試しください。"
             }
         },
         "result": {
