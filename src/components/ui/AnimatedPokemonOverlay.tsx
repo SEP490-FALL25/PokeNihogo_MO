@@ -23,6 +23,8 @@ interface AnimatedPokemonOverlayProps {
   style?: ViewStyle;
   /** Whether to show background card or just the Pokemon image (default: true) */
   showBackground?: boolean;
+  /** Callback to get current position of the overlay */
+  onPositionChange?: (position: { x: number; y: number }) => void;
 }
 
 /**
@@ -50,6 +52,7 @@ export default function AnimatedPokemonOverlay({
   imageSize = 120,
   style,
   showBackground = true,
+  onPositionChange,
 }: AnimatedPokemonOverlayProps) {
   // Animation values
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -93,6 +96,7 @@ export default function AnimatedPokemonOverlay({
 
       try {
         const storedPosition = await AsyncStorage.getItem(STORAGE_KEY);
+        let finalPosition;
         if (storedPosition !== null) {
           const { x, y } = JSON.parse(storedPosition);
           
@@ -100,13 +104,23 @@ export default function AnimatedPokemonOverlay({
           const validX = Math.max(0, Math.min(x, screenWidth - overlaySize));
           const validY = Math.max(0, Math.min(y, screenHeight - overlaySize));
           
-          pan.setValue({ x: validX, y: validY });
+          finalPosition = { x: validX, y: validY };
+          pan.setValue(finalPosition);
         } else {
+          finalPosition = defaultPosition;
           pan.setValue(defaultPosition);
+        }
+        
+        // Notify parent of initial position
+        if (onPositionChange) {
+          onPositionChange(finalPosition);
         }
       } catch (e) {
         console.error("Error loading position:", e);
         pan.setValue(defaultPosition);
+        if (onPositionChange) {
+          onPositionChange(defaultPosition);
+        }
       } finally {
         setInitialLoadCompleted(true);
       }
@@ -177,6 +191,11 @@ export default function AnimatedPokemonOverlay({
 
         // Save position
         savePosition(finalX, finalY);
+        
+        // Notify parent of position change
+        if (onPositionChange) {
+          onPositionChange({ x: finalX, y: finalY });
+        }
         
         // Re-enable bounce animation
         isDragging.current = false;
@@ -252,6 +271,7 @@ export default function AnimatedPokemonOverlay({
     // Helper function to update translateY
     const updateTranslateY = () => {
       const panYValue = (pan.y as any)._value || 0;
+      const panXValue = (pan.x as any)._value || 0;
       
       if (isDragging.current) {
         // When dragging, use pan.y directly (bounce already subtracted)
@@ -262,21 +282,28 @@ export default function AnimatedPokemonOverlay({
         const bounceOffset = bounceValue * -10; // Bounce moves up 10px
         combinedTranslateY.setValue(panYValue + bounceOffset);
       }
+
+      // Notify parent of position change (use base pan position, not bounce-adjusted)
+      if (onPositionChange) {
+        onPositionChange({ x: panXValue, y: panYValue });
+      }
     };
 
     // Initial update
     updateTranslateY();
 
     // Set up listeners
+    const panXListener = pan.x.addListener(updateTranslateY);
     const panYListener = pan.y.addListener(updateTranslateY);
     const bounceListener = bounceAnim.addListener(updateTranslateY);
 
     return () => {
+      pan.x.removeListener(panXListener);
       pan.y.removeListener(panYListener);
       bounceAnim.removeListener(bounceListener);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, initialLoadCompleted]);
+  }, [visible, initialLoadCompleted, onPositionChange]);
 
   // Early return if not visible
   if (!visible) return null;

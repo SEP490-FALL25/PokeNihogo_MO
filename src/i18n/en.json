@@ -384,6 +384,11 @@
     "speaking": "Speaking"
   },
   "tour": {
+    "start_tour": "Tour",
+    "skip": "Skip",
+    "next": "Next",
+    "previous": "Previous",
+    "finish": "Finish",
     "header_title": "Your Profile",
     "header_description": "Tap here to view your profile, level, and progress",
     "pokemon_title": "Your Pokemon Partner",
@@ -395,7 +400,13 @@
     "gacha_title": "Gacha",
     "gacha_description": "Try your luck with the gacha to get new Pokemon and items",
     "navigation_title": "Learn Button",
-    "navigation_description": "Tap the Learn button to start your Japanese learning journey"
+    "navigation_description": "Tap the Learn button to start your Japanese learning journey",
+    "ai_assistant_title": "AI Assistant",
+    "ai_assistant_description": "The AI assistant analyzes your learning progress and provides personalized suggestions to improve your study efficiency",
+    "ai_insights_title": "Review Suggestions",
+    "ai_insights_description": "View personalized review suggestions based on your learning history. Tap each item to start reviewing",
+    "ai_unlock_title": "Unlock Premium",
+    "ai_unlock_description": "Upgrade to Premium to unlock personalized AI assistant with smart features"
   },
   "lessons": {
     "title": "Lessons",

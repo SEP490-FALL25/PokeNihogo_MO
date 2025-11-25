@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { router, useFocusEffect } from "expo-router";
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ImageBackground, ScrollView, StyleSheet, View } from "react-native";
+import { Dimensions, ImageBackground, ScrollView, StyleSheet, View } from "react-native";
 import { CopilotStep, walkthroughable } from "react-native-copilot";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -22,6 +22,8 @@ import starters from "../../../mock-data/starters.json";
 import { Starter } from "../../types/starter.types";
 
 const STARTERS = starters as Starter[];
+const POKEMON_TOUR_SIZE = 160;
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 interface HomeLayoutProps {
   children?: React.ReactNode;
@@ -47,6 +49,7 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     const queryClient = useQueryClient();
     const { accessToken } = useAuthStore();
     const { starterId } = useUserStore();
+    
     console.log(user)
     const [isShopVisible, setIsShopVisible] = useState(false);
     const [mainPokemonImageUrl, setMainPokemonImageUrl] = useState<string | null>(null);
@@ -226,13 +229,19 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
             requests={dailyQuestsMock}
           /> */}
         </ImageBackground>
+        {/* Fake layer for copilot to track - fixed position, completely independent of AnimatedPokemonOverlay */}
+        {shouldShowPokemonOverlay && (
+          <CopilotStep text={t("tour.pokemon_description")} order={2} name="pokemon">
+            <WTView style={styles.pokemonTourFakeLayer} />
+          </CopilotStep>
+        )}
+        {/* Actual overlay - renders independently so it can move freely */}
         {shouldShowPokemonOverlay && (
           <AnimatedPokemonOverlay
             visible
             imageUri={pokemonImageUri}
             imageSize={140}
             showBackground={false}
-            style={styles.pokemonTourPlaceholder}
           />
         )}
       </HomeTourGuide>
@@ -443,10 +452,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 1002,
   },
-  pokemonTourPlaceholder: {
-    // Position is now controlled by drag functionality in AnimatedPokemonOverlay
-    // Only keep non-positioning styles here
+  pokemonTourFakeLayer: {
+    position: "absolute",
+    // Fixed position - center of screen (completely independent of AnimatedPokemonOverlay)
+    left: screenWidth / 2 - POKEMON_TOUR_SIZE / 2,
+    top: screenHeight / 2 - POKEMON_TOUR_SIZE / 2,
+    width: POKEMON_TOUR_SIZE,
+    height: POKEMON_TOUR_SIZE,
     backgroundColor: "transparent",
-    zIndex: 998,
+    zIndex: 997, // Lower than overlay but visible to copilot
+    // Don't block pointer events - let overlay handle them
+    pointerEvents: "none", // Allow touches to pass through to overlay
+    // Make it invisible but still measurable by copilot
+    opacity: 0,
   },
 });

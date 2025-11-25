@@ -384,6 +384,11 @@
     "speaking": "Nói"
   },
   "tour": {
+    "start_tour": "Tour",
+    "skip": "Bỏ qua",
+    "next": "Tiếp theo",
+    "previous": "Trước",
+    "finish": "Kết thúc",
     "header_title": "Hồ sơ của bạn",
     "header_description": "Nhấn vào đây để xem hồ sơ, cấp độ và tiến độ của bạn",
     "pokemon_title": "Pokemon đồng hành",
@@ -395,7 +400,13 @@
     "gacha_title": "Gacha",
     "gacha_description": "Thử vận may với gacha để có được Pokemon và vật phẩm mới",
     "navigation_title": "Nút Học",
-    "navigation_description": "Nhấn nút Học để bắt đầu hành trình học tiếng Nhật của bạn"
+    "navigation_description": "Nhấn nút Học để bắt đầu hành trình học tiếng Nhật của bạn",
+    "ai_assistant_title": "Trợ lý AI",
+    "ai_assistant_description": "Trợ lý AI sẽ phân tích tiến trình học của bạn và đưa ra gợi ý cá nhân hóa để cải thiện hiệu quả học tập",
+    "ai_insights_title": "Gợi ý ôn tập",
+    "ai_insights_description": "Xem các gợi ý ôn tập được đề xuất dựa trên lịch sử học tập của bạn. Nhấn vào từng mục để bắt đầu ôn tập",
+    "ai_unlock_title": "Mở khóa Premium",
+    "ai_unlock_description": "Nâng cấp lên Premium để mở khóa trợ lý AI cá nhân hóa với các tính năng thông minh"
   },
   "lessons": {
     "title": "Bài học",

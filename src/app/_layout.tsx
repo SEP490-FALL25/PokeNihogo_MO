@@ -20,7 +20,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { CopilotProvider } from "react-native-copilot";
+import CopilotProviderWrapper from "@components/ui/CopilotProviderWrapper";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import "../../global.css";
@@ -50,14 +50,14 @@ export default function RootLayout() {
             <ThemeProvider
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
-              <CopilotProvider>
+              <CopilotProviderWrapper>
                 <Stack screenOptions={{ headerShown: false }}>
                   <Stack.Screen name="index" />
                   <Stack.Screen name="(tabs)" />
                   <Stack.Screen name="(auth)" />
                   <Stack.Screen name="+not-found" />
                 </Stack>
-              </CopilotProvider>
+              </CopilotProviderWrapper>
               <StatusBar style="auto" />
               <GlobalMatchingNotification />
             </ThemeProvider>

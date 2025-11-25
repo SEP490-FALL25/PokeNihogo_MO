@@ -127,6 +127,11 @@
         "speaking": "スピーキング"
     },
     "tour": {
+        "start_tour": "ツアー",
+        "skip": "スキップ",
+        "next": "次へ",
+        "previous": "前へ",
+        "finish": "完了",
         "header_title": "あなたのプロフィール",
         "header_description": "ここをタップしてプロフィール、レベル、進捗を確認",
         "pokemon_title": "ポケモンパートナー",
@@ -138,7 +143,13 @@
         "gacha_title": "ガチャ",
         "gacha_description": "ガチャで運試しをして新しいポケモンやアイテムを獲得",
         "navigation_title": "学習ボタン",
-        "navigation_description": "学習ボタンをタップして日本語学習の旅を始めましょう"
+        "navigation_description": "学習ボタンをタップして日本語学習の旅を始めましょう",
+        "ai_assistant_title": "AIアシスタント",
+        "ai_assistant_description": "AIアシスタントが学習進捗を分析し、学習効率を向上させるためのパーソナライズされた提案を提供します",
+        "ai_insights_title": "復習提案",
+        "ai_insights_description": "学習履歴に基づいたパーソナライズされた復習提案を表示します。各項目をタップして復習を開始",
+        "ai_unlock_title": "プレミアムを解除",
+        "ai_unlock_description": "プレミアムにアップグレードして、スマート機能付きのパーソナライズされたAIアシスタントを解除"
     },
     "tabs": {
         "home": "ホーム",
