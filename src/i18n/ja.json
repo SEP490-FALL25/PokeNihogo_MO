@@ -202,7 +202,12 @@
         "current_xp": "現在のXP",
         "next_level": "次のレベル",
         "experience_progress": "経験値進捗",
-        "to": "に"
+        "to": "に",
+        "level_prefix": "Lv",
+        "section_progress_title": "進捗と履歴",
+        "section_progress_subtitle": "あなたの旅を追跡",
+        "section_learning_title": "学習ツール",
+        "section_learning_subtitle": "リソースに飛び込む"
     },
     "account_details": {
         "title": "アカウント詳細",
