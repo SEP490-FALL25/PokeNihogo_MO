@@ -21,8 +21,10 @@ export const useReviewResultUnified = (
     queryFn: async () => {
       if (!sessionId) return null;
       if (type === "test") {
-        const isLessonTest = (testType || "").toUpperCase() === "LESSON_TEST";
-        const res = isLessonTest
+        const upperTestType = (testType || "").toUpperCase();
+        const isLessonTest = upperTestType === "LESSON_TEST";
+        const isLessonReview = upperTestType === "LESSON_REVIEW";
+        const res = isLessonTest || isLessonReview
           ? await userTestService.getLessonTestReview(sessionId)
           : await userTestService.getReviewResult(sessionId);
         return res.data;

@@ -377,7 +377,10 @@ export default function ExerciseHistoryScreen() {
         // Navigate to test review
         router.push({
           pathname: ROUTES.TEST.REVIEW,
-          params: { userTestAttemptId: item.attemptId.toString() },
+          params: { 
+            userTestAttemptId: item.attemptId.toString(),
+            testType: item.testType || "",
+          },
         });
       } else if (item.exerciseId) {
         // Navigate to exercise review

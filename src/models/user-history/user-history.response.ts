@@ -16,6 +16,7 @@ export const HistoryItemSchema = z.object({
   correctAnswers: z.number(),
   incorrectAnswers: z.number(),
   updatedAt: z.string(),
+  testType: z.string().optional(), // For tests: LESSON_REVIEW, LESSON_TEST, etc.
 });
 
 export const HistoryListResponseSchema = z.object({
