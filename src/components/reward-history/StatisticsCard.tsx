@@ -1,11 +1,11 @@
-import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { TFunction } from "react-i18next";
 import {
   REWARD_HISTORY_COLORS,
   REWARD_HISTORY_SHADOW_STYLES,
 } from "@constants/reward-history.constants";
+import { LinearGradient } from "expo-linear-gradient";
+import { TFunction } from "i18next";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 interface StatisticsCardProps {
   totalRewards: number;

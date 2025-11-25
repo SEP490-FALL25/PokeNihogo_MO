@@ -1,7 +1,7 @@
 import { Calendar } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
-import { TFunction } from "react-i18next";
+import { TFunction } from "i18next";
 import { REWARD_HISTORY_COLORS } from "@constants/reward-history.constants";
 import {
   formatRewardDateString,

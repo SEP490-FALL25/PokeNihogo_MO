@@ -1,13 +1,13 @@
-import { IRewardHistoryItem } from "@models/reward/reward.response";
-import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { TFunction } from "react-i18next";
 import { REWARD_HISTORY_COLORS } from "@constants/reward-history.constants";
+import { IRewardHistoryItem } from "@models/reward/reward.response";
 import {
   formatRewardDate,
   getRewardSourceTypeInfo,
 } from "@utils/reward-history.utils";
+import { LinearGradient } from "expo-linear-gradient";
+import { TFunction } from "i18next";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 interface RewardCardProps {
   item: IRewardHistoryItem;
