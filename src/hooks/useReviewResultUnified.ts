@@ -4,17 +4,27 @@ import { useQuery } from "@tanstack/react-query";
 
 type ReviewType = "quiz" | "test"; // "quiz" => exercise attempt, "test" => user test attempt
 
+type ReviewResultOptions = {
+  initialData?: any;
+  testType?: string;
+};
+
 export const useReviewResultUnified = (
   sessionId: string | undefined,
   type: ReviewType,
-  initialData?: any
+  options?: ReviewResultOptions
 ) => {
+  const { initialData, testType } = options || {};
+
   return useQuery({
-    queryKey: ["review-result", type, sessionId],
+    queryKey: ["review-result", type, sessionId, options?.testType],
     queryFn: async () => {
       if (!sessionId) return null;
       if (type === "test") {
-        const res = await userTestService.getReviewResult(sessionId);
+        const isLessonTest = (testType || "").toUpperCase() === "LESSON_TEST";
+        const res = isLessonTest
+          ? await userTestService.getLessonTestReview(sessionId)
+          : await userTestService.getReviewResult(sessionId);
         return res.data;
       }
       const res = await userExerciseAttemptService.getReviewResult(String(sessionId));

@@ -4,6 +4,7 @@ import {
     useCheckTestCompletion,
     useSubmitTestCompletion,
 } from "@hooks/useUserTestAttempt";
+import { ROUTES } from "@routes/routes";
 import { TestSet } from "@utils/test.utils";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -12,9 +13,14 @@ import { Animated } from "react-native";
 interface UseTestLogicProps {
   userTestAttemptId: number | null;
   sets: TestSet[];
+  testType?: string;
 }
 
-export const useTestLogic = ({ userTestAttemptId, sets }: UseTestLogicProps) => {
+export const useTestLogic = ({
+  userTestAttemptId,
+  sets,
+  testType,
+}: UseTestLogicProps) => {
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   const [showExitConfirmModal, setShowExitConfirmModal] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -133,12 +139,14 @@ export const useTestLogic = ({ userTestAttemptId, sets }: UseTestLogicProps) => 
           setIsTimerPaused(false);
           if (res?.data) {
             router.replace({
-              pathname: "/quiz/result",
+              pathname: ROUTES.QUIZ.RESULT,
               params: {
                 resultId: String(userTestAttemptId),
                 resultData: JSON.stringify(res.data),
                 message: res.message || "",
                 timeSpent: String(elapsedSeconds),
+                origin: "test",
+                testType: testType || "",
               },
             });
           }

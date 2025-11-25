@@ -7,7 +7,7 @@ import { useUserExerciseAttempt } from "@hooks/useUserExerciseAttempt";
 import { ROUTES } from "@routes/routes";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   BookOpen,
   ChevronLeft,
@@ -256,11 +256,13 @@ type ExerciseCategory = "vocabulary" | "grammar" | "kanji";
 const LessonDetailScreen = () => {
   const { t } = useTranslation();
   const { id, status } = useLocalSearchParams<{ id?: string; status?: string }>();
-  const { data: lessonData, isLoading } = useLesson(id || "");
-  const { data: lessonExercisesResponse } = useLessonExercises(id || "");
+  const { data: lessonData, isLoading, refetch: refetchLesson } = useLesson(id || "");
+  const { data: lessonExercisesResponse, refetch: refetchLessonExercises } =
+    useLessonExercises(id || "");
   const {
     data: exerciseAttemptData,
     isLoading: isExerciseAttemptLoading,
+    refetch: refetchExerciseAttempts,
   } = useUserExerciseAttempt(id || "");
   const lesson: any = lessonData?.data || {};
   const lessonExercises: any[] = React.useMemo(
@@ -439,6 +441,15 @@ const LessonDetailScreen = () => {
       );
     },
     [exerciseAttemptMap, isExerciseAttemptLoading, t]
+  );
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!id) return;
+      refetchLesson();
+      refetchLessonExercises();
+      refetchExerciseAttempts();
+    }, [id, refetchLesson, refetchLessonExercises, refetchExerciseAttempts])
   );
 
   if (isLoading) {

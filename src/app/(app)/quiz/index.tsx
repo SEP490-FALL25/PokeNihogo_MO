@@ -373,9 +373,9 @@ export default function QuizScreen() {
       },
       {
         onSuccess: (response) => {
+          queryClient.invalidateQueries({ queryKey: ["wallet-user"] });
           // Navigate to result screen with response data
           if (response.data) {
-            queryClient.invalidateQueries({ queryKey: ["wallet-user"] });
             // Pass data as JSON string in params
             router.replace({
               pathname: ROUTES.QUIZ.RESULT,
