@@ -102,6 +102,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const isRecordingRef = useRef<boolean>(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPlayLoading, setIsPlayLoading] = useState(false);
+  const [isRecordingLoading, setIsRecordingLoading] = useState(false);
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [playbackDuration, setPlaybackDuration] = useState(0);
@@ -327,14 +328,25 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
   // Memoize timer text để giảm re-renders
   const timerText = useMemo(() => {
-    return recordingUri
-      ? `${formatTime(playbackPosition)} / ${formatTime(playbackDuration)}`
-      : formatTime(recordingDuration);
+    if (!recordingUri) {
+      return formatTime(recordingDuration);
+    }
+    
+    // Nếu chưa có playbackDuration (chưa load audio), dùng recordingDuration
+    const totalDuration = playbackDuration > 0 ? playbackDuration : recordingDuration;
+    
+    // Nếu đang phát, dùng playbackPosition; nếu không (chưa phát hoặc dừng), hiển thị 00:00
+    const currentPosition = isPlaying && playbackPosition >= 0 
+      ? playbackPosition 
+      : 0;
+    
+    return `${formatTime(currentPosition)} / ${formatTime(totalDuration)}`;
   }, [
     recordingUri,
     playbackPosition,
     playbackDuration,
     recordingDuration,
+    isPlaying,
     formatTime,
   ]);
 
@@ -377,6 +389,8 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     if (disabled) return;
 
     try {
+      setIsRecordingLoading(true);
+
       // Delete previous recording file if exists
       if (recordingUri) {
         await deleteFileFromDevice(recordingUri);
@@ -483,9 +497,12 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
       // Call callback
       onRecordingStart?.();
+      
+      setIsRecordingLoading(false);
     } catch (err) {
       console.error("Failed to start recording", err);
       Alert.alert("Lỗi", "Không thể bắt đầu ghi âm. Vui lòng thử lại.");
+      setIsRecordingLoading(false);
     }
   };
 
@@ -525,6 +542,28 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         onRecordingComplete(uri, duration);
       }
 
+      // Load audio ngay để lấy duration chính xác (không phát)
+      if (uri && showPlayback) {
+        try {
+          const { sound: previewSound } = await Audio.Sound.createAsync(
+            { uri },
+            { shouldPlay: false }
+          );
+          const status = await previewSound.getStatusAsync();
+          if (status.isLoaded && status.durationMillis) {
+            setPlaybackDuration(status.durationMillis);
+          }
+          await previewSound.unloadAsync();
+        } catch (err) {
+          console.error("Failed to load audio for duration:", err);
+          // Fallback: dùng recordingDuration nếu không load được
+          setPlaybackDuration(recordingDuration);
+        }
+      } else if (uri) {
+        // Nếu không show playback, vẫn set duration từ recording
+        setPlaybackDuration(recordingDuration);
+      }
+
       // If showDeleteButton is false, automatically delete and reset after callback
       // This is useful for streaming scenarios where we don't need to keep the recording
       if (!showDeleteButton && uri) {
@@ -557,6 +596,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     onRecordingComplete,
     performScroll,
     showDeleteButton,
+    showPlayback,
     deleteRecording,
   ]);
 
@@ -810,11 +850,13 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
                   disabled && styles.disabledButton,
                 ]}
                 onPress={isRecording ? stopRecording : startRecording}
-                disabled={disabled}
+                disabled={disabled || isRecordingLoading}
                 activeOpacity={0.8}
               >
                 {isRecording ? (
                   <View style={styles.stopIcon} />
+                ) : isRecordingLoading ? (
+                  <ActivityIndicator color="#fff" />
                 ) : (
                   <View style={styles.micIconContainer}>
                     <Ionicons name="mic" size={26} color="#fff" />
@@ -822,7 +864,11 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
                 )}
               </TouchableOpacity>
               <Text style={styles.recordLabel}>
-                {isRecording ? "Nhấn để dừng" : "Nhấn để ghi âm"}
+                {isRecording 
+                  ? "Nhấn để dừng" 
+                  : isRecordingLoading 
+                    ? "Đang khởi tạo..." 
+                    : "Nhấn để ghi âm"}
               </Text>
             </View>
           ) : showPlayback ? (
