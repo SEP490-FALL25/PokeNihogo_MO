@@ -319,6 +319,11 @@
         "locked_highlight_subtitle": "ロードマップとスマートリマインダーをアンロック",
         "conversation": {
             "title": "会話",
+            "list_title": "会話",
+            "list_empty_title": "まだ会話がありません",
+            "list_empty_description": "AIと日本語の会話を始めましょう",
+            "new_conversation": "新しい会話",
+            "empty_list": "まだ会話がありません。新しく始めましょう！",
             "connecting": "接続中...",
             "loading": "読み込み中...",
             "connection_error": "接続できません。もう一度お試しください。",
@@ -350,7 +355,15 @@
             "sending_audio": "音声を送信中...",
             "server_connection_error": "サーバーに接続できません。",
             "audio_send_error": "音声送信エラー。",
-            "connecting_to_ai": "AIに接続中..."
+            "connecting_to_ai": "AIに接続中...",
+            "card_new_conversation": "新しい会話",
+            "card_no_messages": "まだメッセージがありません",
+            "time": {
+                "just_now": "たった今",
+                "minutes": "{{count}}分前",
+                "hours": "{{count}}時間前",
+                "days": "{{count}}日前"
+            }
         }
     },
     "insight_locked": {

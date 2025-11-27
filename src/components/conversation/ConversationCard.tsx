@@ -1,6 +1,8 @@
 import { ThemedText } from "@components/ThemedText";
 import { ConversationRoom } from "@services/conversation";
+import { TFunction } from "i18next";
 import React, { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 interface ConversationCardProps {
@@ -9,7 +11,11 @@ interface ConversationCardProps {
   onPress: () => void;
 }
 
-const formatRelativeTime = (dateString?: string): string => {
+const formatRelativeTime = (
+  dateString: string | undefined,
+  locale: string,
+  t: TFunction
+): string => {
   if (!dateString) return "";
   try {
     const date = new Date(dateString);
@@ -19,15 +25,32 @@ const formatRelativeTime = (dateString?: string): string => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "Vừa xong";
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffMins < 1) {
+      return t("home.ai.conversation.time.just_now", "Just now");
+    }
+    if (diffMins < 60) {
+      return t("home.ai.conversation.time.minutes", {
+        count: diffMins,
+        defaultValue: "{{count}} minutes ago",
+      });
+    }
+    if (diffHours < 24) {
+      return t("home.ai.conversation.time.hours", {
+        count: diffHours,
+        defaultValue: "{{count}} hours ago",
+      });
+    }
+    if (diffDays < 7) {
+      return t("home.ai.conversation.time.days", {
+        count: diffDays,
+        defaultValue: "{{count}} days ago",
+      });
+    }
 
-    return date.toLocaleDateString("vi-VN", {
+    return new Intl.DateTimeFormat(locale || "en-US", {
       day: "2-digit",
       month: "2-digit",
-    });
+    }).format(date);
   } catch {
     return "";
   }
@@ -38,11 +61,17 @@ const ConversationCardComponent: React.FC<ConversationCardProps> = ({
   isActive = false,
   onPress,
 }) => {
-  const title = conversation.title || "Cuộc trò chuyện mới";
-  const lastMessage = conversation.lastMessage || "Chưa có tin nhắn";
+  const { t, i18n } = useTranslation();
+  const title =
+    conversation.title ||
+    t("home.ai.conversation.card_new_conversation", "New conversation");
+  const lastMessage =
+    conversation.lastMessage ||
+    t("home.ai.conversation.card_no_messages", "No messages yet");
   const lastMessageTime = useMemo(
-    () => formatRelativeTime(conversation.lastMessageAt),
-    [conversation.lastMessageAt]
+    () =>
+      formatRelativeTime(conversation.lastMessageAt, i18n.language, t),
+    [conversation.lastMessageAt, i18n.language, t]
   );
 
   return (
