@@ -44,6 +44,7 @@ interface BottomSheetContentProps extends ViewProps {
   contentContainerStyle?: ViewProps["style"];
   showsVerticalScrollIndicator?: boolean;
   refreshControl?: React.ReactElement<RefreshControlProps>;
+  stickyHeaderIndices?: number[];
 }
 
 interface BottomSheetHeaderProps extends ViewProps {
@@ -210,6 +211,7 @@ const BottomSheetContent = React.forwardRef<
       contentContainerStyle,
       showsVerticalScrollIndicator = true,
       refreshControl,
+      stickyHeaderIndices,
       style,
       ...props
     },
@@ -481,6 +483,7 @@ const BottomSheetContent = React.forwardRef<
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
                 refreshControl={refreshControl}
+                stickyHeaderIndices={stickyHeaderIndices}
               >
                 {children}
               </Animated.ScrollView>
@@ -615,7 +618,7 @@ export {
   BottomSheetFooter,
   BottomSheetHeader,
   BottomSheetTitle,
-  BottomSheetTrigger,
+  BottomSheetTrigger
 };
 export type {
   BottomSheetCloseProps,
@@ -625,5 +628,6 @@ export type {
   BottomSheetHeaderProps,
   BottomSheetProps,
   BottomSheetTitleProps,
-  BottomSheetTriggerProps,
+  BottomSheetTriggerProps
 };
+
