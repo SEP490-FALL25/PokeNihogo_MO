@@ -2,7 +2,7 @@ import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import { ArrowLeftIcon, ShieldCheck, Sparkles } from "lucide-react-native";
+import { ArrowLeftIcon, Menu, ShieldCheck, Sparkles } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -20,6 +20,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Socket } from "socket.io-client";
 
+import { ConversationListSheet } from "@components/conversation/ConversationListSheet";
 import { ThemedText } from "@components/ThemedText";
 import AudioPlayer from "@components/ui/AudioPlayer";
 import VoiceRecorder from "@components/ui/EnhancedAudioRecorder";
@@ -159,6 +160,7 @@ export default function AiConversationScreen() {
   const [processingStatus, setProcessingStatus] = useState<
     string | undefined
   >();
+  const [isListSheetOpen, setIsListSheetOpen] = useState(false);
 
   const socketRef = useRef<Socket | null>(null);
   const listRef = useRef<FlatList<Message>>(null);
@@ -1139,9 +1141,17 @@ export default function AiConversationScreen() {
         <TouchableOpacity onPress={() => router.back()} style={{ padding: 8 }}>
           <ArrowLeftIcon size={20} color="#1f2937" />
         </TouchableOpacity>
-        <ThemedText style={{ fontSize: 18, fontWeight: "700", marginLeft: 4 }}>
+        <ThemedText style={{ fontSize: 18, fontWeight: "700", marginLeft: 4, flex: 1 }}>
           {t("home.ai.conversation.title")}
         </ThemedText>
+        {hasAIKaiwa && (
+          <TouchableOpacity
+            onPress={() => setIsListSheetOpen(true)}
+            style={{ padding: 8 }}
+          >
+            <Menu size={20} color="#1f2937" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {!hasAIKaiwa ? (
@@ -1621,6 +1631,38 @@ export default function AiConversationScreen() {
             ) : null} */}
           </View>
         </>
+      )}
+
+      {/* Conversation List Bottom Sheet */}
+      {hasAIKaiwa && (
+        <ConversationListSheet
+          isOpen={isListSheetOpen}
+          onClose={() => setIsListSheetOpen(false)}
+          currentConversationId={conversationId}
+          onSelectConversation={(convId) => {
+            setIsListSheetOpen(false);
+            
+            // Clear current messages before switching
+            setMessages([]);
+            setIsLoading(true);
+            
+            if (convId) {
+              // Switch to existing conversation
+              setConversationId(convId);
+              if (socketRef.current?.connected) {
+                socketRef.current.emit("join-kaiwa-room", {
+                  conversationId: convId,
+                });
+              }
+            } else {
+              // New conversation
+              setConversationId(null);
+              if (socketRef.current?.connected) {
+                socketRef.current.emit("join-kaiwa-room", {});
+              }
+            }
+          }}
+        />
       )}
     </SafeAreaView>
   );
