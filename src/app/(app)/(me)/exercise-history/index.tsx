@@ -12,7 +12,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { BookOpen, FileText, Trophy } from 'lucide-react-native';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -37,6 +37,8 @@ interface StatisticsCardProps {
   skippedAttempts: number;
   abandonedAttempts: number;
   t: (key: string, options?: any) => string;
+  activeStatusFilter: ExerciseAttemptStatus | 'all';
+  onStatusFilterChange: (status: ExerciseAttemptStatus | 'all') => void;
 }
 
 const StatisticsCard: React.FC<StatisticsCardProps> = ({
@@ -47,6 +49,8 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
   skippedAttempts,
   abandonedAttempts,
   t,
+  activeStatusFilter,
+  onStatusFilterChange,
 }) => {
   // Format time (minutes)
   const formatTime = (seconds: number): string => {
@@ -93,41 +97,119 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
 
       {/* Status Stats Grid */}
       <View className="flex-row flex-wrap">
-        <View className="w-1/2 pr-1 mb-2">
-          <View className="bg-green-50 rounded-xl p-3 border border-green-100">
+        <Pressable
+          className="w-1/2 pr-1 mb-2"
+          onPress={() =>
+            onStatusFilterChange(
+              activeStatusFilter === ExerciseAttemptStatus.COMPLETED
+                ? 'all'
+                : ExerciseAttemptStatus.COMPLETED,
+            )
+          }
+        >
+          <View
+            style={[
+              styles.statusTile,
+              {
+                backgroundColor: '#ecfdf5',
+                borderColor:
+                  activeStatusFilter === ExerciseAttemptStatus.COMPLETED
+                    ? '#059669'
+                    : '#bbf7d0',
+              },
+              activeStatusFilter === ExerciseAttemptStatus.COMPLETED && styles.statusTileActive,
+            ]}
+          >
             <Text className="text-2xl font-extrabold text-green-600">{completedAttempts}</Text>
             <Text className="text-xs font-semibold text-green-700 mt-0.5">
               {t('exercise_history.completed')}
             </Text>
           </View>
-        </View>
+        </Pressable>
         
-        <View className="w-1/2 pl-1 mb-2">
-          <View className="bg-red-50 rounded-xl p-3 border border-red-100">
+        <Pressable
+          className="w-1/2 pl-1 mb-2"
+          onPress={() =>
+            onStatusFilterChange(
+              activeStatusFilter === ExerciseAttemptStatus.FAILED
+                ? 'all'
+                : ExerciseAttemptStatus.FAILED,
+            )
+          }
+        >
+          <View
+            style={[
+              styles.statusTile,
+              {
+                backgroundColor: '#fef2f2',
+                borderColor:
+                  activeStatusFilter === ExerciseAttemptStatus.FAILED ? '#dc2626' : '#fecaca',
+              },
+              activeStatusFilter === ExerciseAttemptStatus.FAILED && styles.statusTileActive,
+            ]}
+          >
             <Text className="text-2xl font-extrabold text-red-600">{failedAttempts}</Text>
             <Text className="text-xs font-semibold text-red-700 mt-0.5">
               {t('exercise_history.failed')}
             </Text>
           </View>
-        </View>
+        </Pressable>
         
-        <View className="w-1/2 pr-1">
-          <View className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+        <Pressable
+          className="w-1/2 pr-1"
+          onPress={() =>
+            onStatusFilterChange(
+              activeStatusFilter === ExerciseAttemptStatus.SKIPPED
+                ? 'all'
+                : ExerciseAttemptStatus.SKIPPED,
+            )
+          }
+        >
+          <View
+            style={[
+              styles.statusTile,
+              {
+                backgroundColor: '#f8fafc',
+                borderColor:
+                  activeStatusFilter === ExerciseAttemptStatus.SKIPPED ? '#475569' : '#e2e8f0',
+              },
+              activeStatusFilter === ExerciseAttemptStatus.SKIPPED && styles.statusTileActive,
+            ]}
+          >
             <Text className="text-2xl font-extrabold text-slate-600">{skippedAttempts}</Text>
             <Text className="text-xs font-semibold text-slate-700 mt-0.5">
               {t('exercise_history.skipped')}
             </Text>
           </View>
-        </View>
+        </Pressable>
         
-        <View className="w-1/2 pl-1">
-          <View className="bg-orange-50 rounded-xl p-3 border border-orange-100">
+        <Pressable
+          className="w-1/2 pl-1"
+          onPress={() =>
+            onStatusFilterChange(
+              activeStatusFilter === ExerciseAttemptStatus.ABANDONED
+                ? 'all'
+                : ExerciseAttemptStatus.ABANDONED,
+            )
+          }
+        >
+          <View
+            style={[
+              styles.statusTile,
+              {
+                backgroundColor: '#fff7ed',
+                borderColor:
+                  activeStatusFilter === ExerciseAttemptStatus.ABANDONED ? '#ea580c' : '#fed7aa',
+              },
+              activeStatusFilter === ExerciseAttemptStatus.ABANDONED && styles.statusTileActive,
+            ]}
+          >
             <Text className="text-2xl font-extrabold text-orange-600">{abandonedAttempts}</Text>
             <Text className="text-xs font-semibold text-orange-700 mt-0.5">
               {t('exercise_history.abandoned')}
             </Text>
           </View>
-        </View>
+        </Pressable>
       </View>
     </LinearGradient>
   );
@@ -287,6 +369,7 @@ export default function ExerciseHistoryScreen() {
   const { t } = useTranslation();
   const pageSize = 10;
   const [activeTab, setActiveTab] = useState<TabType>('exercises');
+  const [statusFilter, setStatusFilter] = useState<ExerciseAttemptStatus | 'all'>('all');
 
   const {
     data: exercisesData,
@@ -313,6 +396,18 @@ export default function ExerciseHistoryScreen() {
   } = useHistoryTests({
     pageSize,
   });
+
+  useEffect(() => {
+    if (!isLoadingExercises && hasNextExercises && !isFetchingNextExercises) {
+      fetchNextExercises();
+    }
+  }, [isLoadingExercises, hasNextExercises, isFetchingNextExercises, fetchNextExercises]);
+
+  useEffect(() => {
+    if (!isLoadingTests && hasNextTests && !isFetchingNextTests) {
+      fetchNextTests();
+    }
+  }, [isLoadingTests, hasNextTests, isFetchingNextTests, fetchNextTests]);
 
   // Get exercises list sorted by updatedAt (newest first)
   const exercisesList = useMemo(() => {
@@ -368,6 +463,13 @@ export default function ExerciseHistoryScreen() {
   const isFetchingNext = activeTab === 'exercises' ? isFetchingNextExercises : isFetchingNextTests;
   const hasNextPage = activeTab === 'exercises' ? hasNextExercises : hasNextTests;
 
+  const filteredData = useMemo(() => {
+    if (statusFilter === 'all') {
+      return currentData;
+    }
+    return currentData.filter((item) => item.status === statusFilter);
+  }, [currentData, statusFilter]);
+
   const handleItemPress = (item: IHistoryItem) => {
     // Only allow review if score >= 80%
     const canReview = item.score !== null && item.score >= 80;
@@ -419,6 +521,11 @@ export default function ExerciseHistoryScreen() {
     }
   };
 
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    setStatusFilter('all');
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-slate-100">
       <StatusBar barStyle="dark-content" />
@@ -430,7 +537,7 @@ export default function ExerciseHistoryScreen() {
       <View className="px-4 pt-4 pb-2">
         <View className="flex-row bg-white rounded-2xl p-1.5 shadow-sm">
           <Pressable
-            onPress={() => setActiveTab('exercises')}
+            onPress={() => handleTabChange('exercises')}
             className={`flex-1 py-3 rounded-xl ${
               activeTab === 'exercises' ? 'bg-purple-500' : 'bg-transparent'
             }`}
@@ -453,7 +560,7 @@ export default function ExerciseHistoryScreen() {
           </Pressable>
 
           <Pressable
-            onPress={() => setActiveTab('tests')}
+            onPress={() => handleTabChange('tests')}
             className={`flex-1 py-3 rounded-xl ${
               activeTab === 'tests' ? 'bg-blue-500' : 'bg-transparent'
             }`}
@@ -504,27 +611,9 @@ export default function ExerciseHistoryScreen() {
               <Text className="text-white font-bold">{t('exercise_history.retry')}</Text>
             </Pressable>
           </View>
-        ) : currentData.length === 0 ? (
-          <View className="flex-1 items-center justify-center">
-            {activeTab === 'exercises' ? (
-              <BookOpen size={64} color="#94a3b8" strokeWidth={1.5} />
-            ) : (
-              <FileText size={64} color="#94a3b8" strokeWidth={1.5} />
-            )}
-            <Text className="text-xl font-bold text-slate-600 mt-4 mb-2">
-              {activeTab === 'exercises' 
-                ? t('exercise_history.empty_exercises_title') 
-                : t('exercise_history.empty_tests_title')}
-            </Text>
-            <Text className="text-sm text-slate-500 text-center px-8">
-              {activeTab === 'exercises'
-                ? t('exercise_history.empty_exercises_description')
-                : t('exercise_history.empty_tests_description')}
-            </Text>
-          </View>
         ) : (
           <FlatList
-            data={currentData}
+            data={filteredData}
             keyExtractor={(item) => `${item.testId ? 'test' : 'exercise'}-${item.attemptId}`}
             renderItem={({ item }) => (
               <HistoryCard
@@ -534,7 +623,10 @@ export default function ExerciseHistoryScreen() {
               />
             )}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={[
+              styles.listContent,
+              filteredData.length === 0 && { flexGrow: 1 },
+            ]}
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.4}
             refreshControl={
@@ -553,7 +645,38 @@ export default function ExerciseHistoryScreen() {
                 skippedAttempts={currentStats.skippedAttempts}
                 abandonedAttempts={currentStats.abandonedAttempts}
                 t={t}
+                activeStatusFilter={statusFilter}
+                onStatusFilterChange={setStatusFilter}
               />
+            }
+            ListEmptyComponent={
+              <View className="items-center justify-center py-12">
+                {activeTab === 'exercises' ? (
+                  <BookOpen size={64} color="#94a3b8" strokeWidth={1.5} />
+                ) : (
+                  <FileText size={64} color="#94a3b8" strokeWidth={1.5} />
+                )}
+                <Text className="text-xl font-bold text-slate-600 mt-4 mb-2">
+                  {activeTab === 'exercises'
+                    ? t('exercise_history.empty_exercises_title')
+                    : t('exercise_history.empty_tests_title')}
+                </Text>
+                <Text className="text-sm text-slate-500 text-center px-8">
+                  {statusFilter === 'all'
+                    ? activeTab === 'exercises'
+                      ? t('exercise_history.empty_exercises_description')
+                      : t('exercise_history.empty_tests_description')
+                    : `${t('exercise_history.empty_exercises_description')} (${getExerciseStatusText(
+                        statusFilter as ExerciseAttemptStatus,
+                        t,
+                      )})`}
+                </Text>
+                {statusFilter !== 'all' && (
+                  <Text className="text-xs text-slate-400 mt-2">
+                    {t('exercise_history.review_requirement')}
+                  </Text>
+                )}
+              </View>
             }
             ListFooterComponent={
               isFetchingNext ? (
@@ -623,6 +746,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
+  },
+  statusTile: {
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+  },
+  statusTileActive: {
+    shadowColor: '#0f172a',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
   },
 });
 

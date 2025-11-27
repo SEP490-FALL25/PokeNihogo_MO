@@ -1210,7 +1210,17 @@
     "just_now": "Just now",
     "minutes_ago": "{{minutes}} min ago",
     "hours_ago": "{{hours}} hr ago",
-    "days_ago": "{{days}} days ago"
+    "days_ago": "{{days}} days ago",
+    "status": {
+      "not_started": "Not started",
+      "in_progress": "In progress",
+      "completed": "Completed",
+      "fail": "Failed",
+      "failed": "Failed",
+      "abandoned": "Abandoned",
+      "skipped": "Skipped",
+      "pending": "Pending"
+    }
   },
   "reward_history": {
     "title": "Reward History",

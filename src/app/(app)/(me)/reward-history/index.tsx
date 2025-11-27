@@ -33,15 +33,40 @@ export default function RewardHistoryScreen() {
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
 
-  // Convert date strings to ISO format for API
-  const dateFromISO = useMemo(
-    () => (dateFrom ? new Date(dateFrom).toISOString() : undefined),
-    [dateFrom]
-  );
-  const dateToISO = useMemo(
-    () => (dateTo ? new Date(dateTo).toISOString() : undefined),
-    [dateTo]
-  );
+  // Validate selected date range before hitting the API
+  const dateRangeError = useMemo(() => {
+    if (dateTo && !dateFrom) {
+      return t("reward_history.filter.error_missing_start", {
+        defaultValue: "Select a start date before choosing an end date.",
+      });
+    }
+
+    if (dateFrom && dateTo) {
+      const fromDate = new Date(dateFrom);
+      const toDate = new Date(dateTo);
+
+      if (fromDate > toDate) {
+        return t("reward_history.filter.error_invalid_range", {
+          defaultValue: "Start date must be before end date.",
+        });
+      }
+    }
+
+    return undefined;
+  }, [dateFrom, dateTo, t]);
+
+  const isDateRangeValid = !dateRangeError;
+
+  // Convert date strings for API (YYYY-MM-DD as required by backend)
+  const dateFromISO = useMemo(() => {
+    if (!dateFrom || !isDateRangeValid) return undefined;
+    return dateFrom; // already in YYYY-MM-DD format
+  }, [dateFrom, isDateRangeValid]);
+
+  const dateToISO = useMemo(() => {
+    if (!dateTo || !isDateRangeValid) return undefined;
+    return dateTo; // already in YYYY-MM-DD format
+  }, [dateTo, isDateRangeValid]);
 
   const {
     data: rewardData,
@@ -152,6 +177,7 @@ export default function RewardHistoryScreen() {
           sourceType={sourceType}
           dateFrom={dateFrom}
           dateTo={dateTo}
+          dateRangeError={dateRangeError}
           onSourceTypeChange={handleSourceTypeChange}
           onDateFromChange={setDateFrom}
           onDateToChange={setDateTo}

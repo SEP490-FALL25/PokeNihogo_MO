@@ -1109,7 +1109,8 @@
             "fail": "失敗",
             "failed": "失敗",
             "abandoned": "放棄",
-            "skipped": "スキップ"
+            "skipped": "スキップ",
+            "pending": "保留"
         }
     },
     "reward_history": {
