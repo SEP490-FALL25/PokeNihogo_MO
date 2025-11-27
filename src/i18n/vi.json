@@ -855,7 +855,11 @@
         "sending_audio": "Đang gửi audio...",
         "server_connection_error": "Không thể kết nối tới máy chủ.",
         "audio_send_error": "Có lỗi khi gửi audio.",
-        "connecting_to_ai": "Đang kết nối với AI..."
+        "connecting_to_ai": "Đang kết nối với AI...",
+        "list_title": "Cuộc trò chuyện",
+        "list_empty_title": "Chưa có cuộc trò chuyện nào",
+        "list_empty_description": "Bắt đầu cuộc trò chuyện mới để luyện tiếng Nhật với AI",
+        "new_conversation": "Cuộc trò chuyện mới"
       }
     },
     "insight_locked": {

@@ -61,7 +61,7 @@ const getTabConfig = (t: (key: string) => string): Tab[] => [
     name: "ai-speaking",
     icon: MessageSquare,
     label: t("tabs.ai_speaking"),
-    route: ROUTES.TABS.AI_CONVERSATION,
+    route: ROUTES.APP.AI_CONVERSATIONS_LIST,
     color: "#8b5cf6",
   },
   {

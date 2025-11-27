@@ -100,6 +100,7 @@ export default function ConversationScreen() {
   const [queuedQuestions, setQueuedQuestions] = useState<any[]>([]);
   const [isSequencing, setIsSequencing] = useState(false);
   const [awaitingUser, setAwaitingUser] = useState(false);
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [feedbackText, setFeedbackText] = useState<string | undefined>();
   const [feedbackWords, setFeedbackWords] = useState<FeedbackWord[]>([]);
 
@@ -186,16 +187,36 @@ export default function ConversationScreen() {
 
   const playAudio = async (audioUrl: string) => {
     try {
+      setIsAudioPlaying(true);
       const { sound } = await Audio.Sound.createAsync(
         { uri: audioUrl },
         { shouldPlay: true }
       );
-      sound.setOnPlaybackStatusUpdate((status: any) => {
-        if (status.isLoaded && status.didJustFinish) {
+      
+      // Wait for audio to finish
+      await new Promise<void>((resolve) => {
+        const statusUpdateHandler = (status: any) => {
+          if (status.isLoaded) {
+            if (status.didJustFinish || !status.isPlaying) {
+              sound.unloadAsync();
+              setIsAudioPlaying(false);
+              resolve();
+            }
+          }
+        };
+        
+        sound.setOnPlaybackStatusUpdate(statusUpdateHandler);
+        
+        // Fallback timeout to prevent infinite waiting (30 seconds max)
+        setTimeout(() => {
           sound.unloadAsync();
-        }
+          setIsAudioPlaying(false);
+          resolve();
+        }, 30000);
       });
-    } catch {}
+    } catch {
+      setIsAudioPlaying(false);
+    }
   };
 
   const { data: testData, isLoading: isLoadingTest } = useTestFullUser(
@@ -318,6 +339,7 @@ export default function ConversationScreen() {
     aiMessageText?: string;
     aiAudioBase64?: string;
     aiAudioMimeType?: string;
+    matchScore?: number;
   }> => {
     const apiKey =
       process.env.EXPO_PUBLIC_GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
@@ -355,7 +377,7 @@ export default function ConversationScreen() {
     ];
 
     const systemInstruction =
-      'Role: You are a STRICT Japanese Pronunciation Assessment AI. Compare the user\'s spoken audio against the provided reference text. If the spoken audio deviates or confidence is low, LOWER SCORES aggressively. Do NOT hallucinate.\n\nSteps:\n1) Transcribe the spoken audio to kana/romaji-like text: TranscribedText.\n2) Compute MatchScore in [0,1] between TranscribedText and ReferenceText.\n3) Score: Perfect match 90-100, minor deviations 60-80, clear mismatch/unintelligible 0-40. If MatchScore < 0.6 treat as mismatch and penalize.\n\nOutput (JSON only):\n{\n  "Overall": { "AccuracyScore": number, "FluencyScore": number, "PronScore": number },\n  "TranscribedText": string,\n  "MatchScore": number,\n  "Syllables": [ { "Syllable": string, "Romaji": string, "AccuracyScore": number, "ErrorType": "Substitution"|"Omission"|"Insertion"|"PitchAccentError"|"None", "ErrorDetail": string } ]\n}\n\nBe conservative: if confidence is low or speech differs, keep scores low and mark errors.';
+      'Role: You are a STRICT Japanese Pronunciation Assessment AI. Your first task is to verify if the audio file is actually usable and contains real speech sounds.\n\nCRITICAL FIRST STEP - Audio Validation:\n1) Listen carefully to the audio file. Check if you can hear ANY actual speech sounds.\n2) If the audio is completely silent, contains only background noise/static, is corrupted, or has no intelligible speech, you MUST return all scores as 0 and set MatchScore to 0.\n3) Only proceed to assessment if you can clearly hear actual speech in the audio.\n\nIF AUDIO IS VALID (contains actual speech):\n1) Transcribe the spoken audio to kana/romaji-like text: TranscribedText.\n2) Compute MatchScore in [0,1] between TranscribedText and ReferenceText.\n3) Score: Perfect match 90-100, minor deviations 60-80, clear mismatch/unintelligible 0-40. If MatchScore < 0.6 treat as mismatch and penalize.\n\nIF AUDIO IS INVALID (silent, noise only, corrupted, no speech):\n- Set TranscribedText to empty string ""\n- Set MatchScore to 0\n- Set all AccuracyScore values in Syllables to 0\n- Set all Overall scores to 0\n\nOutput (JSON only):\n{\n  "Overall": { "AccuracyScore": number, "FluencyScore": number, "PronScore": number },\n  "TranscribedText": string (empty if no speech detected),\n  "MatchScore": number (0 if audio invalid/no speech),\n  "Syllables": [ { "Syllable": string, "Romaji": string, "AccuracyScore": number (0 if audio invalid), "ErrorType": "Substitution"|"Omission"|"Insertion"|"PitchAccentError"|"None", "ErrorDetail": string } ]\n}\n\nBe VERY strict: If you cannot clearly hear actual speech, return all scores as 0. Do NOT guess or hallucinate.';
 
     const userPrompt = `Reference Text (Japanese): ${referenceText ?? ""}`;
 
@@ -459,6 +481,12 @@ export default function ConversationScreen() {
             .filter(Boolean) as FeedbackWord[];
         }
 
+        // Extract MatchScore from response
+        const matchScore =
+          typeof parsed.MatchScore === "number"
+            ? parsed.MatchScore
+            : parseFloat(String(parsed.MatchScore ?? ""));
+
         return {
           feedbackText: parsed.ReferenceText || parsed.feedbackText,
           words: wordsOut,
@@ -469,6 +497,7 @@ export default function ConversationScreen() {
           aiMessageText: parsed.aiMessageText,
           aiAudioBase64: parsed.aiAudioBase64,
           aiAudioMimeType: parsed.aiAudioMimeType,
+          matchScore: isFinite(matchScore) ? matchScore : undefined,
         };
       } catch (e: any) {
         lastError = e instanceof Error ? e : new Error(String(e));
@@ -625,24 +654,39 @@ export default function ConversationScreen() {
 
       const result = await sendToGemini(uri, nextUserPrompt);
       const displayText = result.feedbackText || nextUserPrompt || "";
-      const recognized = String((result as any).recognizedText || "");
+      const recognized = String((result as any).recognizedText || "").trim();
+      
+      // Kiểm tra MatchScore và recognizedText để phát hiện file im lặng/không hợp lệ
+      const matchScore = result.matchScore ?? 1.0;
+      const isAudioValid = matchScore > 0 && recognized && recognized.length > 0;
 
+      // Nếu file âm thanh im lặng hoặc không hợp lệ (MatchScore = 0 hoặc không có recognizedText)
+      if (!isAudioValid || matchScore === 0) {
+        const words = buildFeedbackFromDiff(displayText, "");
+        setFeedbackText(displayText);
+        setFeedbackWords(words);
+        return;
+      }
+
+      // Kiểm tra nếu recognizedText không phải tiếng Nhật
       if (recognized && !isPredominantlyJapanese(recognized)) {
         setFeedbackText("Vui lòng nói tiếng Nhật");
         setFeedbackWords(buildFeedbackFromDiff(displayText, ""));
         return;
       }
 
+      // Chỉ xử lý đánh giá nếu audio hợp lệ và có recognizedText
       let words: FeedbackWord[];
-      if (result.words && Array.isArray(result.words) && result.words.length) {
+      if (result.words && Array.isArray(result.words) && result.words.length && matchScore > 0) {
         words = projectModelScoresToReference(
           displayText,
           recognized,
           result.words as any
         );
-      } else if (recognized) {
+      } else if (recognized && recognized.length > 0) {
         words = buildFeedbackFromDiff(displayText, recognized);
       } else {
+        // Fallback: đánh giá tất cả là sai nếu không có recognizedText
         words = buildFeedbackFromDiff(displayText, "");
       }
 
@@ -862,7 +906,12 @@ export default function ConversationScreen() {
               }}
               exerciseTitle={isSubmitting ? <AnimatedDots /> : "Nhấn để nói"}
               showPlayback={true}
-              disabled={isSubmitting}
+              disabled={
+                isSubmitting ||
+                countdown > 0 ||
+                isAudioPlaying ||
+                (isSequencing && !awaitingUser)
+              }
               maxDuration={10}
               showSaveButton={false}
               autoStopOnSilence={true}

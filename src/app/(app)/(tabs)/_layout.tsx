@@ -1,39 +1,11 @@
 import { Tabs } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 
 import CustomTab from "@components/ui/CustomTab";
-import DraggableOverlay from "@components/ui/Draggable";
-import userPokemonService from "@services/user-pokemon";
-import { View } from "react-native";
-import { walkthroughable } from "react-native-copilot";
 
 export default function TabLayout() {
   const { t } = useTranslation();
-  const WTView = walkthroughable(View);
-
-  // State for main pokemon image
-  const [mainPokemonImageUrl, setMainPokemonImageUrl] = useState<string | null>(
-    null
-  );
-
-  // Fetch main pokemon on mount
-  useEffect(() => {
-    const fetchMainPokemon = async () => {
-      try {
-        const response = await userPokemonService.getOwnedPokemons();
-        const mainPokemon = response.data?.data?.results?.find(
-          (pokemon: any) => pokemon.isMain === true
-        );
-        setMainPokemonImageUrl(mainPokemon?.pokemon?.imageUrl || null);
-      } catch (error) {
-        console.error("Error fetching main pokemon:", error);
-        setMainPokemonImageUrl(null);
-      }
-    };
-
-    fetchMainPokemon();
-  }, []);
 
   return (
     <>
@@ -54,25 +26,6 @@ export default function TabLayout() {
         <Tabs.Screen name="quiz-demo" options={{ title: t("tabs.quiz_demo") }} />
       </Tabs>
       <CustomTab />
-
-      {/* DraggableOverlay at tab level - persists across screen changes */}
-      {/* Temporarily disabled WT for AnimatedPokemonOverlay */}
-      {mainPokemonImageUrl && (
-        <>
-          {/* <CopilotStep text={t("tour.pokemon_description")} order={2} name="pokemon">
-            <WTView> */}
-              <DraggableOverlay
-                imageUri={
-                  mainPokemonImageUrl ||
-                  "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
-                }
-                imageSize={100}
-                showBackground={false}
-              />
-            {/* </WTView>
-          </CopilotStep> */}
-        </>
-      )}
     </>
   );
 }

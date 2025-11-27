@@ -842,7 +842,11 @@
         "sending_audio": "Sending audio...",
         "server_connection_error": "Unable to connect to server.",
         "audio_send_error": "Error sending audio.",
-        "connecting_to_ai": "Connecting to AI..."
+        "connecting_to_ai": "Connecting to AI...",
+        "list_title": "Conversations",
+        "list_empty_title": "No conversations yet",
+        "list_empty_description": "Start a new conversation to practice Japanese with AI",
+        "new_conversation": "New Conversation"
       }
     },
     "insight_locked": {
