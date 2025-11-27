@@ -3,6 +3,7 @@ import StoreIcon from "@components/atoms/StoreIcon";
 import RewardShopModal from "@components/Organism/ShopPokemon";
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
 import HomeTourGuide from "@components/ui/HomeTourGuide";
+import DraggableOverlay from "@components/ui/Draggable";
 import { useWalletUser } from "@hooks/useWallet";
 import { useQueryClient } from "@tanstack/react-query";
 import { router, useFocusEffect } from "expo-router";
@@ -228,22 +229,17 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
             requests={dailyQuestsMock}
           /> */}
         </ImageBackground>
-        {/* Fake layer for copilot to track - fixed position, completely independent of AnimatedPokemonOverlay */}
-        {/* Temporarily disabled WT for AnimatedPokemonOverlay */}
-        {/* {shouldShowPokemonOverlay && (
-          <CopilotStep text={t("tour.pokemon_description")} order={2} name="pokemon">
-            <WTView style={styles.pokemonTourFakeLayer} />
-          </CopilotStep>
-        )} */}
-        {/* Actual overlay - renders independently so it can move freely */}
-        {/* {shouldShowPokemonOverlay && (
-          <AnimatedPokemonOverlay
-            visible
-            imageUri={pokemonImageUri}
-            imageSize={140}
+        {/* Draggable overlay now lives inside HomeLayout so it stays scoped to the home screen */}
+        {shouldShowPokemonOverlay && (
+          <DraggableOverlay
+            imageUri={
+              pokemonImageUri ||
+              "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
+            }
+            imageSize={100}
             showBackground={false}
           />
-        )} */}
+        )}
       </HomeTourGuide>
     );
   }
