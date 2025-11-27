@@ -9,11 +9,12 @@ import { useConversationRooms } from "@hooks/useConversation";
 import { ROUTES } from "@routes/routes";
 import { ConversationRoom } from "@services/conversation";
 import { router } from "expo-router";
-import React, { useCallback } from "react";
+import React, { Fragment, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   RefreshControl,
+  StyleSheet,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -37,16 +38,20 @@ export const ConversationListSheet: React.FC<ConversationListSheetProps> = ({
     currentPage: 1,
     pageSize: 50,
   });
-  
-  const [refreshing, setRefreshing] = React.useState(false);
-  
-  const handleRefresh = React.useCallback(async () => {
+  const [refreshing, setRefreshing] = useState(false);
+  const snapPoints = useMemo(() => [0.7], []);
+  const stickyHeaderIndices = useMemo(() => [0, 1], []);
+
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     await refetch();
     setRefreshing(false);
   }, [refetch]);
 
-  const conversations = data?.results || [];
+  const conversations = useMemo(
+    () => data?.results ?? [],
+    [data?.results]
+  );
 
   const handleSelectConversation = useCallback(
     (conversation: ConversationRoom) => {
@@ -72,121 +77,182 @@ export const ConversationListSheet: React.FC<ConversationListSheetProps> = ({
     onClose();
   }, [onClose, onSelectConversation]);
 
+  const renderConversation = useCallback(
+    (item: ConversationRoom) => (
+      <ConversationCard
+        key={item.conversationId}
+        conversation={item}
+        isActive={item.conversationId === currentConversationId}
+        onPress={() => handleSelectConversation(item)}
+      />
+    ),
+    [currentConversationId, handleSelectConversation]
+  );
+
+  const renderEmptyList = useCallback(
+    () => (
+      <View style={styles.emptyState}>
+        <ThemedText style={styles.emptyStateText}>
+          {t(
+            "home.ai.conversation.empty_list",
+            "No conversations yet. Start a new conversation!"
+          )}
+        </ThemedText>
+      </View>
+    ),
+    [t]
+  );
+
+  const renderSeparator = useCallback(
+    () => <View style={styles.itemSeparator} />,
+    []
+  );
+
+  const listContent = useMemo(() => {
+    if (!conversations.length) {
+      return renderEmptyList();
+    }
+
+    return (
+      <View>
+        {conversations.map((conversation, index) => (
+          <Fragment key={conversation.conversationId}>
+            {renderConversation(conversation)}
+            {index < conversations.length - 1 && renderSeparator()}
+          </Fragment>
+        ))}
+      </View>
+    );
+  }, [conversations, renderConversation, renderSeparator, renderEmptyList]);
+
+  const refreshControlElement = useMemo(
+    () => (
+      <RefreshControl
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        tintColor="#007AFF"
+      />
+    ),
+    [refreshing, handleRefresh]
+  );
+
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
 
   return (
-    <BottomSheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <BottomSheet open={isOpen} onOpenChange={handleOpenChange}>
       <BottomSheetContent
-        snapPoints={[0.7]}
+        snapPoints={snapPoints}
         enablePanDownToClose={true}
         backdropOpacity={0.5}
         showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={[0, 1]}
-        contentContainerStyle={{ paddingBottom: 32 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#007AFF"
-          />
-        }
+        stickyHeaderIndices={stickyHeaderIndices}
+        refreshControl={refreshControlElement}
+        contentContainerStyle={styles.contentContainer}
       >
-        <BottomSheetHeader style={{ backgroundColor: "#ffffff" }}>
+        <BottomSheetHeader style={styles.sheetHeader}>
           <BottomSheetTitle>
             {t("home.ai.conversation.list_title", "Conversations")}
           </BottomSheetTitle>
         </BottomSheetHeader>
 
-        {/* New Conversation Button */}
-        <View
-          style={{
-            marginBottom: 12,
-            paddingBottom: 4,
-            backgroundColor: "#ffffff",
-          }}
-        >
+        <View style={styles.newConversationWrapper}>
           <TouchableOpacity
             onPress={handleNewConversation}
             activeOpacity={0.8}
-            style={{
-              backgroundColor: "#007AFF",
-              paddingVertical: 12,
-              paddingHorizontal: 16,
-              borderRadius: 8,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            style={styles.newConversationButton}
           >
-            <ThemedText
-              style={{
-                color: "#ffffff",
-                fontSize: 14,
-                fontWeight: "600",
-                marginLeft: 8,
-              }}
-            >
+            <ThemedText style={styles.newConversationText}>
               ✏️ {t("home.ai.conversation.new_conversation", "New Conversation")}
             </ThemedText>
           </TouchableOpacity>
         </View>
 
-        {/* List */}
         {isLoading ? (
-          <View
-            style={{
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "center",
-              paddingVertical: 40,
-            }}
-          >
+          <View style={styles.loadingContainer}>
             <ActivityIndicator color="#007AFF" />
-            <ThemedText
-              style={{
-                marginTop: 12,
-                fontSize: 14,
-                color: "#666",
-              }}
-            >
+            <ThemedText style={styles.loadingText}>
               {t("home.ai.conversation.loading", "Loading...")}
             </ThemedText>
           </View>
-        ) : conversations.length === 0 ? (
-          <View
-            style={{
-              flex: 1,
-              alignItems: "center",
-              justifyContent: "center",
-              paddingVertical: 40,
-            }}
-          >
-            <ThemedText
-              style={{
-                fontSize: 14,
-                color: "#999",
-                textAlign: "center",
-              }}
-            >
-              {t(
-                "home.ai.conversation.empty_list",
-                "No conversations yet. Start a new conversation!"
-              )}
-            </ThemedText>
-          </View>
         ) : (
-          <View style={{ paddingBottom: 24 }}>
-            {conversations.map((item) => (
-              <View key={item.conversationId} style={{ marginBottom: 12 }}>
-                <ConversationCard
-                  conversation={item}
-                  isActive={item.conversationId === currentConversationId}
-                  onPress={() => handleSelectConversation(item)}
-                />
-              </View>
-            ))}
+          <View
+            style={[
+              styles.listContent,
+              conversations.length === 0 && styles.listEmptyPadding,
+            ]}
+          >
+            {listContent}
           </View>
         )}
       </BottomSheetContent>
     </BottomSheet>
   );
 };
+
+const styles = StyleSheet.create({
+  contentContainer: {
+    paddingBottom: 32,
+  },
+  sheetHeader: {
+    backgroundColor: "#ffffff",
+  },
+  newConversationWrapper: {
+    marginBottom: 12,
+    paddingBottom: 4,
+    backgroundColor: "#ffffff",
+  },
+  newConversationButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  newConversationText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#666",
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: "#999",
+    textAlign: "center",
+  },
+  listContent: {
+    paddingBottom: 24,
+  },
+  listEmptyPadding: {
+    flexGrow: 1,
+  },
+  itemSeparator: {
+    height: 12,
+  },
+});

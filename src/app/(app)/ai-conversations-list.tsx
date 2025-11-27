@@ -5,7 +5,7 @@ import { ROUTES } from "@routes/routes";
 import { ConversationRoom } from "@services/conversation";
 import { router } from "expo-router";
 import { ArrowLeft, MessageSquare, Plus } from "lucide-react-native";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -26,7 +26,10 @@ export default function AiConversationsListScreen() {
     pageSize: 50,
   });
 
-  const conversations = data?.results || [];
+  const conversations = useMemo(
+    () => data?.results ?? [],
+    [data?.results]
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -66,36 +69,12 @@ export default function AiConversationsListScreen() {
 
   const renderEmpty = useCallback(
     () => (
-      <View
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          paddingTop: 80,
-          paddingHorizontal: 40,
-        }}
-      >
+      <View style={styles.emptyContainer}>
         <MessageSquare size={64} color="#d1d5db" />
-        <ThemedText
-          style={{
-            fontSize: 18,
-            fontWeight: "600",
-            color: "#374151",
-            marginTop: 16,
-            marginBottom: 8,
-            textAlign: "center",
-          }}
-        >
+        <ThemedText style={styles.emptyTitle}>
           {t("home.ai.conversation.list_empty_title", "No conversations yet")}
         </ThemedText>
-        <ThemedText
-          style={{
-            fontSize: 14,
-            color: "#6b7280",
-            textAlign: "center",
-            lineHeight: 20,
-          }}
-        >
+        <ThemedText style={styles.emptyDescription}>
           {t(
             "home.ai.conversation.list_empty_description",
             "Start a new conversation to practice Japanese with AI"
@@ -103,31 +82,27 @@ export default function AiConversationsListScreen() {
         </ThemedText>
         <TouchableOpacity
           onPress={handleNewConversation}
-          style={{
-            marginTop: 24,
-            backgroundColor: "#007AFF",
-            paddingVertical: 12,
-            paddingHorizontal: 24,
-            borderRadius: 12,
-            flexDirection: "row",
-            alignItems: "center",
-          }}
+          style={styles.emptyButton}
+          activeOpacity={0.85}
         >
           <Plus size={20} color="#ffffff" />
-          <ThemedText
-            style={{
-              color: "#ffffff",
-              fontSize: 16,
-              fontWeight: "600",
-              marginLeft: 8,
-            }}
-          >
+          <ThemedText style={styles.emptyButtonText}>
             {t("home.ai.conversation.new_conversation", "New Conversation")}
           </ThemedText>
         </TouchableOpacity>
       </View>
     ),
     [handleNewConversation, t]
+  );
+
+  const hasConversations = conversations.length > 0;
+  const isInitialLoading = isLoading && !hasConversations;
+  const listContentStyle = useMemo(
+    () =>
+      hasConversations
+        ? styles.listContent
+        : [styles.listContent, styles.listContentEmpty],
+    [hasConversations]
   );
 
   return (
@@ -148,7 +123,7 @@ export default function AiConversationsListScreen() {
       </View>
 
       {/* Content */}
-      {isLoading && conversations.length === 0 ? (
+      {isInitialLoading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
           <ThemedText style={styles.loadingText}>
@@ -160,10 +135,7 @@ export default function AiConversationsListScreen() {
           data={conversations}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
-          contentContainerStyle={[
-            styles.listContent,
-            conversations.length === 0 && styles.listContentEmpty,
-          ]}
+          contentContainerStyle={listContentStyle}
           ListEmptyComponent={renderEmpty}
           refreshControl={
             <RefreshControl
@@ -177,7 +149,7 @@ export default function AiConversationsListScreen() {
       )}
 
       {/* Floating Action Button */}
-      {conversations.length > 0 && (
+      {hasConversations && (
         <TouchableOpacity
           onPress={handleNewConversation}
           style={styles.fab}
@@ -230,6 +202,42 @@ const styles = StyleSheet.create({
   },
   listContentEmpty: {
     flexGrow: 1,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 80,
+    paddingHorizontal: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#374151",
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  emptyDescription: {
+    fontSize: 14,
+    color: "#6b7280",
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  emptyButton: {
+    marginTop: 24,
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  emptyButtonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 8,
   },
   fab: {
     position: "absolute",

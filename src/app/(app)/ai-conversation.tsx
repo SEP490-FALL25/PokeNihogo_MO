@@ -90,6 +90,147 @@ const devLog = (...args: unknown[]) => {
   }
 };
 
+const base64Characters =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+const buildBase64Lookup = () => {
+  const lookup = new Uint8Array(256);
+  for (let i = 0; i < base64Characters.length; i++) {
+    lookup[base64Characters.charCodeAt(i)] = i;
+  }
+  return lookup;
+};
+
+const base64LookupTable = buildBase64Lookup();
+
+const base64Decode = (base64: string): Uint8Array => {
+  let bufferLength = base64.length * 0.75;
+  if (base64.endsWith("==")) {
+    bufferLength -= 2;
+  } else if (base64.endsWith("=")) {
+    bufferLength -= 1;
+  }
+
+  const bytes = new Uint8Array(bufferLength);
+  let p = 0;
+  for (let i = 0; i < base64.length; i += 4) {
+    const encoded1 = base64LookupTable[base64.charCodeAt(i)];
+    const encoded2 = base64LookupTable[base64.charCodeAt(i + 1)];
+    const encoded3 = base64LookupTable[base64.charCodeAt(i + 2)];
+    const encoded4 = base64LookupTable[base64.charCodeAt(i + 3)];
+
+    bytes[p++] = (encoded1 << 2) | (encoded2 >> 4);
+    bytes[p++] = ((encoded2 & 15) << 4) | (encoded3 >> 2);
+    bytes[p++] = ((encoded3 & 3) << 6) | (encoded4 & 63);
+  }
+
+  return bytes;
+};
+
+const saveBase64ToFile = async (
+  base64Data: string,
+  extension: string
+): Promise<string> => {
+  const ext = extension || "mp3";
+  const fileUri = `${FileSystem.cacheDirectory}kaiwa-${Date.now()}.${ext}`;
+  await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  return fileUri;
+};
+
+const playAudioFromUri = async (audioUrl: string) => {
+  try {
+    const { sound } = await Audio.Sound.createAsync(
+      { uri: audioUrl },
+      { shouldPlay: true }
+    );
+    sound.setOnPlaybackStatusUpdate((status: any) => {
+      if (status.isLoaded && status.didJustFinish) {
+        sound.unloadAsync();
+      }
+    });
+  } catch {
+    // playback failure can be ignored silently
+  }
+};
+
+const AnimatedDots = () => {
+  const dotAnimsRef = useRef<Animated.Value[]>([
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+  ]);
+  const loopsRef = useRef<Animated.CompositeAnimation[]>([]);
+
+  useEffect(() => {
+    const createBounce = (anim: Animated.Value, delay: number) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 350,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+          Animated.timing(anim, {
+            toValue: 0,
+            duration: 350,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+
+    const loops = dotAnimsRef.current.map((anim, idx) =>
+      createBounce(anim, idx * 150)
+    );
+    loops.forEach((loop) => loop.start());
+    loopsRef.current = loops;
+
+    return () => {
+      loopsRef.current.forEach((loop) => loop.stop());
+      loopsRef.current = [];
+    };
+  }, []);
+
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", height: 18 }}>
+      {dotAnimsRef.current.map((anim, index) => (
+        <Animated.View
+          key={`dot-${index}`}
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: 5,
+            backgroundColor: "#007AFF",
+            marginHorizontal: 6,
+            opacity: anim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [0.5, 1],
+            }),
+            transform: [
+              {
+                translateY: anim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, -6],
+                }),
+              },
+              {
+                scale: anim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.9, 1.1],
+                }),
+              },
+            ],
+          }}
+        />
+      ))}
+    </View>
+  );
+};
+
 // Helper component for user avatar with error handling
 const UserAvatarWithFallback = ({
   avatar,
@@ -362,8 +503,6 @@ export default function AiConversationScreen() {
     [updateLastAiMessage]
   );
 
-  const listData = useMemo(() => messages, [messages]);
-
   const marketplacePackages: MarketplacePackage[] | undefined = useMemo(() => {
     return marketplaceResponse?.data?.data as MarketplacePackage[] | undefined;
   }, [marketplaceResponse]);
@@ -478,10 +617,10 @@ export default function AiConversationScreen() {
   );
 
   useEffect(() => {
-    if (listData.length > 0) {
+    if (messages.length > 0) {
       listRef.current?.scrollToEnd({ animated: true });
     }
-  }, [listData]);
+  }, [messages]);
 
   const renderMessageItem = useCallback<ListRenderItem<Message>>(
     ({ item }) => {
@@ -600,107 +739,6 @@ export default function AiConversationScreen() {
     ),
     [t]
   );
-
-  const AnimatedDots = () => {
-    const dotAnimsRef = useState(() => [
-      new Animated.Value(0),
-      new Animated.Value(0),
-      new Animated.Value(0),
-    ])[0] as Animated.Value[];
-    const animationsRef = useState<Animated.CompositeAnimation[]>([])[0];
-
-    useEffect(() => {
-      animationsRef.forEach((a) => a.stop());
-      animationsRef.length = 0;
-
-      const createBounce = (anim: Animated.Value, delay: number) =>
-        Animated.loop(
-          Animated.sequence([
-            Animated.delay(delay),
-            Animated.timing(anim, {
-              toValue: 1,
-              duration: 350,
-              easing: Easing.inOut(Easing.sin),
-              useNativeDriver: true,
-            }),
-            Animated.timing(anim, {
-              toValue: 0,
-              duration: 350,
-              easing: Easing.inOut(Easing.sin),
-              useNativeDriver: true,
-            }),
-          ])
-        );
-
-      const loops = dotAnimsRef.map((a, idx) => createBounce(a, idx * 150));
-      loops.forEach((l) => l.start());
-      loops.forEach((l) => animationsRef.push(l));
-      return () => loops.forEach((l) => l.stop());
-    }, [dotAnimsRef, animationsRef]);
-
-    const renderDot = (anim: Animated.Value, key: string) => (
-      <Animated.View
-        key={key}
-        style={{
-          width: 10,
-          height: 10,
-          borderRadius: 5,
-          backgroundColor: "#007AFF",
-          marginHorizontal: 6,
-          opacity: anim.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0.5, 1],
-          }),
-          transform: [
-            {
-              translateY: anim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, -6],
-              }),
-            },
-            {
-              scale: anim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.9, 1.1],
-              }),
-            },
-          ],
-        }}
-      />
-    );
-
-    return (
-      <View style={{ flexDirection: "row", alignItems: "center", height: 18 }}>
-        {dotAnimsRef.map((a, i) => renderDot(a, `dot-${i}`))}
-      </View>
-    );
-  };
-
-  const playAudio = async (audioUrl: string) => {
-    try {
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: audioUrl },
-        { shouldPlay: true }
-      );
-      sound.setOnPlaybackStatusUpdate((status: any) => {
-        if (status.isLoaded && status.didJustFinish) {
-          sound.unloadAsync();
-        }
-      });
-    } catch {}
-  };
-
-  const saveBase64ToFile = async (
-    base64Data: string,
-    extension: string
-  ): Promise<string> => {
-    const ext = extension || "mp3";
-    const fileUri = `${FileSystem.cacheDirectory}kaiwa-${Date.now()}.${ext}`;
-    await FileSystem.writeAsStringAsync(fileUri, base64Data, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-    return fileUri;
-  };
 
   // Initialize WebSocket connection
   useEffect(() => {
@@ -947,7 +985,7 @@ export default function AiConversationScreen() {
             .then((fileUri) => {
               // Schedule playback after current interactions to avoid jank
               InteractionManager.runAfterInteractions(() => {
-                playAudio(fileUri);
+                playAudioFromUri(fileUri);
               });
               // Attach file URI to last AI message
               updateLastAiMessage((message) => ({
@@ -1121,40 +1159,6 @@ export default function AiConversationScreen() {
       const audioBase64 = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
-
-      // Convert base64 to binary string manually (React Native doesn't have atob)
-      // Base64 decode function for React Native
-      const base64Decode = (base64: string): Uint8Array => {
-        const chars =
-          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        const lookup = new Uint8Array(256);
-        for (let i = 0; i < chars.length; i++) {
-          lookup[chars.charCodeAt(i)] = i;
-        }
-
-        let bufferLength = base64.length * 0.75;
-        if (base64[base64.length - 1] === "=") {
-          bufferLength--;
-          if (base64[base64.length - 2] === "=") {
-            bufferLength--;
-          }
-        }
-
-        const bytes = new Uint8Array(bufferLength);
-        let p = 0;
-        for (let i = 0; i < base64.length; i += 4) {
-          const encoded1 = lookup[base64.charCodeAt(i)];
-          const encoded2 = lookup[base64.charCodeAt(i + 1)];
-          const encoded3 = lookup[base64.charCodeAt(i + 2)];
-          const encoded4 = lookup[base64.charCodeAt(i + 3)];
-
-          bytes[p++] = (encoded1 << 2) | (encoded2 >> 4);
-          bytes[p++] = ((encoded2 & 15) << 4) | (encoded3 >> 2);
-          bytes[p++] = ((encoded3 & 3) << 6) | (encoded4 & 63);
-        }
-
-        return bytes;
-      };
 
       // Decode base64 to Uint8Array
       const audioBytes = base64Decode(audioBase64);
@@ -1667,7 +1671,7 @@ export default function AiConversationScreen() {
         <>
           <FlatList
             ref={listRef}
-            data={listData}
+            data={messages}
             keyExtractor={keyExtractor}
             renderItem={renderMessageItem}
             contentContainerStyle={{
