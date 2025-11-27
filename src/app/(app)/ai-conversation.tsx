@@ -30,7 +30,12 @@ import { useAuth } from "@hooks/useAuth";
 import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
 import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
 import { ROUTES } from "@routes/routes";
+import {
+  ConversationRoom,
+  GetConversationRoomsResponse,
+} from "@services/conversation";
 import { useAuthStore } from "@stores/auth/auth.config";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Message = {
   id: string;
@@ -74,6 +79,10 @@ type MarketplacePackage = {
 };
 
 type MessageUpdate = (message: Message) => Message;
+
+type RoomUpdatePayload = Partial<Omit<ConversationRoom, "conversationId">> & {
+  conversationId: string;
+};
 
 const devLog = (...args: unknown[]) => {
   if (__DEV__) {
@@ -161,8 +170,59 @@ export default function AiConversationScreen() {
     string | undefined
   >();
   const [isListSheetOpen, setIsListSheetOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const socketRef = useRef<Socket | null>(null);
+  const pendingNewRoomRef = useRef(false);
+  const updateRoomCache = useCallback(
+    (roomUpdate: RoomUpdatePayload) => {
+      if (!roomUpdate?.conversationId) {
+        return;
+      }
+
+      queryClient.setQueriesData<GetConversationRoomsResponse | undefined>(
+        { queryKey: ["conversation-rooms"] },
+        (old) => {
+          if (!old?.data) {
+            return old;
+          }
+
+          const existingIndex = old.data.results.findIndex(
+            (room) => room.conversationId === roomUpdate.conversationId
+          );
+
+          const nextRoom: ConversationRoom =
+            existingIndex >= 0
+              ? {
+                  ...old.data.results[existingIndex],
+                  ...roomUpdate,
+                }
+              : {
+                  conversationId: roomUpdate.conversationId,
+                  title: roomUpdate.title ?? "Cuộc trò chuyện mới",
+                  lastMessage: roomUpdate.lastMessage ?? "",
+                  lastMessageAt: roomUpdate.lastMessageAt,
+                };
+
+          const nextResults =
+            existingIndex >= 0
+              ? old.data.results.map((room, index) =>
+                  index === existingIndex ? nextRoom : room
+                )
+              : [nextRoom, ...old.data.results];
+
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              results: nextResults,
+            },
+          };
+        }
+      );
+    },
+    [queryClient]
+  );
   const listRef = useRef<FlatList<Message>>(null);
 
   // Control when translation should appear: wait until AI text "typing" ends
@@ -667,25 +727,31 @@ export default function AiConversationScreen() {
 
       // Emit join event - use join-kaiwa-room with optional conversationId
       if (initialConversationId) {
-        // Join existing conversation
+        // Join existing conversation immediately
         socket.emit("join-kaiwa-room", {
           conversationId: initialConversationId,
         });
         setConversationId(initialConversationId);
+        setIsLoading(true);
       } else {
-        // Join new conversation
-        socket.emit("join-kaiwa-room", {});
+        // Wait for the user to start speaking before creating a room
+        setIsLoading(false);
       }
-      setIsLoading(true);
     });
 
     // Listen for joined event (after join)
     socket.on("joined", (data: { conversationId?: string }) => {
       devLog("[SOCKET] Joined room:", data);
+      const wasPendingNewRoom = pendingNewRoomRef.current;
+      // Reset pending flag to avoid accidental future invalidations
+      pendingNewRoomRef.current = false;
       if (data?.conversationId) {
         setConversationId(data.conversationId);
       }
       setIsLoading(false);
+      if (wasPendingNewRoom && data?.conversationId) {
+        queryClient.invalidateQueries({ queryKey: ["conversation-rooms"] });
+      }
     });
 
     // Listen for history event (load previous messages when joining existing conversation)
@@ -724,10 +790,39 @@ export default function AiConversationScreen() {
     );
 
     // Listen for room-updated event (refresh room list when conversation is updated)
-    socket.on("room-updated", (data: unknown) => {
-      devLog("[SOCKET] Room updated:", data);
-      // Could trigger room list refresh here if we had room list UI
-    });
+    socket.on(
+      "room-updated",
+      (
+        data:
+          | RoomUpdatePayload
+          | {
+              conversationId?: string;
+              room?: RoomUpdatePayload;
+            }
+      ) => {
+        devLog("[SOCKET] Room updated:", data);
+        const normalized: RoomUpdatePayload | undefined = (() => {
+          if (!data) return undefined;
+          if ("room" in data && data.room) {
+            return {
+              ...data.room,
+              conversationId:
+                data.room.conversationId ?? data.conversationId ?? "",
+            };
+          }
+          return {
+            ...(data as RoomUpdatePayload),
+            conversationId:
+              (data as RoomUpdatePayload).conversationId ??
+              (data as { conversationId?: string }).conversationId ??
+              "",
+          };
+        })();
+        if (normalized?.conversationId) {
+          updateRoomCache(normalized);
+        }
+      }
+    );
 
     socket.on("disconnect", () => {
       devLog("[SOCKET] Disconnected from AI conversation room");
@@ -1010,6 +1105,8 @@ export default function AiConversationScreen() {
     scheduleApplyPendingTranslation,
     startTypingAnimation,
     t,
+    queryClient,
+    updateRoomCache,
   ]);
 
   // Send audio to server via WebSocket
@@ -1100,6 +1197,7 @@ export default function AiConversationScreen() {
           socketRef.current &&
           socketRef.current.connected
         ) {
+          pendingNewRoomRef.current = true;
           socketRef.current.emit("join-kaiwa-room", {});
           // Wait a bit for the join to complete
           await new Promise((resolve) => setTimeout(resolve, 500));
@@ -1644,10 +1742,11 @@ export default function AiConversationScreen() {
             
             // Clear current messages before switching
             setMessages([]);
-            setIsLoading(true);
+            pendingNewRoomRef.current = false;
             
             if (convId) {
               // Switch to existing conversation
+              setIsLoading(true);
               setConversationId(convId);
               if (socketRef.current?.connected) {
                 socketRef.current.emit("join-kaiwa-room", {
@@ -1655,11 +1754,9 @@ export default function AiConversationScreen() {
                 });
               }
             } else {
-              // New conversation
+              // New conversation: wait until the first recording before creating the room
               setConversationId(null);
-              if (socketRef.current?.connected) {
-                socketRef.current.emit("join-kaiwa-room", {});
-              }
+              setIsLoading(false);
             }
           }}
         />

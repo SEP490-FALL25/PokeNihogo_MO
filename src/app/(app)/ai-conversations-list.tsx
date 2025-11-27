@@ -3,7 +3,6 @@ import { ConversationCard } from "@components/conversation/ConversationCard";
 import { useConversationRooms } from "@hooks/useConversation";
 import { ROUTES } from "@routes/routes";
 import { ConversationRoom } from "@services/conversation";
-import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { ArrowLeft, MessageSquare, Plus } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
@@ -21,7 +20,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AiConversationsListScreen() {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   const { data, isLoading, refetch } = useConversationRooms({
     currentPage: 1,
@@ -48,9 +46,8 @@ export default function AiConversationsListScreen() {
   }, []);
 
   const handleNewConversation = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["conversation-rooms"] });
     router.push(ROUTES.APP.AI_CONVERSATION);
-  }, [queryClient]);
+  }, []);
 
   const renderItem: ListRenderItem<ConversationRoom> = useCallback(
     ({ item }) => (

@@ -8,7 +8,6 @@ import {
 import { useConversationRooms } from "@hooks/useConversation";
 import { ROUTES } from "@routes/routes";
 import { ConversationRoom } from "@services/conversation";
-import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -34,7 +33,6 @@ export const ConversationListSheet: React.FC<ConversationListSheetProps> = ({
   onSelectConversation,
 }) => {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
   const { data, isLoading, refetch } = useConversationRooms({
     currentPage: 1,
     pageSize: 50,
@@ -66,14 +64,13 @@ export const ConversationListSheet: React.FC<ConversationListSheetProps> = ({
   );
 
   const handleNewConversation = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["conversation-rooms"] });
     if (onSelectConversation) {
       onSelectConversation("");
     } else {
       router.push(ROUTES.APP.AI_CONVERSATION);
     }
     onClose();
-  }, [onClose, onSelectConversation, queryClient]);
+  }, [onClose, onSelectConversation]);
 
 
   return (
