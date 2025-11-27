@@ -11,6 +11,7 @@ interface FilterSectionProps {
   sourceType: RewardSourceType | undefined;
   dateFrom: string;
   dateTo: string;
+  dateRangeError?: string;
   onSourceTypeChange: (value: string) => void;
   onDateFromChange: (value: string) => void;
   onDateToChange: (value: string) => void;
@@ -22,6 +23,7 @@ export const FilterSection: React.FC<FilterSectionProps> = React.memo(({
   sourceType,
   dateFrom,
   dateTo,
+  dateRangeError,
   onSourceTypeChange,
   onDateFromChange,
   onDateToChange,
@@ -158,6 +160,14 @@ export const FilterSection: React.FC<FilterSectionProps> = React.memo(({
                 />
               </View>
             </View>
+            {!!dateRangeError && (
+              <Text
+                className="text-xs font-semibold mt-2"
+                style={{ color: REWARD_HISTORY_COLORS.ERROR }}
+              >
+                {dateRangeError}
+              </Text>
+            )}
           </View>
         </View>
       )}
