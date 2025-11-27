@@ -1174,7 +1174,7 @@
       }
     }
   },
-  "exercise_history": {
+    "exercise_history": {
     "title": "Lịch sử bài tập",
     "subtitle": "Xem lại các bài tập và bài test đã làm",
     "exercises_tab": "Bài tập",
@@ -1198,7 +1198,7 @@
     "incorrect": "sai",
     "in_progress": "Đang làm",
     "not_started": "Chưa bắt đầu",
-    "review_requirement": "Cần đạt 80% để xem review",
+      "review_requirement": "Cần đạt 80% để xem lại",
     "test": "Bài kiểm tra",
     "exercise": "Bài tập",
     "unknown_exercise": "Bài tập không xác định",
@@ -1218,7 +1218,17 @@
     "just_now": "Vừa xong",
     "minutes_ago": "{{minutes}} phút trước",
     "hours_ago": "{{hours}} giờ trước",
-    "days_ago": "{{days}} ngày trước"
+    "days_ago": "{{days}} ngày trước",
+    "status": {
+      "not_started": "Chưa bắt đầu",
+      "in_progress": "Đang làm",
+      "completed": "Hoàn thành",
+      "fail": "Thất bại",
+      "failed": "Thất bại",
+      "abandoned": "Bỏ dở",
+      "skipped": "Bỏ qua",
+      "pending": "Đang chờ"
+    }
   },
   "reward_history": {
     "title": "Lịch sử nhận thưởng",
