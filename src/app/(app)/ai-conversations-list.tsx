@@ -5,7 +5,7 @@ import { ROUTES } from "@routes/routes";
 import { ConversationRoom } from "@services/conversation";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { MessageSquare, Plus } from "lucide-react-native";
+import { ArrowLeft, MessageSquare, Plus } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -35,6 +35,10 @@ export default function AiConversationsListScreen() {
     await refetch();
     setRefreshing(false);
   }, [refetch]);
+
+  const handleGoBack = useCallback(() => {
+    router.back();
+  }, []);
 
   const handleSelectConversation = useCallback((conversation: ConversationRoom) => {
     router.push({
@@ -133,9 +137,17 @@ export default function AiConversationsListScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity
+          onPress={handleGoBack}
+          style={styles.backButton}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <ArrowLeft size={22} color="#111827" />
+        </TouchableOpacity>
         <ThemedText style={styles.headerTitle}>
           {t("home.ai.conversation.list_title", "AI Conversations")}
         </ThemedText>
+        <View style={{ width: 22 }} />
       </View>
 
       {/* Content */}
@@ -188,11 +200,17 @@ const styles = StyleSheet.create({
   },
   header: {
     height: 52,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#f3f4f6",
+  },
+  backButton: {
+    position: "absolute",
+    left: 16,
+    padding: 4,
   },
   headerTitle: {
     fontSize: 18,
