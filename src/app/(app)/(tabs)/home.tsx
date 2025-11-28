@@ -13,6 +13,7 @@ import { useRecentExercises } from "@hooks/useUserHistory";
 import { ISrsReviewItem } from "@models/srs/srs-review.response";
 import { IRecentExerciseItem } from "@models/user-history/user-history.response";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import { ROUTES } from "@routes/routes";
 import attendanceService from "@services/attendance";
 import { useUserStore } from "@stores/user/user.config";
@@ -28,11 +29,12 @@ import {
   Sparkles,
   Target,
 } from "lucide-react-native";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
   Dimensions,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -327,6 +329,7 @@ export default function HomeScreen() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showDailyLogin, setShowDailyLogin] = useState(false);
   const [hasAutoOpenedAttendance, setHasAutoOpenedAttendance] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const homeLayoutRef = useRef<HomeLayoutRef>(null);
   const queryClient = useQueryClient();
 
@@ -362,7 +365,7 @@ export default function HomeScreen() {
   // const { data: userProgressOverview } = useUserProgress();
 
   // Fetch recent exercises
-  const { data: recentExercisesData } = useRecentExercises({
+  const { data: recentExercisesData, refetch: refetchRecentExercises } = useRecentExercises({
     currentPage: 1,
     pageSize: 10,
   });
@@ -393,6 +396,7 @@ export default function HomeScreen() {
   const {
     data: srsReviewData,
     isLoading: isSrsLoading,
+    refetch: refetchSrsReview,
   } = useSrsReview({
     currentPage: 1,
     pageSize: 6,
@@ -451,6 +455,19 @@ export default function HomeScreen() {
     hasAutoOpenedAttendance,
     isAttendanceLoading,
   ]);
+
+  /**
+   * Refetch personalized data when screen comes into focus
+   * This ensures data is updated when user returns from completing exercises
+   */
+  useFocusEffect(
+    useCallback(() => {
+      // Refetch SRS review insights and recent exercises when screen is focused
+      // This will update personalized recommendations after completing exercises
+      refetchSrsReview();
+      refetchRecentExercises();
+    }, [refetchSrsReview, refetchRecentExercises])
+  );
 
   /**
    * Handle welcome modal close
@@ -570,6 +587,28 @@ export default function HomeScreen() {
     router.push(ROUTES.APP.SUBSCRIPTION);
   };
 
+  /**
+   * Handle pull-to-refresh
+   */
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      // Invalidate and refetch all queries
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["attendance-summary", user?.data?.id],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["recent-exercises"] }),
+        queryClient.invalidateQueries({ queryKey: ["user-srs-review"] }),
+        queryClient.invalidateQueries({ queryKey: ["wallet-user"] }),
+      ]);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const WTTouchable = walkthroughable(TouchableOpacity);
   const { copilotEvents } = useCopilot();
 
@@ -607,13 +646,14 @@ export default function HomeScreen() {
       copilotEvents.off("stop", handleTourStop);
     };
   }, [copilotEvents]);
+  
+  const refreshControl = (
+    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+  );
+
   return (
-    <HomeLayout ref={homeLayoutRef}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+    <HomeLayout ref={homeLayoutRef} refreshControl={refreshControl}>
+      <View style={styles.contentContainer}>
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
           <ThemedText type="subtitle" style={styles.welcomeTitle}>
@@ -873,7 +913,7 @@ export default function HomeScreen() {
 
         {/* Main Navigation */}
         <MainNavigation />
-      </ScrollView>
+      </View>
 
       {/* Welcome Modal */}
       <WelcomeModal
@@ -902,10 +942,7 @@ export default function HomeScreen() {
  * Styles for HomeScreen component
  */
 const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
+  contentContainer: {
     paddingBottom: 24,
     gap: 20,
   },
