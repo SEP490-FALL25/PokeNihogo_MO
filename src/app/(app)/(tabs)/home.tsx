@@ -13,6 +13,7 @@ import { useRecentExercises } from "@hooks/useUserHistory";
 import { ISrsReviewItem } from "@models/srs/srs-review.response";
 import { IRecentExerciseItem } from "@models/user-history/user-history.response";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import { ROUTES } from "@routes/routes";
 import attendanceService from "@services/attendance";
 import { useUserStore } from "@stores/user/user.config";
@@ -28,7 +29,7 @@ import {
   Sparkles,
   Target,
 } from "lucide-react-native";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
@@ -364,7 +365,7 @@ export default function HomeScreen() {
   // const { data: userProgressOverview } = useUserProgress();
 
   // Fetch recent exercises
-  const { data: recentExercisesData } = useRecentExercises({
+  const { data: recentExercisesData, refetch: refetchRecentExercises } = useRecentExercises({
     currentPage: 1,
     pageSize: 10,
   });
@@ -395,6 +396,7 @@ export default function HomeScreen() {
   const {
     data: srsReviewData,
     isLoading: isSrsLoading,
+    refetch: refetchSrsReview,
   } = useSrsReview({
     currentPage: 1,
     pageSize: 6,
@@ -453,6 +455,19 @@ export default function HomeScreen() {
     hasAutoOpenedAttendance,
     isAttendanceLoading,
   ]);
+
+  /**
+   * Refetch personalized data when screen comes into focus
+   * This ensures data is updated when user returns from completing exercises
+   */
+  useFocusEffect(
+    useCallback(() => {
+      // Refetch SRS review insights and recent exercises when screen is focused
+      // This will update personalized recommendations after completing exercises
+      refetchSrsReview();
+      refetchRecentExercises();
+    }, [refetchSrsReview, refetchRecentExercises])
+  );
 
   /**
    * Handle welcome modal close
