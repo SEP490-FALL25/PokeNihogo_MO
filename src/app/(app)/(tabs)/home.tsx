@@ -33,6 +33,7 @@ import { useTranslation } from "react-i18next";
 import {
   Alert,
   Dimensions,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -327,6 +328,7 @@ export default function HomeScreen() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showDailyLogin, setShowDailyLogin] = useState(false);
   const [hasAutoOpenedAttendance, setHasAutoOpenedAttendance] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const homeLayoutRef = useRef<HomeLayoutRef>(null);
   const queryClient = useQueryClient();
 
@@ -570,6 +572,28 @@ export default function HomeScreen() {
     router.push(ROUTES.APP.SUBSCRIPTION);
   };
 
+  /**
+   * Handle pull-to-refresh
+   */
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      // Invalidate and refetch all queries
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["attendance-summary", user?.data?.id],
+        }),
+        queryClient.invalidateQueries({ queryKey: ["recent-exercises"] }),
+        queryClient.invalidateQueries({ queryKey: ["user-srs-review"] }),
+        queryClient.invalidateQueries({ queryKey: ["wallet-user"] }),
+      ]);
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const WTTouchable = walkthroughable(TouchableOpacity);
   const { copilotEvents } = useCopilot();
 
@@ -607,13 +631,14 @@ export default function HomeScreen() {
       copilotEvents.off("stop", handleTourStop);
     };
   }, [copilotEvents]);
+  
+  const refreshControl = (
+    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+  );
+
   return (
-    <HomeLayout ref={homeLayoutRef}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+    <HomeLayout ref={homeLayoutRef} refreshControl={refreshControl}>
+      <View style={styles.contentContainer}>
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
           <ThemedText type="subtitle" style={styles.welcomeTitle}>
@@ -873,7 +898,7 @@ export default function HomeScreen() {
 
         {/* Main Navigation */}
         <MainNavigation />
-      </ScrollView>
+      </View>
 
       {/* Welcome Modal */}
       <WelcomeModal
@@ -902,10 +927,7 @@ export default function HomeScreen() {
  * Styles for HomeScreen component
  */
 const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
+  contentContainer: {
     paddingBottom: 24,
     gap: 20,
   },

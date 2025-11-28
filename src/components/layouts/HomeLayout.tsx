@@ -50,7 +50,6 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     const { accessToken } = useAuthStore();
     const { starterId } = useUserStore();
     
-    console.log(user)
     const [isShopVisible, setIsShopVisible] = useState(false);
     const [mainPokemonImageUrl, setMainPokemonImageUrl] = useState<string | null>(null);
 
