@@ -853,7 +853,7 @@ export default function HomeScreen() {
               {t("home.recent_exercises")}
             </ThemedText>
             <TouchableOpacity
-              onPress={() => router.push(ROUTES.TABS.LEARN)}
+              onPress={() => router.push(ROUTES.ME.EXERCISE_HISTORY)}
               activeOpacity={0.7}
             >
               <ThemedText style={styles.seeAllText}>

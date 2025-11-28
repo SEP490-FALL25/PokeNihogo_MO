@@ -171,27 +171,14 @@ export default function ProfileScreen() {
   // Calculate level progress
   const levelProgress = useMemo(() => {
     if (!userProfile?.level) return 0;
-    
-    const currentExp = userProfile.exp || 0;
-    const currentLevelExp = userProfile.level.requiredExp || 0;
-    const nextLevel = userProfile.level.nextLevel;
-    
-    // If no next level, user is at max level
-    if (!nextLevel) {
-      // If user has exp greater than required, they've completed the level
-      if (currentExp > currentLevelExp) return 1;
-      // If exp equals required exp (both 0 for starting level), show 0 progress
-      return 0;
-    }
-    
-    const nextLevelExp = nextLevel.requiredExp;
-    const expForCurrentLevel = currentExp - currentLevelExp;
-    const expNeededForNextLevel = nextLevelExp - currentLevelExp;
-    
-    // Avoid division by zero
-    if (expNeededForNextLevel <= 0) return 0;
-    
-    const progress = expForCurrentLevel / expNeededForNextLevel;
+
+    const currentExp = Math.max(userProfile.exp || 0, 0);
+    const expToNextLevel = Math.max(userProfile.level.requiredExp || 0, 0);
+    const totalExp = currentExp + expToNextLevel;
+
+    if (totalExp <= 0) return 0;
+
+    const progress = currentExp / totalExp;
     return Math.min(Math.max(progress, 0), 1);
   }, [userProfile?.exp, userProfile?.level]);
 
