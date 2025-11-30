@@ -26,40 +26,46 @@ import {
   BookOpen,
   BookText,
   ChevronRight,
+  ChevronUp,
   Languages,
   Lock,
   Sparkles,
   Target,
+  X,
 } from "lucide-react-native";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
   Animated,
   Dimensions,
+  LayoutAnimation,
   Modal,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  UIManager,
   View,
+  ViewStyle,
 } from "react-native";
 import { CopilotStep, useCopilot, walkthroughable } from "react-native-copilot";
-import {
-  NativeViewGestureHandler,
-  TapGestureHandler,
-} from "react-native-gesture-handler";
+import { NativeViewGestureHandler, TapGestureHandler } from "react-native-gesture-handler";
+import Reanimated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+// Enable LayoutAnimation on Android
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 // Storage key for welcome modal shown state
 const WELCOME_MODAL_SHOWN_KEY = "@WelcomeModal:hasBeenShown";
@@ -231,10 +237,7 @@ const useSrsTypeConfig = () => {
   );
 };
 
-const getInsightContentCopy = (
-  insight: ISrsReviewItem,
-  t: ReturnType<typeof useTranslation>["t"]
-) => {
+const getInsightContentCopy = (insight: ISrsReviewItem, t: ReturnType<typeof useTranslation>["t"]) => {
   const content = insight.content as any;
 
   if (!content) {
@@ -247,27 +250,21 @@ const getInsightContentCopy = (
   switch (content.type) {
     case "vocabulary":
       return {
-        primary:
-          content.wordJp ?? t("home.srs_insights.vocabulary_title", "Từ mới"),
+        primary: content.wordJp ?? t("home.srs_insights.vocabulary_title", "Từ mới"),
         secondary: [content.reading, content.meaning]
           .filter(Boolean)
           .join(" · "),
       };
     case "kanji":
       return {
-        primary:
-          content.character ?? t("home.srs_insights.kanji_title", "Kanji"),
-        secondary: [
-          content.meaning,
-          content.jlptLevel && `JLPT N${content.jlptLevel}`,
-        ]
+        primary: content.character ?? t("home.srs_insights.kanji_title", "Kanji"),
+        secondary: [content.meaning, content.jlptLevel && `JLPT N${content.jlptLevel}`]
           .filter(Boolean)
           .join(" · "),
       };
     case "grammar":
       return {
-        primary:
-          content.structure ?? t("home.srs_insights.grammar_title", "Ngữ pháp"),
+        primary: content.structure ?? t("home.srs_insights.grammar_title", "Ngữ pháp"),
         secondary: content.level
           ? t("home.srs_insights.grammar_level", {
               level: content.level,
@@ -287,7 +284,8 @@ const InsightCard: React.FC<{
   insight: ISrsReviewItem;
   onPress: (insight: ISrsReviewItem) => void;
   metaConfig: ReturnType<typeof useSrsTypeConfig>;
-}> = ({ insight, onPress, metaConfig }) => {
+  style?: ViewStyle;
+}> = ({ insight, onPress, metaConfig, style }) => {
   const { t } = useTranslation();
   const meta = metaConfig[insight.contentType] || metaConfig.VOCABULARY;
   const { primary, secondary } = getInsightContentCopy(insight, t);
@@ -295,20 +293,20 @@ const InsightCard: React.FC<{
 
   return (
     <TouchableOpacity
-      style={[styles.insightCard, { borderColor: `${meta.color}33` }]}
-      activeOpacity={0.85}
+      style={[styles.insightCard, { borderColor: `${meta.color}33` }, style]}
+      activeOpacity={0.95}
       onPress={() => onPress(insight)}
     >
       <View style={styles.insightBadgeRow}>
-        <View
-          style={[styles.insightBadge, { backgroundColor: `${meta.color}15` }]}
-        >
+        <View style={[styles.insightBadge, { backgroundColor: `${meta.color}15` }]}>
           <Icon size={16} color={meta.color} />
           <ThemedText style={[styles.insightBadgeText, { color: meta.color }]}>
             {meta.label}
           </ThemedText>
         </View>
-        {!insight.isRead && <View style={styles.insightNewDot} />}
+        {!insight.isRead && (
+          <View style={styles.insightNewDot} />
+        )}
       </View>
 
       <ThemedText style={styles.insightMessage} numberOfLines={2}>
@@ -338,10 +336,6 @@ const InsightCard: React.FC<{
 
 /**
  * HomeScreen Component
- *
- * Personalized home screen with statistics, charts, recent activities, and suggestions.
- *
- * @returns JSX.Element
  */
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -355,19 +349,24 @@ export default function HomeScreen() {
   const [hasAutoOpenedAttendance, setHasAutoOpenedAttendance] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showFlashcardModal, setShowFlashcardModal] = useState(false);
-  const [selectedInsight, setSelectedInsight] = useState<ISrsReviewItem | null>(
-    null
-  );
+  const [selectedInsight, setSelectedInsight] = useState<ISrsReviewItem | null>(null);
   const [isFrontSide, setIsFrontSide] = useState(true);
+  
+  // State for stacked vs expanded mode
+  const [isInsightsExpanded, setIsInsightsExpanded] = useState(false);
+  const expandIconRotation = useSharedValue(0);
+
   const flipAnim = useRef(new Animated.Value(0)).current;
   const backScrollRef = useRef(null);
   const homeLayoutRef = useRef<HomeLayoutRef>(null);
   const queryClient = useQueryClient();
 
-  // Global state from user store
   const { isFirstTimeLogin, starterId, email } = useUserStore();
 
-  const { data: attendanceSummary, isLoading: isAttendanceLoading } = useQuery({
+  const {
+    data: attendanceSummary,
+    isLoading: isAttendanceLoading,
+  } = useQuery({
     queryKey: ["attendance-summary", user?.data?.id],
     queryFn: attendanceService.getAttendanceSummary,
     enabled: !!user?.data?.id,
@@ -378,26 +377,19 @@ export default function HomeScreen() {
     if (trimmedName) {
       return trimmedName;
     }
-
     if (email) {
       const [localPart] = email.split("@");
       if (localPart) {
         return localPart;
       }
     }
-
     return "Trainer";
   }, [user?.data?.name, email]);
 
-  // Fetch user progress overview (for future use)
-  // const { data: userProgressOverview } = useUserProgress();
-
-  // Fetch recent exercises
-  const { data: recentExercisesData, refetch: refetchRecentExercises } =
-    useRecentExercises({
-      currentPage: 1,
-      pageSize: 10,
-    });
+  const { data: recentExercisesData, refetch: refetchRecentExercises } = useRecentExercises({
+    currentPage: 1,
+    pageSize: 10,
+  });
 
   const todayKey = useMemo(() => new Date().toISOString().split("T")[0], []);
 
@@ -416,12 +408,10 @@ export default function HomeScreen() {
     return attendanceHistory.includes(todayKey);
   }, [attendanceHistory, todayKey]);
 
-  // Check if user has personalized recommendations feature
   const hasPersonalizedRecommendations = useCheckFeature(
     SubscriptionFeatureKey.PERSONALIZED_RECOMMENDATIONS
   );
 
-  // Personalized SRS review insights
   const {
     data: srsReviewData,
     isLoading: isSrsLoading,
@@ -431,11 +421,6 @@ export default function HomeScreen() {
     pageSize: 6,
   });
 
-  // Get all activities from paginated data
-  /**
-   * Get user's selected starter Pokemon
-   * Falls back to first starter if none selected
-   */
   const selectedStarter = React.useMemo(() => {
     return (
       starters.find((starter: Starter) => starter.id === starterId) ||
@@ -443,66 +428,46 @@ export default function HomeScreen() {
     );
   }, [starterId]);
 
-  /**
-   * Check if welcome modal has been shown before
-   */
   useEffect(() => {
     const checkWelcomeModalShown = async () => {
       try {
-        const hasBeenShown = await AsyncStorage.getItem(
-          WELCOME_MODAL_SHOWN_KEY
-        );
-        if (hasBeenShown === "true") {
-          // Already shown, don't show again
-          return;
-        }
-        // Show welcome modal for first-time users
+        const hasBeenShown = await AsyncStorage.getItem(WELCOME_MODAL_SHOWN_KEY);
+        if (hasBeenShown === "true") return;
         if (isFirstTimeLogin === true) {
           setShowWelcomeModal(true);
         }
       } catch (error) {
         console.error("Error checking welcome modal state:", error);
-        // On error, show modal if first time login
         if (isFirstTimeLogin === true) {
           setShowWelcomeModal(true);
         }
       }
     };
-
     checkWelcomeModalShown();
   }, [isFirstTimeLogin]);
 
   useEffect(() => {
-    if (!attendanceSummary || isAttendanceLoading) {
-      return;
-    }
+    if (!attendanceSummary || isAttendanceLoading) return;
     if (!hasCheckedInToday && !hasAutoOpenedAttendance) {
       setShowDailyLogin(true);
       setHasAutoOpenedAttendance(true);
     }
-  }, [
-    attendanceSummary,
-    hasCheckedInToday,
-    hasAutoOpenedAttendance,
-    isAttendanceLoading,
-  ]);
+  }, [attendanceSummary, hasCheckedInToday, hasAutoOpenedAttendance, isAttendanceLoading]);
 
-  /**
-   * Refetch personalized data when screen comes into focus
-   * This ensures data is updated when user returns from completing exercises
-   */
+  // Animation Style for Chevron
+  const expandIconStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotate: `${expandIconRotation.value}deg` }],
+    };
+  });
+
   useFocusEffect(
     useCallback(() => {
-      // Refetch SRS review insights and recent exercises when screen is focused
-      // This will update personalized recommendations after completing exercises
       refetchSrsReview();
       refetchRecentExercises();
     }, [refetchSrsReview, refetchRecentExercises])
   );
 
-  /**
-   * Handle welcome modal close
-   */
   const handleWelcomeModalClose = () => {
     setShowWelcomeModal(false);
   };
@@ -513,7 +478,7 @@ export default function HomeScreen() {
       queryClient.invalidateQueries({
         queryKey: ["attendance-summary", user?.data?.id],
       });
-      queryClient.invalidateQueries({ queryKey: ["wallet-user"] });
+      queryClient.invalidateQueries({ queryKey: ['wallet-user'] });
       showAlert(
         response?.message ||
           t("daily_login.success_message", "Điểm danh thành công!"),
@@ -531,11 +496,12 @@ export default function HomeScreen() {
   });
 
   const markAsReadMutation = useMutation({
-    mutationFn: (id: string) => userSrsReviewService.markAsRead(id),
+    mutationFn: (id: number) => userSrsReviewService.markAsRead(String(id)),
     onSuccess: () => {
-      // Invalidate the SRS review query to refresh the list
       queryClient.invalidateQueries({ queryKey: ["user-srs-review"] });
-      handleCloseFlashcardModal();
+      if (selectedInsight) {
+        setSelectedInsight({ ...selectedInsight, isRead: true });
+      }
       showAlert(
         t("home.flashcard.marked_as_read", "Đã đánh dấu đã đọc"),
         "success"
@@ -549,18 +515,12 @@ export default function HomeScreen() {
     },
   });
 
-  /**
-   * Handle daily check-in action
-   */
   const handleDailyCheckin = async () => {
     try {
       await checkInMutation.mutateAsync();
-    } catch {
-      // Error is handled in onError
-    }
+    } catch {}
   };
 
-  // Get recent exercises from API response
   const recentExercises = useMemo(() => {
     return recentExercisesData?.data?.results || [];
   }, [recentExercisesData]);
@@ -569,48 +529,31 @@ export default function HomeScreen() {
     return srsReviewData?.data?.data?.results || [];
   }, [srsReviewData]);
 
-  // Check if personalization is locked based on subscription feature
   const isPersonalizationLocked = useMemo(() => {
-    // If user doesn't have the feature, it's locked
     return !hasPersonalizedRecommendations;
   }, [hasPersonalizedRecommendations]);
 
-  const shouldRenderPersonalization =
-    isSrsLoading || !!srsReviewData || isPersonalizationLocked;
+  const shouldRenderPersonalization = isSrsLoading || !!srsReviewData || isPersonalizationLocked;
 
   const dominantInsightType = useMemo(() => {
     if (!srsInsights.length) return null;
-    const counts = srsInsights.reduce<Record<string, number>>(
-      (acc, insight) => {
-        acc[insight.contentType] = (acc[insight.contentType] || 0) + 1;
-        return acc;
-      },
-      {}
-    );
+    const counts = srsInsights.reduce<Record<string, number>>((acc, insight) => {
+      acc[insight.contentType] = (acc[insight.contentType] || 0) + 1;
+      return acc;
+    }, {});
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
     if (!sorted.length) return null;
     const [type, count] = sorted[0];
     const meta =
       srsTypeConfig[type as ISrsReviewItem["contentType"]] ??
       srsTypeConfig.VOCABULARY;
-    return {
-      ...meta,
-      count,
-    };
+    return { ...meta, count };
   }, [srsInsights, srsTypeConfig]);
 
-  const HighlightIcon = dominantInsightType?.icon;
-
-  /**
-   * Handle exercise card press
-   */
   const handleExercisePress = (exercise: IRecentExerciseItem) => {
     router.push(`${ROUTES.TABS.LEARN}?lessonId=${exercise.lessonId}`);
   };
 
-  /**
-   * Handle suggestion press
-   */
   const handleSuggestionPress = (type: string) => {
     if (type === "learn") {
       router.push(ROUTES.TABS.LEARN);
@@ -622,18 +565,43 @@ export default function HomeScreen() {
   };
 
   /**
-   * Handle personalized insight tap
+   * Handle personalized insight tap with Stack -> Expand logic
    */
-  const handleInsightPress = (insight: ISrsReviewItem) => {
-    setSelectedInsight(insight);
-    setShowFlashcardModal(true);
-    setIsFrontSide(true);
-    flipAnim.setValue(0);
+  const handleInsightCardPress = (insight: ISrsReviewItem) => {
+    if (!isInsightsExpanded) {
+      toggleInsightsExpansion();
+    } else {
+      // If expanded, tapping opens the flashcard modal
+      setSelectedInsight(insight);
+      setShowFlashcardModal(true);
+      setIsFrontSide(true);
+      flipAnim.setValue(0);
+    }
   };
 
-  /**
-   * Handle flashcard modal close
-   */
+  const toggleInsightsExpansion = () => {
+    // Spring animation for smoother bounce effect
+    LayoutAnimation.configureNext({
+      duration: 400,
+      update: {
+        type: LayoutAnimation.Types.spring,
+        springDamping: 0.7,
+      },
+      create: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+        property: LayoutAnimation.Properties.opacity,
+      },
+      delete: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+        property: LayoutAnimation.Properties.opacity,
+      },
+    });
+    
+    const nextState = !isInsightsExpanded;
+    setIsInsightsExpanded(nextState);
+    expandIconRotation.value = withSpring(nextState ? 180 : 0);
+  };
+
   const handleCloseFlashcardModal = () => {
     setShowFlashcardModal(false);
     setSelectedInsight(null);
@@ -641,9 +609,6 @@ export default function HomeScreen() {
     flipAnim.setValue(0);
   };
 
-  /**
-   * Toggle flashcard side
-   */
   const toggleCardSide = () => {
     const nextSideIsBack = isFrontSide;
     const toValue = nextSideIsBack ? 1 : 0;
@@ -661,13 +626,9 @@ export default function HomeScreen() {
     router.push(ROUTES.APP.SUBSCRIPTION);
   };
 
-  /**
-   * Handle pull-to-refresh
-   */
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      // Invalidate and refetch all queries
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: ["attendance-summary", user?.data?.id],
@@ -686,7 +647,6 @@ export default function HomeScreen() {
   const WTTouchable = walkthroughable(TouchableOpacity);
   const { copilotEvents } = useCopilot();
 
-  // Handle tour step changes for auto-scroll
   React.useEffect(() => {
     const handleStepChange = (step: any) => {
       if (step.name === "navigation" && homeLayoutRef.current) {
@@ -695,32 +655,22 @@ export default function HomeScreen() {
         }, 500);
       }
     };
-
     copilotEvents.on("stepChange", handleStepChange);
-
-    return () => {
-      copilotEvents.off("stepChange", handleStepChange);
-    };
+    return () => copilotEvents.off("stepChange", handleStepChange);
   }, [copilotEvents]);
 
-  // Handle tour completion - save state when tour ends
   React.useEffect(() => {
     const handleTourStop = async () => {
       try {
-        // Save state that welcome modal has been shown and tour completed
         await AsyncStorage.setItem(WELCOME_MODAL_SHOWN_KEY, "true");
       } catch (error) {
         console.error("Error saving welcome modal state:", error);
       }
     };
-
     copilotEvents.on("stop", handleTourStop);
-
-    return () => {
-      copilotEvents.off("stop", handleTourStop);
-    };
+    return () => copilotEvents.off("stop", handleTourStop);
   }, [copilotEvents]);
-
+  
   const refreshControl = (
     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
   );
@@ -731,9 +681,7 @@ export default function HomeScreen() {
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
           <ThemedText type="subtitle" style={styles.welcomeTitle}>
-            {t("home.welcome_back", {
-              username,
-            })}
+            {t("home.welcome_back", { username })}
           </ThemedText>
           <ThemedText style={styles.welcomeSubtitle}>
             {t("home.ready_to_continue")}
@@ -743,37 +691,17 @@ export default function HomeScreen() {
         {shouldRenderPersonalization && (
           <View style={styles.aiSection}>
             <View style={styles.aiSectionContainer}>
-              {/* First Card */}
+              {/* First Card - AI Coach Intro */}
               <LinearGradient
-                colors={
-                  isPersonalizationLocked
-                    ? ["#fefcfb", "#fff7ed", "#fff4e6"]
-                    : ["#eef2ff", "#fdf2f8"]
-                }
+                colors={isPersonalizationLocked ? ["#fefcfb", "#fff7ed", "#fff4e6"] : ["#eef2ff", "#fdf2f8"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={[
-                  styles.aiHeroCard,
-                  isPersonalizationLocked && styles.aiHeroCardLocked,
-                ]}
+                style={[styles.aiHeroCard, isPersonalizationLocked && styles.aiHeroCardLocked]}
               >
                 <View style={styles.aiHeroHeader}>
-                  <View
-                    style={[
-                      styles.aiHeroBadge,
-                      isPersonalizationLocked && styles.aiHeroBadgeLocked,
-                    ]}
-                  >
-                    <Sparkles
-                      size={16}
-                      color={isPersonalizationLocked ? "#d97706" : "#7c3aed"}
-                    />
-                    <ThemedText
-                      style={[
-                        styles.aiHeroBadgeText,
-                        isPersonalizationLocked && styles.aiHeroBadgeTextLocked,
-                      ]}
-                    >
+                  <View style={[styles.aiHeroBadge, isPersonalizationLocked && styles.aiHeroBadgeLocked]}>
+                    <Sparkles size={16} color={isPersonalizationLocked ? "#d97706" : "#7c3aed"} />
+                    <ThemedText style={[styles.aiHeroBadgeText, isPersonalizationLocked && styles.aiHeroBadgeTextLocked]}>
                       {t("home.ai.assistant_badge", "Trợ lý AI")}
                     </ThemedText>
                   </View>
@@ -787,109 +715,28 @@ export default function HomeScreen() {
                   )}
                   {isPersonalizationLocked && (
                     <View style={styles.lockedPremiumBadge}>
-                      <ThemedText style={styles.lockedPremiumBadgeText}>
-                        Premium
-                      </ThemedText>
+                      <ThemedText style={styles.lockedPremiumBadgeText}>Premium</ThemedText>
                     </View>
                   )}
                 </View>
-                <ThemedText
-                  style={[
-                    styles.aiHeroTitle,
-                    isPersonalizationLocked && styles.aiHeroTitleLocked,
-                  ]}
-                  numberOfLines={2}
-                >
+                <ThemedText style={[styles.aiHeroTitle, isPersonalizationLocked && styles.aiHeroTitleLocked]} numberOfLines={2}>
                   {isPersonalizationLocked
                     ? t("home.ai.locked_title", "Nâng cấp để mở khóa")
                     : t("home.ai.unlocked_title", "Cá nhân hoá cho hôm nay")}
                 </ThemedText>
-                <ThemedText
-                  style={[
-                    styles.aiHeroSubtitle,
-                    isPersonalizationLocked && styles.aiHeroSubtitleLocked,
-                  ]}
-                  numberOfLines={3}
-                >
+                <ThemedText style={[styles.aiHeroSubtitle, isPersonalizationLocked && styles.aiHeroSubtitleLocked]} numberOfLines={3}>
                   {isPersonalizationLocked
-                    ? t(
-                        "home.ai.locked_subtitle",
-                        "Mua gói AI Coach để nhận gợi ý học tập riêng cho bạn."
-                      )
+                    ? t("home.ai.locked_subtitle", "Mua gói AI Coach để nhận gợi ý học tập riêng cho bạn.")
                     : dominantInsightType
-                      ? t("home.ai.focus_message", {
-                          topic: dominantInsightType.labelLower,
-                          defaultValue: `Bạn đang cần củng cố ${dominantInsightType.labelLower} nhiều nhất.`,
-                        })
-                      : t(
-                          "home.ai.no_insight_message",
-                          "Hệ thống sẽ theo dõi tiến trình để gửi thêm gợi ý khi có."
-                        )}
+                    ? t("home.ai.focus_message", {
+                        topic: dominantInsightType.labelLower,
+                        defaultValue: `Bạn đang cần củng cố ${dominantInsightType.labelLower} nhiều nhất.`,
+                      })
+                    : t("home.ai.no_insight_message", "Hệ thống sẽ theo dõi tiến trình để gửi thêm gợi ý khi có.")}
                 </ThemedText>
-                {dominantInsightType &&
-                  HighlightIcon &&
-                  !isPersonalizationLocked && (
-                    <View style={styles.aiHeroHighlight}>
-                      <HighlightIcon
-                        size={18}
-                        color={dominantInsightType.color}
-                      />
-                      <View style={{ flex: 1 }}>
-                        <ThemedText
-                          style={styles.aiHeroHighlightText}
-                          numberOfLines={1}
-                        >
-                          {t("home.ai.highlight_count", {
-                            count: dominantInsightType.count,
-                            topic: dominantInsightType.labelLower,
-                            defaultValue: "{{count}} mục {{topic}}",
-                          })}
-                        </ThemedText>
-                        <ThemedText
-                          style={styles.aiHeroHighlightSub}
-                          numberOfLines={2}
-                        >
-                          {t(
-                            "home.ai.highlight_hint",
-                            "Tập trung trong 5 phút để nhớ lâu hơn"
-                          )}
-                        </ThemedText>
-                      </View>
-                    </View>
-                  )}
-                {isPersonalizationLocked && (
-                  <View
-                    style={[
-                      styles.aiHeroHighlight,
-                      styles.aiHeroHighlightLocked,
-                    ]}
-                  >
-                    <Lock size={20} color="#b45309" />
-                    <View style={{ flex: 1 }}>
-                      <ThemedText
-                        style={styles.aiHeroHighlightTextLocked}
-                        numberOfLines={1}
-                      >
-                        {t(
-                          "home.ai.locked_highlight_title",
-                          "Quyền lợi dành riêng cho hội viên"
-                        )}
-                      </ThemedText>
-                      <ThemedText
-                        style={styles.aiHeroHighlightSubLocked}
-                        numberOfLines={2}
-                      >
-                        {t(
-                          "home.ai.locked_highlight_subtitle",
-                          "Mở khoá để xem roadmap học và nhắc nhở thông minh"
-                        )}
-                      </ThemedText>
-                    </View>
-                  </View>
-                )}
               </LinearGradient>
 
-              {/* Second Card */}
+              {/* Locked State Promo */}
               {isPersonalizationLocked && (
                 <View style={styles.insightLockedState}>
                   <View style={styles.insightLockedBadge}>
@@ -898,23 +745,11 @@ export default function HomeScreen() {
                       {t("home.insight_locked.badge", "Tính năng cao cấp")}
                     </ThemedText>
                   </View>
-                  <ThemedText
-                    style={styles.insightLockedTitle}
-                    numberOfLines={2}
-                  >
-                    {t(
-                      "home.insight_locked.title",
-                      "Mở khóa trợ lý cá nhân hóa"
-                    )}
+                  <ThemedText style={styles.insightLockedTitle} numberOfLines={2}>
+                    {t("home.insight_locked.title", "Mở khóa trợ lý cá nhân hóa")}
                   </ThemedText>
-                  <ThemedText
-                    style={styles.insightLockedDescription}
-                    numberOfLines={3}
-                  >
-                    {t(
-                      "home.insight_locked.description",
-                      "Tự động phân tích sai sót, đề xuất flashcard cần ôn và nhắc bạn luyện tập mỗi ngày."
-                    )}
+                  <ThemedText style={styles.insightLockedDescription} numberOfLines={3}>
+                    {t("home.insight_locked.description", "Tự động phân tích sai sót, đề xuất flashcard cần ôn và nhắc bạn luyện tập mỗi ngày.")}
                   </ThemedText>
                 </View>
               )}
@@ -922,18 +757,11 @@ export default function HomeScreen() {
               {/* Lock Overlay */}
               {isPersonalizationLocked && (
                 <CopilotStep
-                  text={t(
-                    "tour.ai_unlock_description",
-                    "Upgrade to Premium to unlock personalized AI assistant with smart features"
-                  )}
+                  text={t("tour.ai_unlock_description", "Upgrade to Premium to unlock personalized AI assistant with smart features")}
                   order={5}
                   name="ai_unlock"
                 >
-                  <WTTouchable
-                    style={styles.lockOverlay}
-                    onPress={handleUnlockPress}
-                    activeOpacity={0.9}
-                  >
+                  <WTTouchable style={styles.lockOverlay} onPress={handleUnlockPress} activeOpacity={0.9}>
                     <View style={styles.lockOverlayContent}>
                       <View style={styles.lockIconContainer}>
                         <Lock size={48} color="#d97706" />
@@ -947,7 +775,12 @@ export default function HomeScreen() {
               )}
             </View>
 
-            <View style={styles.insightList}>
+            {/* SRS Insight Cards List with Stacked Animation */}
+            <View style={[
+              styles.insightList,
+              // Add top margin when stacked to push content down because cards are moved UP by negative margin
+              !isInsightsExpanded && srsInsights.length > 0 && { marginTop: 24 }
+            ]}>
               {!isPersonalizationLocked && isSrsLoading && (
                 <View style={styles.insightSkeletonWrapper}>
                   {[1, 2].map((item) => (
@@ -956,36 +789,99 @@ export default function HomeScreen() {
                 </View>
               )}
 
-              {!isPersonalizationLocked &&
-                !isSrsLoading &&
-                srsInsights.length > 0 && (
-                  <View style={styles.insightCardsWrapper}>
-                    {srsInsights.slice(0, 4).map((insight) => (
-                      <InsightCard
-                        key={insight.id}
-                        insight={insight}
-                        onPress={handleInsightPress}
-                        metaConfig={srsTypeConfig}
-                      />
-                    ))}
-                  </View>
-                )}
+              {!isPersonalizationLocked && !isSrsLoading && srsInsights.length > 0 && (
+                <View style={styles.insightCardsWrapper}>
+                  {isInsightsExpanded ? (
+                    <ScrollView
+                      style={styles.insightScrollView}
+                      contentContainerStyle={styles.insightScrollContent}
+                      showsVerticalScrollIndicator={true}
+                      nestedScrollEnabled={true}
+                    >
+                      {srsInsights.map((insight, index) => {
+                        const cardStyle: ViewStyle = {
+                          marginTop: index === 0 ? 0 : 12,
+                          zIndex: 1,
+                        };
 
-              {!isPersonalizationLocked &&
-                !isSrsLoading &&
-                srsInsights.length === 0 && (
-                  <View style={styles.insightEmptyState}>
-                    <ThemedText style={styles.insightEmptyTitle}>
-                      {t("home.insight_empty.title", "Mọi thứ đang rất tốt!")}
-                    </ThemedText>
-                    <ThemedText style={styles.insightEmptyDescription}>
-                      {t(
-                        "home.insight_empty.description",
-                        "Khi bạn luyện tập thêm, trợ lý AI sẽ dựa vào lịch sử để đề xuất các nội dung cần ưu tiên."
-                      )}
-                    </ThemedText>
-                  </View>
-                )}
+                        return (
+                          <InsightCard
+                            key={insight.id}
+                            insight={insight}
+                            onPress={handleInsightCardPress}
+                            metaConfig={srsTypeConfig}
+                            style={cardStyle}
+                          />
+                        );
+                      })}
+                    </ScrollView>
+                  ) : (
+                    <>
+                      {srsInsights.map((insight, index) => {
+                        // If stacked, only render top 3 cards to save rendering
+                        if (index > 2) return null;
+                        
+                        let cardStyle: ViewStyle = {};
+                        
+                        if (index === 0) {
+                          // First card relative
+                          cardStyle = { 
+                            zIndex: 10,
+                            elevation: 10, // Shadow Android
+                          };
+                        } else {
+                          // Stacked cards
+                          cardStyle = {
+                            position: 'absolute',
+                            top: -7 * index, // Stack upwards
+                            left: 0,
+                            right: 0,
+                            height: '100%', // FORCE HEIGHT to match first card, hiding bottom
+                            zIndex: 10 - index,
+                            elevation: 10 - index,
+                            transform: [{ scaleX: 1 - (index * 0.04) }], // Slight width reduction
+                            backgroundColor: '#fff', // Ensure opacity doesn't show through
+                          };
+                        }
+
+                        return (
+                          <InsightCard
+                            key={insight.id}
+                            insight={insight}
+                            onPress={handleInsightCardPress}
+                            metaConfig={srsTypeConfig}
+                            style={cardStyle}
+                          />
+                        );
+                      })}
+                    </>
+                  )}
+                  
+                  {/* Small collapse button ONLY when expanded, to allow user to re-stack */}
+                  {isInsightsExpanded && srsInsights.length > 1 && (
+                    <TouchableOpacity 
+                      onPress={toggleInsightsExpansion} 
+                      style={styles.expandButton}
+                      activeOpacity={0.7}
+                    >
+                      <Reanimated.View style={expandIconStyle}>
+                        <ChevronUp size={20} color="#9ca3af" />
+                      </Reanimated.View>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+
+              {!isPersonalizationLocked && !isSrsLoading && srsInsights.length === 0 && (
+                <View style={styles.insightEmptyState}>
+                  <ThemedText style={styles.insightEmptyTitle}>
+                    {t("home.insight_empty.title", "Mọi thứ đang rất tốt!")}
+                  </ThemedText>
+                  <ThemedText style={styles.insightEmptyDescription}>
+                    {t("home.insight_empty.description", "Khi bạn luyện tập thêm, trợ lý AI sẽ dựa vào lịch sử để đề xuất các nội dung cần ưu tiên.")}
+                  </ThemedText>
+                </View>
+              )}
             </View>
           </View>
         )}
@@ -996,21 +892,12 @@ export default function HomeScreen() {
             <ThemedText type="subtitle" style={styles.sectionTitle}>
               {t("home.recent_exercises")}
             </ThemedText>
-            <TouchableOpacity
-              onPress={() => router.push(ROUTES.ME.EXERCISE_HISTORY)}
-              activeOpacity={0.7}
-            >
-              <ThemedText style={styles.seeAllText}>
-                {t("home.see_all")}
-              </ThemedText>
+            <TouchableOpacity onPress={() => router.push(ROUTES.ME.EXERCISE_HISTORY)} activeOpacity={0.7}>
+              <ThemedText style={styles.seeAllText}>{t("home.see_all")}</ThemedText>
             </TouchableOpacity>
           </View>
           {recentExercises.length > 0 ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.recentScrollContent}
-            >
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentScrollContent}>
               {recentExercises.map((exercise: IRecentExerciseItem) => (
                 <ExerciseCard
                   key={exercise.exerciseId}
@@ -1025,16 +912,13 @@ export default function HomeScreen() {
                 {t("home.recent_empty.title", "Chưa có bài tập gần đây")}
               </ThemedText>
               <ThemedText style={styles.recentEmptyDescription}>
-                {t(
-                  "home.recent_empty.description",
-                  "Hoàn thành một bài học hoặc luyện tập để xem lịch sử tại đây."
-                )}
+                {t("home.recent_empty.description", "Hoàn thành một bài học hoặc luyện tập để xem lịch sử tại đây.")}
               </ThemedText>
             </View>
           )}
         </View>
 
-        {/* Personalized Suggestions */}
+        {/* Suggestions */}
         <ThemedView style={styles.suggestionsCard}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             {t("home.suggestions")}
@@ -1055,11 +939,9 @@ export default function HomeScreen() {
           </View>
         </ThemedView>
 
-        {/* Main Navigation */}
         <MainNavigation />
       </View>
 
-      {/* Welcome Modal */}
       <WelcomeModal
         visible={showWelcomeModal}
         onClose={handleWelcomeModalClose}
@@ -1067,7 +949,6 @@ export default function HomeScreen() {
         pokemonName={selectedStarter.name}
       />
 
-      {/* Daily Login Modal */}
       <DailyLoginModal
         visible={showDailyLogin}
         onClose={() => setShowDailyLogin(false)}
@@ -1090,269 +971,152 @@ export default function HomeScreen() {
           <View style={styles.flashcardModalOverlay}>
             <TouchableWithoutFeedback>
               <View style={styles.flashcardModalContainer}>
-                {/* Flashcard */}
-                {selectedInsight &&
-                  (() => {
-                    const content = selectedInsight.content as any;
-                    const isKanji = selectedInsight.contentType === "KANJI";
-                    const isGrammar = selectedInsight.contentType === "GRAMMAR";
+                <TouchableOpacity
+                  style={styles.flashcardCloseButton}
+                  onPress={handleCloseFlashcardModal}
+                >
+                  <X size={24} color="#6b7280" />
+                </TouchableOpacity>
 
-                    return (
-                      <>
-                        <TapGestureHandler
-                          enabled={true}
-                          onActivated={toggleCardSide}
-                          waitFor={
-                            !isFrontSide ? (backScrollRef as any) : undefined
-                          }
+                {selectedInsight && (() => {
+                  const content = selectedInsight.content as any;
+                  const isKanji = selectedInsight.contentType === "KANJI";
+                  const isGrammar = selectedInsight.contentType === "GRAMMAR";
+
+                  return (
+                    <View style={{ position: "relative", width: "100%" }}>
+                      <TapGestureHandler
+                        enabled={true}
+                        onActivated={toggleCardSide}
+                        waitFor={!isFrontSide ? backScrollRef as any : undefined}
+                      >
+                        <View style={{ position: "relative", width: "100%" }}>
+                        <Animated.View
+                          style={[
+                            styles.flashcard,
+                            {
+                              transform: [{ rotateY: flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "180deg"] }) }],
+                              backfaceVisibility: "hidden" as const,
+                            },
+                          ]}
+                          pointerEvents={isFrontSide ? "auto" : "none"}
                         >
-                          <View style={{ position: "relative", width: "100%" }}>
-                            {/* Front Card */}
-                            <Animated.View
-                              style={[
-                                styles.flashcard,
-                                {
-                                  transform: [
-                                    {
-                                      rotateY: flipAnim.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: ["0deg", "180deg"],
-                                      }),
-                                    },
-                                  ],
-                                  backfaceVisibility: "hidden" as const,
-                                },
-                              ]}
-                              pointerEvents={isFrontSide ? "auto" : "none"}
-                            >
-                              <View style={styles.flashcardContent}>
-                                {isKanji ? (
-                                  <View style={styles.flashcardFrontContent}>
-                                    <ThemedText
-                                      style={[
-                                        styles.flashcardKanjiCharacter,
-                                        { color: "#b45309" },
-                                      ]}
-                                    >
-                                      {content?.character || ""}
-                                    </ThemedText>
-                                  </View>
-                                ) : isGrammar ? (
-                                  <View style={styles.flashcardFrontContent}>
-                                    <ThemedText
-                                      style={[
-                                        styles.flashcardGrammarStructure,
-                                        { color: "#0e7490" },
-                                      ]}
-                                    >
-                                      {content?.structure || ""}
-                                    </ThemedText>
-                                    {content?.level && (
-                                      <ThemedText
-                                        style={[
-                                          styles.flashcardGrammarLevel,
-                                          { color: "#06b6d4" },
-                                        ]}
-                                      >
-                                        {content.level}
-                                      </ThemedText>
-                                    )}
-                                  </View>
-                                ) : (
-                                  <View style={styles.flashcardFrontContent}>
-                                    <ThemedText
-                                      style={[
-                                        styles.flashcardVocabularyWord,
-                                        { color: "#0369a1" },
-                                      ]}
-                                    >
-                                      {content?.wordJp || ""}
-                                    </ThemedText>
-                                    {content?.reading && (
-                                      <ThemedText
-                                        style={[
-                                          styles.flashcardVocabularyReading,
-                                          { color: "#0ea5e9" },
-                                        ]}
-                                      >
-                                        {content.reading}
-                                      </ThemedText>
-                                    )}
-                                  </View>
+                          <View style={styles.flashcardContent}>
+                            {isKanji ? (
+                              <View style={styles.flashcardFrontContent}>
+                                <ThemedText style={[styles.flashcardKanjiCharacter, { color: "#b45309" }]}>
+                                  {content?.character || ""}
+                                </ThemedText>
+                              </View>
+                            ) : isGrammar ? (
+                              <View style={styles.flashcardFrontContent}>
+                                <ThemedText style={[styles.flashcardGrammarStructure, { color: "#0e7490" }]}>
+                                  {content?.structure || ""}
+                                </ThemedText>
+                                {content?.level && (
+                                  <ThemedText style={[styles.flashcardGrammarLevel, { color: "#06b6d4" }]}>
+                                    {content.level}
+                                  </ThemedText>
                                 )}
                               </View>
-                            </Animated.View>
+                            ) : (
+                              <View style={styles.flashcardFrontContent}>
+                                <ThemedText style={[styles.flashcardVocabularyWord, { color: "#0369a1" }]}>
+                                  {content?.wordJp || ""}
+                                </ThemedText>
+                                {content?.reading && (
+                                  <ThemedText style={[styles.flashcardVocabularyReading, { color: "#0ea5e9" }]}>
+                                    {content.reading}
+                                  </ThemedText>
+                                )}
+                              </View>
+                            )}
+                          </View>
+                        </Animated.View>
 
-                            {/* Back Card */}
-                            <Animated.View
-                              style={[
-                                styles.flashcard,
-                                styles.flashcardBack,
-                                {
-                                  transform: [
-                                    {
-                                      rotateY: flipAnim.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: ["180deg", "360deg"],
-                                      }),
-                                    },
-                                  ],
-                                  backfaceVisibility: "hidden" as const,
-                                },
-                              ]}
-                              pointerEvents={isFrontSide ? "none" : "auto"}
+                        <Animated.View
+                          style={[
+                            styles.flashcard,
+                            styles.flashcardBack,
+                            {
+                              transform: [{ rotateY: flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["180deg", "360deg"] }) }],
+                              backfaceVisibility: "hidden" as const,
+                            },
+                          ]}
+                          pointerEvents={isFrontSide ? "none" : "auto"}
+                        >
+                          <NativeViewGestureHandler ref={backScrollRef as any}>
+                            <ScrollView
+                              nestedScrollEnabled
+                              keyboardShouldPersistTaps="always"
+                              scrollEventThrottle={16}
+                              contentContainerStyle={styles.flashcardBackContent}
+                              showsVerticalScrollIndicator={false}
+                              style={{ flex: 1 }}
                             >
-                              <NativeViewGestureHandler
-                                ref={backScrollRef as any}
-                              >
-                                <ScrollView
-                                  nestedScrollEnabled
-                                  keyboardShouldPersistTaps="always"
-                                  scrollEventThrottle={16}
-                                  contentContainerStyle={
-                                    styles.flashcardBackContent
-                                  }
-                                  showsVerticalScrollIndicator={false}
-                                  style={{ flex: 1 }}
-                                >
-                                  {isKanji ? (
-                                    <View style={styles.flashcardBackInner}>
-                                      {content?.meaning && (
-                                        <View
-                                          style={[
-                                            styles.flashcardBackBox,
-                                            {
-                                              backgroundColor: "#fef3c7",
-                                              borderColor: "#fde68a",
-                                            },
-                                          ]}
-                                        >
-                                          <ThemedText
-                                            style={[
-                                              styles.flashcardBackText,
-                                              { color: "#92400e" },
-                                            ]}
-                                          >
-                                            {content.meaning}
-                                          </ThemedText>
-                                        </View>
-                                      )}
-                                      {(content?.onReading ||
-                                        content?.kunReading) && (
-                                        <View
-                                          style={styles.flashcardReadingContainer}
-                                        >
-                                          {content?.onReading && (
-                                            <ThemedText
-                                              style={[
-                                                styles.flashcardReadingText,
-                                                { color: "#d97706" },
-                                              ]}
-                                            >
-                                              {t(
-                                                "home.flashcard.on_reading",
-                                                "On"
-                                              )}
-                                              : {content.onReading}
-                                            </ThemedText>
-                                          )}
-                                          {content?.kunReading && (
-                                            <ThemedText
-                                              style={[
-                                                styles.flashcardReadingText,
-                                                { color: "#d97706" },
-                                              ]}
-                                            >
-                                              {t(
-                                                "home.flashcard.kun_reading",
-                                                "Kun"
-                                              )}
-                                              : {content.kunReading}
-                                            </ThemedText>
-                                          )}
-                                        </View>
-                                      )}
+                              {isKanji ? (
+                                <View style={styles.flashcardBackInner}>
+                                  {content?.meaning && (
+                                    <View style={[styles.flashcardBackBox, { backgroundColor: "#fef3c7", borderColor: "#fde68a" }]}>
+                                      <ThemedText style={[styles.flashcardBackText, { color: "#92400e" }]}>{content.meaning}</ThemedText>
                                     </View>
-                                  ) : isGrammar ? (
-                                    <View style={styles.flashcardBackInner}>
-                                      {content?.usages &&
-                                        content.usages.length > 0 && (
-                                          <View
-                                            style={[
-                                              styles.flashcardBackBox,
-                                              {
-                                                backgroundColor: "#cffafe",
-                                                borderColor: "#a5f3fc",
-                                              },
-                                            ]}
-                                          >
-                                            <ThemedText
-                                              style={[
-                                                styles.flashcardBackText,
-                                                { color: "#155e75" },
-                                              ]}
-                                            >
-                                              {content.usages[0]?.explanation ||
-                                                ""}
-                                            </ThemedText>
-                                            {content.usages[0]
-                                              ?.exampleSentence && (
-                                              <ThemedText
-                                                style={[
-                                                  styles.flashcardExampleText,
-                                                  { color: "#0e7490" },
-                                                ]}
-                                              >
-                                                {
-                                                  content.usages[0]
-                                                    .exampleSentence
-                                                }
-                                              </ThemedText>
-                                            )}
-                                          </View>
-                                        )}
-                                    </View>
-                                  ) : (
-                                    <View style={styles.flashcardBackInner}>
-                                      {content?.meaning && (
-                                        <View
-                                          style={[
-                                            styles.flashcardBackBox,
-                                            {
-                                              backgroundColor: "#e0f2fe",
-                                              borderColor: "#bae6fd",
-                                            },
-                                          ]}
-                                        >
-                                          <ThemedText
-                                            style={[
-                                              styles.flashcardBackText,
-                                              { color: "#0369a1" },
-                                            ]}
-                                          >
-                                            {content.meaning}
-                                          </ThemedText>
-                                        </View>
+                                  )}
+                                  {(content?.onReading || content?.kunReading) && (
+                                    <View style={styles.flashcardReadingContainer}>
+                                      {content?.onReading && (
+                                        <ThemedText style={[styles.flashcardReadingText, { color: "#d97706" }]}>
+                                          {t("home.flashcard.on_reading", "On")}: {content.onReading}
+                                        </ThemedText>
+                                      )}
+                                      {content?.kunReading && (
+                                        <ThemedText style={[styles.flashcardReadingText, { color: "#d97706" }]}>
+                                          {t("home.flashcard.kun_reading", "Kun")}: {content.kunReading}
+                                        </ThemedText>
                                       )}
                                     </View>
                                   )}
-                                </ScrollView>
-                              </NativeViewGestureHandler>
-                            </Animated.View>
-                          </View>
-                        </TapGestureHandler>
-                        {/* Mark as Read Button */}
+                                </View>
+                              ) : isGrammar ? (
+                                <View style={styles.flashcardBackInner}>
+                                  {content?.usages && content.usages.length > 0 && (
+                                    <View style={[styles.flashcardBackBox, { backgroundColor: "#cffafe", borderColor: "#a5f3fc" }]}>
+                                      <ThemedText style={[styles.flashcardBackText, { color: "#155e75" }]}>
+                                        {content.usages[0]?.explanation || ""}
+                                      </ThemedText>
+                                      {content.usages[0]?.exampleSentence && (
+                                        <ThemedText style={[styles.flashcardExampleText, { color: "#0e7490" }]}>
+                                          {content.usages[0].exampleSentence}
+                                        </ThemedText>
+                                      )}
+                                    </View>
+                                  )}
+                                </View>
+                              ) : (
+                                <View style={styles.flashcardBackInner}>
+                                  {content?.meaning && (
+                                    <View style={[styles.flashcardBackBox, { backgroundColor: "#e0f2fe", borderColor: "#bae6fd" }]}>
+                                      <ThemedText style={[styles.flashcardBackText, { color: "#0369a1" }]}>{content.meaning}</ThemedText>
+                                    </View>
+                                  )}
+                                </View>
+                              )}
+                            </ScrollView>
+                          </NativeViewGestureHandler>
+                        </Animated.View>
+                        </View>
+                      </TapGestureHandler>
+                      
+                      {/* Mark as Read Button */}
+                      {!selectedInsight.isRead && (
                         <TouchableOpacity
                           style={styles.markAsReadButton}
                           onPress={() => {
-                            if (selectedInsight?.id) {
-                              markAsReadMutation.mutate(
-                                selectedInsight.id.toString()
-                              );
+                            if (!markAsReadMutation.isPending) {
+                              markAsReadMutation.mutate(selectedInsight.id);
                             }
                           }}
                           disabled={markAsReadMutation.isPending}
-                          activeOpacity={0.8}
+                          activeOpacity={0.7}
                         >
                           <ThemedText style={styles.markAsReadButtonText}>
                             {markAsReadMutation.isPending
@@ -1360,9 +1124,10 @@ export default function HomeScreen() {
                               : t("home.flashcard.mark_as_read", "Đã đọc")}
                           </ThemedText>
                         </TouchableOpacity>
-                      </>
-                    );
-                  })()}
+                      )}
+                    </View>
+                  );
+                })()}
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -1372,15 +1137,11 @@ export default function HomeScreen() {
   );
 }
 
-/**
- * Styles for HomeScreen component
- */
 const styles = StyleSheet.create({
   contentContainer: {
     paddingBottom: 24,
     gap: 20,
   },
-  // Welcome Section
   welcomeSection: {
     marginBottom: 8,
   },
@@ -1397,37 +1158,17 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     flex: 1,
   },
-  tourButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "rgba(59, 130, 246, 0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(59, 130, 246, 0.2)",
-  },
-  tourButtonText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#3b82f6",
-  },
   welcomeSubtitle: {
     fontSize: 15,
     color: "#6b7280",
     lineHeight: 22,
   },
-  // AI personalization
   aiSection: {
     gap: 16,
   },
   aiSectionContainer: {
     position: "relative",
     gap: 16,
-  },
-  lockedContainer: {
-    opacity: 1,
   },
   aiHeroCard: {
     borderRadius: 24,
@@ -1513,68 +1254,29 @@ const styles = StyleSheet.create({
     color: "#92400e",
     fontWeight: "500",
   },
-  aiHeroHighlight: {
-    flexDirection: "row",
-    gap: 12,
-    alignItems: "center",
-    padding: 12,
-    borderRadius: 16,
-    backgroundColor: "rgba(67, 56, 202, 0.08)",
-  },
-  aiHeroHighlightLocked: {
-    backgroundColor: "rgba(217, 119, 6, 0.08)",
-    borderWidth: 1,
-    borderColor: "rgba(217, 119, 6, 0.2)",
-  },
-  aiHeroHighlightText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#312e81",
-  },
-  aiHeroHighlightTextLocked: {
-    color: "#78350f",
-    fontWeight: "600",
-  },
-  aiHeroHighlightSub: {
-    fontSize: 13,
-    color: "#4c1d95",
-  },
-  aiHeroHighlightSubLocked: {
-    color: "#92400e",
-    fontWeight: "400",
-  },
-  heroUnlockButton: {
-    marginTop: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: "#d97706",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    shadowColor: "#d97706",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  heroUnlockButtonText: {
-    color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "600",
-  },
   insightList: {
-    gap: 12,
+    marginTop: 8,
+    gap: 0,
   },
   insightCardsWrapper: {
-    gap: 12,
+    position: 'relative',
+    minHeight: 120,
+  },
+  insightScrollView: {
+    maxHeight: Dimensions.get("window").height * 0.5, // Max 50% of screen height
+  },
+  insightScrollContent: {
+    paddingBottom: 8,
   },
   insightCard: {
     borderWidth: 1,
     borderRadius: 18,
     padding: 16,
     backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
   insightBadgeRow: {
     flexDirection: "row",
@@ -1701,17 +1403,12 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: "400",
   },
-  unlockButton: {
-    marginTop: 4,
-    borderRadius: 12,
-    backgroundColor: "#d97706",
+  expandButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 12,
-    alignItems: "center",
-    shadowColor: "#d97706",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: 8,
   },
   unlockButtonText: {
     color: "#fff",
@@ -1756,98 +1453,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#d97706",
   },
-  // Statistics
-  statsContainer: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 4,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    padding: 16,
-    borderRadius: 16,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  statIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-  },
-  statValue: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    fontWeight: "500",
-    textAlign: "center",
-  },
-  // Chart
-  chartCard: {
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  chartHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  chartContainer: {
-    marginTop: 8,
-  },
-  chartBars: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "flex-end",
-    height: 120,
-  },
-  chartBarWrapper: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-end",
-  },
-  chartBarContainer: {
-    width: "80%",
-    height: 100,
-    justifyContent: "flex-end",
-    marginBottom: 8,
-  },
-  chartBar: {
-    width: "100%",
-    borderRadius: 6,
-    minHeight: 4,
-  },
-  chartLabel: {
-    fontSize: 11,
-    color: "#6b7280",
-    fontWeight: "500",
-  },
-  // Recent Activities
   recentSection: {
     marginBottom: 4,
   },
@@ -1950,7 +1555,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  // Suggestions
   suggestionsCard: {
     backgroundColor: "rgba(255, 255, 255, 0.95)",
     padding: 20,
@@ -2000,7 +1604,6 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     lineHeight: 18,
   },
-  // Test Card Styles
   testCard: {
     width: SCREEN_WIDTH * 0.6,
     backgroundColor: "rgba(255, 255, 255, 0.95)",
@@ -2056,7 +1659,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  // Flashcard Modal
   flashcardModalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.6)",
@@ -2069,25 +1671,22 @@ const styles = StyleSheet.create({
     maxWidth: SCREEN_WIDTH - 40,
     position: "relative",
   },
-  markAsReadButton: {
-    marginTop: 16,
-    backgroundColor: "#3b82f6",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    alignItems: "center",
+  flashcardCloseButton: {
+    position: "absolute",
+    top: -40,
+    right: 0,
+    zIndex: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     justifyContent: "center",
-    alignSelf: "center",
-    shadowColor: "#3b82f6",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  markAsReadButtonText: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "600",
+    shadowRadius: 4,
+    elevation: 4,
   },
   flashcardWrapper: {
     width: "100%",
@@ -2199,5 +1798,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: "center",
     lineHeight: 26,
+  },
+  markAsReadButton: {
+    marginTop: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: "#3b82f6",
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    shadowColor: "#3b82f6",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  markAsReadButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#ffffff",
   },
 });
