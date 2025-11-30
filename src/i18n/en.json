@@ -868,6 +868,14 @@
     "recent_empty": {
       "title": "No recent exercises yet",
       "description": "Finish a lesson or practice session and your history will appear here."
+    },
+    "flashcard": {
+      "on_reading": "On",
+      "kun_reading": "Kun",
+      "mark_as_read": "Mark as read",
+      "marking": "Processing...",
+      "marked_as_read": "Marked as read",
+      "mark_read_error": "Failed to mark as read"
     }
   },
   "quiz": {

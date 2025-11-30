@@ -385,6 +385,14 @@
     "recent_empty": {
         "title": "直近の練習はまだありません",
         "description": "レッスンや練習を完了すると、ここに履歴が表示されます。"
+    },
+    "flashcard": {
+        "on_reading": "オン読み",
+        "kun_reading": "訓読み",
+        "mark_as_read": "既読にする",
+        "marking": "処理中...",
+        "marked_as_read": "既読にしました",
+        "mark_read_error": "既読にできませんでした"
     }
     },
     "reading": {

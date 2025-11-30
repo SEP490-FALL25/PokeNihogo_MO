@@ -881,6 +881,14 @@
     "recent_empty": {
       "title": "Chưa có bài tập gần đây",
       "description": "Hoàn thành một bài học hoặc luyện tập để xem lịch sử của bạn tại đây."
+    },
+    "flashcard": {
+      "on_reading": "On",
+      "kun_reading": "Kun",
+      "mark_as_read": "Đã đọc",
+      "marking": "Đang xử lý...",
+      "marked_as_read": "Đã đánh dấu đã đọc",
+      "mark_read_error": "Không thể đánh dấu đã đọc"
     }
   },
   "quiz": {
