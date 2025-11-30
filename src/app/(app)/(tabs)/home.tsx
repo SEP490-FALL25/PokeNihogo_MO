@@ -43,6 +43,7 @@ import {
 import { CopilotStep, useCopilot, walkthroughable } from "react-native-copilot";
 import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
+import BounceButton from "@components/ui/BounceButton";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -892,6 +893,11 @@ export default function HomeScreen() {
 
         {/* Personalized Suggestions */}
         <ThemedView style={styles.suggestionsCard}>
+          <BounceButton onPress={() => {
+            router.push(ROUTES.STARTER.SELECT_LEVEL);
+          }}>
+            Test
+          </BounceButton>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             {t("home.suggestions")}
           </ThemedText>

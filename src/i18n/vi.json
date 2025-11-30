@@ -88,7 +88,13 @@
       "stop_speaking": "Dừng đọc",
       "play_audio": "Phát audio",
       "pause_audio": "Tạm dừng audio",
-      "audio_question_instruction": "Nghe audio và chọn đáp án đúng"
+      "audio_question_instruction": "Nghe audio và chọn đáp án đúng",
+      "result_title": "Hoàn thành bài kiểm tra!",
+      "result_subtitle": "Kết quả của bạn",
+      "recommended_level": "Trình độ đề xuất",
+      "total_questions": "Tổng số câu hỏi",
+      "correct_answers": "Số câu đúng",
+      "percentage": "Điểm số"
     },
     "choose_starter": {
       "title": "Chọn Đồng hành của bạn!",

@@ -150,9 +150,35 @@ export function usePlacementTest(testId: number | string = 1) {
     try {
       setIsLoading(true);
       if (userTestAttemptId) {
-        const res = await userTestService.checkCompletion(userTestAttemptId);
-        const levelN = (res.data as any)?.levelN;
-        const recommended: Difficulty = levelN ? (`N${levelN}` as Difficulty) : computeRecommendation(questions, nextAnswers);
+        // Nộp bài placement test và lấy thông tin từ response
+        try {
+          const submitRes = await userTestService.submitPlacementTestCompletion(userTestAttemptId, 0);
+          const responseData = (submitRes.data as any)?.data;
+          if (responseData) {
+            const levelN = responseData.levelN;
+            const levelId = responseData.levelId || null;
+            const totalCorrect = responseData.totalCorrect;
+            const totalQuestions = responseData.totalQuestions;
+            const percentage = responseData.percentage;
+            
+            if (levelN) {
+              const recommended: Difficulty = `N${levelN}` as Difficulty;
+              return { 
+                finished: true as const, 
+                recommended,
+                levelN,
+                levelId,
+                totalCorrect,
+                totalQuestions,
+                percentage,
+              };
+            }
+          }
+        } catch (submitError) {
+          console.error("Error submitting placement test:", submitError);
+        }
+        // Fallback to computed recommendation if no levelN from API
+        const recommended = computeRecommendation(questions, nextAnswers);
         return { finished: true as const, recommended };
       }
       const recommended = computeRecommendation(questions, nextAnswers);

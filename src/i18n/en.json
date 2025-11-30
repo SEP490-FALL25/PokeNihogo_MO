@@ -88,7 +88,13 @@
       "stop_speaking": "Stop speaking",
       "play_audio": "Play audio",
       "pause_audio": "Pause audio",
-      "audio_question_instruction": "Listen to the audio and choose the correct answer"
+      "audio_question_instruction": "Listen to the audio and choose the correct answer",
+      "result_title": "Test Completed!",
+      "result_subtitle": "Here are your results",
+      "recommended_level": "Recommended Level",
+      "total_questions": "Total Questions",
+      "correct_answers": "Correct Answers",
+      "percentage": "Score"
     },
     "choose_starter": {
       "title": "Choose your Partner!",

@@ -15,7 +15,7 @@ import { router } from "expo-router";
 import * as Speech from "expo-speech";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Animated, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Animated, ScrollView, TouchableOpacity, View } from "react-native";
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -52,6 +52,16 @@ export default function PlacementTestScreen() {
   // Speech state
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+  // Result state
+  const [testResult, setTestResult] = React.useState<{
+    levelN: number;
+    levelId: number | null;
+    totalCorrect: number;
+    totalQuestions: number;
+    percentage: number;
+    recommended: Difficulty;
+  } | null>(null);
 
   // Store selectors
   const setLevel = useUserStore((s) => (s as any).setLevel);
@@ -168,8 +178,35 @@ export default function PlacementTestScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       return;
     }
-    if (result.recommended) setLevel(result.recommended as Difficulty);
+    
+    // Lưu kết quả và hiển thị màn hình kết quả
+    if (result.levelN && result.totalCorrect !== undefined) {
+      setTestResult({
+        levelN: result.levelN,
+        levelId: result.levelId || null,
+        totalCorrect: result.totalCorrect,
+        totalQuestions: result.totalQuestions || questions.length,
+        percentage: result.percentage || 0,
+        recommended: result.recommended,
+      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else {
+      // Fallback nếu không có kết quả chi tiết
+      if (result.recommended) setLevel(result.recommended as Difficulty);
+      setHasCompletedPlacementTest(true);
+      router.replace(ROUTES.STARTER.SELECT_LEVEL as any);
+    }
+  };
+
+  /**
+   * Handles continuing after viewing results
+   */
+  const handleContinue = () => {
+    if (testResult?.recommended) {
+      setLevel(testResult.recommended);
+    }
     setHasCompletedPlacementTest(true);
+    setTestResult(null);
     router.replace(ROUTES.STARTER.SELECT_LEVEL as any);
   };
 
@@ -228,6 +265,185 @@ export default function PlacementTestScreen() {
   // ============================================================================
   // RENDER
   // ============================================================================
+  // Hiển thị màn hình kết quả nếu có
+  if (testResult) {
+    return (
+      <StarterScreenLayout currentStep={1} totalSteps={2} onBack={handleBack}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: 20 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <View style={{ alignItems: "center", marginBottom: 32 }}>
+            <View
+              style={{
+                width: 100,
+                height: 100,
+                borderRadius: 50,
+                backgroundColor: "#3b82f6",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 20,
+              }}
+            >
+              <Ionicons name="trophy" size={50} color="#ffffff" />
+            </View>
+            <ThemedText
+              type="defaultSemiBold"
+              style={{ fontSize: 28, marginBottom: 8, padding: 20 }}
+            >
+              {t("auth.placement_test.result_title")}
+            </ThemedText>
+            <ThemedText
+              style={{ fontSize: 16, color: "#6b7280", textAlign: "center" }}
+            >
+              {t("auth.placement_test.result_subtitle")}
+            </ThemedText>
+          </View>
+
+          {/* Level Result */}
+          <View
+            style={{
+              backgroundColor: "#f3f4f6",
+              borderRadius: 20,
+              padding: 10,
+              marginBottom: 24,
+              alignItems: "center",
+            }}
+          >
+            <ThemedText
+              style={{ fontSize: 14, color: "#6b7280", marginBottom: 12 }}
+            >
+              {t("auth.placement_test.recommended_level")}
+            </ThemedText>
+            <View
+              style={{
+                minHeight: 60,
+                justifyContent: "center",
+                alignItems: "center",
+                width: "100%",
+              }}
+            >
+              <ThemedText
+                type="defaultSemiBold"
+                style={{ fontSize: 40, color: "#3b82f6", padding: 36 }}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {testResult.recommended}
+              </ThemedText>
+            </View>
+          </View>
+
+          {/* Statistics */}
+          <View
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: 16,
+              padding: 20,
+              marginBottom: 24,
+              borderWidth: 1,
+              borderColor: "#e5e7eb",
+            }}
+          >
+            {/* Total Questions */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingVertical: 16,
+                borderBottomWidth: 1,
+                borderBottomColor: "#e5e7eb",
+              }}
+            >
+              <ThemedText style={{ fontSize: 16, color: "#374151" }}>
+                {t("auth.placement_test.total_questions")}
+              </ThemedText>
+              <ThemedText
+                type="defaultSemiBold"
+                style={{ fontSize: 18, color: "#111827" }}
+              >
+                {testResult.totalQuestions}
+              </ThemedText>
+            </View>
+
+            {/* Correct Answers */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingVertical: 16,
+                borderBottomWidth: 1,
+                borderBottomColor: "#e5e7eb",
+              }}
+            >
+              <ThemedText style={{ fontSize: 16, color: "#374151" }}>
+                {t("auth.placement_test.correct_answers")}
+              </ThemedText>
+              <ThemedText
+                type="defaultSemiBold"
+                style={{ fontSize: 18, color: "#10b981" }}
+              >
+                {testResult.totalCorrect}
+              </ThemedText>
+            </View>
+
+            {/* Percentage */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingVertical: 16,
+              }}
+            >
+              <ThemedText style={{ fontSize: 16, color: "#374151" }}>
+                {t("auth.placement_test.percentage")}
+              </ThemedText>
+              <ThemedText
+                type="defaultSemiBold"
+                style={{ fontSize: 18, color: "#3b82f6" }}
+              >
+                {testResult.percentage.toFixed(1)}%
+              </ThemedText>
+            </View>
+          </View>
+
+          {/* Progress Bar */}
+          <View style={{ marginBottom: 32 }}>
+            <View
+              style={{
+                height: 12,
+                backgroundColor: "#e5e7eb",
+                borderRadius: 9999,
+                overflow: "hidden",
+              }}
+            >
+              <View
+                style={{
+                  width: `${testResult.percentage}%`,
+                  backgroundColor: "#10b981",
+                  height: "100%",
+                  borderRadius: 9999,
+                }}
+              />
+            </View>
+          </View>
+
+          {/* Continue Button */}
+          <View style={{ paddingBottom: 20 }}>
+            <BounceButton variant="solid" onPress={handleContinue}>
+              {t("common.continue")}
+            </BounceButton>
+          </View>
+        </ScrollView>
+      </StarterScreenLayout>
+    );
+  }
+
   return (
     <StarterScreenLayout currentStep={1} totalSteps={2} onBack={handleBack}>
       <View style={{ flex: 1 }}>
