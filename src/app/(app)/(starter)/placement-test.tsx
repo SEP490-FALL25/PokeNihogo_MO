@@ -11,11 +11,18 @@ import { usePlacementTest } from "@hooks/usePlacementTest";
 import { ROUTES } from "@routes/routes";
 import { useUserStore } from "@stores/user/user.config";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import * as Speech from "expo-speech";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Animated, ScrollView, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Animated,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 // ============================================================================
 // TYPES & INTERFACES
@@ -51,7 +58,7 @@ export default function PlacementTestScreen() {
 
   // Speech state
   const [isSpeaking, setIsSpeaking] = React.useState(false);
-  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const speechScaleAnim = React.useRef(new Animated.Value(1)).current;
 
   // Result state
   const [testResult, setTestResult] = React.useState<{
@@ -63,6 +70,12 @@ export default function PlacementTestScreen() {
     recommended: Difficulty;
   } | null>(null);
 
+  // Animation values for result screen
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const resultScaleAnim = React.useRef(new Animated.Value(0.8)).current;
+  const trophyScaleAnim = React.useRef(new Animated.Value(0)).current;
+  const progressAnim = React.useRef(new Animated.Value(0)).current;
+
   // Store selectors
   const setLevel = useUserStore((s) => (s as any).setLevel);
   const setHasCompletedPlacementTest = useUserStore(
@@ -73,7 +86,10 @@ export default function PlacementTestScreen() {
   // COMPUTED VALUES
   // ============================================================================
   const currentIndex = React.useMemo(
-    () => (questions && current ? questions.findIndex((q: any) => q.id === (current as any).id) : 0),
+    () =>
+      questions && current
+        ? questions.findIndex((q: any) => q.id === (current as any).id)
+        : 0,
     [questions, current]
   );
 
@@ -126,12 +142,12 @@ export default function PlacementTestScreen() {
     if (isSpeaking) {
       const loop = Animated.loop(
         Animated.sequence([
-          Animated.timing(scaleAnim, {
+          Animated.timing(speechScaleAnim, {
             toValue: 1.2,
             duration: 600,
             useNativeDriver: true,
           }),
-          Animated.timing(scaleAnim, {
+          Animated.timing(speechScaleAnim, {
             toValue: 1,
             duration: 600,
             useNativeDriver: true,
@@ -141,13 +157,13 @@ export default function PlacementTestScreen() {
       loop.start();
       return () => loop.stop();
     } else {
-      Animated.timing(scaleAnim, {
+      Animated.timing(speechScaleAnim, {
         toValue: 1,
         duration: 200,
         useNativeDriver: true,
       }).start();
     }
-  }, [isSpeaking, scaleAnim]);
+  }, [isSpeaking, speechScaleAnim]);
 
   /**
    * Cleanup effect - stops speech when component unmounts
@@ -178,7 +194,7 @@ export default function PlacementTestScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       return;
     }
-    
+
     // Lưu kết quả và hiển thị màn hình kết quả
     if (result.levelN && result.totalCorrect !== undefined) {
       setTestResult({
@@ -209,6 +225,46 @@ export default function PlacementTestScreen() {
     setTestResult(null);
     router.replace(ROUTES.STARTER.SELECT_LEVEL as any);
   };
+
+  // Animation effect for result screen
+  React.useEffect(() => {
+    if (testResult) {
+      // Reset animations
+      fadeAnim.setValue(0);
+      resultScaleAnim.setValue(0.8);
+      trophyScaleAnim.setValue(0);
+      progressAnim.setValue(0);
+
+      // Start animations
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.spring(resultScaleAnim, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        }),
+        Animated.sequence([
+          Animated.delay(200),
+          Animated.spring(trophyScaleAnim, {
+            toValue: 1,
+            tension: 50,
+            friction: 7,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.timing(progressAnim, {
+          toValue: testResult.percentage,
+          duration: 1500,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
+  }, [testResult, fadeAnim, resultScaleAnim, trophyScaleAnim, progressAnim]);
 
   // ============================================================================
   // EARLY RETURNS & VALIDATION
@@ -265,181 +321,303 @@ export default function PlacementTestScreen() {
   // ============================================================================
   // RENDER
   // ============================================================================
+  // Helper function for level gradient
+  const getLevelGradient = (level: Difficulty): [string, string, string] => {
+    switch (level) {
+      case "N3":
+        return ["#8b5cf6", "#a78bfa", "#c4b5fd"];
+      case "N4":
+        return ["#3b82f6", "#60a5fa", "#93c5fd"];
+      default:
+        return ["#10b981", "#34d399", "#6ee7b7"];
+    }
+  };
+
+  const progressWidth = progressAnim.interpolate({
+    inputRange: [0, 100],
+    outputRange: ["0%", "100%"],
+  });
+
   // Hiển thị màn hình kết quả nếu có
   if (testResult) {
     return (
       <StarterScreenLayout currentStep={1} totalSteps={2} onBack={handleBack}>
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 20 }}
-          showsVerticalScrollIndicator={false}
+        <Animated.View
+          style={{
+            flex: 1,
+            opacity: fadeAnim,
+            transform: [{ scale: resultScaleAnim }],
+          }}
         >
-          {/* Header */}
-          <View style={{ alignItems: "center", marginBottom: 32 }}>
-            <View
-              style={{
-                width: 100,
-                height: 100,
-                borderRadius: 50,
-                backgroundColor: "#3b82f6",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: 20,
-              }}
-            >
-              <Ionicons name="trophy" size={50} color="#ffffff" />
-            </View>
-            <ThemedText
-              type="defaultSemiBold"
-              style={{ fontSize: 28, marginBottom: 8, padding: 20 }}
-            >
-              {t("auth.placement_test.result_title")}
-            </ThemedText>
-            <ThemedText
-              style={{ fontSize: 16, color: "#6b7280", textAlign: "center" }}
-            >
-              {t("auth.placement_test.result_subtitle")}
-            </ThemedText>
-          </View>
-
-          {/* Level Result */}
-          <View
-            style={{
-              backgroundColor: "#f3f4f6",
-              borderRadius: 20,
-              padding: 10,
-              marginBottom: 24,
-              alignItems: "center",
-            }}
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ padding: 20, paddingTop: 10 }}
+            showsVerticalScrollIndicator={false}
           >
-            <ThemedText
-              style={{ fontSize: 14, color: "#6b7280", marginBottom: 12 }}
-            >
-              {t("auth.placement_test.recommended_level")}
-            </ThemedText>
-            <View
-              style={{
-                minHeight: 60,
-                justifyContent: "center",
-                alignItems: "center",
-                width: "100%",
-              }}
-            >
+            {/* Header with Trophy */}
+            <View style={{ alignItems: "center", marginBottom: 32 }}>
+              <Animated.View
+                style={{
+                  transform: [{ scale: trophyScaleAnim }],
+                }}
+              >
+                <LinearGradient
+                  colors={["#fbbf24", "#f59e0b", "#d97706"]}
+                  style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 60,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: 20,
+                    shadowColor: "#fbbf24",
+                    shadowOffset: { width: 0, height: 8 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 12,
+                    elevation: 8,
+                  }}
+                >
+                  <Ionicons name="trophy" size={60} color="#ffffff" />
+                </LinearGradient>
+              </Animated.View>
               <ThemedText
                 type="defaultSemiBold"
-                style={{ fontSize: 40, color: "#3b82f6", padding: 36 }}
-                numberOfLines={1}
-                adjustsFontSizeToFit
+                style={{ fontSize: 32, marginBottom: 8, color: "#ffffff", padding: 20 }}
               >
-                {testResult.recommended}
-              </ThemedText>
-            </View>
-          </View>
-
-          {/* Statistics */}
-          <View
-            style={{
-              backgroundColor: "#ffffff",
-              borderRadius: 16,
-              padding: 20,
-              marginBottom: 24,
-              borderWidth: 1,
-              borderColor: "#e5e7eb",
-            }}
-          >
-            {/* Total Questions */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingVertical: 16,
-                borderBottomWidth: 1,
-                borderBottomColor: "#e5e7eb",
-              }}
-            >
-              <ThemedText style={{ fontSize: 16, color: "#374151" }}>
-                {t("auth.placement_test.total_questions")}
+                {t("auth.placement_test.result_title")}
               </ThemedText>
               <ThemedText
-                type="defaultSemiBold"
-                style={{ fontSize: 18, color: "#111827" }}
+                style={{
+                  fontSize: 16,
+                  color: "rgba(255,255,255,0.9)",
+                  textAlign: "center",
+                }}
               >
-                {testResult.totalQuestions}
+                {t("auth.placement_test.result_subtitle")}
               </ThemedText>
             </View>
 
-            {/* Correct Answers */}
-            <View
+            {/* Level Result Card with Gradient */}
+            <Animated.View
               style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingVertical: 16,
-                borderBottomWidth: 1,
-                borderBottomColor: "#e5e7eb",
+                opacity: fadeAnim,
+                transform: [{ scale: resultScaleAnim }],
               }}
             >
-              <ThemedText style={{ fontSize: 16, color: "#374151" }}>
-                {t("auth.placement_test.correct_answers")}
-              </ThemedText>
-              <ThemedText
-                type="defaultSemiBold"
-                style={{ fontSize: 18, color: "#10b981" }}
+              <LinearGradient
+                colors={getLevelGradient(testResult.recommended)}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  borderRadius: 24,
+                  padding: 32,
+                  marginBottom: 24,
+                  alignItems: "center",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: 0.2,
+                  shadowRadius: 16,
+                  elevation: 8,
+                }}
               >
-                {testResult.totalCorrect}
-              </ThemedText>
-            </View>
+                <ThemedText
+                  style={{
+                    fontSize: 14,
+                    color: "rgba(255,255,255,0.9)",
+                    marginBottom: 16,
+                    fontWeight: "500",
+                  }}
+                >
+                  {t("auth.placement_test.recommended_level")}
+                </ThemedText>
+                <View
+                  style={{
+                    minHeight: 60,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                >
+                  <ThemedText
+                    type="defaultSemiBold"
+                    style={{
+                      fontSize: 56,
+                      color: "#ffffff",
+                      textShadowColor: "rgba(0,0,0,0.2)",
+                      textShadowOffset: { width: 0, height: 2 },
+                      textShadowRadius: 4,
+                      padding: 30,
+                    }}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    {testResult.recommended}
+                  </ThemedText>
+                </View>
+              </LinearGradient>
+            </Animated.View>
 
-            {/* Percentage */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingVertical: 16,
-              }}
-            >
-              <ThemedText style={{ fontSize: 16, color: "#374151" }}>
-                {t("auth.placement_test.percentage")}
-              </ThemedText>
-              <ThemedText
-                type="defaultSemiBold"
-                style={{ fontSize: 18, color: "#3b82f6" }}
-              >
-                {testResult.percentage.toFixed(1)}%
-              </ThemedText>
-            </View>
-          </View>
-
-          {/* Progress Bar */}
-          <View style={{ marginBottom: 32 }}>
-            <View
-              style={{
-                height: 12,
-                backgroundColor: "#e5e7eb",
-                borderRadius: 9999,
-                overflow: "hidden",
-              }}
-            >
+            {/* Statistics Cards */}
+            <View style={{ gap: 16, marginBottom: 24 }}>
+              {/* Total Questions Card */}
               <View
                 style={{
-                  width: `${testResult.percentage}%`,
-                  backgroundColor: "#10b981",
-                  height: "100%",
-                  borderRadius: 9999,
+                  backgroundColor: "#ffffff",
+                  borderRadius: 20,
+                  padding: 20,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                  elevation: 4,
                 }}
-              />
-            </View>
-          </View>
+              >
+                <View
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 28,
+                    backgroundColor: "#f3f4f6",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 16,
+                  }}
+                >
+                  <Ionicons name="document-text" size={28} color="#3b82f6" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText
+                    style={{ fontSize: 14, color: "#6b7280", marginBottom: 4 }}
+                  >
+                    {t("auth.placement_test.total_questions")}
+                  </ThemedText>
+                  <ThemedText
+                    type="defaultSemiBold"
+                    style={{ fontSize: 24, color: "#111827" }}
+                  >
+                    {testResult.totalQuestions}
+                  </ThemedText>
+                </View>
+              </View>
 
-          {/* Continue Button */}
-          <View style={{ paddingBottom: 20 }}>
-            <BounceButton variant="solid" onPress={handleContinue}>
-              {t("common.continue")}
-            </BounceButton>
-          </View>
-        </ScrollView>
+              {/* Correct Answers Card */}
+              <View
+                style={{
+                  backgroundColor: "#ffffff",
+                  borderRadius: 20,
+                  padding: 20,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                  elevation: 4,
+                }}
+              >
+                <View
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 28,
+                    backgroundColor: "#ecfdf5",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 16,
+                  }}
+                >
+                  <Ionicons name="checkmark-circle" size={28} color="#10b981" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText
+                    style={{ fontSize: 14, color: "#6b7280", marginBottom: 4 }}
+                  >
+                    {t("auth.placement_test.correct_answers")}
+                  </ThemedText>
+                  <ThemedText
+                    type="defaultSemiBold"
+                    style={{ fontSize: 24, color: "#10b981" }}
+                  >
+                    {testResult.totalCorrect}
+                  </ThemedText>
+                </View>
+              </View>
+
+              {/* Percentage Card */}
+              <View
+                style={{
+                  backgroundColor: "#ffffff",
+                  borderRadius: 20,
+                  padding: 20,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                  elevation: 4,
+                }}
+              >
+                <View
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 28,
+                    backgroundColor: "#eff6ff",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginRight: 16,
+                  }}
+                >
+                  <Ionicons name="stats-chart" size={28} color="#3b82f6" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText
+                    style={{ fontSize: 14, color: "#6b7280", marginBottom: 4 }}
+                  >
+                    {t("auth.placement_test.percentage")}
+                  </ThemedText>
+                  <ThemedText
+                    type="defaultSemiBold"
+                    style={{ fontSize: 24, color: "#3b82f6" }}
+                  >
+                    {testResult.percentage.toFixed(1)}%
+                  </ThemedText>
+                </View>
+              </View>
+            </View>
+
+            {/* Progress Bar with Animation */}
+            <View style={{ marginBottom: 32 }}>
+              <View
+                style={{
+                  height: 16,
+                  backgroundColor: "rgba(255,255,255,0.3)",
+                  borderRadius: 9999,
+                  overflow: "hidden",
+                }}
+              >
+                <Animated.View
+                  style={{
+                    width: progressWidth,
+                    height: "100%",
+                    backgroundColor: "#10b981",
+                    borderRadius: 9999,
+                  }}
+                />
+              </View>
+            </View>
+
+            {/* Continue Button */}
+            <View style={{ paddingBottom: 20 }}>
+              <BounceButton variant="solid" onPress={handleContinue}>
+                {t("common.continue")}
+              </BounceButton>
+            </View>
+          </ScrollView>
+        </Animated.View>
       </StarterScreenLayout>
     );
   }
@@ -521,7 +699,9 @@ export default function PlacementTestScreen() {
                       : "#ffffff",
                   }}
                 >
-                  <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                  <Animated.View
+                    style={{ transform: [{ scale: speechScaleAnim }] }}
+                  >
                     <Ionicons
                       name={isSpeaking ? "volume-high" : "volume-high"}
                       size={18}

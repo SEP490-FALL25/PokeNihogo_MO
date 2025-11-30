@@ -894,7 +894,10 @@ export default function HomeScreen() {
         {/* Personalized Suggestions */}
         <ThemedView style={styles.suggestionsCard}>
           <BounceButton onPress={() => {
-            router.push(ROUTES.STARTER.SELECT_LEVEL);
+            router.push({
+              pathname: ROUTES.STARTER.PLACEMENT_TEST,
+              params: { userTestAttempt: 2 },
+            });
           }}>
             Test
           </BounceButton>
