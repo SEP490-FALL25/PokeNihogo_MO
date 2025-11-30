@@ -27,6 +27,7 @@ import VoiceRecorder from "@components/ui/EnhancedAudioRecorder";
 import { disconnectSocket, getSocket } from "@configs/socket";
 import { SubscriptionFeatureKey } from "@constants/subscription.enum";
 import { useAuth } from "@hooks/useAuth";
+import { useConversationRooms } from "@hooks/useConversation";
 import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
 import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
 import { ROUTES } from "@routes/routes";
@@ -306,12 +307,51 @@ export default function AiConversationScreen() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationTitle, setConversationTitle] = useState<string | null>(null);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<
     string | undefined
   >();
   const [isListSheetOpen, setIsListSheetOpen] = useState(false);
   const queryClient = useQueryClient();
+  // Get conversation rooms to find title
+  const { data: conversationRoomsData } = useConversationRooms({
+    currentPage: 1,
+    pageSize: 50,
+  });
+
+  // Update conversation title when conversationId changes
+  useEffect(() => {
+    if (conversationId && conversationRoomsData?.results) {
+      const room = conversationRoomsData.results.find(
+        (r) => r.conversationId === conversationId
+      );
+      if (room?.title) {
+        setConversationTitle(room.title);
+      } else {
+        // If not found in cache, set to null to show default
+        setConversationTitle(null);
+      }
+    } else {
+      setConversationTitle(null);
+    }
+  }, [conversationId, conversationRoomsData]);
+
+  // Set initial conversationId and title from params
+  useEffect(() => {
+    if (initialConversationId && !conversationId) {
+      setConversationId(initialConversationId);
+      // Try to find title from cache
+      if (conversationRoomsData?.results) {
+        const room = conversationRoomsData.results.find(
+          (r) => r.conversationId === initialConversationId
+        );
+        if (room?.title) {
+          setConversationTitle(room.title);
+        }
+      }
+    }
+  }, [initialConversationId, conversationId, conversationRoomsData]);
 
   const socketRef = useRef<Socket | null>(null);
   const pendingNewRoomRef = useRef(false);
@@ -778,13 +818,17 @@ export default function AiConversationScreen() {
     });
 
     // Listen for joined event (after join)
-    socket.on("joined", (data: { conversationId?: string }) => {
+    socket.on("joined", (data: { conversationId?: string; title?: string }) => {
       devLog("[SOCKET] Joined room:", data);
       const wasPendingNewRoom = pendingNewRoomRef.current;
       // Reset pending flag to avoid accidental future invalidations
       pendingNewRoomRef.current = false;
       if (data?.conversationId) {
         setConversationId(data.conversationId);
+        // Update title if provided in joined event
+        if (data.title) {
+          setConversationTitle(data.title);
+        }
       }
       setIsLoading(false);
       if (wasPendingNewRoom && data?.conversationId) {
@@ -858,6 +902,10 @@ export default function AiConversationScreen() {
         })();
         if (normalized?.conversationId) {
           updateRoomCache(normalized);
+          // Update title if this is the current conversation
+          if (normalized.conversationId === conversationId && normalized.title) {
+            setConversationTitle(normalized.title);
+          }
         }
       }
     );
@@ -1145,6 +1193,7 @@ export default function AiConversationScreen() {
     t,
     queryClient,
     updateRoomCache,
+    conversationId,
   ]);
 
   // Send audio to server via WebSocket
@@ -1238,18 +1287,29 @@ export default function AiConversationScreen() {
           alignItems: "center",
           flexDirection: "row",
           paddingHorizontal: 12,
+          position: "relative",
         }}
       >
         <TouchableOpacity onPress={() => router.back()} style={{ padding: 8 }}>
           <ArrowLeftIcon size={20} color="#1f2937" />
         </TouchableOpacity>
-        <ThemedText style={{ fontSize: 18, fontWeight: "700", marginLeft: 4, flex: 1 }}>
-          {t("home.ai.conversation.title")}
+        <ThemedText
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            fontSize: 24,
+            fontWeight: "700",
+            textAlign: "center",
+            zIndex: -1,
+          }}
+        >
+          {conversationTitle || t("home.ai.conversation.title")}
         </ThemedText>
         {hasAIKaiwa && (
           <TouchableOpacity
             onPress={() => setIsListSheetOpen(true)}
-            style={{ padding: 8 }}
+            style={{ padding: 8, marginLeft: "auto" }}
           >
             <Menu size={20} color="#1f2937" />
           </TouchableOpacity>
@@ -1752,6 +1812,15 @@ export default function AiConversationScreen() {
               // Switch to existing conversation
               setIsLoading(true);
               setConversationId(convId);
+              // Find and set title from conversation rooms
+              const room = conversationRoomsData?.results?.find(
+                (r) => r.conversationId === convId
+              );
+              if (room?.title) {
+                setConversationTitle(room.title);
+              } else {
+                setConversationTitle(null);
+              }
               if (socketRef.current?.connected) {
                 socketRef.current.emit("join-kaiwa-room", {
                   conversationId: convId,
@@ -1760,6 +1829,7 @@ export default function AiConversationScreen() {
             } else {
               // New conversation: wait until the first recording before creating the room
               setConversationId(null);
+              setConversationTitle(null);
               setIsLoading(false);
             }
           }}

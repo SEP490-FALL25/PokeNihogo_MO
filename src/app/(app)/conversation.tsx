@@ -706,13 +706,25 @@ export default function ConversationScreen() {
           alignItems: "center",
           flexDirection: "row",
           paddingHorizontal: 12,
+          paddingVertical:20,
+          position: "relative",
         }}
       >
         <TouchableOpacity onPress={() => router.back()} style={{ padding: 8 }}>
           <ArrowLeftIcon size={20} color="#1f2937" />
         </TouchableOpacity>
-        <ThemedText style={{ fontSize: 18, fontWeight: "700", marginLeft: 4 }}>
-          Conversation
+        <ThemedText
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            fontSize: 22,
+            fontWeight: "700",
+            textAlign: "center",
+            zIndex: -1,
+          }}
+        >
+          {testData?.name || "Conversation"}
         </ThemedText>
       </View>
 
@@ -912,10 +924,12 @@ export default function ConversationScreen() {
                 isAudioPlaying ||
                 (isSequencing && !awaitingUser)
               }
+              showWaveform={false}
               maxDuration={10}
               showSaveButton={false}
+              showDeleteButton={false}
               autoStopOnSilence={true}
-              silenceDurationSeconds={2}
+              silenceDurationSeconds={4}
               silenceDbThreshold={-50}
               feedbackText={feedbackText || nextUserPrompt}
               feedbackWords={feedbackWords}
