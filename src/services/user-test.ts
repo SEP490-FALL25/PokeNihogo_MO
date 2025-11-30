@@ -56,6 +56,11 @@ const userTestService = {
     return axiosPrivate.put(`/user-test-attempt/${userTestAttemptId}/submit-completion`, { time });
   },
 
+  // Nộp bài placement test
+  submitPlacementTestCompletion: async (userTestAttemptId: string | number, time: number = 0) => {
+    return axiosPrivate.put(`/user-test-attempt/${userTestAttemptId}/placement-test/submit-completion`, { time });
+  },
+
   upsertTestAnswerLog: async (answerLog: IUpsertUserTestAnswerLogRequest) => {
     return axiosPrivate.post(`/user-test-answer-log/upsert`, answerLog);
   },

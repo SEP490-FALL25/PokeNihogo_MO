@@ -24,6 +24,13 @@ const userSrsReviewService = {
 
     return axiosPrivate.get(url);
   },
+  /**
+   * PATCH /user-srs-review/{id}/read
+   * Mark SRS review as read
+   */
+  markAsRead: (id: string) => {
+    return axiosPrivate.patch(`/user-srs-review/${id}/read`);
+  },
 };
 
 export default userSrsReviewService;

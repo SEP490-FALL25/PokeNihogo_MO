@@ -88,7 +88,13 @@
       "stop_speaking": "Dừng đọc",
       "play_audio": "Phát audio",
       "pause_audio": "Tạm dừng audio",
-      "audio_question_instruction": "Nghe audio và chọn đáp án đúng"
+      "audio_question_instruction": "Nghe audio và chọn đáp án đúng",
+      "result_title": "Hoàn thành bài kiểm tra!",
+      "result_subtitle": "Kết quả của bạn",
+      "recommended_level": "Trình độ đề xuất",
+      "total_questions": "Tổng số câu hỏi",
+      "correct_answers": "Số câu đúng",
+      "percentage": "Điểm số"
     },
     "choose_starter": {
       "title": "Chọn Đồng hành của bạn!",
@@ -875,6 +881,14 @@
     "recent_empty": {
       "title": "Chưa có bài tập gần đây",
       "description": "Hoàn thành một bài học hoặc luyện tập để xem lịch sử của bạn tại đây."
+    },
+    "flashcard": {
+      "on_reading": "On",
+      "kun_reading": "Kun",
+      "mark_as_read": "Đã đọc",
+      "marking": "Đang xử lý...",
+      "marked_as_read": "Đã đánh dấu đã đọc",
+      "mark_read_error": "Không thể đánh dấu đã đọc"
     }
   },
   "quiz": {

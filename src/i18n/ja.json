@@ -112,7 +112,13 @@
             "stop_speaking": "読み上げを停止",
             "play_audio": "音声を再生",
             "pause_audio": "音声を一時停止",
-            "audio_question_instruction": "音声を聞いて正しい答えを選択してください"
+            "audio_question_instruction": "音声を聞いて正しい答えを選択してください",
+            "result_title": "テスト完了！",
+            "result_subtitle": "結果はこちらです",
+            "recommended_level": "推奨レベル",
+            "total_questions": "総質問数",
+            "correct_answers": "正解数",
+            "percentage": "スコア"
         }
     },
     "navigation": {
@@ -379,6 +385,14 @@
     "recent_empty": {
         "title": "直近の練習はまだありません",
         "description": "レッスンや練習を完了すると、ここに履歴が表示されます。"
+    },
+    "flashcard": {
+        "on_reading": "オン読み",
+        "kun_reading": "訓読み",
+        "mark_as_read": "既読にする",
+        "marking": "処理中...",
+        "marked_as_read": "既読にしました",
+        "mark_read_error": "既読にできませんでした"
     }
     },
     "reading": {

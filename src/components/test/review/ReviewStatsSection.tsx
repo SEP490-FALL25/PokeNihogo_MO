@@ -151,14 +151,16 @@ export const ReviewStatsSection: React.FC<ReviewStatsSectionProps> = ({
 
       {/* Time and Expand Row */}
       <View style={styles.timeExpandRow}>
-        <View style={styles.timeContainer}>
+        {time > 0 && (
+          <View style={styles.timeContainer}>
           <MaterialCommunityIcons
             name="timer-outline"
             size={20}
             color="#14b8a6"
           />
-          <Text style={styles.timeText}>{formatTime(time)}</Text>
-        </View>
+            <Text style={styles.timeText}>{formatTime(time)}</Text>
+          </View>
+        )}
 
         {questions.length > 0 && (
           <TouchableOpacity

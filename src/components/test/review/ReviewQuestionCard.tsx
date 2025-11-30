@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   },
   numberText: { color: "#4338ca", fontWeight: "700" },
   questionText: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: "bold",
     color: "#1f2937",
     textAlign: "center",

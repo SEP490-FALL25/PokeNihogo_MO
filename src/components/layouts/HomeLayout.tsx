@@ -2,8 +2,8 @@ import GachaIcon from "@components/atoms/GachaIcon";
 import StoreIcon from "@components/atoms/StoreIcon";
 import RewardShopModal from "@components/Organism/ShopPokemon";
 import UserProfileHeaderAtomic from "@components/Organism/UserProfileHeader";
-import HomeTourGuide from "@components/ui/HomeTourGuide";
 import DraggableOverlay from "@components/ui/Draggable";
+import HomeTourGuide from "@components/ui/HomeTourGuide";
 import { useWalletUser } from "@hooks/useWallet";
 import { useQueryClient } from "@tanstack/react-query";
 import { router, useFocusEffect } from "expo-router";
@@ -52,7 +52,6 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     
     const [isShopVisible, setIsShopVisible] = useState(false);
     const [mainPokemonImageUrl, setMainPokemonImageUrl] = useState<string | null>(null);
-
     useWalletUser();
 
     const starterImageUri = useMemo(() => {
@@ -68,9 +67,13 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
       const fetchMainPokemon = async () => {
         try {
           const response = await userPokemonService.getOwnedPokemons();
-          const mainPokemon = response.data?.data?.results?.find(
+          const ownedPokemons = response.data?.data?.results || [];
+          
+          // Find main pokemon, if not found use first pokemon (starter pokemon)
+          const mainPokemon = ownedPokemons.find(
             (pokemon: any) => pokemon.isMain === true
-          );
+          ) || ownedPokemons[0];
+          
           setMainPokemonImageUrl(mainPokemon?.pokemon?.imageUrl || null);
         } catch (error) {
           console.error("Error fetching main pokemon:", error);
@@ -89,9 +92,13 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
         const fetchMainPokemon = async () => {
           try {
             const response = await userPokemonService.getOwnedPokemons();
-            const mainPokemon = response.data?.data?.results?.find(
+            const ownedPokemons = response.data?.data?.results || [];
+            
+            // Find main pokemon, if not found use first pokemon (starter pokemon)
+            const mainPokemon = ownedPokemons.find(
               (pokemon: any) => pokemon.isMain === true
-            );
+            ) || ownedPokemons[0];
+            
             setMainPokemonImageUrl(mainPokemon?.pokemon?.imageUrl || null);
           } catch (error) {
             console.error("Error fetching main pokemon:", error);
@@ -105,7 +112,7 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
       }, [accessToken])
     );
 
-    // Use main pokemon if available, otherwise use starter pokemon
+    // Use main pokemon if available, otherwise fallback to STARTERS array
     const pokemonImageUri = mainPokemonImageUrl || starterImageUri;
     
     // Show overlay continuously when there's a pokemon image (not just during first time login)
