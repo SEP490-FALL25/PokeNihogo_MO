@@ -1,6 +1,7 @@
 import BackScreen from '@components/molecules/Back';
 import { Skeleton } from '@components/ui/Skeleton';
 import { ExerciseAttemptStatus } from '@constants/exercise.enum';
+import { TestStatus } from '@constants/test.enum';
 import { useHistoryExercises, useHistoryTests } from '@hooks/useUserHistory';
 import { IHistoryItem } from '@models/user-history/user-history.response';
 import { ROUTES } from '@routes/routes';
@@ -260,10 +261,11 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, onPress, t }) => {
   const scoreColor = getScoreColor(item.score);
   const hasScore = item.score !== null;
   
-  // Check if can review (score >= 80%)
+  // Check if can review (score >= 80% OR is PLACEMENT_TEST_DONE)
+  const isPlacementTestDone = item.testType === TestStatus.PLACEMENT_TEST_DONE;
   const canReview = item.score !== null && item.score >= 80;
   const isInProgress = item.status === ExerciseAttemptStatus.IN_PROGRESS;
-  const canPress = canReview || isInProgress;
+  const canPress = canReview || isInProgress || isPlacementTestDone;
 
   return (
     <Pressable 
@@ -471,10 +473,11 @@ export default function ExerciseHistoryScreen() {
   }, [currentData, statusFilter]);
 
   const handleItemPress = (item: IHistoryItem) => {
-    // Only allow review if score >= 80%
+    // Allow review if score >= 80% OR is PLACEMENT_TEST_DONE
+    const isPlacementTestDone = item.testType === TestStatus.PLACEMENT_TEST_DONE;
     const canReview = item.score !== null && item.score >= 80;
     
-    if (canReview) {
+    if (canReview || isPlacementTestDone) {
       if (item.testId) {
         // Navigate to test review
         router.push({
@@ -500,7 +503,7 @@ export default function ExerciseHistoryScreen() {
         });
       }
     }
-    // If score < 80%, do nothing (can't review)
+    // If score < 80% and not PLACEMENT_TEST_DONE, do nothing (can't review)
   };
 
   const handleRefresh = () => {

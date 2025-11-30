@@ -150,14 +150,16 @@ export function ReviewStatsSection({
               </View>
 
               {/* Compact Stats */}
-              <View style={styles.collapsedStats}>
-                <Text style={styles.collapsedStatsText}>
-                  {stats.answeredCorrect}/{stats.totalQuestions} đúng
-                </Text>
-                <Text style={styles.collapsedTimeText}>
-                  ⏱ {formatTime(stats.time)}
-                </Text>
-              </View>
+              {stats.time > 0 && (
+                <View style={styles.collapsedStats}>
+                  <Text style={styles.collapsedStatsText}>
+                    {stats.answeredCorrect}/{stats.totalQuestions} đúng
+                  </Text>
+                  <Text style={styles.collapsedTimeText}>
+                    ⏱ {formatTime(stats.time)}
+                  </Text>
+                </View>
+              )}
             </View>
           </Animated.View>
         </TouchableOpacity>
