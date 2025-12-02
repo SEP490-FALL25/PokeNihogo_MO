@@ -1,7 +1,7 @@
 import { IReviewResultQuestionBank } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import React, { useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
-import { ReviewAnswerOption, ParsedExplanation } from "./ReviewAnswerOption";
+import { ParsedExplanation, ReviewAnswerOption } from "./ReviewAnswerOption";
 
 interface ReviewQuestionCardProps {
   question: IReviewResultQuestionBank;
@@ -27,9 +27,13 @@ export const ReviewQuestionCard: React.FC<ReviewQuestionCardProps> = ({
     );
   }
 
+  // Check if question is incorrect or unanswered
+  // Highlight red only when isCorrect is false (either wrong answer or unanswered)
+  const shouldHighlightRed = question.isCorrect === false;
+
   return (
     <View style={styles.questionWrapper}>
-      <View style={styles.qaCard}>
+      <View style={[styles.qaCard, shouldHighlightRed && styles.qaCardError]}>
         <View style={styles.headerRow}>
           <View style={styles.numberBadge}>
             <Text style={styles.numberText}>{questionIndex + 1}</Text>
@@ -77,6 +81,12 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 10,
     position: "relative",
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  qaCardError: {
+    backgroundColor: "#fef2f2",
+    borderColor: "#ef4444",
   },
   headerRow: {
     flexDirection: "row",

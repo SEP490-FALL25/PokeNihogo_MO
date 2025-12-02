@@ -8,7 +8,6 @@ import { router } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-  InteractionManager,
   Pressable,
   StyleSheet,
   Text,
@@ -20,7 +19,7 @@ import {
 
 interface ExpandedContentProps {
   user: IUserEntity;
-  onClose: () => void;
+  onClose: (onComplete?: () => void) => void;
   style?: any;
 }
 
@@ -32,12 +31,10 @@ export default function ExpandedContent({
   const { t } = useTranslation();
 
   const handleAvatarPress = () => {
-    onClose(); // Close the modal first
-    // Wait for animation to complete (250ms) and interactions to finish before navigating
-    InteractionManager.runAfterInteractions(() => {
-      setTimeout(() => {
-        router.push(ROUTES.ME.PROFILE);
-      }, 250); // Match the animation duration
+    // Close the modal and navigate after animation completes
+    onClose(() => {
+      // Navigate immediately after animation completes (no extra delay needed)
+      router.push(ROUTES.ME.PROFILE);
     });
   };
 
@@ -53,7 +50,7 @@ export default function ExpandedContent({
           {/* Close Button */}
           <TouchableOpacity
             style={styles.closeButton}
-            onPress={onClose}
+            onPress={() => onClose()}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
             <Text style={styles.closeButtonText}>✕</Text>

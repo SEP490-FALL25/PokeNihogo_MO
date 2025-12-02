@@ -2,13 +2,13 @@ import { DailyLoginModal } from "@components/DailyLoginModal";
 import HomeLayout, { HomeLayoutRef } from "@components/layouts/HomeLayout";
 import MainNavigation from "@components/MainNavigation";
 import { ThemedText } from "@components/ThemedText";
-import { ThemedView } from "@components/ThemedView";
 import WelcomeModal from "@components/ui/WelcomeModal";
 import { SubscriptionFeatureKey } from "@constants/subscription.enum";
 import { useAuth } from "@hooks/useAuth";
 import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useSrsReview } from "@hooks/useSrsReview";
 import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
+import { useCreateNewExerciseAttempt } from "@hooks/useUserExerciseAttempt";
 import { useRecentExercises } from "@hooks/useUserHistory";
 import { ISrsReviewItem } from "@models/srs/srs-review.response";
 import { IRecentExerciseItem } from "@models/user-history/user-history.response";
@@ -30,8 +30,7 @@ import {
   Languages,
   Lock,
   Sparkles,
-  Target,
-  X,
+  X
 } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -85,7 +84,8 @@ const normalizeDateKey = (dateString?: string) => {
 const ExerciseCard: React.FC<{
   exercise: IRecentExerciseItem;
   onPress: () => void;
-}> = ({ exercise, onPress }) => {
+  isLoading?: boolean;
+}> = ({ exercise, onPress, isLoading = false }) => {
   const { t } = useTranslation();
 
   const getExerciseTypeInfo = (exerciseName: string) => {
@@ -149,9 +149,10 @@ const ExerciseCard: React.FC<{
 
   return (
     <TouchableOpacity
-      style={styles.testCard}
+      style={[styles.testCard, isLoading && styles.testCardDisabled]}
       onPress={onPress}
       activeOpacity={0.7}
+      disabled={isLoading}
     >
       <View style={[styles.testCardIcon, { backgroundColor: typeInfo.color }]}>
         <Icon size={24} color="#ffffff" />
@@ -351,6 +352,7 @@ export default function HomeScreen() {
   const [showFlashcardModal, setShowFlashcardModal] = useState(false);
   const [selectedInsight, setSelectedInsight] = useState<ISrsReviewItem | null>(null);
   const [isFrontSide, setIsFrontSide] = useState(true);
+  const [creatingExerciseId, setCreatingExerciseId] = useState<number | null>(null);
   
   // State for stacked vs expanded mode
   const [isInsightsExpanded, setIsInsightsExpanded] = useState(false);
@@ -550,8 +552,42 @@ export default function HomeScreen() {
     return { ...meta, count };
   }, [srsInsights, srsTypeConfig]);
 
-  const handleExercisePress = (exercise: IRecentExerciseItem) => {
-    router.push(`${ROUTES.TABS.LEARN}?lessonId=${exercise.lessonId}`);
+  const { mutateAsync: createNewExerciseAttemptAsync, isPending: isCreatingExercise } = useCreateNewExerciseAttempt();
+
+  const handleExercisePress = async (exercise: IRecentExerciseItem) => {
+    if (isCreatingExercise || creatingExerciseId !== null) {
+      return; // Prevent multiple clicks
+    }
+
+    try {
+      setCreatingExerciseId(exercise.exerciseId);
+      // Create a new exercise attempt
+      const response = await createNewExerciseAttemptAsync(exercise.exerciseId.toString());
+      console.log(response);
+      if (response?.data?.id) {
+        // Navigate to quiz screen with the new exercise attempt ID
+        router.push({
+          pathname: ROUTES.QUIZ.QUIZ,
+          params: {
+            exerciseAttemptId: response.data.id.toString(),
+            lessonId: exercise.lessonId.toString(),
+          },
+        });
+      } else {
+        setCreatingExerciseId(null);
+        showAlert(
+          t("home.exercise.error_creating", "Không thể tạo bài tập. Vui lòng thử lại."),
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error creating exercise attempt:", error);
+      setCreatingExerciseId(null);
+      showAlert(
+        t("home.exercise.error_creating", "Không thể tạo bài tập. Vui lòng thử lại."),
+        "error"
+      );
+    }
   };
 
   const handleSuggestionPress = (type: string) => {
@@ -903,6 +939,7 @@ export default function HomeScreen() {
                   key={exercise.exerciseId}
                   exercise={exercise}
                   onPress={() => handleExercisePress(exercise)}
+                  isLoading={creatingExerciseId === exercise.exerciseId}
                 />
               ))}
             </ScrollView>
@@ -919,7 +956,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Suggestions */}
-        <ThemedView style={styles.suggestionsCard}>
+        {/* <ThemedView style={styles.suggestionsCard}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             {t("home.suggestions")}
           </ThemedText>
@@ -937,7 +974,7 @@ export default function HomeScreen() {
               onPress={() => handleSuggestionPress("practice")}
             />
           </View>
-        </ThemedView>
+        </ThemedView> */}
 
         <MainNavigation />
       </View>
@@ -1658,6 +1695,9 @@ const styles = StyleSheet.create({
   testCardStatusText: {
     fontSize: 12,
     fontWeight: "600",
+  },
+  testCardDisabled: {
+    opacity: 0.6,
   },
   flashcardModalOverlay: {
     flex: 1,

@@ -41,6 +41,10 @@ export function ReviewQuestionCard({
   onLayout,
 }: ReviewQuestionCardProps) {
   const questionIdStr = question.id.toString();
+  
+  // Check if question is incorrect or unanswered
+  // Highlight red only when isCorrect is false (either wrong answer or unanswered)
+  const shouldHighlightRed = question.isCorrect === false;
 
   return (
     <View
@@ -52,7 +56,7 @@ export function ReviewQuestionCard({
       }}
     >
       <View style={styles.questionWrapper}>
-        <View style={styles.qaCard}>
+        <View style={[styles.qaCard, shouldHighlightRed && styles.qaCardError]}>
           <View style={styles.headerRow}>
             <View style={styles.numberBadge}>
               <Text style={styles.numberText}>{questionIndex + 1}</Text>
@@ -175,6 +179,12 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 10,
     position: "relative",
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  qaCardError: {
+    backgroundColor: "#fef2f2",
+    borderColor: "#ef4444",
   },
   headerRow: {
     flexDirection: "row",

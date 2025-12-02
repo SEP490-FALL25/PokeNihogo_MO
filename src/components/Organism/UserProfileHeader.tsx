@@ -1,6 +1,6 @@
 import { IUserEntity } from "@models/user/user.entity";
 import React, { useState } from "react";
-import { Animated, InteractionManager, Modal, Pressable, StyleSheet } from "react-native";
+import { Animated, Easing, Modal, Pressable, StyleSheet } from "react-native";
 import CompactHeader from "../molecules/CompactHeader";
 import ExpandedContent from "../molecules/ExpandedContent";
 
@@ -15,28 +15,58 @@ export default function UserProfileHeaderAtomic({
 }: UserProfileHeaderAtomicProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [slideAnim] = useState(new Animated.Value(-300));
+  const [opacityAnim] = useState(new Animated.Value(0));
 
   const handleOpen = () => {
     setIsExpanded(true);
-    Animated.spring(slideAnim, {
-      toValue: 0,
-      useNativeDriver: true,
-      tension: 65,
-      friction: 8,
-    }).start();
+    // Reset opacity for fade in
+    opacityAnim.setValue(0);
+    Animated.parallel([
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 8,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.ease),
+      }),
+    ]).start();
   };
 
-  const handleClose = () => {
-    Animated.timing(slideAnim, {
-      toValue: -300,
-      duration: 250,
-      useNativeDriver: true,
-    }).start(() => {
-      // Use InteractionManager to defer state update until after interactions complete
-      InteractionManager.runAfterInteractions(() => {
-        setIsExpanded(false);
-      });
+  const handleClose = (onComplete?: () => void) => {
+    // Start navigation slightly before animation completes for seamless transition
+    const navigationDelay = 200; // Start navigation at ~67% of animation
+    
+    if (onComplete) {
+      setTimeout(() => {
+        onComplete();
+      }, navigationDelay);
+    }
+
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: -300,
+        duration: 300,
+        useNativeDriver: true,
+        easing: Easing.in(Easing.ease),
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.ease),
+      }),
+    ]).start(() => {
+      setIsExpanded(false);
     });
+  };
+
+  const handleCloseWithoutCallback = () => {
+    handleClose();
   };
 
   return (
@@ -52,20 +82,32 @@ export default function UserProfileHeaderAtomic({
         visible={isExpanded}
         transparent
         animationType="fade"
-        onRequestClose={handleClose}
+        onRequestClose={handleCloseWithoutCallback}
       >
-        <Pressable style={styles.modalOverlay} onPress={handleClose}>
-          <Animated.View
-            style={[
-              styles.modalContent,
-              {
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
+        <Animated.View
+          style={[
+            styles.modalOverlay,
+            {
+              opacity: opacityAnim,
+            },
+          ]}
+        >
+          <Pressable 
+            style={styles.overlayPressable}
+            onPress={handleCloseWithoutCallback}
           >
-            <ExpandedContent user={user} onClose={handleClose} />
-          </Animated.View>
-        </Pressable>
+            <Animated.View
+              style={[
+                styles.modalContent,
+                {
+                  transform: [{ translateY: slideAnim }],
+                },
+              ]}
+            >
+              <ExpandedContent user={user} onClose={handleClose} />
+            </Animated.View>
+          </Pressable>
+        </Animated.View>
       </Modal>
     </>
   );
@@ -77,6 +119,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(121, 180, 196, 0.8)",
     justifyContent: "flex-start",
     paddingTop: 60,
+  },
+  overlayPressable: {
+    flex: 1,
   },
   modalContent: {
     // Animation container
