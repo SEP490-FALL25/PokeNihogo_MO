@@ -4,6 +4,7 @@ import { ExerciseAttemptStatus } from '@constants/exercise.enum';
 import { TestStatus } from '@constants/test.enum';
 import { useHistoryExercises, useHistoryTests } from '@hooks/useUserHistory';
 import { IHistoryItem } from '@models/user-history/user-history.response';
+import { useFocusEffect } from '@react-navigation/native';
 import { ROUTES } from '@routes/routes';
 import {
   getExerciseStatusBgColor,
@@ -13,7 +14,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { BookOpen, FileText, Trophy } from 'lucide-react-native';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -27,9 +28,72 @@ import {
 import { FlatList } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+// ============================================================================
+// CONSTANTS
+// ============================================================================
 type TabType = 'exercises' | 'tests';
 
-// Statistics Card Component
+const PAGE_SIZE = 10;
+const MIN_REVIEW_SCORE = 80;
+const SKELETON_COUNT = 3;
+const END_REACHED_THRESHOLD = 0.4;
+
+// Time constants (in seconds)
+const ONE_MINUTE = 60;
+const ONE_HOUR = 3600;
+const ONE_DAY = 86400;
+const ONE_WEEK = 604800;
+
+// Score thresholds
+const SCORE_EXCELLENT = 80;
+const SCORE_GOOD = 60;
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+const formatTime = (seconds: number): string => {
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  
+  if (hours > 0) {
+    return `${hours}h ${remainingMinutes}m`;
+  }
+  return `${minutes}m`;
+};
+
+const formatDate = (dateString: string, t: (key: string, options?: any) => string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (diffInSeconds < ONE_MINUTE) return t('exercise_history.just_now');
+  if (diffInSeconds < ONE_HOUR) {
+    const minutes = Math.floor(diffInSeconds / ONE_MINUTE);
+    return t('exercise_history.minutes_ago', { minutes });
+  }
+  if (diffInSeconds < ONE_DAY) {
+    const hours = Math.floor(diffInSeconds / ONE_HOUR);
+    return t('exercise_history.hours_ago', { hours });
+  }
+  if (diffInSeconds < ONE_WEEK) {
+    const days = Math.floor(diffInSeconds / ONE_DAY);
+    return t('exercise_history.days_ago', { days });
+  }
+  
+  return date.toLocaleDateString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+const getScoreColor = (score: number | null): string => {
+  if (score === null) return '#94a3b8';
+  if (score >= SCORE_EXCELLENT) return '#10b981';
+  if (score >= SCORE_GOOD) return '#f59e0b';
+  return '#ef4444';
+};
+
+// ============================================================================
+// COMPONENTS
+// ============================================================================
 interface StatisticsCardProps {
   allTime: number;
   allAttempts: number;
@@ -42,7 +106,7 @@ interface StatisticsCardProps {
   onStatusFilterChange: (status: ExerciseAttemptStatus | 'all') => void;
 }
 
-const StatisticsCard: React.FC<StatisticsCardProps> = ({
+const StatisticsCard = React.memo<StatisticsCardProps>(({
   allTime,
   allAttempts,
   completedAttempts,
@@ -53,17 +117,9 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
   activeStatusFilter,
   onStatusFilterChange,
 }) => {
-  // Format time (minutes)
-  const formatTime = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-    
-    if (hours > 0) {
-      return `${hours}h ${remainingMinutes}m`;
-    }
-    return `${minutes}m`;
-  };
+  const handleStatusToggle = useCallback((status: ExerciseAttemptStatus) => {
+    onStatusFilterChange(activeStatusFilter === status ? 'all' : status);
+  }, [activeStatusFilter, onStatusFilterChange]);
 
   return (
     <LinearGradient
@@ -100,13 +156,7 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
       <View className="flex-row flex-wrap">
         <Pressable
           className="w-1/2 pr-1 mb-2"
-          onPress={() =>
-            onStatusFilterChange(
-              activeStatusFilter === ExerciseAttemptStatus.COMPLETED
-                ? 'all'
-                : ExerciseAttemptStatus.COMPLETED,
-            )
-          }
+          onPress={() => handleStatusToggle(ExerciseAttemptStatus.COMPLETED)}
         >
           <View
             style={[
@@ -130,13 +180,7 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
         
         <Pressable
           className="w-1/2 pl-1 mb-2"
-          onPress={() =>
-            onStatusFilterChange(
-              activeStatusFilter === ExerciseAttemptStatus.FAILED
-                ? 'all'
-                : ExerciseAttemptStatus.FAILED,
-            )
-          }
+          onPress={() => handleStatusToggle(ExerciseAttemptStatus.FAILED)}
         >
           <View
             style={[
@@ -158,13 +202,7 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
         
         <Pressable
           className="w-1/2 pr-1"
-          onPress={() =>
-            onStatusFilterChange(
-              activeStatusFilter === ExerciseAttemptStatus.SKIPPED
-                ? 'all'
-                : ExerciseAttemptStatus.SKIPPED,
-            )
-          }
+          onPress={() => handleStatusToggle(ExerciseAttemptStatus.SKIPPED)}
         >
           <View
             style={[
@@ -186,13 +224,7 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
         
         <Pressable
           className="w-1/2 pl-1"
-          onPress={() =>
-            onStatusFilterChange(
-              activeStatusFilter === ExerciseAttemptStatus.ABANDONED
-                ? 'all'
-                : ExerciseAttemptStatus.ABANDONED,
-            )
-          }
+          onPress={() => handleStatusToggle(ExerciseAttemptStatus.ABANDONED)}
         >
           <View
             style={[
@@ -214,58 +246,32 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
       </View>
     </LinearGradient>
   );
-};
+});
 
-// Helper function to format date
-const formatDate = (dateString: string, t: (key: string, options?: any) => string): string => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
-  if (diffInSeconds < 60) return t('exercise_history.just_now');
-  if (diffInSeconds < 3600) {
-    const minutes = Math.floor(diffInSeconds / 60);
-    return t('exercise_history.minutes_ago', { minutes });
-  }
-  if (diffInSeconds < 86400) {
-    const hours = Math.floor(diffInSeconds / 3600);
-    return t('exercise_history.hours_ago', { hours });
-  }
-  if (diffInSeconds < 604800) {
-    const days = Math.floor(diffInSeconds / 86400);
-    return t('exercise_history.days_ago', { days });
-  }
-  
-  return date.toLocaleDateString('vi-VN', { day: 'numeric', month: 'short', year: 'numeric' });
-};
+StatisticsCard.displayName = 'StatisticsCard';
 
-
-// Helper function to get score color
-const getScoreColor = (score: number | null): string => {
-  if (score === null) return '#94a3b8'; // gray for no score
-  if (score >= 80) return '#10b981'; // green
-  if (score >= 60) return '#f59e0b'; // yellow
-  return '#ef4444'; // red
-};
-
-// History Card Component (for both exercises and tests)
 interface HistoryCardProps {
   item: IHistoryItem;
   onPress: () => void;
   t: (key: string) => string;
 }
 
-const HistoryCard: React.FC<HistoryCardProps> = ({ item, onPress, t }) => {
+const HistoryCard = React.memo<HistoryCardProps>(({ item, onPress, t }) => {
   const isTest = !!item.testId;
-  const itemName = item.testName || item.exerciseName || t('exercise_history.unknown_item');
-  const scoreColor = getScoreColor(item.score);
+  const itemName = useMemo(
+    () => item.testName || item.exerciseName || t('exercise_history.unknown_item'),
+    [item.testName, item.exerciseName, t]
+  );
+  const scoreColor = useMemo(() => getScoreColor(item.score), [item.score]);
   const hasScore = item.score !== null;
   
-  // Check if can review (score >= 80% OR is PLACEMENT_TEST_DONE)
-  const isPlacementTestDone = item.testType === TestStatus.PLACEMENT_TEST_DONE;
-  const canReview = item.score !== null && item.score >= 80;
-  const isInProgress = item.status === ExerciseAttemptStatus.IN_PROGRESS;
-  const canPress = canReview || isInProgress || isPlacementTestDone;
+  const canPress = useMemo(() => {
+    const isPlacementTestDone = item.testType === TestStatus.PLACEMENT_TEST_DONE;
+    const canReview = item.score !== null && item.score >= MIN_REVIEW_SCORE;
+    const isInProgress = item.status === ExerciseAttemptStatus.IN_PROGRESS;
+    const isAbandoned = item.status === ExerciseAttemptStatus.ABANDONED;
+    return canReview || isInProgress || isPlacementTestDone || isAbandoned;
+  }, [item.score, item.status, item.testType]);
 
   return (
     <Pressable 
@@ -355,7 +361,7 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, onPress, t }) => {
                 {getExerciseStatusText(item.status, t)}
               </Text>
             </View>
-            {item.score !== null && item.score < 80 && (
+            {item.score !== null && item.score < MIN_REVIEW_SCORE && (
               <Text className="text-xs font-semibold text-slate-400">
                 {t('exercise_history.review_requirement')}
               </Text>
@@ -365,11 +371,15 @@ const HistoryCard: React.FC<HistoryCardProps> = ({ item, onPress, t }) => {
       </LinearGradient>
     </Pressable>
   );
-};
+});
 
+HistoryCard.displayName = 'HistoryCard';
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 export default function ExerciseHistoryScreen() {
   const { t } = useTranslation();
-  const pageSize = 10;
   const [activeTab, setActiveTab] = useState<TabType>('exercises');
   const [statusFilter, setStatusFilter] = useState<ExerciseAttemptStatus | 'all'>('all');
 
@@ -382,9 +392,7 @@ export default function ExerciseHistoryScreen() {
     isFetchingNextPage: isFetchingNextExercises,
     refetch: refetchExercises,
     isRefetching: isRefetchingExercises,
-  } = useHistoryExercises({
-    pageSize,
-  });
+  } = useHistoryExercises({ pageSize: PAGE_SIZE });
 
   const {
     data: testsData,
@@ -395,9 +403,7 @@ export default function ExerciseHistoryScreen() {
     isFetchingNextPage: isFetchingNextTests,
     refetch: refetchTests,
     isRefetching: isRefetchingTests,
-  } = useHistoryTests({
-    pageSize,
-  });
+  } = useHistoryTests({ pageSize: PAGE_SIZE });
 
   useEffect(() => {
     if (!isLoadingExercises && hasNextExercises && !isFetchingNextExercises) {
@@ -411,25 +417,31 @@ export default function ExerciseHistoryScreen() {
     }
   }, [isLoadingTests, hasNextTests, isFetchingNextTests, fetchNextTests]);
 
+  // Refetch data every time the screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      // Refetch both exercises and tests when screen is focused
+      refetchExercises();
+      refetchTests();
+    }, [refetchExercises, refetchTests])
+  );
+
+  // Sort function for history items
+  const sortByDate = useCallback((a: IHistoryItem, b: IHistoryItem) => {
+    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+  }, []);
+
   // Get exercises list sorted by updatedAt (newest first)
   const exercisesList = useMemo(() => {
     const exercises = exercisesData?.pages.flatMap((page) => page.data?.results ?? []) ?? [];
-    return exercises.sort((a, b) => {
-      const dateA = new Date(a.updatedAt).getTime();
-      const dateB = new Date(b.updatedAt).getTime();
-      return dateB - dateA;
-    });
-  }, [exercisesData]);
+    return exercises.sort(sortByDate);
+  }, [exercisesData, sortByDate]);
 
   // Get tests list sorted by updatedAt (newest first)
   const testsList = useMemo(() => {
     const tests = testsData?.pages.flatMap((page) => page.data?.results ?? []) ?? [];
-    return tests.sort((a, b) => {
-      const dateA = new Date(a.updatedAt).getTime();
-      const dateB = new Date(b.updatedAt).getTime();
-      return dateB - dateA;
-    });
-  }, [testsData]);
+    return tests.sort(sortByDate);
+  }, [testsData, sortByDate]);
 
   // Get statistics from the first page
   const exercisesStats = useMemo(() => {
@@ -472,14 +484,14 @@ export default function ExerciseHistoryScreen() {
     return currentData.filter((item) => item.status === statusFilter);
   }, [currentData, statusFilter]);
 
-  const handleItemPress = (item: IHistoryItem) => {
-    // Allow review if score >= 80% OR is PLACEMENT_TEST_DONE
+  const handleItemPress = useCallback((item: IHistoryItem) => {
     const isPlacementTestDone = item.testType === TestStatus.PLACEMENT_TEST_DONE;
-    const canReview = item.score !== null && item.score >= 80;
+    const canReview = item.score !== null && item.score >= MIN_REVIEW_SCORE;
+    const isAbandoned = item.status === ExerciseAttemptStatus.ABANDONED;
+    const isInProgress = item.status === ExerciseAttemptStatus.IN_PROGRESS;
     
     if (canReview || isPlacementTestDone) {
       if (item.testId) {
-        // Navigate to test review
         router.push({
           pathname: ROUTES.TEST.REVIEW,
           params: { 
@@ -488,33 +500,38 @@ export default function ExerciseHistoryScreen() {
           },
         });
       } else if (item.exerciseId) {
-        // Navigate to exercise review
         router.push({
           pathname: ROUTES.QUIZ.REVIEW,
           params: { sessionId: item.attemptId.toString() },
         });
       }
-    } else if (item.status === ExerciseAttemptStatus.IN_PROGRESS) {
-      // Navigate to continue if in progress
+    } else if (isInProgress || isAbandoned) {
       if (item.testId) {
         router.push({
           pathname: ROUTES.TEST.TEST,
           params: { testId: item.testId.toString() },
         });
+      } else if (item.exerciseId) {
+        router.push({
+          pathname: ROUTES.QUIZ.QUIZ,
+          params: {
+            exerciseAttemptId: item.attemptId.toString(),
+            lessonId: "",
+          },
+        });
       }
     }
-    // If score < 80% and not PLACEMENT_TEST_DONE, do nothing (can't review)
-  };
+  }, []);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     if (activeTab === 'exercises') {
       refetchExercises();
     } else {
       refetchTests();
     }
-  };
+  }, [activeTab, refetchExercises, refetchTests]);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNext) {
       if (activeTab === 'exercises') {
         fetchNextExercises();
@@ -522,12 +539,12 @@ export default function ExerciseHistoryScreen() {
         fetchNextTests();
       }
     }
-  };
+  }, [activeTab, hasNextPage, isFetchingNext, fetchNextExercises, fetchNextTests]);
 
-  const handleTabChange = (tab: TabType) => {
+  const handleTabChange = useCallback((tab: TabType) => {
     setActiveTab(tab);
     setStatusFilter('all');
-  };
+  }, []);
 
   return (
     <SafeAreaView className="flex-1 bg-slate-100">
@@ -596,7 +613,7 @@ export default function ExerciseHistoryScreen() {
               <Skeleton style={styles.statsSkeleton} className="rounded-3xl" />
             </View>
             {/* Cards Skeleton */}
-            {Array.from({ length: 3 }, (_, i) => (
+            {Array.from({ length: SKELETON_COUNT }, (_, i) => (
               <View key={i} className="mb-4">
                 <Skeleton style={styles.cardSkeleton} className="rounded-3xl" />
               </View>
@@ -619,11 +636,7 @@ export default function ExerciseHistoryScreen() {
             data={filteredData}
             keyExtractor={(item) => `${item.testId ? 'test' : 'exercise'}-${item.attemptId}`}
             renderItem={({ item }) => (
-              <HistoryCard
-                item={item}
-                onPress={() => handleItemPress(item)}
-                t={t}
-              />
+              <HistoryCard item={item} onPress={() => handleItemPress(item)} t={t} />
             )}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={[
@@ -631,7 +644,7 @@ export default function ExerciseHistoryScreen() {
               filteredData.length === 0 && { flexGrow: 1 },
             ]}
             onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.4}
+            onEndReachedThreshold={END_REACHED_THRESHOLD}
             refreshControl={
               <RefreshControl
                 refreshing={isRefetching}
@@ -719,16 +732,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 4,
-  },
-  filterContainer: {
-    paddingVertical: 8,
-  },
-  filterButton: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   statsSkeleton: {
     width: '100%',
