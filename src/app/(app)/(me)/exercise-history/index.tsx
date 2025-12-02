@@ -1,8 +1,10 @@
 import BackScreen from '@components/molecules/Back';
+import { ConfirmModal } from '@components/ui/ConfirmModal';
 import { Skeleton } from '@components/ui/Skeleton';
 import { ExerciseAttemptStatus } from '@constants/exercise.enum';
-import { TestStatus } from '@constants/test.enum';
+import { useCheckReviewAccess } from '@hooks/useUserExerciseAttempt';
 import { useHistoryExercises, useHistoryTests } from '@hooks/useUserHistory';
+import { useCheckReviewAccessTest } from '@hooks/useUserTestAttempt';
 import { IHistoryItem } from '@models/user-history/user-history.response';
 import { useFocusEffect } from '@react-navigation/native';
 import { ROUTES } from '@routes/routes';
@@ -264,21 +266,11 @@ const HistoryCard = React.memo<HistoryCardProps>(({ item, onPress, t }) => {
   );
   const scoreColor = useMemo(() => getScoreColor(item.score), [item.score]);
   const hasScore = item.score !== null;
-  
-  const canPress = useMemo(() => {
-    const isPlacementTestDone = item.testType === TestStatus.PLACEMENT_TEST_DONE;
-    const canReview = item.score !== null && item.score >= MIN_REVIEW_SCORE;
-    const isInProgress = item.status === ExerciseAttemptStatus.IN_PROGRESS;
-    const isAbandoned = item.status === ExerciseAttemptStatus.ABANDONED;
-    return canReview || isInProgress || isPlacementTestDone || isAbandoned;
-  }, [item.score, item.status, item.testType]);
 
   return (
     <Pressable 
-      onPress={canPress ? onPress : undefined} 
-      disabled={!canPress}
+      onPress={onPress} 
       className="mb-4"
-      style={{ opacity: canPress ? 1 : 0.6 }}
     >
       <LinearGradient
         colors={['#ffffff', '#fafbfc']}
@@ -382,6 +374,13 @@ export default function ExerciseHistoryScreen() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabType>('exercises');
   const [statusFilter, setStatusFilter] = useState<ExerciseAttemptStatus | 'all'>('all');
+  const [errorModal, setErrorModal] = useState<{ visible: boolean; message: string }>({
+    visible: false,
+    message: '',
+  });
+  
+  const { mutate: checkReviewAccess } = useCheckReviewAccess();
+  const { mutate: checkReviewAccessTest } = useCheckReviewAccessTest();
 
   const {
     data: exercisesData,
@@ -485,27 +484,11 @@ export default function ExerciseHistoryScreen() {
   }, [currentData, statusFilter]);
 
   const handleItemPress = useCallback((item: IHistoryItem) => {
-    const isPlacementTestDone = item.testType === TestStatus.PLACEMENT_TEST_DONE;
-    const canReview = item.score !== null && item.score >= MIN_REVIEW_SCORE;
     const isAbandoned = item.status === ExerciseAttemptStatus.ABANDONED;
     const isInProgress = item.status === ExerciseAttemptStatus.IN_PROGRESS;
     
-    if (canReview || isPlacementTestDone) {
-      if (item.testId) {
-        router.push({
-          pathname: ROUTES.TEST.REVIEW,
-          params: { 
-            userTestAttemptId: item.attemptId.toString(),
-            testType: item.testType || "",
-          },
-        });
-      } else if (item.exerciseId) {
-        router.push({
-          pathname: ROUTES.QUIZ.REVIEW,
-          params: { sessionId: item.attemptId.toString() },
-        });
-      }
-    } else if (isInProgress || isAbandoned) {
+    // If in progress or abandoned, navigate to continue (no need to check review access)
+    if (isInProgress || isAbandoned) {
       if (item.testId) {
         router.push({
           pathname: ROUTES.TEST.TEST,
@@ -520,8 +503,87 @@ export default function ExerciseHistoryScreen() {
           },
         });
       }
+      return;
     }
-  }, []);
+    
+    // For review cases, check access first
+    if (item.testId) {
+      // Check test review access
+      checkReviewAccessTest(
+        {
+          userTestAttemptId: item.attemptId.toString(),
+          testType: item.testType || "",
+        },
+        {
+          onSuccess: (response: any) => {
+            // Check statusCode in response (hooks already return res.data)
+            // Response structure: { statusCode, message, data: {...} }
+            if (response?.statusCode === 403) {
+              const errorMsg = response?.message || t('exercise_history.no_review_access', 'Bạn không đủ điều kiện để xem đáp án');
+              setErrorModal({ visible: true, message: errorMsg });
+              return;
+            }
+            
+            // If no 403, navigate to review
+            router.push({
+              pathname: ROUTES.TEST.REVIEW,
+              params: { 
+                userTestAttemptId: item.attemptId.toString(),
+                testType: item.testType || "",
+              },
+            });
+          },
+          onError: (error: any) => {
+            // Handle error response - check if it's 403 in error response
+            // Error structure from axios: error.response.data = { statusCode, message, data: {...} }
+            const errorData = error?.response?.data;
+            if (errorData?.statusCode === 403) {
+              const errorMsg = errorData?.message || t('exercise_history.no_review_access', 'Bạn không đủ điều kiện để xem đáp án');
+              setErrorModal({ visible: true, message: errorMsg });
+              return;
+            }
+            
+            // Other errors
+            const errorMsg = errorData?.message || error?.message || t('exercise_history.review_error', 'Không thể xem đáp án');
+            setErrorModal({ visible: true, message: errorMsg });
+          },
+        }
+      );
+    } else if (item.exerciseId) {
+      // Check exercise review access
+      checkReviewAccess(item.attemptId.toString(), {
+        onSuccess: (response: any) => {
+          // Check statusCode in response (hooks already return res.data)
+          // Response structure: { statusCode, message, data: {...} }
+          if (response?.statusCode === 403) {
+            const errorMsg = response?.message || t('exercise_history.no_review_access', 'Bạn không đủ điều kiện để xem đáp án');
+            setErrorModal({ visible: true, message: errorMsg });
+            return;
+          }
+          
+          // If no 403, navigate to review
+          router.push({
+            pathname: ROUTES.QUIZ.REVIEW,
+            params: { sessionId: item.attemptId.toString() },
+          });
+        },
+        onError: (error: any) => {
+          // Handle error response - check if it's 403 in error response
+          // Error structure from axios: error.response.data = { statusCode, message, data: {...} }
+          const errorData = error?.response?.data;
+          if (errorData?.statusCode === 403) {
+            const errorMsg = errorData?.message || t('exercise_history.no_review_access', 'Bạn không đủ điều kiện để xem đáp án');
+            setErrorModal({ visible: true, message: errorMsg });
+            return;
+          }
+          
+          // Other errors
+          const errorMsg = errorData?.message || error?.message || t('exercise_history.review_error', 'Không thể xem đáp án');
+          setErrorModal({ visible: true, message: errorMsg });
+        },
+      });
+    }
+  }, [checkReviewAccess, checkReviewAccessTest, t]);
 
   const handleRefresh = useCallback(() => {
     if (activeTab === 'exercises') {
@@ -549,6 +611,21 @@ export default function ExerciseHistoryScreen() {
   return (
     <SafeAreaView className="flex-1 bg-slate-100">
       <StatusBar barStyle="dark-content" />
+      
+      {/* Error Modal */}
+      <ConfirmModal
+        visible={errorModal.visible}
+        title={t('common.error', 'Lỗi')}
+        message={errorModal.message}
+        buttons={[
+          {
+            label: t('common.ok', 'OK'),
+            onPress: () => setErrorModal({ visible: false, message: '' }),
+            variant: 'primary',
+          },
+        ]}
+        onRequestClose={() => setErrorModal({ visible: false, message: '' })}
+      />
 
       {/* Header */}
       <BackScreen onPress={() => router.back()} color="black" title={t('exercise_history.title')} />
