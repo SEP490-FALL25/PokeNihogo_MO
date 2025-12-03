@@ -1,3 +1,4 @@
+import AnimatedSubscriptionCard from '@components/atoms/AnimatedSubscriptionCard';
 import UserAvatar from '@components/atoms/UserAvatar';
 import BackScreen from '@components/molecules/Back';
 import { useAchievement } from '@hooks/useAchievement';
@@ -322,7 +323,7 @@ export default function ProfileScreen() {
               />
             )}
           </View>
-  
+
           {/* Progress & Milestones Section */}
           <View className="mb-8">
             <Text className="text-xs font-bold text-slate-400 uppercase tracking-[2px] mb-1">
@@ -331,6 +332,9 @@ export default function ProfileScreen() {
             <Text className="text-xl font-extrabold text-slate-900 mb-4">
               {t('profile.section_progress_subtitle')}
             </Text>
+
+            {/* Subscription Card with Animated Border */}
+            <AnimatedSubscriptionCard />
 
             {/* Pokemon Collection Card */}
             <TouchableOpacity
@@ -542,22 +546,22 @@ export default function ProfileScreen() {
                     <StickyNote size={24} color="white" strokeWidth={2.5} />
                   </LinearGradient>
 
-                    <View className="flex-1">
-                      <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">
-                        {t('flashcard_list.title')}
-                      </Text>
-                      <Text className="text-sm font-semibold text-slate-600 tracking-wide">
-                        {t('flashcard_list.hero_subtitle')}
-                      </Text>
-                    </View>
-
-                    <View className="w-10 h-10 bg-white/80 rounded-xl items-center justify-center">
-                      <ChevronRight size={20} color="#0284c7" strokeWidth={2.8} />
-                    </View>
+                  <View className="flex-1">
+                    <Text className="text-2xl font-extrabold text-slate-800 mb-1 tracking-tight">
+                      {t('flashcard_list.title')}
+                    </Text>
+                    <Text className="text-sm font-semibold text-slate-600 tracking-wide">
+                      {t('flashcard_list.hero_subtitle')}
+                    </Text>
                   </View>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
+
+                  <View className="w-10 h-10 bg-white/80 rounded-xl items-center justify-center">
+                    <ChevronRight size={20} color="#0284c7" strokeWidth={2.8} />
+                  </View>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
 
           {/* Achievements Section */}
           <LinearGradient
@@ -604,7 +608,7 @@ export default function ProfileScreen() {
                     ELITE: ['#a855f7', '#7c3aed'],
                   };
                   const colors = tierColors[achievement.achievementTierType] || ['#64748b', '#475569'];
-                  
+
                   return (
                     <AchievementBadge
                       key={achievement.id}
