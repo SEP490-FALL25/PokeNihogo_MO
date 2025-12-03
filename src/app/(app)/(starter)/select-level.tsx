@@ -171,35 +171,21 @@ export default function SelectLevelScreen() {
   // EVENT HANDLERS
   // ============================================================================
   /**
-   * Handles level selection - calls API to update level on server
+   * Handles level selection - only updates local state
    */
-  const onLevelSelect = async (level: Level) => {
+  const onLevelSelect = (level: Level) => {
     if (isProcessing || selected === level) return;
-
-    try {
-      setSelected(level);
-      // Call API to update level immediately when user selects (no local storage)
-      await userService.updateLevelJLPT(level);
-    } catch (error) {
-      console.error("Error updating user level:", error);
-      // Revert selection on error
-      if (userLevel) {
-        setSelected(userLevel);
-      } else {
-        setSelected(null);
-      }
-    }
+    setSelected(level);
   };
 
   /**
-   * Handles continue action - ensures level is saved and navigates to starter selection
+   * Handles continue action - saves level and navigates to starter selection
    */
   const onContinue = async () => {
     if (!selected || isProcessing) return;
 
     try {
       setIsProcessing(true);
-      // Ensure level is saved on server before navigation (in case previous API call failed)
       await userService.updateLevelJLPT(selected);
       setIsProcessing(false);
       router.push(ROUTES.STARTER.CHOOSE_STARTER as any);
