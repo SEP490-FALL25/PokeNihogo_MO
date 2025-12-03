@@ -1,7 +1,6 @@
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { IUserSubscriptionFeatureDetail } from '@models/subscription/subscription.response';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const LANGUAGE_STORAGE_KEY = 'app_language';
 
 export const createGlobalSlice = (set: any, get: any): ZUSTAND.IGlobalState => ({
@@ -22,7 +21,7 @@ export const createGlobalSlice = (set: any, get: any): ZUSTAND.IGlobalState => (
       // Update Zustand store
       set({ language });
       // Update i18n
-      const i18n = require('@i18n/i18n').default;
+      const i18n = require('@configs/i18n').default;
       await i18n.changeLanguage(language);
     } catch (error) {
       console.error('Error saving language:', error);
@@ -34,16 +33,16 @@ export const createGlobalSlice = (set: any, get: any): ZUSTAND.IGlobalState => (
     try {
       // Try to get saved language from AsyncStorage
       const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
-      
+
       if (savedLanguage) {
         // Use saved language
         set({ language: savedLanguage });
-        const i18n = require('@i18n/i18n').default;
+        const i18n = require('@configs/i18n').default;
         await i18n.changeLanguage(savedLanguage);
       } else {
         // No saved language, use default
         set({ language: 'en' });
-        const i18n = require('@i18n/i18n').default;
+        const i18n = require('@configs/i18n').default;
         await i18n.changeLanguage('en');
       }
     } catch (error) {

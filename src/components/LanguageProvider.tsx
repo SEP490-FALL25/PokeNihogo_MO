@@ -1,4 +1,4 @@
-import i18n from '@i18n/i18n';
+import i18n from '@configs/i18n';
 import { useGlobalStore } from '@stores/global/global.config';
 import React, { useEffect } from 'react';
 

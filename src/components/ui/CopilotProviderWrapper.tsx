@@ -1,4 +1,4 @@
-import i18n from "@i18n/i18n";
+import i18n from "@configs/i18n";
 import React from "react";
 import { CopilotProvider } from "react-native-copilot";
 import CustomCopilotTooltip from "./CustomCopilotTooltip";

@@ -8,7 +8,6 @@ import {
   MinimalAlertProvider,
   useMinimalAlert,
 } from "@hooks/useMinimalAlert";
-import "@i18n/i18n";
 import { ReactQueryProvider } from "@libs/@tanstack/react-query";
 import {
   DarkTheme,
