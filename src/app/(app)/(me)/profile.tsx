@@ -324,6 +324,9 @@ export default function ProfileScreen() {
             )}
           </View>
 
+          {/* Subscription Card with Animated Border */}
+          <AnimatedSubscriptionCard />
+
           {/* Progress & Milestones Section */}
           <View className="mb-8">
             <Text className="text-xs font-bold text-slate-400 uppercase tracking-[2px] mb-1">
@@ -332,9 +335,6 @@ export default function ProfileScreen() {
             <Text className="text-xl font-extrabold text-slate-900 mb-4">
               {t('profile.section_progress_subtitle')}
             </Text>
-
-            {/* Subscription Card with Animated Border */}
-            <AnimatedSubscriptionCard />
 
             {/* Pokemon Collection Card */}
             <TouchableOpacity
