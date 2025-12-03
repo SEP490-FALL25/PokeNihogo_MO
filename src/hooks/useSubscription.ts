@@ -2,7 +2,7 @@ import type { IUserSubscriptionFeatureDetail } from "@models/subscription/subscr
 import subscriptionService from "@services/subscription";
 import { useAuthStore } from "@stores/auth/auth.config";
 import { useGlobalStore } from "@stores/global/global.config";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 
@@ -27,6 +27,32 @@ export const useUserSubscription = (qs: string, currentPage: number, pageSize: n
     return useQuery({
         queryKey: ['user-subscription', qs, currentPage, pageSize],
         queryFn: () => subscriptionService.getUserSubscription(qs, currentPage, pageSize),
+    });
+};
+//----------------------End----------------------//
+
+
+/**
+ * Hook to get user's subscription history with infinite scroll
+ * @param pageSize - Number of items per page (default: 10)
+ * @returns Infinite query object with subscription history data
+ */
+export const useInfiniteUserSubscription = (pageSize: number = 10) => {
+    return useInfiniteQuery({
+        queryKey: ['user-subscription-infinite', pageSize],
+        queryFn: async ({ pageParam = 1 }) => {
+            const response = await subscriptionService.getUserSubscription('', pageParam as number, pageSize);
+            return response;
+        },
+        initialPageParam: 1,
+        getNextPageParam: (lastPage: any) => {
+            const pagination = lastPage?.data?.pagination;
+            if (!pagination) return undefined;
+            if (pagination.current < pagination.totalPage) {
+                return pagination.current + 1;
+            }
+            return undefined;
+        },
     });
 };
 //----------------------End----------------------//

@@ -15,7 +15,8 @@ const subscriptionService = {
         search.append("qs", qs);
         search.append("currentPage", currentPage.toString());
         search.append("pageSize", pageSize.toString());
-        return await axiosPrivate.get(`/user-subscription/user?${search.toString()}`);
+        const response = await axiosPrivate.get(`/user-subscription/user?${search.toString()}`);
+        return response.data;
     },
 
     /**
