@@ -1541,7 +1541,7 @@ const VocabularyListScreen = () => {
               )}
 
               {/* Fill in the Blank Game - Chỉ hiển thị khi không phải grammar */}
-              {contentTypeValue !== "grammar" && (
+              {/* {contentTypeValue !== "grammar" && (
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.selectionAsync();
@@ -1597,10 +1597,10 @@ const VocabularyListScreen = () => {
                     )}
                   </ThemedText>
                 </TouchableOpacity>
-              )}
+              )} */}
 
               {/* Word Chain Game - Chỉ hiển thị khi không phải grammar */}
-              {contentTypeValue !== "grammar" && (
+              {/* {contentTypeValue !== "grammar" && (
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.selectionAsync();
@@ -1656,7 +1656,7 @@ const VocabularyListScreen = () => {
                     )}
                   </ThemedText>
                 </TouchableOpacity>
-              )}
+              )} */}
 
               {/* Kiểm tra - Full width khi là grammar, một nửa khi không phải grammar */}
               <TouchableOpacity

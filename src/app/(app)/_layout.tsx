@@ -1,12 +1,16 @@
 import SplashScreen from '@app/splash';
 import useAuth from '@hooks/useAuth';
 import { useUserSubscriptionFeatures } from '@hooks/useSubscription';
+import { useWalletUser } from '@hooks/useWallet';
 import { ROUTES } from '@routes/routes';
 import { Redirect, Stack } from 'expo-router';
 import React from 'react';
 
 export default function AppLayout() {
     const { isAuthenticated, isLoading } = useAuth();
+    // Keep wallet data in sync globally while user is authenticated,
+    // so any invalidateQueries(['wallet-user']) (e.g. from quiz) will refetch immediately.
+    useWalletUser();
     
     // Fetch user subscription features when authenticated
     // This will automatically sync subscription keys to global state
