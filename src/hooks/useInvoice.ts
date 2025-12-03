@@ -5,7 +5,7 @@ import { useAuthStore } from "@stores/auth/auth.config";
 import { useGlobalStore } from "@stores/global/global.config";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { useSubscriptionMarketplacePackages } from "./useSubscription";
+import { useSubscriptionMarketplacePackages, useUserSubscription } from "./useSubscription";
 import { useWalletUser } from "./useWallet";
 
 
@@ -18,12 +18,14 @@ export const useRefetchUserData = () => {
     const { accessToken } = useAuthStore();
     const { setSubscriptionFeatures } = useGlobalStore();
     const { refetch: refetchPackages } = useSubscriptionMarketplacePackages();
+    const { refetch: refetchSubscription } = useUserSubscription('sort:status', 1, 10);
     const { refetch: refetchWallet } = useWalletUser();
 
     const refetchAll = useCallback(async () => {
         // Invalidate queries
         queryClient.invalidateQueries({ queryKey: ['user-profile'] });
         queryClient.invalidateQueries({ queryKey: ['subscription-marketplace-packages'] });
+        queryClient.invalidateQueries({ queryKey: ['user-subscription'] });
         queryClient.invalidateQueries({ queryKey: ['wallet-user'] });
         queryClient.invalidateQueries({ queryKey: ['user-subscription-features'] });
         // Invalidate user-tests queries to refresh abilities data
@@ -31,6 +33,7 @@ export const useRefetchUserData = () => {
 
         // Manually refetch to ensure fresh data
         refetchPackages();
+        refetchSubscription();
         refetchWallet();
         
         // Refetch subscription features and update global state immediately
@@ -48,7 +51,7 @@ export const useRefetchUserData = () => {
                 console.error('Error refetching subscription features:', error);
             }
         }
-    }, [queryClient, accessToken, setSubscriptionFeatures, refetchPackages, refetchWallet]);
+    }, [queryClient, accessToken, setSubscriptionFeatures, refetchPackages, refetchWallet, refetchSubscription]);
 
     return { refetchAll };
 };

@@ -1,5 +1,5 @@
-import subscriptionService from "@services/subscription";
 import type { IUserSubscriptionFeatureDetail } from "@models/subscription/subscription.response";
+import subscriptionService from "@services/subscription";
 import { useAuthStore } from "@stores/auth/auth.config";
 import { useGlobalStore } from "@stores/global/global.config";
 import { useQuery } from "@tanstack/react-query";
@@ -19,17 +19,19 @@ export const useSubscriptionMarketplacePackages = () => {
 //----------------------End----------------------//
 
 
-
 /**
- * Hook to get all subscription packages
- * @returns Query object with packages data
+ * Hook to get user's subscription
+ * @returns Query object with subscription data
  */
-export const useSubscriptionPackages = () => {
+export const useUserSubscription = (qs: string, currentPage: number, pageSize: number) => {
     return useQuery({
-        queryKey: ['subscription-packages'],
-        queryFn: () => subscriptionService.getPackages(),
+        queryKey: ['user-subscription', qs, currentPage, pageSize],
+        queryFn: () => subscriptionService.getUserSubscription(qs, currentPage, pageSize),
     });
 };
+//----------------------End----------------------//
+
+
 
 /**
  * Hook to get user's subscription features and sync with global state
