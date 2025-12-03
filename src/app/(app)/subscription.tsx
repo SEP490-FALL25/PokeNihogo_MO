@@ -1,6 +1,7 @@
 import { openInAppBrowser } from "@components/atoms/InAppBrowser";
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import BackScreen from "@components/molecules/Back";
+import SubscriptionHistoryModal from "@components/subscription/SubscriptionHistoryModal";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { WALLET } from "@constants/wallet.enum";
@@ -12,7 +13,7 @@ import { ISubscriptionMarketplaceEntity } from "@models/subscription/subscriptio
 import { SubscriptionPackageType } from "@models/subscription/subscription.request";
 import payosService from "@services/payos";
 import { useLocalSearchParams } from "expo-router";
-import { BookOpen, Check, Coins, Crown, Headphones, RefreshCw } from "lucide-react-native";
+import { BookOpen, Check, Coins, Crown, Headphones, History, RefreshCw } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Animated, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -36,6 +37,7 @@ export default function SubscriptionScreen() {
 
     const [selectedDiscounts, setSelectedDiscounts] = useState<Record<number, number>>({});
     const [isResolvingInvoice, setIsResolvingInvoice] = useState<boolean>(false);
+    const [isHistoryModalVisible, setIsHistoryModalVisible] = useState<boolean>(false);
 
     const packages = packagesData?.data?.data || [];
     const userBalance = walletUser?.find((w: any) => w.type === WALLET.WALLET_TYPES.PAID_COINS)?.balance ?? 0;
@@ -64,7 +66,7 @@ export default function SubscriptionScreen() {
     // Helper function to check if package matches testType
     const matchesTestType = useCallback((packageItem: ISubscriptionMarketplaceEntity, testType?: string): boolean => {
         if (!testType) return false;
-        
+
         const packageType = getPackageType(packageItem);
         const hasReading = packageItem.features.some(f => f.feature.featureKey === 'UNLOCK_READING');
         const hasListening = packageItem.features.some(f => f.feature.featureKey === 'UNLOCK_LISTENING');
@@ -80,7 +82,7 @@ export default function SubscriptionScreen() {
             // Match READING_LISTENING or ULTRA packages (speaking needs both)
             return (hasReading && hasListening) || isUltra;
         }
-        
+
         return false;
     }, [getPackageType]);
 
@@ -408,16 +410,24 @@ export default function SubscriptionScreen() {
                 <BackScreen
                     color="black"
                 />
-                <ScrollView 
+                <ScrollView
                     ref={scrollViewRef}
-                    className="flex-1" 
+                    className="flex-1"
                     contentContainerStyle={styles.scrollContent}
                 >
                     {/* Header */}
                     <View className="px-6 pt-12 pb-6">
-                        <ThemedText type="title" className="text-3xl font-bold text-center mb-2">
-                            {t('subscription.title')}
-                        </ThemedText>
+                        <View className="flex-row items-center justify-between mb-4">
+                            <ThemedText type="title" className="text-3xl font-bold flex-1">
+                                {t('subscription.title')}
+                            </ThemedText>
+                            <TouchableOpacity
+                                onPress={() => setIsHistoryModalVisible(true)}
+                                className="bg-slate-100 dark:bg-slate-800 rounded-xl p-3"
+                            >
+                                <History size={20} color="#3b82f6" />
+                            </TouchableOpacity>
+                        </View>
                         <ThemedText className="text-center text-slate-500 text-base">
                             {t('subscription.subtitle')}
                         </ThemedText>
@@ -489,7 +499,7 @@ export default function SubscriptionScreen() {
                                 : t('subscription.purchase');
                             const isActionBusy = hasPendingInvoice ? isResolvingInvoice : isPurchasing;
 
-                            const borderColor = isHighlighted 
+                            const borderColor = isHighlighted
                                 ? highlightAnim.interpolate({
                                     inputRange: [0, 1],
                                     outputRange: ['rgba(59, 130, 246, 0.8)', 'rgba(59, 130, 246, 1)'],
@@ -733,6 +743,10 @@ export default function SubscriptionScreen() {
                     </View>
                 </ScrollView>
             </ThemedView>
+            <SubscriptionHistoryModal
+                visible={isHistoryModalVisible}
+                onClose={() => setIsHistoryModalVisible(false)}
+            />
         </SafeAreaView>
     );
 }

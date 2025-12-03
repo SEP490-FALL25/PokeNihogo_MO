@@ -57,3 +57,68 @@ export const UserSubscriptionFeatureItemSchema = z.object({
         nameTranslation: z.string(),
     }).optional(),
 });
+//----------------------End----------------------//
+
+
+/**
+ * User Subscription Entity Schema
+ */
+export const UserSubscriptionEntitySchema = z.object({
+    id: z.number(),
+    userId: z.number(),
+    subscriptionPlanId: z.number(),
+    invoiceId: z.number(),
+    startDate: z.string(),
+    expiresAt: z.string(),
+    status: z.string(),
+    createdById: z.number().nullable(),
+    deletedById: z.number().nullable(),
+    updatedById: z.number().nullable(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    deletedAt: z.string().nullable(),
+    invoice: z.object({
+        id: z.number(),
+        userId: z.number(),
+        subscriptionPlanId: z.number(),
+        walletTransactionId: z.number().nullable(),
+        subtotalAmount: z.number(),
+        discountAmount: z.number(),
+        totalAmount: z.number(),
+        status: z.string(),
+        createdAt: z.string(),
+        updatedAt: z.string(),
+        deletedAt: z.string().nullable(),
+    }),
+    subscriptionPlan: z.object({
+        id: z.number(),
+        subscriptionId: z.number(),
+        isActive: z.boolean(),
+        price: z.number(),
+        type: z.string(),
+        durationInDays: z.number().nullable(),
+        createdById: z.number().nullable(),
+        deletedById: z.number().nullable(),
+        updatedById: z.number().nullable(),
+        createdAt: z.string(),
+        updatedAt: z.string(),
+        deletedAt: z.string().nullable(),
+        subscription: z.object({
+            id: z.number(),
+            tagName: z.string(),
+            nameKey: z.string(),
+            descriptionKey: z.string(),
+            createdById: z.number().nullable(),
+            deletedById: z.number().nullable(),
+            updatedById: z.number().nullable(),
+            createdAt: z.string(),
+            updatedAt: z.string(),
+            deletedAt: z.string().nullable(),
+            nameTranslation: z.string(),
+            descriptionTranslation: z.string(),
+        }),
+    }),
+});
+
+export type IUserSubscriptionEntity = z.infer<typeof UserSubscriptionEntitySchema>;
+//----------------------End----------------------//
