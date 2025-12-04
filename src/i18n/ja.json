@@ -120,31 +120,31 @@
             "percentage": "スコア"
         }
     },
-  "kanji_writer": {
-    "title": {
-      "practice": "漢字を書く: {{character}}",
-      "review": "漢字を復習: {{character}}",
-      "quiz": "漢字クイズ: {{character}}"
+    "kanji_writer": {
+        "title": {
+            "practice": "漢字を書く: {{character}}",
+            "review": "漢字を復習: {{character}}",
+            "quiz": "漢字クイズ: {{character}}"
+        },
+        "controls": {
+            "gridlines": "ガイド線",
+            "character": "文字",
+            "outline": "アウトライン"
+        },
+        "load_error": "文字を読み込めませんでした",
+        "sections": {
+            "quiz": "クイズ",
+            "animate": "アニメーション",
+            "review": "レビュー"
+        },
+        "buttons": {
+            "start_quiz": "クイズを開始",
+            "stop_quiz": "クイズを停止",
+            "stop_animation": "アニメーションを停止",
+            "animate_strokes": "筆順アニメーション",
+            "view_strokes": "書き順を見る"
+        }
     },
-    "controls": {
-      "gridlines": "ガイド線",
-      "character": "文字",
-      "outline": "アウトライン"
-    },
-    "load_error": "文字を読み込めませんでした",
-    "sections": {
-      "quiz": "クイズ",
-      "animate": "アニメーション",
-      "review": "レビュー"
-    },
-    "buttons": {
-      "start_quiz": "クイズを開始",
-      "stop_quiz": "クイズを停止",
-      "stop_animation": "アニメーションを停止",
-      "animate_strokes": "筆順アニメーション",
-      "view_strokes": "書き順を見る"
-    }
-  },
     "navigation": {
         "title": "メインナビゲーション",
         "tour_start_learning": "学習開始",
@@ -303,121 +303,121 @@
         "basic_japanese": "基礎日本語 - ひらがな・カタカナ",
         "intermediate_japanese": "中級日本語 - 漢字・文法",
         "partner_pokemon": "あなたのパートナーポケモン",
-    "take_care_description": "パートナーポケモンを大切にして、一緒に進化しましょう！",
-    "take_care_me": "私を大切にしてね！",
-    "partner_pokemon_short": "パートナーポケモン",
-    "exercise_types": {
-        "vocabulary": "語彙",
-        "kanji": "漢字",
-        "grammar": "文法",
-        "exercise": "練習"
-    },
-    "exercise_status": {
-        "completed": "完了",
-        "failed": "未達成",
-        "skipped": "スキップ"
-    },
-    "recent_exercises": "直近の練習",
-    "see_all": "すべて表示",
-    "srs_types": {
-        "vocabulary": "語彙",
-        "vocabulary_lower": "語彙",
-        "kanji": "漢字",
-        "kanji_lower": "漢字",
-        "grammar": "文法",
-        "grammar_lower": "文法"
-    },
-    "srs_insights": {
-        "review_now": "今すぐ復習",
-        "vocabulary_title": "新しい単語",
-        "kanji_title": "漢字",
-        "grammar_title": "文法",
-        "grammar_level": "レベル {{level}}",
-        "action": "復習する"
-    },
-    "ai": {
-        "assistant_badge": "AIアシスタント",
-        "items_to_review": "復習すべき項目: {{count}}",
-        "locked_title": "アップグレードしてアンロック",
-        "unlocked_title": "今日のパーソナライズ",
-        "locked_subtitle": "AI Coach プランであなた専用の学習提案を受けましょう。",
-        "focus_message": "{{topic}} を重点的に復習しましょう。",
-        "no_insight_message": "学習を続けると、AIが優先すべき内容を提案します。",
-        "highlight_count": "{{topic}} {{count}} 件",
-        "highlight_hint": "5分集中して記憶を定着させましょう",
-        "locked_highlight_title": "メンバー限定の特典",
-        "locked_highlight_subtitle": "ロードマップとスマートリマインダーをアンロック",
-        "conversation": {
-            "title": "会話",
-            "list_title": "会話",
-            "list_empty_title": "まだ会話がありません",
-            "list_empty_description": "AIと日本語の会話を始めましょう",
-            "new_conversation": "新しい会話",
-            "empty_list": "まだ会話がありません。新しく始めましょう！",
-            "connecting": "接続中...",
-            "loading": "読み込み中...",
-            "connection_error": "接続できません。もう一度お試しください。",
-            "empty_message": "録音を開始して会話を練習しましょう！",
-            "locked_title": "機能がロックされています",
-            "locked_description": "AI会話機能を使用するには、プレミアムプランに登録する必要があります",
-            "subscribe_button": "今すぐ登録",
-            "hero_title": "日本にいるように会話を練習しよう",
-            "hero_subtitle": "AI Kaiwa が即時に返答し、発音を直しながら会話履歴を保存します。",
-            "hero_badge": "Ultra Kaiwa",
-            "hero_stats_response_value": "24/7",
-            "hero_stats_response_label": "即レス",
-            "hero_stats_speed_value": "x3",
-            "hero_stats_speed_label": "上達スピード",
-            "hero_stats_consistency_value": "10分",
-            "hero_stats_consistency_label": "毎日の習慣",
-            "feature_feedback": "リアルタイムで発音をチェック",
-            "feature_library": "実践的な会話シナリオ",
-            "feature_rewards": "XPとコインを追加獲得",
-            "social_proof": "12,000人以上がUltra Kaiwaを選びました",
-            "guarantee_title": "いつでも解約OK",
-            "guarantee_subtitle": "合わなければワンタップで停止できます。",
-            "cta_secondary": "Ultraの特典をすべて見る",
-            "processing_speech_to_text": "音声認識中...",
-            "processing_ai": "AIで処理中...",
-            "processing_tts": "音声生成中...",
-            "processing_default": "処理中...",
-            "no_audio_detected": "音声が検出されませんでした。もう一度お試しください。",
-            "sending_audio": "音声を送信中...",
-            "server_connection_error": "サーバーに接続できません。",
-            "audio_send_error": "音声送信エラー。",
-            "connecting_to_ai": "AIに接続中...",
-            "card_new_conversation": "新しい会話",
-            "card_no_messages": "まだメッセージがありません",
-            "time": {
-                "just_now": "たった今",
-                "minutes": "{{count}}分前",
-                "hours": "{{count}}時間前",
-                "days": "{{count}}日前"
+        "take_care_description": "パートナーポケモンを大切にして、一緒に進化しましょう！",
+        "take_care_me": "私を大切にしてね！",
+        "partner_pokemon_short": "パートナーポケモン",
+        "exercise_types": {
+            "vocabulary": "語彙",
+            "kanji": "漢字",
+            "grammar": "文法",
+            "exercise": "練習"
+        },
+        "exercise_status": {
+            "completed": "完了",
+            "failed": "未達成",
+            "skipped": "スキップ"
+        },
+        "recent_exercises": "直近の練習",
+        "see_all": "すべて表示",
+        "srs_types": {
+            "vocabulary": "語彙",
+            "vocabulary_lower": "語彙",
+            "kanji": "漢字",
+            "kanji_lower": "漢字",
+            "grammar": "文法",
+            "grammar_lower": "文法"
+        },
+        "srs_insights": {
+            "review_now": "今すぐ復習",
+            "vocabulary_title": "新しい単語",
+            "kanji_title": "漢字",
+            "grammar_title": "文法",
+            "grammar_level": "レベル {{level}}",
+            "action": "復習する"
+        },
+        "ai": {
+            "assistant_badge": "AIアシスタント",
+            "items_to_review": "復習すべき項目: {{count}}",
+            "locked_title": "アップグレードしてアンロック",
+            "unlocked_title": "今日のパーソナライズ",
+            "locked_subtitle": "AI Coach プランであなた専用の学習提案を受けましょう。",
+            "focus_message": "{{topic}} を重点的に復習しましょう。",
+            "no_insight_message": "学習を続けると、AIが優先すべき内容を提案します。",
+            "highlight_count": "{{topic}} {{count}} 件",
+            "highlight_hint": "5分集中して記憶を定着させましょう",
+            "locked_highlight_title": "メンバー限定の特典",
+            "locked_highlight_subtitle": "ロードマップとスマートリマインダーをアンロック",
+            "conversation": {
+                "title": "会話",
+                "list_title": "会話",
+                "list_empty_title": "まだ会話がありません",
+                "list_empty_description": "AIと日本語の会話を始めましょう",
+                "new_conversation": "新しい会話",
+                "empty_list": "まだ会話がありません。新しく始めましょう！",
+                "connecting": "接続中...",
+                "loading": "読み込み中...",
+                "connection_error": "接続できません。もう一度お試しください。",
+                "empty_message": "録音を開始して会話を練習しましょう！",
+                "locked_title": "機能がロックされています",
+                "locked_description": "AI会話機能を使用するには、プレミアムプランに登録する必要があります",
+                "subscribe_button": "今すぐ登録",
+                "hero_title": "日本にいるように会話を練習しよう",
+                "hero_subtitle": "AI Kaiwa が即時に返答し、発音を直しながら会話履歴を保存します。",
+                "hero_badge": "Ultra Kaiwa",
+                "hero_stats_response_value": "24/7",
+                "hero_stats_response_label": "即レス",
+                "hero_stats_speed_value": "x3",
+                "hero_stats_speed_label": "上達スピード",
+                "hero_stats_consistency_value": "10分",
+                "hero_stats_consistency_label": "毎日の習慣",
+                "feature_feedback": "リアルタイムで発音をチェック",
+                "feature_library": "実践的な会話シナリオ",
+                "feature_rewards": "XPとコインを追加獲得",
+                "social_proof": "12,000人以上がUltra Kaiwaを選びました",
+                "guarantee_title": "いつでも解約OK",
+                "guarantee_subtitle": "合わなければワンタップで停止できます。",
+                "cta_secondary": "Ultraの特典をすべて見る",
+                "processing_speech_to_text": "音声認識中...",
+                "processing_ai": "AIで処理中...",
+                "processing_tts": "音声生成中...",
+                "processing_default": "処理中...",
+                "no_audio_detected": "音声が検出されませんでした。もう一度お試しください。",
+                "sending_audio": "音声を送信中...",
+                "server_connection_error": "サーバーに接続できません。",
+                "audio_send_error": "音声送信エラー。",
+                "connecting_to_ai": "AIに接続中...",
+                "card_new_conversation": "新しい会話",
+                "card_no_messages": "まだメッセージがありません",
+                "time": {
+                    "just_now": "たった今",
+                    "minutes": "{{count}}分前",
+                    "hours": "{{count}}時間前",
+                    "days": "{{count}}日前"
+                }
             }
+        },
+        "insight_locked": {
+            "badge": "プレミアム機能",
+            "title": "パーソナライズされたアシスタントを解放",
+            "description": "ミスを自動分析し、復習すべきカードを提案して毎日リマインドします。",
+            "button": "今すぐアップグレード"
+        },
+        "insight_empty": {
+            "title": "順調に進んでいます！",
+            "description": "学習を続けると、AIアシスタントが次に集中すべき内容を提案します。"
+        },
+        "recent_empty": {
+            "title": "直近の練習はまだありません",
+            "description": "レッスンや練習を完了すると、ここに履歴が表示されます。"
+        },
+        "flashcard": {
+            "on_reading": "オン読み",
+            "kun_reading": "訓読み",
+            "mark_as_read": "既読にする",
+            "marking": "処理中...",
+            "marked_as_read": "既読にしました",
+            "mark_read_error": "既読にできませんでした"
         }
-    },
-    "insight_locked": {
-        "badge": "プレミアム機能",
-        "title": "パーソナライズされたアシスタントを解放",
-        "description": "ミスを自動分析し、復習すべきカードを提案して毎日リマインドします。",
-        "button": "今すぐアップグレード"
-    },
-    "insight_empty": {
-        "title": "順調に進んでいます！",
-        "description": "学習を続けると、AIアシスタントが次に集中すべき内容を提案します。"
-    },
-    "recent_empty": {
-        "title": "直近の練習はまだありません",
-        "description": "レッスンや練習を完了すると、ここに履歴が表示されます。"
-    },
-    "flashcard": {
-        "on_reading": "オン読み",
-        "kun_reading": "訓読み",
-        "mark_as_read": "既読にする",
-        "marking": "処理中...",
-        "marked_as_read": "既読にしました",
-        "mark_read_error": "既読にできませんでした"
-    }
     },
     "reading": {
         "title": "読解練習",
@@ -811,9 +811,9 @@
             "on_reading": "オン読み",
             "kun_reading": "訓読み",
             "stroke_count": "画数",
-        "stroke_value": "{{count}}画",
-        "details_heading": "📖 詳細な解説",
-        "meaning_label": "意味"
+            "stroke_value": "{{count}}画",
+            "details_heading": "📖 詳細な解説",
+            "meaning_label": "意味"
         },
         "flashcard": {
             "progress": {
@@ -893,26 +893,26 @@
         }
     },
     "quiz_completion": {
-      "title": "解答情報",
-      "labels": {
-        "total_questions": "総問題数:",
-        "answered": "解答済み:",
-        "unanswered": "未解答:",
-        "unanswered_list": "未解答の問題:",
-        "question_number": "問題 {{number}}",
-        "status": "ステータス:"
-      },
-      "status": {
-        "completed": "完了",
-        "in_progress": "進行中",
-        "failed": "未達成",
-        "not_started": "未開始",
-        "skipped": "スキップ"
-      },
-      "buttons": {
-        "continue": "続ける",
-        "submit": "提出する"
-      }
+        "title": "解答情報",
+        "labels": {
+            "total_questions": "総問題数:",
+            "answered": "解答済み:",
+            "unanswered": "未解答:",
+            "unanswered_list": "未解答の問題:",
+            "question_number": "問題 {{number}}",
+            "status": "ステータス:"
+        },
+        "status": {
+            "completed": "完了",
+            "in_progress": "進行中",
+            "failed": "未達成",
+            "not_started": "未開始",
+            "skipped": "スキップ"
+        },
+        "buttons": {
+            "continue": "続ける",
+            "submit": "提出する"
+        }
     },
     "quiz_progress": {
         "label": "完了 {{current}}/{{total}}",
@@ -967,21 +967,21 @@
         "purchase_success": "購入成功",
         "purchase_failed": "購入失敗"
     },
-  "reward_progress": {
-    "title": "学習進捗",
-    "completed_lessons": "完了 <highlight>{{completed}}</highlight> / {{total}} レッスン",
-    "premium_badge": {
-      "both": "プレミアム: XP とコイン x1.2",
-      "xp": "プレミアム: XP x1.2",
-      "coin": "プレミアム: コイン x1.2"
+    "reward_progress": {
+        "title": "学習進捗",
+        "completed_lessons": "完了 <highlight>{{completed}}</highlight> / {{total}} レッスン",
+        "premium_badge": {
+            "both": "プレミアム: XP とコイン x1.2",
+            "xp": "プレミアム: XP x1.2",
+            "coin": "プレミアム: コイン x1.2"
+        },
+        "milestone_label": "マイルストーン {{step}}",
+        "status": {
+            "claimed": "受け取り済み",
+            "locked": "まだ解放されていません"
+        },
+        "footer_message": "宝箱を開放するには <highlight>{{total}}</highlight> レッスンを完了してください"
     },
-    "milestone_label": "マイルストーン {{step}}",
-    "status": {
-      "claimed": "受け取り済み",
-      "locked": "まだ解放されていません"
-    },
-    "footer_message": "宝箱を開放するには <highlight>{{total}}</highlight> レッスンを完了してください"
-  },
     "practice_writing": "漢字の書き取り練習",
     "hide_meaning": "意味を非表示",
     "press_to_see_meaning": "意味を表示",
@@ -1011,7 +1011,7 @@
         "rate_up_text": "{{pokemon}}の出現率アップ！",
         "cost_per_roll": "コスト: {{cost}} / 回",
         "wish_single": "開封 x1",
-        "wish_ten": "開封 x10 ({{guarantee}}以上保証)",
+        "wish_ten": "開封 x10",
         "pity_title": "保証",
         "pity_description": "5★保証まであと{{remaining}}回",
         "pity_guaranteed": "次のガチャで5★確定！",
