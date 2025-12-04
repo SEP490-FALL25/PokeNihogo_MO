@@ -43,7 +43,7 @@ const refreshAccessToken = async (): Promise<{ accessToken: string; refreshToken
         // Call refresh token endpoint
         const currentLanguage = getCurrentLanguage();
         const response = await axios.post(
-            `${process.env.EXPO_PUBLIC_API_URL}/auth/refresh-token`,
+            `${process.env.EXPO_PUBLIC_API_URL}auth/refresh-token`,
             { refreshToken },
             { headers: { 'Content-Type': 'application/json', 'Accept-Language': currentLanguage } }
         );
