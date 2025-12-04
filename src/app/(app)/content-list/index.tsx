@@ -2048,7 +2048,10 @@ const VocabularyListScreen = () => {
                                 letterSpacing: 0.5,
                               }}
                             >
-                              Nghĩa
+                              {t(
+                                "content_list.kanji_modal.meaning_label",
+                                "Meaning"
+                              )}
                             </ThemedText>
                             <ThemedText
                               style={{

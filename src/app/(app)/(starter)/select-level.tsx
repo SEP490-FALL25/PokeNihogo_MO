@@ -8,7 +8,6 @@ import { TypingText } from "@components/ui/TypingText";
 import { useFocusEffect } from "@react-navigation/native";
 import { ROUTES } from "@routes/routes";
 import userService from "@services/user";
-import { useUserStore } from "@stores/user/user.config";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useCallback } from "react";
@@ -115,28 +114,9 @@ export default function SelectLevelScreen() {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const translateY = React.useRef(new Animated.Value(12)).current;
 
-  // Store selectors
-  const userLevel = useUserStore((s) => (s as any).level);
-  const hasCompletedPlacementTest = useUserStore(
-    (s) => (s as any).hasCompletedPlacementTest
-  );
-
   // ============================================================================
   // EFFECTS
   // ============================================================================
-  /**
-   * Effect to handle placement test results and pre-select level
-   */
-  React.useEffect(() => {
-    if (userLevel && hasCompletedPlacementTest) {
-      setSelected(userLevel);
-      setShowTestResult(true);
-    } else if (userLevel) {
-      setSelected(userLevel);
-      setShowTestResult(false);
-    }
-  }, [userLevel, hasCompletedPlacementTest]);
-
   /**
    * Reset processing state when screen is focused (when back from other screens)
    */
@@ -256,8 +236,6 @@ export default function SelectLevelScreen() {
    */
   const LevelOption = ({ level, label }: { level: Level; label: string }) => {
     const isActive = selected === level;
-    // Always show recommendation tag on the recommended level, regardless of user's current selection
-    const isRecommended = hasCompletedPlacementTest && userLevel === level;
     const meta = getLevelMeta(level);
 
     return (
@@ -266,7 +244,6 @@ export default function SelectLevelScreen() {
           if (isProcessing) return;
           Haptics.selectionAsync();
           onLevelSelect(level);
-          // Don't reset hasCompletedPlacementTest to keep recommendation visible
         }}
         activeOpacity={0.8}
         style={{
@@ -301,18 +278,6 @@ export default function SelectLevelScreen() {
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
           <ThemedText type="defaultSemiBold">{label}</ThemedText>
-          {isRecommended && (
-            <ThemedText
-              style={{
-                fontSize: 12,
-                color: "#059669",
-                fontWeight: "600",
-                marginTop: 2,
-              }}
-            >
-              {t("auth.select_level.recommended_from_test")}
-            </ThemedText>
-          )}
         </View>
       </TouchableOpacity>
     );
@@ -423,39 +388,7 @@ export default function SelectLevelScreen() {
           {t("auth.select_level.title")}
         </ThemedText>
 
-        {showTestResult && userLevel && (
-          <View
-            style={{
-              backgroundColor: "rgba(16, 185, 129, 0.1)",
-              borderWidth: 1,
-              borderColor: "#10b981",
-              borderRadius: 12,
-              padding: 16,
-              marginBottom: 16,
-              alignItems: "center",
-            }}
-          >
-            <ThemedText
-              style={{
-                color: "#059669",
-                fontWeight: "600",
-                fontSize: 16,
-                marginBottom: 4,
-              }}
-            >
-              {t("auth.select_level.test_result_title")}
-            </ThemedText>
-            <ThemedText
-              style={{
-                color: "#047857",
-                fontSize: 14,
-                textAlign: "center",
-              }}
-            >
-              {t("auth.select_level.test_result_desc", { level: userLevel })}
-            </ThemedText>
-          </View>
-        )}
+        {/* Note: No local/Zustand-based placement test result is shown here anymore */}
       </View>
 
       {/* Level Selection and Actions Section */}

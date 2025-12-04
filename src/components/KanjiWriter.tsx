@@ -1,5 +1,6 @@
 import { HanziWriter, useHanziWriter } from "@jamsch/react-native-hanzi-writer";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ThemedText } from "./ThemedText";
@@ -19,6 +20,7 @@ const KanjiWriter: React.FC<KanjiWriterProps> = ({
   onCorrectStroke,
   onMistake,
 }) => {
+  const { t } = useTranslation();
   const writer = useHanziWriter({
     character,
     loader: (char) => {
@@ -75,9 +77,11 @@ const KanjiWriter: React.FC<KanjiWriterProps> = ({
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View className="bg-white rounded-xl p-6 shadow-md">
         <ThemedText className="text-lg font-semibold text-gray-700 mb-4 text-center">
-          {isQuizMode ? `Kiểm tra Kanji: ${character}` : 
-           isReviewMode ? `Ôn tập Kanji: ${character}` : 
-           `Viết Kanji: ${character}`}
+          {isQuizMode
+            ? t("kanji_writer.title.quiz", { character })
+            : isReviewMode
+            ? t("kanji_writer.title.review", { character })
+            : t("kanji_writer.title.practice", { character })}
         </ThemedText>
 
         {/* Toggle Controls - Only show in practice and review mode */}
@@ -89,7 +93,9 @@ const KanjiWriter: React.FC<KanjiWriterProps> = ({
               }`}
               onPress={() => setShowGridlines(!showGridlines)}
             >
-              <Text className="text-white text-xs font-medium">Gridlines</Text>
+              <Text className="text-white text-xs font-medium">
+                {t("kanji_writer.controls.gridlines")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -98,7 +104,9 @@ const KanjiWriter: React.FC<KanjiWriterProps> = ({
               }`}
               onPress={() => setShowCharacter(!showCharacter)}
             >
-              <Text className="text-white text-xs font-medium">Character</Text>
+              <Text className="text-white text-xs font-medium">
+                {t("kanji_writer.controls.character")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -107,7 +115,9 @@ const KanjiWriter: React.FC<KanjiWriterProps> = ({
               }`}
               onPress={() => setShowOutline(!showOutline)}
             >
-              <Text className="text-white text-xs font-medium">Outline</Text>
+              <Text className="text-white text-xs font-medium">
+                {t("kanji_writer.controls.outline")}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -118,12 +128,14 @@ const KanjiWriter: React.FC<KanjiWriterProps> = ({
         >
           <HanziWriter
             writer={writer}
-            loading={<Text>Đang tải...</Text>}
+            loading={
+              <Text>{t("common.loading", { defaultValue: "Loading..." })}</Text>
+            }
             error={
               <View className="items-center">
-                <Text>Lỗi tải ký tự</Text>
+                <Text>{t("kanji_writer.load_error")}</Text>
                 <TouchableOpacity onPress={writer.refetch} className="mt-2">
-                  <Text className="text-blue-500">Thử lại</Text>
+                  <Text className="text-blue-500">{t("common.retry")}</Text>
                 </TouchableOpacity>
               </View>
             }
@@ -162,7 +174,9 @@ const KanjiWriter: React.FC<KanjiWriterProps> = ({
                 onPress={quizActive ? writer.quiz.stop : startQuiz}
               >
                 <ThemedText className="text-white text-sm font-medium">
-                  {quizActive ? "Dừng kiểm tra" : "Bắt đầu kiểm tra"}
+                  {quizActive
+                    ? t("kanji_writer.buttons.stop_quiz")
+                    : t("kanji_writer.buttons.start_quiz")}
                 </ThemedText>
               </TouchableOpacity>
             </View>
@@ -171,7 +185,9 @@ const KanjiWriter: React.FC<KanjiWriterProps> = ({
             <>
               {/* QUIZ Section */}
               <View className="items-center">
-                <ThemedText className="text-sm font-semibold text-gray-600 mb-2">QUIZ</ThemedText>
+                <ThemedText className="text-sm font-semibold text-gray-600 mb-2">
+                  {t("kanji_writer.sections.quiz")}
+                </ThemedText>
                 <TouchableOpacity
                   className={`px-4 py-2 rounded-lg ${
                     quizActive ? "bg-red-500" : "bg-gray-500"
@@ -179,7 +195,9 @@ const KanjiWriter: React.FC<KanjiWriterProps> = ({
                   onPress={quizActive ? writer.quiz.stop : startQuiz}
                 >
                   <ThemedText className="text-white text-xs font-medium">
-                    {quizActive ? "Stop Quiz" : "Start Quiz"}
+                    {quizActive
+                      ? t("kanji_writer.buttons.stop_quiz")
+                      : t("kanji_writer.buttons.start_quiz")}
                   </ThemedText>
                 </TouchableOpacity>
               </View>
@@ -187,7 +205,9 @@ const KanjiWriter: React.FC<KanjiWriterProps> = ({
               {/* ANIMATE Section */}
               <View className="items-center">
                 <ThemedText className="text-sm font-semibold text-gray-600 mb-2">
-                  {isReviewMode ? "REVIEW" : "ANIMATE"}
+                  {isReviewMode
+                    ? t("kanji_writer.sections.review")
+                    : t("kanji_writer.sections.animate")}
                 </ThemedText>
                 <TouchableOpacity
                   className={`px-4 py-2 rounded-lg ${
@@ -201,8 +221,10 @@ const KanjiWriter: React.FC<KanjiWriterProps> = ({
                 >
                   <ThemedText className="text-white text-xs font-medium">
                     {animatorState === "playing"
-                      ? "Stop Animation"
-                      : isReviewMode ? "Xem cách viết" : "Animate Strokes"}
+                      ? t("kanji_writer.buttons.stop_animation")
+                      : isReviewMode
+                      ? t("kanji_writer.buttons.view_strokes")
+                      : t("kanji_writer.buttons.animate_strokes")}
                   </ThemedText>
                 </TouchableOpacity>
               </View>

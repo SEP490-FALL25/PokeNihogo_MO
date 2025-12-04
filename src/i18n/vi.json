@@ -124,6 +124,31 @@
       "togepi": "Bước nhỏ hôm nay, thành công ngày mai!"
     }
   },
+  "kanji_writer": {
+    "title": {
+      "practice": "Viết Kanji: {{character}}",
+      "review": "Ôn Kanji: {{character}}",
+      "quiz": "Kiểm tra Kanji: {{character}}"
+    },
+    "controls": {
+      "gridlines": "Ô lưới",
+      "character": "Ký tự",
+      "outline": "Nét viền"
+    },
+    "load_error": "Không thể tải ký tự",
+    "sections": {
+      "quiz": "Kiểm tra",
+      "animate": "Hoạt ảnh",
+      "review": "Ôn tập"
+    },
+    "buttons": {
+      "start_quiz": "Bắt đầu kiểm tra",
+      "stop_quiz": "Dừng kiểm tra",
+      "stop_animation": "Dừng hoạt ảnh",
+      "animate_strokes": "Phát nét viết",
+      "view_strokes": "Xem cách viết"
+    }
+  },
   "reading": {
     "title": "Luyện Đọc",
     "subtitle": "Cải thiện kỹ năng đọc tiếng Nhật với nhiều loại văn bản khác nhau",
@@ -512,6 +537,7 @@
       "reward": "Phần thưởng",
       "status": "Trạng thái"
     },
+    "practice_writing": "Luyện viết Kanji",
     "hide_meaning": "Ẩn nghĩa",
     "press_to_see_meaning": "Nhấn để xem nghĩa",
     "no_meaning": "Chưa có nghĩa",
@@ -552,10 +578,12 @@
       "locked_hint": "Hoàn thành tất cả các phần học để bắt đầu kiểm tra"
     },
     "status": {
+      "not_started": "Chưa bắt đầu",
       "completed": "Hoàn thành",
       "failed": "Chưa đạt",
       "in_progress": "Đang làm",
       "abandoned": "Đã bỏ",
+      "skipped": "Đã bỏ qua",
       "pending": "Đang chờ",
       "unknown": "Chưa có dữ liệu"
     }
@@ -604,7 +632,8 @@
       "kun_reading": "Âm Kunyomi",
       "stroke_count": "Số nét",
       "stroke_value": "{{count}} nét",
-      "details_heading": "📖 Giải thích chi tiết"
+      "details_heading": "📖 Giải thích chi tiết",
+      "meaning_label": "Nghĩa"
     },
     "flashcard": {
       "progress": {

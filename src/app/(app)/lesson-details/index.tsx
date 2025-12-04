@@ -400,6 +400,11 @@ const LessonDetailScreen = () => {
         string,
         { label: string; bgColor: string; textColor: string }
       > = {
+        NOT_STARTED: {
+          label: t("lesson_detail.status.not_started", "Chưa bắt đầu"),
+          bgColor: "#e0f2fe",
+          textColor: "#0369a1",
+        },
         COMPLETED: {
           label: t("lesson_detail.status.completed", "Hoàn thành"),
           bgColor: "#dcfce7",
@@ -424,6 +429,11 @@ const LessonDetailScreen = () => {
           label: t("lesson_detail.status.abandoned", "Đã bỏ"),
           bgColor: "#e2e8f0",
           textColor: "#475569",
+        },
+        SKIPPED: {
+          label: t("lesson_detail.status.skipped", "Bỏ qua"),
+          bgColor: "#f3f4f6",
+          textColor: "#4b5563",
         },
         PENDING: {
           label: t("lesson_detail.status.pending", "Đang chờ"),
