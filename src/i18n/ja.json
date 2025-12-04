@@ -30,7 +30,6 @@
         "delete": "削除",
         "edit": "編集",
         "close": "閉じる",
-        "cancel": "キャンセル",
         "exit": "終了",
         "shop": "ショップ",
         "open-shop": "ショップを開く",
@@ -121,6 +120,31 @@
             "percentage": "スコア"
         }
     },
+  "kanji_writer": {
+    "title": {
+      "practice": "漢字を書く: {{character}}",
+      "review": "漢字を復習: {{character}}",
+      "quiz": "漢字クイズ: {{character}}"
+    },
+    "controls": {
+      "gridlines": "ガイド線",
+      "character": "文字",
+      "outline": "アウトライン"
+    },
+    "load_error": "文字を読み込めませんでした",
+    "sections": {
+      "quiz": "クイズ",
+      "animate": "アニメーション",
+      "review": "レビュー"
+    },
+    "buttons": {
+      "start_quiz": "クイズを開始",
+      "stop_quiz": "クイズを停止",
+      "stop_animation": "アニメーションを停止",
+      "animate_strokes": "筆順アニメーション",
+      "view_strokes": "書き順を見る"
+    }
+  },
     "navigation": {
         "title": "メインナビゲーション",
         "tour_start_learning": "学習開始",
@@ -747,6 +771,7 @@
             "failed": "未達成",
             "in_progress": "進行中",
             "abandoned": "中断",
+            "skipped": "スキップ",
             "pending": "保留",
             "unknown": "データ未取得"
         }
@@ -786,8 +811,9 @@
             "on_reading": "オン読み",
             "kun_reading": "訓読み",
             "stroke_count": "画数",
-            "stroke_value": "{{count}}画",
-            "details_heading": "📖 詳細な解説"
+        "stroke_value": "{{count}}画",
+        "details_heading": "📖 詳細な解説",
+        "meaning_label": "意味"
         },
         "flashcard": {
             "progress": {
@@ -867,25 +893,26 @@
         }
     },
     "quiz_completion": {
-        "title": "解答情報",
-        "labels": {
-            "total_questions": "総問題数:",
-            "answered": "解答済み:",
-            "unanswered": "未解答:",
-            "unanswered_list": "未解答の問題:",
-            "question_number": "問題 {{number}}",
-            "status": "ステータス:"
-        },
-        "status": {
-            "completed": "完了",
-            "in_progress": "進行中",
-            "failed": "未達成",
-            "not_started": "未開始"
-        },
-        "buttons": {
-            "continue": "続ける",
-            "submit": "提出する"
-        }
+      "title": "解答情報",
+      "labels": {
+        "total_questions": "総問題数:",
+        "answered": "解答済み:",
+        "unanswered": "未解答:",
+        "unanswered_list": "未解答の問題:",
+        "question_number": "問題 {{number}}",
+        "status": "ステータス:"
+      },
+      "status": {
+        "completed": "完了",
+        "in_progress": "進行中",
+        "failed": "未達成",
+        "not_started": "未開始",
+        "skipped": "スキップ"
+      },
+      "buttons": {
+        "continue": "続ける",
+        "submit": "提出する"
+      }
     },
     "quiz_progress": {
         "label": "完了 {{current}}/{{total}}",
@@ -955,6 +982,7 @@
     },
     "footer_message": "宝箱を開放するには <highlight>{{total}}</highlight> レッスンを完了してください"
   },
+    "practice_writing": "漢字の書き取り練習",
     "hide_meaning": "意味を非表示",
     "press_to_see_meaning": "意味を表示",
     "no_meaning": "意味がありません",

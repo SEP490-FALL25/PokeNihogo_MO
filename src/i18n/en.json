@@ -124,6 +124,31 @@
       "togepi": "Small steps today, success tomorrow!"
     }
   },
+  "kanji_writer": {
+    "title": {
+      "practice": "Write Kanji: {{character}}",
+      "review": "Review Kanji: {{character}}",
+      "quiz": "Kanji Quiz: {{character}}"
+    },
+    "controls": {
+      "gridlines": "Gridlines",
+      "character": "Character",
+      "outline": "Outline"
+    },
+    "load_error": "Failed to load character",
+    "sections": {
+      "quiz": "Quiz",
+      "animate": "Animate",
+      "review": "Review"
+    },
+    "buttons": {
+      "start_quiz": "Start Quiz",
+      "stop_quiz": "Stop Quiz",
+      "stop_animation": "Stop Animation",
+      "animate_strokes": "Animate Strokes",
+      "view_strokes": "View stroke order"
+    }
+  },
   "reading": {
     "title": "Reading Practice",
     "subtitle": "Improve your Japanese reading skills with various texts",
@@ -512,6 +537,7 @@
       "reward": "Reward",
       "status": "Status"
     },
+    "practice_writing": "Practice writing Kanji",
     "hide_meaning": "Hide meaning",
     "press_to_see_meaning": "Press to see meaning",
     "no_meaning": "No meaning",
@@ -552,10 +578,12 @@
       "locked_hint": "Complete every section before starting the test"
     },
     "status": {
+      "not_started": "Not started",
       "completed": "Completed",
       "failed": "Failed",
       "in_progress": "In progress",
       "abandoned": "Abandoned",
+      "skipped": "Skipped",
       "pending": "Pending",
       "unknown": "No data yet"
     }
@@ -604,7 +632,8 @@
       "kun_reading": "Kun reading",
       "stroke_count": "Stroke count",
       "stroke_value": "{{count}} strokes",
-      "details_heading": "📖 Detailed explanation"
+      "details_heading": "📖 Detailed explanation",
+      "meaning_label": "Meaning"
     },
     "flashcard": {
       "progress": {
