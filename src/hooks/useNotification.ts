@@ -1,18 +1,55 @@
 import notificationService from "@services/notification";
 import { useGlobalStore } from "@stores/global/global.config";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+    useInfiniteQuery,
+    useMutation,
+    useQueryClient,
+} from "@tanstack/react-query";
 
 /**
- * Hook to get notification data
- * @returns Notification data
+ * Hook to get notification data with infinite scroll support
+ * @returns Notification data with pagination helpers
  */
 export const useNotification = () => {
     const language = useGlobalStore((state) => state.language);
-    const { data, isLoading, error } = useQuery({
-        queryKey: ['notification', language],
-        queryFn: () => notificationService.showNotification(1, 10),
+    const {
+        data,
+        isLoading,
+        error,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        refetch,
+    } = useInfiniteQuery({
+        queryKey: ["notification", language],
+        queryFn: ({ pageParam = 1 }) =>
+            notificationService.showNotification(pageParam, 10),
+        getNextPageParam: (lastPage) => {
+            const pagination = lastPage?.data?.data?.pagination;
+            if (!pagination) return undefined;
+            const { current, totalPage } = pagination;
+            return current < totalPage ? current + 1 : undefined;
+        },
+        initialPageParam: 1,
     });
-    return { data, isLoading, error };
+
+    const notifications =
+        data?.pages?.flatMap((page: any) => page?.data?.data?.results || []) ??
+        [];
+
+    const unreadCount = notifications.filter((item: any) => !item.isRead).length;
+
+    return {
+        data,
+        notifications,
+        isLoading,
+        error,
+        fetchNextPage,
+        hasNextPage: !!hasNextPage,
+        isFetchingNextPage,
+        refetch,
+        unreadCount,
+    };
 };
 //------------------------End------------------------//
 
