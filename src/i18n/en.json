@@ -1107,6 +1107,7 @@
   "gacha": {
     "title": "Gacha",
     "no_banners": "No active banners available",
+    "confirm_title": "Error",
     "select_banner": "Select Banner",
     "rate_up_text": "Increased rate for {{pokemon}}!",
     "cost_per_roll": "Cost: {{cost}} per roll",

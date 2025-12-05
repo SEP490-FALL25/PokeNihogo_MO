@@ -1117,6 +1117,7 @@
     "no_banners": "Không có banner nào đang hoạt động",
     "select_banner": "Chọn banner",
     "rate_up_text": "Tăng tỉ lệ nhận {{pokemon}}!",
+    "confirm_title": "Lỗi",
     "cost_per_roll": "Chi phí: {{cost}} mỗi lần",
     "wish_single": "Mở 1 lần",
     "wish_ten": "Mở 10 lần",
@@ -1217,7 +1218,7 @@
       }
     }
   },
-    "exercise_history": {
+  "exercise_history": {
     "title": "Lịch sử bài tập",
     "subtitle": "Xem lại các bài tập và bài test đã làm",
     "exercises_tab": "Bài tập",
@@ -1241,7 +1242,7 @@
     "incorrect": "sai",
     "in_progress": "Đang làm",
     "not_started": "Chưa bắt đầu",
-      "review_requirement": "Cần đạt 80% để xem lại",
+    "review_requirement": "Cần đạt 80% để xem lại",
     "test": "Bài kiểm tra",
     "exercise": "Bài tập",
     "unknown_exercise": "Bài tập không xác định",
