@@ -39,6 +39,11 @@ declare global {
             setStarterId: (starterId: string) => void;
             isFirstTimeLogin?: boolean;
             setIsFirstTimeLogin: (value: boolean) => void;
+            level?: "N5" | "N4" | "N3";
+            setLevel: (level: "N5" | "N4" | "N3") => void;
+            hasCompletedPlacementTest: boolean;
+            setHasCompletedPlacementTest: (value: boolean) => void;
+            resetUserState: () => void;
         }
 
         interface IWalletState {

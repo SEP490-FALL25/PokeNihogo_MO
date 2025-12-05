@@ -8,6 +8,7 @@ import { TypingText } from "@components/ui/TypingText";
 import { useFocusEffect } from "@react-navigation/native";
 import { ROUTES } from "@routes/routes";
 import userService from "@services/user";
+import { useUserStore } from "@stores/user/user.config";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import React, { useCallback } from "react";
@@ -109,6 +110,7 @@ export default function SelectLevelScreen() {
   const [mascot, setMascot] = React.useState(pokemonMascots[0]);
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [showTestResult, setShowTestResult] = React.useState(false);
+  const storedLevel = useUserStore((s) => (s as any).level as Level | undefined);
 
   // Animation refs
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
@@ -146,6 +148,15 @@ export default function SelectLevelScreen() {
       }),
     ]).start();
   }, [fadeAnim, translateY]);
+
+  /**
+   * Preselect level from placement test result if available in store
+   */
+  React.useEffect(() => {
+    if (storedLevel) {
+      setSelected(storedLevel);
+    }
+  }, [storedLevel]);
 
   // ============================================================================
   // EVENT HANDLERS

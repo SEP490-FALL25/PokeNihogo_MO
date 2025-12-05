@@ -1,3 +1,5 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useUserStore } from "@stores/user/user.config";
 import { deleteSecureStorage, getValueForSecureStorage, saveSecureStorage } from "@utils/secure-storage";
 
 export const createAuthSlice = (set: any): ZUSTAND.IAuthState => ({
@@ -25,6 +27,18 @@ export const createAuthSlice = (set: any): ZUSTAND.IAuthState => ({
   deleteAccessToken: async () => {
     await deleteSecureStorage('accessToken');
     set({ accessToken: "" });
+    // Reset user-related UI state when logging out so it doesn't leak to another account
+    try {
+      useUserStore.getState().resetUserState();
+    } catch (_) {
+      // ignore reset failure
+    }
+    // Clear onboarding/tour flag so next login can see tour again
+    try {
+      await AsyncStorage.removeItem("@WelcomeModal:hasBeenShown");
+    } catch (_) {
+      // ignore cleanup failure
+    }
   },
   setIsLoading: (isLoading: boolean) => set({ isLoading }),
 })
