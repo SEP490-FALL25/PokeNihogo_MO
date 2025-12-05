@@ -77,3 +77,20 @@ export const useReadNotification = () => {
     });
 };
 //------------------------End------------------------//
+
+
+
+/**
+ * Hook to read all notifications
+ * @returns Mutation object with mutate function
+ */
+export const useReadAllNotifications = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (notificationIds: number[]) => notificationService.readAllNotifications(notificationIds),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['notification'] });
+        },
+    });
+};
+//------------------------End------------------------//

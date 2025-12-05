@@ -1,11 +1,12 @@
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
-import { useNotification, useReadNotification } from "@hooks/useNotification";
+import { useNotification, useReadAllNotifications, useReadNotification } from "@hooks/useNotification";
 import { useRouter } from "expo-router";
 import {
     Bell,
     BellOff,
     BookOpen,
+    CheckCheck,
     ChevronLeft,
     Dumbbell,
     Gift
@@ -107,6 +108,7 @@ export default function NotificationsScreen() {
         refetch,
     } = useNotification();
     const { mutate: markAsRead } = useReadNotification();
+    const { mutate: readAll } = useReadAllNotifications();
     const router = useRouter();
 
     const lastLoadTimeRef = useRef<number>(0);
@@ -125,14 +127,25 @@ export default function NotificationsScreen() {
 
     const handleItemPress = useCallback(
         (item: NotificationItem) => {
-            console.log("Item pressed:", item);
             if (!item.isRead) {
-                console.log("Marking as read:", item.id);
                 markAsRead(item.id);
             }
         },
         [markAsRead]
     );
+
+    const handleReadAll = () => {
+        // Get IDs of all unread notifications
+        const unreadIds = notifications
+            .filter((n: any) => !n.isRead)
+            .map((n: any) => n.id);
+
+        if (unreadIds.length > 0) {
+            readAll(unreadIds);
+        }
+    };
+
+    const hasUnread = notifications.some((n: any) => !n.isRead);
 
     const renderItem: ListRenderItem<NotificationItem> = ({ item, index }) => {
         const { icon: Icon, color, bg } = getNotificationIcon(item.type);
@@ -203,7 +216,18 @@ export default function NotificationsScreen() {
                 <ThemedText type="subtitle" style={styles.headerTitle}>
                     {t("notification.title", "Thông báo")}
                 </ThemedText>
-                <View style={styles.headerRightPlaceholder} />
+
+                {hasUnread ? (
+                    <TouchableOpacity
+                        onPress={handleReadAll}
+                        style={styles.readAllButton}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    >
+                        <CheckCheck size={22} color="#3b82f6" />
+                    </TouchableOpacity>
+                ) : (
+                    <View style={styles.headerRightPlaceholder} />
+                )}
             </View>
 
             {isLoading && !notifications.length ? (
@@ -288,6 +312,14 @@ const styles = StyleSheet.create({
     },
     headerRightPlaceholder: {
         width: 48, // Matches back button + padding
+    },
+    readAllButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: "#eff6ff", // Blue 50
+        alignItems: "center",
+        justifyContent: "center",
     },
     loadingContainer: {
         flex: 1,
@@ -407,6 +439,3 @@ const styles = StyleSheet.create({
         lineHeight: 22,
     },
 });
-
-
-

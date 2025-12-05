@@ -65,7 +65,7 @@ declare global {
             // Time Sync & Handover
             serverTimeOffset: number;
             setServerTimeOffset: (offset: number) => void;
-            
+
             startRoundPayload: any | null;
             setStartRoundPayload: (payload: any) => void;
 

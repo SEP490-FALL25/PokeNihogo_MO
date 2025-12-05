@@ -7,6 +7,9 @@ const notificationService = {
     readNotification: async (notificationId: number) => {
         return axiosPrivate.put(`/notification/read/${notificationId}`);
     },
+    readAllNotifications: async (notificationIds: number[]) => {
+        return axiosPrivate.put(`/notification/read/list`, { notificationIds });
+    }
 };
 
 export default notificationService;
