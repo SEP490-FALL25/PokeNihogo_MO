@@ -116,24 +116,10 @@ export function usePlacementTest(testId: number | string = 1) {
     fetchQuestions();
   }, [fetchQuestions]);
 
-  const selectOption = useCallback(
-    async (idx: number) => {
-      setSelectedIndex(idx);
-      if (!current || !userTestAttemptId) return;
-      const answerId = current.optionIds[idx];
-      if (!answerId) return;
-      try {
-        await userTestService.upsertTestAnswerLog({
-          userTestAttemptId: userTestAttemptId,
-          questionBankId: current.questionBankId,
-          answerId,
-        });
-      } catch (_) {
-        // ignore logging failure
-      }
-    },
-    [current, userTestAttemptId]
-  );
+  const selectOption = useCallback((idx: number) => {
+    // Only update local selection; API upsert will be sent when user presses Next
+    setSelectedIndex(idx);
+  }, []);
 
   const next = useCallback(async () => {
     if (selectedIndex == null || !current) return { finished: false as const };
@@ -141,6 +127,22 @@ export function usePlacementTest(testId: number | string = 1) {
     nextAnswers[currentIndex] = selectedIndex;
     setAnswers(nextAnswers);
     setSelectedIndex(null);
+
+    // Persist answer for current question on "Next"
+    if (userTestAttemptId && current) {
+      const answerId = current.optionIds[selectedIndex];
+      if (answerId) {
+        try {
+          await userTestService.upsertTestAnswerLog({
+            userTestAttemptId,
+            questionBankId: current.questionBankId,
+            answerId,
+          });
+        } catch (_) {
+          // ignore logging failure
+        }
+      }
+    }
 
     if (!isLast) {
       setCurrentIndex((i) => i + 1);

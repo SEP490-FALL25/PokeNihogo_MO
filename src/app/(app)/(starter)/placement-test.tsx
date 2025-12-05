@@ -205,6 +205,11 @@ export default function PlacementTestScreen() {
         percentage: result.percentage || 0,
         recommended: result.recommended,
       });
+      // Lưu gợi ý level và trạng thái hoàn thành test vào store
+      if (result.recommended) {
+        setLevel(result.recommended as Difficulty);
+        setHasCompletedPlacementTest(true);
+      }
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } else {
       // Fallback nếu không có kết quả chi tiết
