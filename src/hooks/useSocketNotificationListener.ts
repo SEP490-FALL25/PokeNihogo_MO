@@ -12,43 +12,51 @@ export const useSocketNotificationListener = () => {
     useEffect(() => {
         if (!accessToken) return;
 
-        // Kết nối socket namespace 'user' với token
         const socket = getSocket("user", accessToken);
 
         if (!socket.connected) {
             socket.connect();
         }
 
-        // Emit join room 
         socket.emit("join-user-room");
 
         const handleNotification = (payload: any) => {
             console.log("Socket Notification Received:", payload);
 
-            // Hiển thị Toast
+            let type = payload.type || "DEFAULT";
+            let title = payload.title || "Thông báo mới";
+            let message = payload.body || "Bạn có thông báo mới";
+
+            if (payload.type === 'REWARDS_RECEIVED') {
+                type = 'REWARD';
+                if (!payload.title) title = "Nhận thưởng thành công!";
+
+                if (!payload.body && payload.data) {
+                    const parts = [];
+                    if (payload.data.sparkles?.amount) parts.push(`+${payload.data.sparkles.amount} Sparkles ✨`);
+                    if (payload.data.exp?.amount) parts.push(`+${payload.data.exp.amount} EXP 📈`);
+                    if (parts.length > 0) message = `Bạn nhận được: ${parts.join(" và ")}`;
+                }
+            }
+
             showToast({
-                id: payload.id,
-                title: payload.title || "Thông báo mới",
-                message: payload.body || "Bạn có thông báo mới",
-                type: payload.type || "DEFAULT",
+                id: payload.notificationId || payload.id,
+                title,
+                message,
+                type,
             });
 
-            // Làm mới danh sách notification
             queryClient.invalidateQueries({ queryKey: ['notification'] });
 
-            // Làm mới User Info/Wallet nếu thông báo liên quan đến Reward
-            if (payload.type === 'REWARD') {
+            if (type === 'REWARD') {
                 queryClient.invalidateQueries({ queryKey: ['wallet-user'] });
             }
         };
 
         socket.on("notification", handleNotification);
 
-        // Cleanup khi unmount hoặc đổi token
         return () => {
             socket.off("notification", handleNotification);
-            // Không disconnect socket ở đây vì getSocket quản lý singleton, 
-            // chỉ disconnect khi logout hoàn toàn (auth service lo việc này)
         };
     }, [accessToken, showToast, queryClient]);
 };

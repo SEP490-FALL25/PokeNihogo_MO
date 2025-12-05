@@ -30,10 +30,14 @@ export const GlobalNotificationToast = () => {
 
     const handlePress = () => {
         if (id) {
-            markAsRead(id);
+            console.log("Toast clicked, marking as read:", id);
+            markAsRead(Number(id));
         }
-        hideToast();
         router.push(ROUTES.APP.NOTIFICATIONS);
+        // Delay hiding toast to prevent unmounting the hook before mutation fires
+        setTimeout(() => {
+            hideToast();
+        }, 500);
     };
 
     return (

@@ -68,8 +68,12 @@ export const useReadNotification = () => {
     return useMutation({
         mutationFn: (notificationId: number) => notificationService.readNotification(notificationId),
         onSuccess: () => {
+            console.log("Marked as read success");
             queryClient.invalidateQueries({ queryKey: ['notification'] });
         },
+        onError: (error) => {
+            console.error("Mark as read failed:", error);
+        }
     });
 };
 //------------------------End------------------------//

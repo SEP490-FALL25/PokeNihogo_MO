@@ -119,12 +119,12 @@ const CustomTab = () => {
         ]}
       >
         {tabConfig.map((tab) => (
-          <TabButton
-            key={tab.name}
-            tab={tab}
-            active={isActive(tab.route)}
-            onPress={() => handleTabPress(tab)}
-          />
+            <TabButton
+              key={tab.name}
+              tab={tab}
+              active={isActive(tab.route)}
+              onPress={() => handleTabPress(tab)}
+            />
         ))}
       </View>
     </View>

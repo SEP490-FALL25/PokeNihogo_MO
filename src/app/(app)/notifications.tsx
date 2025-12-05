@@ -1,28 +1,27 @@
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { useNotification, useReadNotification } from "@hooks/useNotification";
-import { useTranslation } from "react-i18next";
+import { useRouter } from "expo-router";
+import {
+    Bell,
+    BellOff,
+    BookOpen,
+    ChevronLeft,
+    Dumbbell,
+    Gift
+} from "lucide-react-native";
 import React, { useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
     ActivityIndicator,
     FlatList,
     ListRenderItem,
+    Platform,
     RefreshControl,
     StyleSheet,
     TouchableOpacity,
     View,
-    Platform,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { 
-    Bell, 
-    ChevronLeft, 
-    Gift, 
-    BookOpen, 
-    Dumbbell, 
-    BellOff,
-    Info
-} from "lucide-react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 type NotificationItem = {
@@ -32,9 +31,41 @@ type NotificationItem = {
     type: string;
     isRead: boolean;
     createdAt: string;
+    data?: {
+        sparkles?: { amount: number };
+        exp?: { amount: number };
+    };
 };
 
 const PAGE_LOAD_DEBOUNCE_MS = 400;
+
+const getNotificationBody = (item: NotificationItem) => {
+    let data: any = item.data;
+
+    // Parse data if it's a string
+    if (typeof item.data === 'string') {
+        try {
+            data = JSON.parse(item.data);
+        } catch (e) {
+            // If parsing fails, fall back to item.body
+            return item.body;
+        }
+    }
+
+    if (item.type === 'REWARD' && data) {
+        const parts = [];
+        if (data.sparkles?.amount) {
+            parts.push(`+${data.sparkles.amount} Sparkles ✨`);
+        }
+        if (data.exp?.amount) {
+            parts.push(`+${data.exp.amount} EXP 📈`);
+        }
+        if (parts.length > 0) {
+            return `Chúc mừng! Bạn nhận được ${parts.join(" và ")}.`;
+        }
+    }
+    return item.body;
+};
 
 const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -61,7 +92,7 @@ const formatTime = (dateString: string) => {
     if (diffMins < 60) return `${diffMins} phút trước`;
     if (diffHours < 24) return `${diffHours} giờ trước`;
     if (diffDays < 7) return `${diffDays} ngày trước`;
-    
+
     return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
 };
 
@@ -107,8 +138,8 @@ export default function NotificationsScreen() {
         const { icon: Icon, color, bg } = getNotificationIcon(item.type);
 
         return (
-            <Animated.View 
-                entering={FadeInDown.delay(index * 50).springify()} 
+            <Animated.View
+                entering={FadeInDown.delay(index * 50).springify()}
                 style={styles.itemWrapper}
             >
                 <TouchableOpacity
@@ -123,7 +154,7 @@ export default function NotificationsScreen() {
                         <Icon size={24} color={color} strokeWidth={2.5} />
                         {!item.isRead && <View style={styles.onlineDot} />}
                     </View>
-                    
+
                     <View style={styles.contentContainer}>
                         <View style={styles.headerRow}>
                             <ThemedText style={[styles.itemTitle, !item.isRead && styles.itemTitleUnread]} numberOfLines={1}>
@@ -133,9 +164,9 @@ export default function NotificationsScreen() {
                                 {formatTime(item.createdAt)}
                             </ThemedText>
                         </View>
-                        
+
                         <ThemedText style={styles.itemBody} numberOfLines={2}>
-                            {item.body}
+                            {getNotificationBody(item)}
                         </ThemedText>
                     </View>
                 </TouchableOpacity>
