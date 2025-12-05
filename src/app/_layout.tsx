@@ -2,7 +2,10 @@ import MinimalGameAlert, {
   AlertWrapper,
 } from "@components/atoms/MinimalAlert";
 import GlobalMatchingNotification from "@components/GlobalMatchingNotification";
+import { GlobalSocketManager } from "@components/GlobalSocketManager";
 import LanguageProvider from "@components/LanguageProvider";
+import CopilotProviderWrapper from "@components/ui/CopilotProviderWrapper";
+import { GlobalNotificationToast } from "@components/ui/GlobalNotificationToast";
 import { useColorScheme } from "@hooks/useColorScheme";
 import {
   MinimalAlertProvider,
@@ -19,7 +22,6 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import CopilotProviderWrapper from "@components/ui/CopilotProviderWrapper";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import "../../global.css";
@@ -59,6 +61,8 @@ export default function RootLayout() {
               </CopilotProviderWrapper>
               <StatusBar style="auto" />
               <GlobalMatchingNotification />
+              <GlobalNotificationToast />
+              <GlobalSocketManager />
             </ThemeProvider>
           </ReactQueryProvider>
         </LanguageProvider>

@@ -37,11 +37,16 @@ export const useNotification = () => {
         data?.pages?.flatMap((page: any) => page?.data?.data?.results || []) ??
         [];
 
+    const sortedNotifications = [...notifications].sort(
+        (a: any, b: any) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
     const unreadCount = notifications.filter((item: any) => !item.isRead).length;
 
     return {
         data,
-        notifications,
+        notifications: sortedNotifications,
         isLoading,
         error,
         fetchNextPage,
