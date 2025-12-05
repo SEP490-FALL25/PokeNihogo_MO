@@ -7,6 +7,7 @@ enum APP {
   AI_CONVERSATION = "/(app)/ai-conversation",
   AI_CONVERSATIONS_LIST = "/(app)/ai-conversations-list",
   SUBSCRIPTION = "/(app)/subscription",
+  NOTIFICATIONS = "/(app)/notifications",
 }
 
 enum ME {

@@ -3,12 +3,14 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 
 import CustomTab from "@components/ui/CustomTab";
+import { FloatingNotificationButton } from "@components/FloatingNotificationButton";
 
 export default function TabLayout() {
   const { t } = useTranslation();
 
   return (
     <>
+      <FloatingNotificationButton />
       <Tabs
         screenOptions={{
           headerShown: false,

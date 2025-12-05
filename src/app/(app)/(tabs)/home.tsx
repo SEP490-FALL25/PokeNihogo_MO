@@ -1182,12 +1182,6 @@ const styles = StyleSheet.create({
   welcomeSection: {
     marginBottom: 8,
   },
-  welcomeHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 6,
-  },
   welcomeTitle: {
     fontSize: 28,
     fontWeight: "700",

@@ -118,16 +118,14 @@ const CustomTab = () => {
           // { paddingBottom: Math.max(12, insets.bottom) },
         ]}
       >
-        {tabConfig.map((tab) => {
-          return (
+        {tabConfig.map((tab) => (
             <TabButton
               key={tab.name}
               tab={tab}
               active={isActive(tab.route)}
               onPress={() => handleTabPress(tab)}
             />
-          );
-        })}
+        ))}
       </View>
     </View>
   );
@@ -288,6 +286,32 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
     width: "100%",
+  },
+  notificationBadge: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#ef4444",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 3,
+  },
+  notificationBadgeText: {
+    color: "#ffffff",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  notificationDot: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: "#ef4444",
   },
   buttonWrapper: {
     flex: 1,
