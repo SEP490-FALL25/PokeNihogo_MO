@@ -1007,6 +1007,7 @@
     "gacha": {
         "title": "ガチャ",
         "no_banners": "アクティブなバナーがありません",
+        "confirm_title": "エラー",
         "select_banner": "バナーを選択",
         "rate_up_text": "{{pokemon}}の出現率アップ！",
         "cost_per_roll": "コスト: {{cost}} / 回",
