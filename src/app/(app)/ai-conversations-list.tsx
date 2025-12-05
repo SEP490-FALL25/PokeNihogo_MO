@@ -41,12 +41,15 @@ export default function AiConversationsListScreen() {
     router.back();
   }, []);
 
-  const handleSelectConversation = useCallback((conversation: ConversationRoom) => {
-    router.push({
-      pathname: ROUTES.APP.AI_CONVERSATION,
-      params: { conversationId: conversation.conversationId },
-    });
-  }, []);
+  const handleSelectConversation = useCallback(
+    (conversation: ConversationRoom) => {
+      router.push({
+        pathname: ROUTES.APP.AI_CONVERSATION,
+        params: { conversationId: conversation.conversationId },
+      });
+    },
+    []
+  );
 
   const handleNewConversation = useCallback(() => {
     router.push(ROUTES.APP.AI_CONVERSATION);
