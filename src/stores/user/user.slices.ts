@@ -14,6 +14,14 @@ export const createUserSlice = (
     setLevel: (level: ZUSTAND.IUserState["level"]) => set({ level }),
     setHasCompletedPlacementTest: (value: boolean) =>
         set({ hasCompletedPlacementTest: value }),
+    resetUserState: () =>
+        set({
+            email: "",
+            starterId: undefined,
+            isFirstTimeLogin: undefined,
+            level: undefined,
+            hasCompletedPlacementTest: false,
+        }),
 })
 // Cần khai báo set bên ngoài slice nếu bạn dùng slice độc lập
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -1,4 +1,5 @@
 import { deleteSecureStorage, getValueForSecureStorage, saveSecureStorage } from "@utils/secure-storage";
+import { useUserStore } from "@stores/user/user.config";
 
 export const createAuthSlice = (set: any): ZUSTAND.IAuthState => ({
   accessToken: "",
@@ -25,6 +26,12 @@ export const createAuthSlice = (set: any): ZUSTAND.IAuthState => ({
   deleteAccessToken: async () => {
     await deleteSecureStorage('accessToken');
     set({ accessToken: "" });
+    // Reset user-related UI state when logging out so it doesn't leak to another account
+    try {
+      useUserStore.getState().resetUserState();
+    } catch (_) {
+      // ignore reset failure
+    }
   },
   setIsLoading: (isLoading: boolean) => set({ isLoading }),
 })
