@@ -179,7 +179,8 @@ export default function BattleLobbyScreen() {
     } catch (error: any) {
       Alert.alert(
         t("common.error"),
-        t("battle.lobby.alerts.queue_error_message")
+        error?.response?.data?.message || t("common.error")
+
       );
       console.log("[QUEUE] startQueue failed:", error?.response?.data?.message);
       setInQueue(false);
@@ -492,7 +493,7 @@ export default function BattleLobbyScreen() {
   useFocusEffect(
     useCallback(() => {
       console.log("BattleLobby FOCUSED -> Resetting State & Refetching...");
-      
+
       // 1. CHẶN NGAY LẬP TỨC
       isBlockingUpdates.current = true;
       isBattleScreenFocused.current = true;
@@ -532,29 +533,29 @@ export default function BattleLobbyScreen() {
       const performCheck = async () => {
         try {
           hasCheckedMatchTracking.current = true;
-          
+
           // 5. Gọi API lấy dữ liệu MỚI
           const trackingResult = await refetchMatchTracking();
           const data = trackingResult.data?.data?.data as
             | IBattleMatchTrackingResponse
             | undefined;
-          
+
           // 6. MỞ CỔNG: Chỉ sau khi API có kết quả mới thì mới cho phép xử lý
           console.log("Refetch done. Unblocking updates.");
-          isBlockingUpdates.current = false; 
+          isBlockingUpdates.current = false;
 
           if (data) {
-             handleMatchTrackingData(data, true);
+            handleMatchTrackingData(data, true);
           }
-          
+
           setTimeout(() => {
             hasCheckedMatchTracking.current = false;
           }, 2000);
         } catch (error) {
-           // Mở cổng kể cả khi lỗi để user không bị treo
-           console.log("Refetch failed. Unblocking updates.");
-           isBlockingUpdates.current = false;
-           hasCheckedMatchTracking.current = false;
+          // Mở cổng kể cả khi lỗi để user không bị treo
+          console.log("Refetch failed. Unblocking updates.");
+          isBlockingUpdates.current = false;
+          hasCheckedMatchTracking.current = false;
         }
       };
 
@@ -564,8 +565,8 @@ export default function BattleLobbyScreen() {
         // [FIX 5] Khi rời màn hình (Blur), đóng cổng lại ngay!
         console.log("BattleLobby BLURRED -> Blocking updates.");
         isBattleScreenFocused.current = false;
-        isBlockingUpdates.current = true; 
-        setShowAcceptModal(false); 
+        isBlockingUpdates.current = true;
+        setShowAcceptModal(false);
       };
     }, [
       responseType,

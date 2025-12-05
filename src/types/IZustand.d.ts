@@ -62,6 +62,13 @@ declare global {
             setLastMatchResult: (result: any) => void;
             clearLastMatchResult: () => void;
 
+            // Time Sync & Handover
+            serverTimeOffset: number;
+            setServerTimeOffset: (offset: number) => void;
+            
+            startRoundPayload: any | null;
+            setStartRoundPayload: (payload: any) => void;
+
             // Match found modal (reuse ModalBattleAccept)
             matchFoundModal: {
                 show: boolean;
