@@ -19,9 +19,11 @@ export default function ExpProgressBar({
   showText = true,
   style,
 }: ExpProgressBarProps) {
-  const totalExp = currentExp + expToNextLevel;
+  // expToNextLevel is now nextLevel.requiredExp (total exp needed to reach next level)
+  const totalExp = expToNextLevel;
   const percentage =
     totalExp > 0 ? (currentExp / totalExp) * 100 : 0;
+  const expNeeded = Math.max(0, totalExp - currentExp);
   const isLarge = size === "large";
   const { t } = useTranslation();
   return (
@@ -53,14 +55,14 @@ export default function ExpProgressBar({
           style={[
             styles.progressBarFill,
             isLarge ? styles.progressBarFillLarge : styles.progressBarFillSmall,
-            { width: `${percentage}%` },
+            { width: `${Math.min(100, percentage)}%` },
           ]}
         />
       </View>
 
       {isLarge && showText && (
         <Text style={styles.remainingText}>
-          {expToNextLevel.toLocaleString()} {t("profile.xp")}{" "}
+          {expNeeded.toLocaleString()} {t("profile.xp")}{" "}
           {t("profile.to")} {t("profile.level")}{" "}
           {currentLevel + 1}
         </Text>

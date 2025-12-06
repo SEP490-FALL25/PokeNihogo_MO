@@ -162,8 +162,8 @@ export default function ProfileScreen() {
     if (!userProfile?.level) return 0;
 
     const currentExp = Math.max(userProfile.exp || 0, 0);
-    const expToNextLevel = Math.max(userProfile.level.requiredExp || 0, 0);
-    const totalExp = currentExp + expToNextLevel;
+    // Use nextLevel.requiredExp as the target exp to reach next level
+    const totalExp = Math.max(userProfile.level.nextLevel?.requiredExp || 0, 0);
 
     if (totalExp <= 0) return 0;
 
