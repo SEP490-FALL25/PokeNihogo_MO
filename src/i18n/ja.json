@@ -192,7 +192,12 @@
         "speaking": "スピーキング",
         "battle": "バトル",
         "quiz_demo": "クイズデモ",
-        "ai_speaking": "AI"
+        "ai_speaking": "AI",
+        "subtabs": {
+            "listening": "リスニング",
+            "reading": "読解",
+            "speaking": "スピーキング"
+        }
     },
     "settings": {
         "title": "設定",

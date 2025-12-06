@@ -1026,7 +1026,12 @@
     "speaking": "Nói",
     "battle": "Chiến đấu",
     "quiz_demo": "Demo Quiz",
-    "ai_speaking": "AI"
+    "ai_speaking": "AI",
+    "subtabs": {
+      "listening": "Nghe",
+      "reading": "Đọc",
+      "speaking": "Nói"
+    }
   },
   "settings": {
     "title": "Cài đặt",
