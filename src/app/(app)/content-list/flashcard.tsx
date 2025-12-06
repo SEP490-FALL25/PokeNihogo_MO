@@ -18,6 +18,7 @@ import {
   Easing,
   Modal,
   ScrollView,
+  Switch,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
@@ -131,6 +132,24 @@ const VocabularyFlashcardScreen = () => {
   const [isFrontSide, setIsFrontSide] = useState(true);
   const [stackMode, setStackMode] = useState<"overlap" | "offset">("offset"); // "overlap" = chồng hoàn toàn, "offset" = hở một chút
   const [showOptions, setShowOptions] = useState(false);
+  const [optionsTab, setOptionsTab] = useState<"front" | "back">("front");
+  
+  // Display options for front and back of cards
+  const [frontOptions, setFrontOptions] = useState({
+    sound: true,
+    vocabulary: true,
+    meaning: false,
+    phonetic: true,
+    notes: false,
+  });
+  
+  const [backOptions, setBackOptions] = useState({
+    sound: true,
+    vocabulary: true,
+    meaning: true,
+    phonetic: true,
+    notes: true,
+  });
 
   const flipAnim = useRef(new Animated.Value(0)).current;
   const stackReveal = useRef(new Animated.Value(0)).current;
@@ -517,12 +536,19 @@ const VocabularyFlashcardScreen = () => {
                       paddingHorizontal: 12,
                     }}
                   >
-                    <ThemedText style={{ fontSize: 44, fontWeight: "bold", color: "#0369a1", textAlign: "center", lineHeight: 52 }}>
-                      {card?.wordJp || ""}
-                    </ThemedText>
-                    {(card?.reading || card?.kana) && (
+                    {frontOptions.vocabulary && (
+                      <ThemedText style={{ fontSize: 44, fontWeight: "bold", color: "#0369a1", textAlign: "center", lineHeight: 52 }}>
+                        {card?.wordJp || ""}
+                      </ThemedText>
+                    )}
+                    {frontOptions.phonetic && (card?.reading || card?.kana) && (
                       <ThemedText style={{ fontSize: 20, color: "#0ea5e9", marginTop: 12, textAlign: "center" }}>
                         {card?.reading || card?.kana}
+                      </ThemedText>
+                    )}
+                    {frontOptions.meaning && meanings.length > 0 && (
+                      <ThemedText style={{ fontSize: 24, color: "#0369a1", marginTop: 12, textAlign: "center" }}>
+                        {meanings[0]}
                       </ThemedText>
                     )}
                   </View>
@@ -647,22 +673,56 @@ const VocabularyFlashcardScreen = () => {
                         </ThemedText>
                       )}
                     </View>
-                  ) : meanings.length > 0 ? (
-                    meanings.map((meaning: string, idx: number) => (
-                      <View
-                        key={idx}
-                        className="py-5 px-6 mb-4 rounded-2xl bg-sky-50 border border-sky-100"
-                        style={{ width: width - 160 }}
-                      >
-                        <ThemedText style={{ fontSize: 36, fontWeight: "600", color: "#0369a1", textAlign: "center", lineHeight: 48 }}>
-                          {meaning}
-                        </ThemedText>
-                      </View>
-                    ))
                   ) : (
-                    <ThemedText style={{ fontSize: 32, color: "#0369a1", textAlign: "center", width: width - 160, lineHeight: 46 }}>
-                      {t("lessons.no_meaning", "No meaning")}
-                    </ThemedText>
+                    <View className="w-full items-center">
+                      {backOptions.vocabulary && card?.wordJp && (
+                        <View
+                          className="py-5 px-6 mb-4 rounded-2xl bg-sky-50 border border-sky-100"
+                          style={{ width: width - 160 }}
+                        >
+                          <ThemedText style={{ fontSize: 36, fontWeight: "600", color: "#0369a1", textAlign: "center", lineHeight: 48 }}>
+                            {card.wordJp}
+                          </ThemedText>
+                        </View>
+                      )}
+                      {backOptions.phonetic && (card?.reading || card?.kana) && (
+                        <View
+                          className="py-5 px-6 mb-4 rounded-2xl bg-sky-50 border border-sky-100"
+                          style={{ width: width - 160 }}
+                        >
+                          <ThemedText style={{ fontSize: 28, color: "#0ea5e9", textAlign: "center", lineHeight: 40 }}>
+                            {card?.reading || card?.kana}
+                          </ThemedText>
+                        </View>
+                      )}
+                      {backOptions.meaning && meanings.length > 0 ? (
+                        meanings.map((meaning: string, idx: number) => (
+                          <View
+                            key={idx}
+                            className="py-5 px-6 mb-4 rounded-2xl bg-sky-50 border border-sky-100"
+                            style={{ width: width - 160 }}
+                          >
+                            <ThemedText style={{ fontSize: 36, fontWeight: "600", color: "#0369a1", textAlign: "center", lineHeight: 48 }}>
+                              {meaning}
+                            </ThemedText>
+                          </View>
+                        ))
+                      ) : backOptions.meaning && (
+                        <ThemedText style={{ fontSize: 32, color: "#0369a1", textAlign: "center", width: width - 160, lineHeight: 46 }}>
+                          {t("lessons.no_meaning", "No meaning")}
+                        </ThemedText>
+                      )}
+                      {backOptions.notes && card?.notes && (
+                        <View
+                          className="py-5 px-6 mb-4 rounded-2xl bg-amber-50 border border-amber-100"
+                          style={{ width: width - 160 }}
+                        >
+                          <ThemedText style={{ fontSize: 20, color: "#92400e", textAlign: "center", lineHeight: 30 }}>
+                            {card.notes}
+                          </ThemedText>
+                        </View>
+                      )}
+                    </View>
                   )}
                 </ScrollView>
                 <View
@@ -820,53 +880,180 @@ const VocabularyFlashcardScreen = () => {
               <TouchableWithoutFeedback>
                 <View className="w-full max-w-md rounded-3xl bg-white p-6">
                   <ThemedText style={{ fontSize: 18, fontWeight: "bold", color: "#1f2937", marginBottom: 16, textAlign: "center" }}>
-                    {t(
-                      "content_list.flashcard.options.title",
-                      "Customize card display"
-                    )}
+                    {t("content_list.flashcard.options.title")}
                   </ThemedText>
-                  <View className="space-y-4">
-                    <TouchableOpacity
-                      className={`p-4 rounded-2xl border ${stackMode === "offset" ? "border-sky-400 bg-sky-50" : "border-gray-200"}`}
-                      onPress={() => {
-                        setStackMode("offset");
-                        setShowOptions(false);
-                      }}
-                    >
-                      <ThemedText style={{ fontSize: 16, fontWeight: "600", color: "#1f2937" }}>
-                        {t(
-                          "content_list.flashcard.options.offset_title",
-                          "Offset stack"
-                        )}
-                      </ThemedText>
-                      <ThemedText style={{ fontSize: 14, color: "#6b7280", marginTop: 4 }}>
-                        {t(
-                          "content_list.flashcard.options.offset_description",
-                          "Cards behind are slightly offset to show how many remain."
-                        )}
-                      </ThemedText>
-                    </TouchableOpacity>
 
+                  {/* Tabs */}
+                  <View className="flex-row mb-4 bg-gray-100 rounded-2xl p-1">
                     <TouchableOpacity
-                      className={`p-4 rounded-2xl border ${stackMode === "overlap" ? "border-sky-400 bg-sky-50" : "border-gray-200"}`}
-                      onPress={() => {
-                        setStackMode("overlap");
-                        setShowOptions(false);
-                      }}
+                      onPress={() => setOptionsTab("front")}
+                      className={`flex-1 py-2 rounded-xl ${optionsTab === "front" ? "bg-sky-500" : ""}`}
                     >
-                      <ThemedText style={{ fontSize: 16, fontWeight: "600", color: "#1f2937" }}>
-                        {t(
-                          "content_list.flashcard.options.overlap_title",
-                          "Overlap stack"
-                        )}
-                      </ThemedText>
-                      <ThemedText style={{ fontSize: 14, color: "#6b7280", marginTop: 4 }}>
-                        {t(
-                          "content_list.flashcard.options.overlap_description",
-                          "Cards behind overlap to stay focused on the current card."
-                        )}
+                      <ThemedText
+                        style={{
+                          textAlign: "center",
+                          fontSize: 14,
+                          fontWeight: "600",
+                          color: optionsTab === "front" ? "#ffffff" : "#6b7280",
+                        }}
+                      >
+                        {t("content_list.flashcard.options.front_tab")}
                       </ThemedText>
                     </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setOptionsTab("back")}
+                      className={`flex-1 py-2 rounded-xl ${optionsTab === "back" ? "bg-sky-500" : ""}`}
+                    >
+                      <ThemedText
+                        style={{
+                          textAlign: "center",
+                          fontSize: 14,
+                          fontWeight: "600",
+                          color: optionsTab === "back" ? "#ffffff" : "#6b7280",
+                        }}
+                      >
+                        {t("content_list.flashcard.options.back_tab")}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Options List */}
+                  <ScrollView className="max-h-96" showsVerticalScrollIndicator={false}>
+                    <View className="space-y-3">
+                      {/* Sound */}
+                      <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+                        <ThemedText style={{ fontSize: 16, color: "#1f2937" }}>
+                          {t("content_list.flashcard.options.sound")}
+                        </ThemedText>
+                        <Switch
+                          value={optionsTab === "front" ? frontOptions.sound : backOptions.sound}
+                          onValueChange={(value) => {
+                            if (optionsTab === "front") {
+                              setFrontOptions({ ...frontOptions, sound: value });
+                            } else {
+                              setBackOptions({ ...backOptions, sound: value });
+                            }
+                          }}
+                          trackColor={{ false: "#d1d5db", true: "#0ea5e9" }}
+                          thumbColor="#ffffff"
+                        />
+                      </View>
+
+                      {/* Vocabulary */}
+                      <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+                        <ThemedText style={{ fontSize: 16, color: "#1f2937" }}>
+                          {t("content_list.flashcard.options.vocabulary")}
+                        </ThemedText>
+                        <Switch
+                          value={optionsTab === "front" ? frontOptions.vocabulary : backOptions.vocabulary}
+                          onValueChange={(value) => {
+                            if (optionsTab === "front") {
+                              setFrontOptions({ ...frontOptions, vocabulary: value });
+                            } else {
+                              setBackOptions({ ...backOptions, vocabulary: value });
+                            }
+                          }}
+                          trackColor={{ false: "#d1d5db", true: "#0ea5e9" }}
+                          thumbColor="#ffffff"
+                        />
+                      </View>
+
+                      {/* Meaning */}
+                      <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+                        <ThemedText style={{ fontSize: 16, color: "#1f2937" }}>
+                          {t("content_list.flashcard.options.meaning")}
+                        </ThemedText>
+                        <Switch
+                          value={optionsTab === "front" ? frontOptions.meaning : backOptions.meaning}
+                          onValueChange={(value) => {
+                            if (optionsTab === "front") {
+                              setFrontOptions({ ...frontOptions, meaning: value });
+                            } else {
+                              setBackOptions({ ...backOptions, meaning: value });
+                            }
+                          }}
+                          trackColor={{ false: "#d1d5db", true: "#0ea5e9" }}
+                          thumbColor="#ffffff"
+                        />
+                      </View>
+
+                      {/* Phonetic */}
+                      <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+                        <ThemedText style={{ fontSize: 16, color: "#1f2937" }}>
+                          {t("content_list.flashcard.options.phonetic")}
+                        </ThemedText>
+                        <Switch
+                          value={optionsTab === "front" ? frontOptions.phonetic : backOptions.phonetic}
+                          onValueChange={(value) => {
+                            if (optionsTab === "front") {
+                              setFrontOptions({ ...frontOptions, phonetic: value });
+                            } else {
+                              setBackOptions({ ...backOptions, phonetic: value });
+                            }
+                          }}
+                          trackColor={{ false: "#d1d5db", true: "#0ea5e9" }}
+                          thumbColor="#ffffff"
+                        />
+                      </View>
+
+                      {/* Notes */}
+                      <View className="flex-row items-center justify-between py-3 border-b border-gray-100">
+                        <ThemedText style={{ fontSize: 16, color: "#1f2937" }}>
+                          {t("content_list.flashcard.options.notes")}
+                        </ThemedText>
+                        <Switch
+                          value={optionsTab === "front" ? frontOptions.notes : backOptions.notes}
+                          onValueChange={(value) => {
+                            if (optionsTab === "front") {
+                              setFrontOptions({ ...frontOptions, notes: value });
+                            } else {
+                              setBackOptions({ ...backOptions, notes: value });
+                            }
+                          }}
+                          trackColor={{ false: "#d1d5db", true: "#0ea5e9" }}
+                          thumbColor="#ffffff"
+                        />
+                      </View>
+                    </View>
+                  </ScrollView>
+
+                  {/* Stack Mode Options */}
+                  <View className="mt-4 pt-4 border-t border-gray-200">
+                    <ThemedText style={{ fontSize: 14, fontWeight: "600", color: "#1f2937", marginBottom: 8 }}>
+                      {t("content_list.flashcard.options.stack_mode", "Stack display")}
+                    </ThemedText>
+                    <View className="flex-row gap-2">
+                      <TouchableOpacity
+                        className={`flex-1 py-2 px-4 rounded-xl border ${stackMode === "offset" ? "border-sky-400 bg-sky-50" : "border-gray-200"}`}
+                        onPress={() => setStackMode("offset")}
+                      >
+                        <ThemedText
+                          style={{
+                            textAlign: "center",
+                            fontSize: 14,
+                            color: stackMode === "offset" ? "#0284c7" : "#6b7280",
+                            fontWeight: stackMode === "offset" ? "600" : "400",
+                          }}
+                        >
+                          {t("content_list.flashcard.options.offset_title")}
+                        </ThemedText>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className={`flex-1 py-2 px-4 rounded-xl border ${stackMode === "overlap" ? "border-sky-400 bg-sky-50" : "border-gray-200"}`}
+                        onPress={() => setStackMode("overlap")}
+                      >
+                        <ThemedText
+                          style={{
+                            textAlign: "center",
+                            fontSize: 14,
+                            color: stackMode === "overlap" ? "#0284c7" : "#6b7280",
+                            fontWeight: stackMode === "overlap" ? "600" : "400",
+                          }}
+                        >
+                          {t("content_list.flashcard.options.overlap_title")}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    </View>
                   </View>
 
                   <TouchableOpacity
@@ -874,7 +1061,7 @@ const VocabularyFlashcardScreen = () => {
                     onPress={() => setShowOptions(false)}
                   >
                     <ThemedText style={{ textAlign: "center", color: "#374151", fontWeight: "500" }}>
-                      {t("content_list.flashcard.options.close", "Close")}
+                      {t("content_list.flashcard.options.close")}
                     </ThemedText>
                   </TouchableOpacity>
                 </View>
