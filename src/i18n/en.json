@@ -21,6 +21,7 @@
     "simple_dialog_test": "This is a simple dialog test",
     "close": "Close",
     "cancel": "Cancel",
+    "confirm": "Confirm",
     "exit": "Exit",
     "shop": "Shop",
     "open-shop": "Open Shop",
@@ -634,6 +635,10 @@
       "stroke_value": "{{count}} strokes",
       "details_heading": "📖 Detailed explanation",
       "meaning_label": "Meaning"
+    },
+    "retry_modal": {
+      "title": "Retry exercise?",
+      "message": "You have already completed this exercise. If you retry, you will only receive 10% of the reward compared to the previous attempt."
     },
     "flashcard": {
       "progress": {
