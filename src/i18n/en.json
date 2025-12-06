@@ -719,6 +719,16 @@
       "complete_message": "You created a chain of {{chainLength}} words with {{score}} points!",
       "final_score": "Final Score: {{score}}",
       "play_again": "Play Again"
+    },
+    "matching": {
+      "no_content": "No content available",
+      "time": "Time",
+      "time_up": "Time's Up!",
+      "complete": "Congratulations!",
+      "time_up_message": "You matched {{matchedPairs}} out of {{total}} pairs!",
+      "complete_message": "You matched all pairs!",
+      "total_moves": "Total moves: {{moves}}",
+      "play_again": "Play Again"
     }
   },
   "quiz_screen": {

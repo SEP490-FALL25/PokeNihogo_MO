@@ -842,10 +842,11 @@ const MatchingGameScreen = () => {
                 }}
               >
                 {isTimeUp
-                  ? t(
-                      "content_list.matching.time_up_message",
-                      `You matched ${matchedPairs} out of ${contentData.length} pairs!`
-                    )
+                  ? t("content_list.matching.time_up_message", {
+                      matchedPairs,
+                      total: contentData.length,
+                      defaultValue: `You matched ${matchedPairs} out of ${contentData.length} pairs!`,
+                    })
                   : t("content_list.matching.complete_message", "You matched all pairs!")}
               </ThemedText>
 

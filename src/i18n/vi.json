@@ -719,6 +719,16 @@
       "complete_message": "Bạn đã tạo chuỗi {{chainLength}} từ với {{score}} điểm!",
       "final_score": "Điểm cuối: {{score}}",
       "play_again": "Chơi lại"
+    },
+    "matching": {
+      "no_content": "Không có nội dung",
+      "time": "Thời gian",
+      "time_up": "Hết giờ!",
+      "complete": "Chúc mừng!",
+      "time_up_message": "Bạn đã ghép được {{matchedPairs}}/{{total}} cặp!",
+      "complete_message": "Bạn đã ghép tất cả các cặp!",
+      "total_moves": "Tổng số lượt: {{moves}}",
+      "play_again": "Chơi lại"
     }
   },
   "quiz_screen": {
