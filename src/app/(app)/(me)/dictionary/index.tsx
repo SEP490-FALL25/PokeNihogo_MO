@@ -1157,13 +1157,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 999,
-    elevation: 9, // For Android, slightly lower than dropdown
+    zIndex: 999,// For Android, slightly lower than dropdown
   },
   dropdownWrapper: {
     position: "absolute",
-    zIndex: 1000,
-    elevation: 10, // For Android
+    zIndex: 1000,// For Android
   },
   dropdownContainer: {
     maxHeight: 400,
@@ -1187,16 +1185,7 @@ const styles = StyleSheet.create({
     padding: 20,
     width: "100%",
     maxWidth: 400,
-    maxHeight: "80%",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
-  },
+    maxHeight: "80%",},
   flashcardList: {
     maxHeight: 300,
   },

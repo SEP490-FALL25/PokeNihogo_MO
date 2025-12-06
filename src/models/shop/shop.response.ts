@@ -17,7 +17,6 @@ export const ShopItemRandomSchema = z.object({
 export type IShopItemRandomSchema = z.infer<typeof ShopItemRandomSchema>;
 //------------------------End------------------------//
 
-
 /**
  * Shop Banner All Pokemon Response Schema
  */
@@ -32,7 +31,6 @@ export const ShopBannerAllPokemonResponseSchema = z.object({
 });
 export type IShopBannerAllPokemonResponseSchema = z.infer<typeof ShopBannerAllPokemonResponseSchema>;
 //------------------------End------------------------//
-
 
 /**
  * Shop Banner Response Schema

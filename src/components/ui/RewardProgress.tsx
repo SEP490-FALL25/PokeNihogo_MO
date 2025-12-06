@@ -189,13 +189,7 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
       style={{
         backgroundColor: '#FFFFFF',
         borderColor: '#E2E8F0',
-        padding: 20,
-        shadowColor: '#0F172A',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.06,
-        shadowRadius: 12,
-        elevation: 4,
-      }}
+        padding: 20,}}
       onPress={handleOutsidePress}
     >
       <View className="mb-12 mt-2 flex-row justify-between items-end">
@@ -254,11 +248,7 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
         <View
           className="absolute h-4 rounded-full top-1/2 -mt-2 z-0"
           style={{
-            backgroundColor: '#FACC15',
-            shadowColor: '#FACC15',
-            shadowOpacity: 0.45,
-            shadowRadius: 6,
-            left: trackLeftOffset,
+            backgroundColor: '#FACC15',left: trackLeftOffset,
             width: activeWidth,
           }}
         />
@@ -358,13 +348,7 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
                       : "bg-slate-100 border-slate-200",
                     isSelected && "scale-110 bg-white border-amber-300"
                   )}
-                  style={isBig && isReached && !isClaimed ? {
-                    shadowColor: '#FACC15',
-                    shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 0.8,
-                    shadowRadius: 15,
-                    elevation: 10
-                  } : undefined}
+                  style={undefined}
                 >
                   {isLocked ? (
                     <MaterialCommunityIcons 

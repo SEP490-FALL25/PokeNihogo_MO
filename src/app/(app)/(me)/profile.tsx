@@ -51,13 +51,7 @@ const StatItem: React.FC<StatItemProps> = ({ icon: Icon, value, label, color, ac
   <View className="flex-1">
     <LinearGradient
       colors={['#ffffff', '#fafbfc']}
-      style={[styles.statCard, {
-        shadowColor: color,
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.18,
-        shadowRadius: 14,
-        elevation: 8,
-      }]}
+      style={[styles.statCard, {}]}
       className="items-center py-5 px-3 rounded-3xl bg-white"
     >
       {/* Icon Container with Gradient */}
@@ -92,13 +86,7 @@ interface AchievementBadgeProps {
 const AchievementBadge: React.FC<AchievementBadgeProps> = ({ name, icon, colors, imageUrl }) => (
   <View className="items-center w-22">
     <View
-      style={[styles.achievementBadgeShadow, {
-        shadowColor: colors[1],
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.35,
-        shadowRadius: 12,
-        elevation: 12,
-      }]}
+      style={[styles.achievementBadgeShadow, {}]}
       className="w-21 h-21 rounded-full mb-3"
     >
       <LinearGradient
@@ -679,13 +667,7 @@ const styles = StyleSheet.create({
     height: 152,
     borderRadius: 76,
     backgroundColor: '#10b981',
-    opacity: 0.3,
-    shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
-    elevation: 15,
-  },
+    opacity: 0.3,},
   levelBadge: {
     position: 'absolute',
     bottom: -8,
@@ -694,13 +676,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
-    gap: 4,
-    shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
+    gap: 4,},
   levelTag: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -738,50 +714,26 @@ const styles = StyleSheet.create({
   collectionCard: {
     padding: 24,
     borderRadius: 28,
-    overflow: 'hidden',
-    shadowColor: '#6FAFB2',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
-    elevation: 12,
-  },
+    overflow: 'hidden',},
   collectionIconContainer: {
     width: 52,
     height: 52,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
-    shadowColor: '#14b8a6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 6,
-  },
+    marginRight: 14,},
   pokemonCard: {
     width: 84,
     height: 84,
     borderRadius: 20,
     alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-  },
+    justifyContent: 'center',},
 
   // Achievements - Complex shadow styles
   achievementsCard: {
     padding: 24,
     borderRadius: 28,
-    marginBottom: 24,
-    shadowColor: '#f59e0b',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 12,
-  },
+    marginBottom: 24,},
   achievementsList: {
     paddingVertical: 10,
     paddingHorizontal: 4,

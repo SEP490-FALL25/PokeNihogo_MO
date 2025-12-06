@@ -216,16 +216,7 @@ const SheetContent = React.forwardRef<View, SheetContentProps & { isOpen?: boole
             style={[
               {
                 backgroundColor: '#ffffff',
-                padding: 24,
-                shadowColor: '#000',
-                shadowOffset: {
-                  width: 0,
-                  height: 4,
-                },
-                shadowOpacity: 0.25,
-                shadowRadius: 12,
-                elevation: 8,
-                gap: 16,
+                padding: 24,gap: 16,
               },
               getPositionStyles(),
               getSlideTransform(),

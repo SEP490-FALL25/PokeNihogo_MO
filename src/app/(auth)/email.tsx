@@ -25,7 +25,6 @@ export default function EmailScreen() {
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
 
-
     /**
      * Handle form validation
      * Handle next step

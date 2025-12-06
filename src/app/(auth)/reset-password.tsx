@@ -26,7 +26,6 @@ export default function ResetPasswordScreen() {
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
 
-
     /**
      * Handle form validation
      * Handle reset password

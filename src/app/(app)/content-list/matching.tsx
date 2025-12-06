@@ -90,13 +90,7 @@ const MatchingCardComponent = React.memo(({
           backgroundColor: isSelected ? "#fef3c7" : "#ffffff",
           borderRadius: 16,
           borderWidth: 3,
-          borderColor: isSelected ? "#f59e0b" : "#d1d5db",
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 8,
-          elevation: 6,
-          padding: 12,
+          borderColor: isSelected ? "#f59e0b" : "#d1d5db",padding: 12,
           justifyContent: "center",
           alignItems: "center",
         }}
@@ -122,7 +116,6 @@ const MatchingCardComponent = React.memo(({
 });
 
 MatchingCardComponent.displayName = "MatchingCardComponent";
-
 
 const MatchingGameScreen = () => {
   const { t } = useTranslation();
@@ -736,7 +729,6 @@ const MatchingGameScreen = () => {
           }}
         >
 
-
           {/* Grid Layout - All cards shuffled together */}
           <View
             style={{
@@ -803,13 +795,7 @@ const MatchingGameScreen = () => {
                 padding: 32,
                 alignItems: "center",
                 width: "100%",
-                maxWidth: 400,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.3,
-                shadowRadius: 16,
-                elevation: 10,
-              }}
+                maxWidth: 400,}}
             >
               <LinearGradient
                 colors={

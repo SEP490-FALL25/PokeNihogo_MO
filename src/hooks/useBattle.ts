@@ -19,7 +19,6 @@ export const useListMatchRound = (matchId?: string | number) => {
 };
 //------------------------End------------------------//
 
-
 /**
  * List user pokemon round
  * @param typeId Type ID
@@ -37,7 +36,6 @@ export const useListUserPokemonRound = (typeId: number, matchId?: string | numbe
     return { data: data?.data.data, isLoading, isError };
 };
 //------------------------End------------------------//
-
 
 /**
  * Choose pokemon
@@ -58,7 +56,6 @@ export const useChoosePokemon = () => {
 };
 //------------------------End------------------------//
 
-
 /**
  * Get user matching history
  * @param params Optional query parameters (currentPage, pageSize)
@@ -76,7 +73,6 @@ export const useUserMatchingHistory = (params?: IQueryRequest) => {
     };
 };
 //------------------------End------------------------//
-
 
 /**
  * Claim reward season
@@ -97,7 +93,6 @@ export const useClaimRewardSeason = () => {
 };
 //------------------------End------------------------//
 
-
 /**
  * Join new season
  * @returns Join new season mutation
@@ -115,8 +110,6 @@ export const useJoinNewSeason = () => {
     });
 };
 //------------------------End------------------------//
-
-
 
 /**
  * Match tracking

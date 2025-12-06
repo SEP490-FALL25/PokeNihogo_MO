@@ -395,20 +395,8 @@ const VocabularyFlashcardScreen = () => {
       : 0.85;
 
     const cardShadowStyle = isActive
-      ? {
-          shadowColor: "#0f172a",
-          shadowOffset: { width: 0, height: 12 },
-          shadowOpacity: 0.15,
-          shadowRadius: 18,
-          elevation: 10,
-        }
-      : {
-          shadowColor: "#0f172a",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.06,
-          shadowRadius: 10,
-          elevation: 2,
-        };
+      ? {}
+      : {};
 
     const cardBaseStyle = {
       paddingTop: 64,

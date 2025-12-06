@@ -32,7 +32,6 @@ export const BattleMatchFound = z.object({
 export type IBattleMatchFound = z.infer<typeof BattleMatchFound>;
 //------------------------End------------------------//
 
-
 /**
  * Battle Match Status Update Schema
  */
@@ -45,7 +44,6 @@ export const BattleMatchStatusUpdate = z.object({
 
 export type IBattleMatchStatusUpdate = z.infer<typeof BattleMatchStatusUpdate>;
 //------------------------End------------------------//
-
 
 /**
  * Battle Match Round Schema
@@ -101,7 +99,6 @@ export const BattleMatchRoundSchema = z.object({
 export type IBattleMatchRound = z.infer<typeof BattleMatchRoundSchema>;
 //------------------------End------------------------//
 
-
 /**
  * Submit Answer Schema
  */
@@ -113,7 +110,6 @@ export const SubmitAnswerSchema = z.object({
 export type ISubmitAnswer = z.infer<typeof SubmitAnswerSchema>;
 //------------------------End------------------------//
 
-
 /**
  * Battle User Matching History Response Schema
  */
@@ -121,7 +117,6 @@ export const BattleUserMatchingHistoryResponseSchema = BackendResponsePagination
 
 export type IBattleUserMatchingHistoryResponse = z.infer<typeof BattleUserMatchingHistoryResponseSchema>;
 //------------------------End------------------------//
-
 
 /**
  * Match Tracking Response Schema

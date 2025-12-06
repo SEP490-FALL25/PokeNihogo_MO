@@ -34,7 +34,6 @@ export const RANKING_RULES = {
     },
 } as const;
 
-
 export enum MATCH_TRACKING_STATUS {
     NO_ACTIVE_MATCH = "NO_ACTIVE_MATCH",
     ROUND_IN_PROGRESS = "ROUND_IN_PROGRESS",

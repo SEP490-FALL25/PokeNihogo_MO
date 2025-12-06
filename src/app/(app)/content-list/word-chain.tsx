@@ -823,13 +823,7 @@ const WordChainGameScreen = () => {
                 padding: 32,
                 alignItems: "center",
                 width: "100%",
-                maxWidth: 400,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.3,
-                shadowRadius: 16,
-                elevation: 10,
-              }}
+                maxWidth: 400,}}
             >
               <LinearGradient
                 colors={

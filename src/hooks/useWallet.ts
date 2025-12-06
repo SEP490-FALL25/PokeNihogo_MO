@@ -4,7 +4,6 @@ import { useWalletStore } from "@stores/wallet/wallet.config";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-
 /**
  * Hook to get wallet user data and auto-sync SPARKLES balance to Zustand
  * @returns Wallet user data

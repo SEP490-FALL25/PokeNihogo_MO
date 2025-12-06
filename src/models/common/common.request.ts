@@ -21,7 +21,6 @@ export const byUser = {
 }
 //----------------------End----------------------//
 
-
 /**
  * At
  * This is a object that contains the createdAt, updatedAt, and deletedAt fields
@@ -32,7 +31,6 @@ export const at = {
     deletedAt: z.string().nullable(),
 }
 //----------------------End----------------------//
-
 
 /**
  * Translation Input Schema

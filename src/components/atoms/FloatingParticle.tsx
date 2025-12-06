@@ -70,13 +70,7 @@ export default function FloatingParticle({
                     width: size,
                     height: size,
                     backgroundColor: color,
-                    borderRadius: size / 2,
-                    shadowColor: color,
-                    shadowOffset: { width: 0, height: 0 },
-                    shadowOpacity: 1,
-                    shadowRadius: 5,
-                    elevation: 10,
-                },
+                    borderRadius: size / 2,},
             ]}
         />
     );

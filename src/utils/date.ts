@@ -8,7 +8,6 @@ export const formatDate = (date: string) => {
 };
 //-------------------End-------------------//
 
-
 /**
  * Format date to mm/yyyy
  * @param date - Date to format
@@ -18,7 +17,6 @@ export const formatDateToMMYYYY = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', { month: '2-digit', year: 'numeric' });
 };
 //-------------------End-------------------//
-
 
 /**
  * Format history time
@@ -60,6 +58,4 @@ export const formatDateVN = (dateString: string, includeYear = false): string =>
     });
 };
 //-------------------End-------------------//
-
-
 

@@ -46,7 +46,6 @@ export default function WelcomeModal({
           >
             <View style={styles.content}>
 
-
               {/* Welcome Icon */}
               <View style={styles.iconContainer}>
                 <IconSymbol name="party.popper" size={48} color="#ffffff" />
@@ -87,16 +86,7 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 340,
     borderRadius: 20,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 20,
-  },
+    overflow: "hidden",},
   gradientBackground: {
     padding: 24,
   },
@@ -142,16 +132,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     paddingVertical: 16,
     paddingHorizontal: 32,
-    borderRadius: 25,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
+    borderRadius: 25,},
   actionButtonText: {
     fontSize: 16,
     fontWeight: "600",

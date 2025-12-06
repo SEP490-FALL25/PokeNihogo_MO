@@ -251,12 +251,6 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     backgroundColor: "#007AFF",
     alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#007AFF",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
+    justifyContent: "center",},
 });
 

@@ -16,7 +16,6 @@ export const leaderboardEntitySchema = z.object({
 export type ILeaderboardEntity = z.infer<typeof leaderboardEntitySchema>;
 //------------------------End------------------------//
 
-
 /**
  * Leaderboard Season Now Entity Schema
  */

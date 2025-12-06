@@ -1,6 +1,6 @@
 import { IUserEntity } from "@models/user/user.entity";
 import React, { useState } from "react";
-import { Animated, Easing, Modal, Pressable, StyleSheet } from "react-native";
+import { Animated, Easing, InteractionManager, Modal, Pressable, StyleSheet } from "react-native";
 import CompactHeader from "../molecules/CompactHeader";
 import ExpandedContent from "../molecules/ExpandedContent";
 
@@ -61,7 +61,10 @@ export default function UserProfileHeaderAtomic({
         easing: Easing.out(Easing.ease),
       }),
     ]).start(() => {
-      setIsExpanded(false);
+      // Defer state update to avoid "useInsertionEffect must not schedule updates" error
+      InteractionManager.runAfterInteractions(() => {
+        setIsExpanded(false);
+      });
     });
   };
 

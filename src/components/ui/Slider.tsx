@@ -225,13 +225,7 @@ const Slider = React.forwardRef<View, SliderProps>(
                 backgroundColor: "#ffffff",
                 borderRadius: THUMB_RADIUS,
                 borderWidth: 2,
-                borderColor: "#3b82f6",
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
-                elevation: 2,
-              },
+                borderColor: "#3b82f6",},
               thumbStyle,
             ]}
           />

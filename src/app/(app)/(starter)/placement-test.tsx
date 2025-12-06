@@ -375,11 +375,6 @@ export default function PlacementTestScreen() {
                     alignItems: "center",
                     justifyContent: "center",
                     marginBottom: 20,
-                    shadowColor: "#fbbf24",
-                    shadowOffset: { width: 0, height: 8 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 12,
-                    elevation: 8,
                   }}
                 >
                   <Ionicons name="trophy" size={60} color="#ffffff" />
@@ -418,11 +413,6 @@ export default function PlacementTestScreen() {
                   padding: 32,
                   marginBottom: 24,
                   alignItems: "center",
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 8 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 16,
-                  elevation: 8,
                 }}
               >
                 <ThemedText
@@ -472,11 +462,6 @@ export default function PlacementTestScreen() {
                   padding: 20,
                   flexDirection: "row",
                   alignItems: "center",
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 8,
-                  elevation: 4,
                 }}
               >
                 <View
@@ -515,11 +500,6 @@ export default function PlacementTestScreen() {
                   padding: 20,
                   flexDirection: "row",
                   alignItems: "center",
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 8,
-                  elevation: 4,
                 }}
               >
                 <View
@@ -558,11 +538,6 @@ export default function PlacementTestScreen() {
                   padding: 20,
                   flexDirection: "row",
                   alignItems: "center",
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 8,
-                  elevation: 4,
                 }}
               >
                 <View

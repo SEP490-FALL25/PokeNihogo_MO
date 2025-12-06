@@ -30,7 +30,6 @@ export default function PasswordScreen() {
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//
 
-
     /**
      * Handle form validation
      * Handle login
@@ -64,7 +63,6 @@ export default function PasswordScreen() {
         }
     };
     //-----------------------End-----------------------//
-
 
     /**
      * Handle forgot password

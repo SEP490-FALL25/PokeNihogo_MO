@@ -29,9 +29,7 @@ export default function SelectionBorder({
         {
           borderColor: color,
           borderRadius,
-          borderWidth,
-          shadowColor: color,
-          width,
+          borderWidth,width,
           height,
         },
         style,
@@ -46,10 +44,5 @@ const styles = StyleSheet.create({
     top: 0,
     left: 2.5,
     right: 0,
-    bottom: 0,
-    shadowOffset: {
-      width: 0,
-      height: 0,
-    },
-  },
+    bottom: 0,},
 });

@@ -117,13 +117,7 @@ export const RewardCard: React.FC<RewardCardProps> = React.memo(
 RewardCard.displayName = "RewardCard";
 
 const styles = StyleSheet.create({
-  card: {
-    shadowColor: REWARD_HISTORY_COLORS.PRIMARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
-  },
+  card: {},
   amountBadge: {
     borderRadius: 16,
     paddingHorizontal: 12,

@@ -5,7 +5,6 @@ import { useGlobalStore } from "@stores/global/global.config";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-
 /**
  * Hook to get all subscription marketplace packages
  * @returns Query object with packages data
@@ -18,7 +17,6 @@ export const useSubscriptionMarketplacePackages = () => {
 };
 //----------------------End----------------------//
 
-
 /**
  * Hook to get user's subscription
  * @returns Query object with subscription data
@@ -30,7 +28,6 @@ export const useUserSubscription = (qs: string, currentPage: number, pageSize: n
     });
 };
 //----------------------End----------------------//
-
 
 /**
  * Hook to get user's subscription history with infinite scroll
@@ -56,8 +53,6 @@ export const useInfiniteUserSubscription = (pageSize: number = 10) => {
     });
 };
 //----------------------End----------------------//
-
-
 
 /**
  * Hook to get user's subscription features and sync with global state

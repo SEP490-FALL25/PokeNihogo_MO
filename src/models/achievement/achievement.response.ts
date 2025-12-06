@@ -4,14 +4,12 @@ import z from "zod";
 import { AchievementEntitySchema, AchievementGroupEntitySchema } from "./achievement.entity";
 //---------------------End---------------------//
 
-
 /**
  * Achievement List Response Schema (full backend response)
  */
 export const AchievementListResponseSchema = BackendResponsePaginationModel(AchievementEntitySchema);
 export type IAchievementListResponse = z.infer<typeof AchievementListResponseSchema>;
 //---------------------End---------------------//
-
 
 /**
  * User Achievements Data Schema (results + pagination only, without response wrapper)
@@ -22,7 +20,6 @@ export const UserAchievementsDataSchema = z.object({
 });
 export type UserAchievementsData = z.infer<typeof UserAchievementsDataSchema>;
 //---------------------End---------------------//
-
 
 /**
  * User Achievements Response Schema (full backend response)

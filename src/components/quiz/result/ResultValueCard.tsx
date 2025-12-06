@@ -51,13 +51,7 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 16,
     overflow: "hidden",
-    backgroundColor: "rgba(255,255,255,0.92)",
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 2,
+    backgroundColor: "rgba(255,255,255,0.92)",borderWidth: 2,
     borderColor: "#3b82f6",
   },
   cardCompact: {
@@ -103,5 +97,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
-
 

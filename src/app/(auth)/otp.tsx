@@ -22,7 +22,6 @@ export default function OTPScreen() {
     const { type } = useLocalSearchParams<{ type: string }>();
     //-----------------------End-----------------------//
 
-
     const [timer, setTimer] = useState<number>(60);
 
     /**
@@ -36,7 +35,6 @@ export default function OTPScreen() {
         return () => clearInterval(interval);
     }, [timer]);
     //-----------------------End-----------------------//
-
 
     /**
      * Handle verify OTP
@@ -122,7 +120,6 @@ export default function OTPScreen() {
                             </Text>
                         </TouchableOpacity>
                     </View>
-
 
                     <View className="mt-auto pb-5">
                         <BounceButton

@@ -121,4 +121,3 @@ export const TypingText: React.FC<TypingTextProps> = ({
 
 export default TypingText;
 
-

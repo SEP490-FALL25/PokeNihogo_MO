@@ -16,7 +16,6 @@ interface ShopPokemonModalProps {
 
 export default function ShopPokemonModal({ isVisible, onClose }: ShopPokemonModalProps) {
 
-
     const { t } = useTranslation();
     const { shopBanner, isLoading } = useShopBanner();
 
@@ -26,7 +25,6 @@ export default function ShopPokemonModal({ isVisible, onClose }: ShopPokemonModa
      */
     const sparklesBalance = useSparklesBalanceSelector();
     //------------------------End------------------------//
-
 
     /**
      * Animation
@@ -49,7 +47,6 @@ export default function ShopPokemonModal({ isVisible, onClose }: ShopPokemonModa
 
     if (!isVisible) return null;
     //----------------------End----------------------//
-
 
     const shopItems = shopBanner?.shopItems || [];
 

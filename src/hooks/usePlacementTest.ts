@@ -212,4 +212,3 @@ export function usePlacementTest(testId: number | string = 1) {
 
 export default usePlacementTest;
 
-

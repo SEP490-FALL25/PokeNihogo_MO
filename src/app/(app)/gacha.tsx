@@ -17,7 +17,6 @@ import { ActivityIndicator, FlatList, Image, ImageBackground, Modal, ScrollView,
 import * as Progress from 'react-native-progress';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-
 export default function GachaScreen() {
     /**
      * Variables defines
@@ -38,7 +37,6 @@ export default function GachaScreen() {
     const sparklesBalance = useSparklesBalanceSelector();
     const { refetch: refetchWallet } = useWalletUser();
     //---------------------End---------------------//
-
 
     /**
      * Gacha Purchase History Hook (Infinite Scroll)
@@ -105,7 +103,6 @@ export default function GachaScreen() {
     };
     //---------------------End---------------------//
 
-
     /**
      * Animation Hook
      */
@@ -115,7 +112,6 @@ export default function GachaScreen() {
         setGachaResults([]);
     };
     //---------------------End---------------------//
-
 
     /**
      * Handle select banner
@@ -337,11 +333,6 @@ export default function GachaScreen() {
                                             <View
                                                 className={`relative ${isSelected ? 'w-[150px]' : 'w-[120px]'} rounded-3xl overflow-hidden`}
                                                 style={{
-                                                    shadowColor: isSelected ? '#06b6d4' : '#000',
-                                                    shadowOffset: { width: 0, height: isSelected ? 8 : 4 },
-                                                    shadowOpacity: isSelected ? 0.6 : 0.3,
-                                                    shadowRadius: isSelected ? 16 : 8,
-                                                    elevation: isSelected ? 12 : 6,
                                                     backgroundColor: isSelected ? 'transparent' : 'transparent',
                                                 }}
                                             >
@@ -426,7 +417,6 @@ export default function GachaScreen() {
                                     onPress={handlePrevBanner}
                                     className="w-9 h-9 rounded-full bg-slate-800 items-center justify-center border border-slate-700"
                                     activeOpacity={0.7}
-                                    style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 3 }}
                                 >
                                     <ChevronLeft size={18} color="#fff" strokeWidth={3} />
                                 </TouchableOpacity>
@@ -443,13 +433,7 @@ export default function GachaScreen() {
                                                     ? 'bg-cyan-500 w-8 h-2'
                                                     : 'bg-slate-700 w-2 h-2'
                                                     }`}
-                                                style={index === selectedBannerIndex ? {
-                                                    shadowColor: '#06b6d4',
-                                                    shadowOffset: { width: 0, height: 0 },
-                                                    shadowOpacity: 0.6,
-                                                    shadowRadius: 8,
-                                                    elevation: 4,
-                                                } : {}}
+                                                style={index === selectedBannerIndex ? {} : {}}
                                             />
                                         </TouchableOpacity>
                                     ))}
@@ -459,7 +443,6 @@ export default function GachaScreen() {
                                     onPress={handleNextBanner}
                                     className="w-9 h-9 rounded-full bg-slate-800 items-center justify-center border border-slate-700"
                                     activeOpacity={0.7}
-                                    style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 3 }}
                                 >
                                     <ChevronRight size={18} color="#fff" strokeWidth={3} />
                                 </TouchableOpacity>

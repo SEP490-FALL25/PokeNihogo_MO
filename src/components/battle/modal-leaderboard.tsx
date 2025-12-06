@@ -44,7 +44,6 @@ export default function ModalLeaderboard({ visible, onRequestClose, rankName = "
         enabled: visible && Boolean(selectedRank),
     });
 
-
     const leaderboardResponse = useMemo(() => {
         if (!leaderboard) return null;
         if (typeof leaderboard === 'object' && 'results' in leaderboard) {

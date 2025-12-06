@@ -1559,12 +1559,7 @@ export default function AiConversationScreen() {
               paddingVertical: 16,
               borderRadius: 16,
               marginBottom: 14,
-              alignItems: "center",
-              shadowColor: "#111827",
-              shadowOpacity: 0.2,
-              shadowRadius: 12,
-              shadowOffset: { width: 0, height: 6 },
-            }}
+              alignItems: "center",}}
           >
             <ThemedText
               style={{

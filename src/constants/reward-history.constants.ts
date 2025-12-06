@@ -19,19 +19,7 @@ export const REWARD_HISTORY_COLORS = {
  * Shadow styles for reward history components
  */
 export const REWARD_HISTORY_SHADOW_STYLES = {
-  card: {
-    shadowColor: REWARD_HISTORY_COLORS.PRIMARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  statsCard: {
-    shadowColor: REWARD_HISTORY_COLORS.PRIMARY,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 5,
-  },
+  card: {},
+  statsCard: {},
 } as const;
 

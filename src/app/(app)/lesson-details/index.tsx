@@ -59,13 +59,7 @@ const DashboardCard = ({
         backgroundColor: "white",
         borderRadius: 24,
         padding: 20,
-        marginBottom: 16,
-        shadowColor: accentColor,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 20,
-        elevation: 8,
-        borderWidth: 2,
+        marginBottom: 16,borderWidth: 2,
         borderColor: bgColor,
       }}
     >
@@ -521,13 +515,7 @@ const LessonDetailScreen = () => {
             paddingHorizontal: 24,
             paddingVertical: 16,
             borderBottomLeftRadius: 24,
-            borderBottomRightRadius: 24,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            elevation: 3,
-          }}
+            borderBottomRightRadius: 24,}}
         >
           <View
             style={{

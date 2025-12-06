@@ -52,7 +52,6 @@ export const createGlobalSlice = (set: any, get: any): ZUSTAND.IGlobalState => (
     }
   },
 
-
   // Overlay position management
   setOverlayPosition: (position: { x: number; y: number }) =>
     set({ overlayPosition: position }),

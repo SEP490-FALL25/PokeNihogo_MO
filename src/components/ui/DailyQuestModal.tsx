@@ -67,8 +67,6 @@ export default function DailyQuestModal({ visible, onClose, requests }: DailyQue
         );
     };
 
-
-
     return (
         <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
             <Animated.View style={{ opacity: fadeAnim }} className="flex-1 bg-black/60 justify-center items-center">
@@ -103,5 +101,4 @@ const { width, height } = Dimensions.get("window");
 const modalWidth = Math.min(width * 0.92, 420);
 
 // Tailwind via NativeWind is used for styling above; minimal inline styles are kept for exact width/height.
-
 

@@ -69,7 +69,6 @@ const AnimatedPokeballIcon = ({ size = 100, isOpen, color = "#facc15" }: Animate
         };
     });
 
-
     return (
         <View style={{ width: size, height: size }}>
             <Svg height={size} width={size} viewBox="0 0 100 100">
@@ -99,7 +98,6 @@ const AnimatedPokeballIcon = ({ size = 100, isOpen, color = "#facc15" }: Animate
                     fill={color}
                     animatedProps={animatedPropsGlow}
                 />
-
 
                 {/* Nửa màu đỏ trên */}
                 <AnimatedPath

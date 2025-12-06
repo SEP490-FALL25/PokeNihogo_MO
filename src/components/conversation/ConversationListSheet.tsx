@@ -145,7 +145,6 @@ export const ConversationListSheet: React.FC<ConversationListSheetProps> = ({
     [onClose]
   );
 
-
   return (
     <BottomSheet open={isOpen} onOpenChange={handleOpenChange}>
       <BottomSheetContent

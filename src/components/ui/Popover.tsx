@@ -100,16 +100,7 @@ const PopoverContent = React.forwardRef<View, PopoverContentProps & { isOpen?: b
                 backgroundColor: '#ffffff',
                 borderRadius: 8,
                 padding: 16,
-                width: 288, // w-72 equivalent
-                shadowColor: '#000',
-                shadowOffset: {
-                  width: 0,
-                  height: 4,
-                },
-                shadowOpacity: 0.25,
-                shadowRadius: 12,
-                elevation: 8,
-                marginTop: sideOffset,
+                width: 288, // w-72 equivalentmarginTop: sideOffset,
               },
               style,
             ]}

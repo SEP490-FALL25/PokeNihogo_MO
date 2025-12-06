@@ -254,16 +254,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 12,
     padding: 16,
-    borderLeftWidth: 4,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
-  },
+    borderLeftWidth: 4,},
   cardHeader: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -325,16 +316,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 16,
     padding: 20,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
+    marginBottom: 16,},
   statsTitle: {
     fontSize: 18,
     fontWeight: "600",
@@ -364,16 +346,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 16,
     padding: 20,
-    marginTop: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-  },
+    marginTop: 16,},
   tipsTitle: {
     fontSize: 18,
     fontWeight: "600",
@@ -398,5 +371,4 @@ const styles = StyleSheet.create({
     color: "#9ca3af",
   },
 });
-
 

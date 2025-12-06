@@ -41,7 +41,6 @@ export const SubscriptionMarketplaceEntitySchema = z.object({
 export type ISubscriptionMarketplaceEntity = z.infer<typeof SubscriptionMarketplaceEntitySchema>;
 //----------------------End----------------------//
 
-
 /**
  * User Subscription Feature Item Schema
  */
@@ -58,7 +57,6 @@ export const UserSubscriptionFeatureItemSchema = z.object({
     }).optional(),
 });
 //----------------------End----------------------//
-
 
 /**
  * User Subscription Entity Schema

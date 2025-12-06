@@ -50,13 +50,7 @@ const ModernCardExpandable = ({ children, style }: any) => (
     className="bg-white rounded-3xl shadow-xl mb-4"
     style={[
       {
-        padding: 20,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.08,
-        shadowRadius: 20,
-        elevation: 10,
-        minHeight: 220,
+        padding: 20,minHeight: 220,
         borderWidth: 4,
         borderColor: "#FCD34D",
       },
@@ -76,13 +70,7 @@ const ModernCard = ({ children, style }: any) => (
         {
           borderRadius: 14,
           backgroundColor: "#FCD34D",
-          padding: 2,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.05,
-          shadowRadius: 10,
-          elevation: 5,
-        },
+          padding: 2,},
       ]}
     >
       <View
@@ -1388,13 +1376,7 @@ const VocabularyListScreen = () => {
                       style={{
                         width: 80,
                         height: 80,
-                        backgroundColor: "#3B82F6",
-                        shadowColor: "#1e40af",
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 8,
-                        elevation: 6,
-                        overflow: "hidden",
+                        backgroundColor: "#3B82F6",overflow: "hidden",
                       }}
                     >
                       <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
@@ -1447,13 +1429,7 @@ const VocabularyListScreen = () => {
                       style={{
                         width: 80,
                         height: 80,
-                        backgroundColor: "#A855F7",
-                        shadowColor: "#7c3aed",
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 8,
-                        elevation: 6,
-                        overflow: "hidden",
+                        backgroundColor: "#A855F7",overflow: "hidden",
                       }}
                     >
                       <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
@@ -1506,13 +1482,7 @@ const VocabularyListScreen = () => {
                       style={{
                         width: 80,
                         height: 80,
-                        backgroundColor: "#22C55E",
-                        shadowColor: "#15803d",
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 8,
-                        elevation: 6,
-                        overflow: "hidden",
+                        backgroundColor: "#22C55E",overflow: "hidden",
                       }}
                     >
                       <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
@@ -1565,13 +1535,7 @@ const VocabularyListScreen = () => {
                       style={{
                         width: 80,
                         height: 80,
-                        backgroundColor: "#F59E0B",
-                        shadowColor: "#92400e",
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 8,
-                        elevation: 6,
-                        overflow: "hidden",
+                        backgroundColor: "#F59E0B",overflow: "hidden",
                       }}
                     >
                       <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
@@ -1624,13 +1588,7 @@ const VocabularyListScreen = () => {
                       style={{
                         width: 80,
                         height: 80,
-                        backgroundColor: "#EC4899",
-                        shadowColor: "#be185d",
-                        shadowOffset: { width: 0, height: 4 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 8,
-                        elevation: 6,
-                        overflow: "hidden",
+                        backgroundColor: "#EC4899",overflow: "hidden",
                       }}
                     >
                       <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
@@ -1679,13 +1637,7 @@ const VocabularyListScreen = () => {
                     style={{
                       width: 80,
                       height: 80,
-                      backgroundColor: "#F59E0B",
-                      shadowColor: "#92400e",
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.3,
-                      shadowRadius: 8,
-                      elevation: 6,
-                      overflow: "hidden",
+                      backgroundColor: "#F59E0B",overflow: "hidden",
                     }}
                   >
                     <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
@@ -1923,13 +1875,7 @@ const VocabularyListScreen = () => {
                 end={{ x: 1, y: 0 }}
                 style={{
                   paddingHorizontal: 20,
-                  paddingVertical: 16,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 3 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 8,
-                  elevation: 5,
-                }}
+                  paddingVertical: 16,}}
               >
                 <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center flex-1">
@@ -1979,13 +1925,7 @@ const VocabularyListScreen = () => {
                       style={{
                         backgroundColor: "#ffffff",
                         borderRadius: 28,
-                        padding: 24,
-                        shadowColor: "#f59e0b",
-                        shadowOffset: { width: 0, height: 8 },
-                        shadowOpacity: 0.15,
-                        shadowRadius: 20,
-                        elevation: 8,
-                        borderWidth: 3,
+                        padding: 24,borderWidth: 3,
                         borderColor: "#fcd34d",
                       }}
                     >
@@ -1999,13 +1939,7 @@ const VocabularyListScreen = () => {
                             paddingVertical: 30,
                             paddingHorizontal: 40,
                             alignItems: "center",
-                            justifyContent: "center",
-                            shadowColor: "#f59e0b",
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.2,
-                            shadowRadius: 12,
-                            elevation: 6,
-                            borderWidth: 2,
+                            justifyContent: "center",borderWidth: 2,
                             borderColor: "#fbbf24",
                           }}
                         >
@@ -2209,13 +2143,7 @@ const VocabularyListScreen = () => {
                         style={{
                           backgroundColor: "#ffffff",
                           borderRadius: 24,
-                          padding: 12,
-                          shadowColor: "#000",
-                          shadowOffset: { width: 0, height: 4 },
-                          shadowOpacity: 0.1,
-                          shadowRadius: 16,
-                          elevation: 6,
-                          borderWidth: 3,
+                          padding: 12,borderWidth: 3,
                           borderColor: "#e5e7eb",
                         }}
                       >
@@ -2249,13 +2177,7 @@ const VocabularyListScreen = () => {
                           <View
                             style={{
                               backgroundColor: "#ffffff",
-                              borderRadius: 24,
-                              shadowColor: "#000",
-                              shadowOffset: { width: 0, height: 4 },
-                              shadowOpacity: 0.08,
-                              shadowRadius: 16,
-                              elevation: 5,
-                              overflow: "hidden",
+                              borderRadius: 24,overflow: "hidden",
                               borderWidth: 3,
                               borderColor: "#e0e7ff",
                             }}

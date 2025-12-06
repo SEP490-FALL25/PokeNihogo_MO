@@ -837,11 +837,6 @@ const FillBlankGameScreen = () => {
                             paddingHorizontal: 24,
                             minWidth: 100,
                             alignItems: "center",
-                            shadowColor: isDragging ? "#000" : "transparent",
-                            shadowOffset: { width: 0, height: isDragging ? 4 : 0 },
-                            shadowOpacity: isDragging ? 0.3 : 0,
-                            shadowRadius: isDragging ? 8 : 0,
-                            elevation: isDragging ? 8 : 0,
                           }}
                           activeOpacity={0.7}
                         >
@@ -922,13 +917,7 @@ const FillBlankGameScreen = () => {
                 padding: 32,
                 alignItems: "center",
                 width: "100%",
-                maxWidth: 400,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.3,
-                shadowRadius: 16,
-                elevation: 10,
-              }}
+                maxWidth: 400,}}
             >
               <LinearGradient
                 colors={

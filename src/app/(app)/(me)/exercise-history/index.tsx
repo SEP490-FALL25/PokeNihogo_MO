@@ -786,20 +786,8 @@ export default function ExerciseHistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: {
-    shadowColor: '#6FAFB2',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  statsCard: {
-    shadowColor: '#6FAFB2',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 5,
-  },
+  card: {},
+  statsCard: {},
   scoreBadge: {
     borderRadius: 16,
     paddingHorizontal: 12,
@@ -823,24 +811,12 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 20,
   },
-  activeTabShadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
-  },
+  activeTabShadow: {},
   statusTile: {
     borderRadius: 16,
     padding: 12,
     borderWidth: 1,
   },
-  statusTileActive: {
-    shadowColor: '#0f172a',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-  },
+  statusTileActive: {},
 });
-
 
