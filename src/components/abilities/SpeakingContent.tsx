@@ -1,4 +1,5 @@
 import { ThemedText } from "@components/ThemedText";
+import { ThemedView } from "@components/ThemedView";
 import { TestStatus } from "@constants/test.enum";
 import { useUserTests } from "@hooks/useUserTest";
 import { ROUTES } from "@routes/routes";
@@ -151,7 +152,7 @@ export const SpeakingContent: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Animated.View
+      {/* <Animated.View
         style={[
           styles.statsCard,
           { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
@@ -180,7 +181,7 @@ export const SpeakingContent: React.FC = () => {
             </ThemedText>
           </View>
         </View>
-      </Animated.View>
+      </Animated.View> */}
 
       <ThemedText type="subtitle" style={styles.sectionTitle}>
         🗣️ {t("speaking.exercises_title")}
@@ -217,6 +218,26 @@ export const SpeakingContent: React.FC = () => {
             </Animated.View>
           ))}
       </View>
+
+      <ThemedView style={styles.tipsCard}>
+        <ThemedText type="subtitle" style={styles.tipsTitle}>
+          💡 {t("speaking.tips_title")}
+        </ThemedText>
+        <View style={styles.tipsList}>
+          <ThemedText style={styles.tipItem}>
+            • {t("speaking.tip_1")}
+          </ThemedText>
+          <ThemedText style={styles.tipItem}>
+            • {t("speaking.tip_2")}
+          </ThemedText>
+          <ThemedText style={styles.tipItem}>
+            • {t("speaking.tip_3")}
+          </ThemedText>
+          <ThemedText style={styles.tipItem}>
+            • {t("speaking.tip_4")}
+          </ThemedText>
+        </View>
+      </ThemedView>
     </View>
   );
 };
@@ -320,6 +341,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#6b7280",
     textAlign: "center",
+  },
+  tipsCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 16,
+  },
+  tipsTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1f2937",
+    marginBottom: 16,
+  },
+  tipsList: {
+    gap: 8,
+  },
+  tipItem: {
+    fontSize: 14,
+    color: "#6b7280",
+    lineHeight: 20,
   },
   lockedCard: {
     opacity: 0.6,

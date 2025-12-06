@@ -596,7 +596,10 @@
         "kanji": "Học Kanji",
         "grammar": "Học ngữ pháp"
       },
-      "match": "Trò chơi ghép thẻ",
+      "match": {
+        "kanji": "Ghép Kanji",
+        "vocabulary": "Ghép từ vựng"
+      },
       "scramble": {
         "kanji": "Xáo trộn Kanji",
         "vocabulary": "Xáo trộn từ vựng"
@@ -641,6 +644,7 @@
       "message": "Bạn đã hoàn thành bài tập này rồi. Nếu làm lại, bạn sẽ chỉ nhận được 10% phần thưởng so với lần trước."
     },
     "flashcard": {
+      "title": "Học với thẻ từ",
       "progress": {
         "deck": "{{reviewed}}/{{total}} thẻ trong bộ flashcard",
         "vocabulary": "{{reviewed}}/{{total}} thẻ từ vựng đã xem",
@@ -659,6 +663,14 @@
       "known_label": "Đã thuộc",
       "options": {
         "title": "Tùy chỉnh hiển thị thẻ",
+        "front_tab": "Mặt trước",
+        "back_tab": "Mặt sau",
+        "sound": "Âm thanh",
+        "vocabulary": "Từ vựng",
+        "meaning": "Nghĩa",
+        "phonetic": "Phonetic",
+        "notes": "Ghi chú",
+        "stack_mode": "Cách hiển thị thẻ",
         "offset_title": "Hiển thị hở",
         "offset_description": "Các thẻ phía sau lệch nhẹ để thấy còn bao nhiêu thẻ.",
         "overlap_title": "Chồng lên nhau",
@@ -718,6 +730,16 @@
       "game_over_message": "Bạn đã đạt {{score}} điểm với chuỗi {{chainLength}} từ!",
       "complete_message": "Bạn đã tạo chuỗi {{chainLength}} từ với {{score}} điểm!",
       "final_score": "Điểm cuối: {{score}}",
+      "play_again": "Chơi lại"
+    },
+    "matching": {
+      "no_content": "Không có nội dung",
+      "time": "Thời gian",
+      "time_up": "Hết giờ!",
+      "complete": "Chúc mừng!",
+      "time_up_message": "Bạn đã ghép được {{matchedPairs}}/{{total}} cặp!",
+      "complete_message": "Bạn đã ghép tất cả các cặp!",
+      "total_moves": "Tổng số lượt: {{moves}}",
       "play_again": "Chơi lại"
     }
   },
@@ -1004,7 +1026,12 @@
     "speaking": "Nói",
     "battle": "Chiến đấu",
     "quiz_demo": "Demo Quiz",
-    "ai_speaking": "AI"
+    "ai_speaking": "AI",
+    "subtabs": {
+      "listening": "Nghe",
+      "reading": "Đọc",
+      "speaking": "Nói"
+    }
   },
   "settings": {
     "title": "Cài đặt",

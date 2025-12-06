@@ -153,7 +153,7 @@ export const ListeningContent: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Animated.View
+      {/* <Animated.View
         style={[
           styles.statsCard,
           { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
@@ -176,7 +176,7 @@ export const ListeningContent: React.FC = () => {
             <ThemedText style={styles.statLabel}>{t("listening.accuracy")}</ThemedText>
           </View>
         </View>
-      </Animated.View>
+      </Animated.View> */}
 
       <ThemedText type="subtitle" style={styles.sectionTitle}>
         🎵 {t("listening.audio_exercises")}

@@ -596,7 +596,10 @@
         "kanji": "Learn kanji",
         "grammar": "Learn grammar"
       },
-      "match": "Card matching game",
+      "match": {
+        "kanji": "Match kanji",
+        "vocabulary": "Match vocabulary"
+      },
       "scramble": {
         "kanji": "Scramble kanji",
         "vocabulary": "Scramble vocabulary"
@@ -641,6 +644,7 @@
       "message": "You have already completed this exercise. If you retry, you will only receive 10% of the reward compared to the previous attempt."
     },
     "flashcard": {
+      "title": "Learn with flashcards",
       "progress": {
         "deck": "{{reviewed}}/{{total}} cards in flashcard deck",
         "vocabulary": "{{reviewed}}/{{total}} vocabulary cards reviewed",
@@ -659,6 +663,14 @@
       "known_label": "Known",
       "options": {
         "title": "Customize card display",
+        "front_tab": "Front",
+        "back_tab": "Back",
+        "sound": "Sound",
+        "vocabulary": "Vocabulary",
+        "meaning": "Meaning",
+        "phonetic": "Phonetic",
+        "notes": "Notes",
+        "stack_mode": "Stack display",
         "offset_title": "Offset stack",
         "offset_description": "Cards behind are slightly offset to show how many remain.",
         "overlap_title": "Overlap stack",
@@ -718,6 +730,16 @@
       "game_over_message": "You scored {{score}} points with a chain of {{chainLength}} words!",
       "complete_message": "You created a chain of {{chainLength}} words with {{score}} points!",
       "final_score": "Final Score: {{score}}",
+      "play_again": "Play Again"
+    },
+    "matching": {
+      "no_content": "No content available",
+      "time": "Time",
+      "time_up": "Time's Up!",
+      "complete": "Congratulations!",
+      "time_up_message": "You matched {{matchedPairs}} out of {{total}} pairs!",
+      "complete_message": "You matched all pairs!",
+      "total_moves": "Total moves: {{moves}}",
       "play_again": "Play Again"
     }
   },

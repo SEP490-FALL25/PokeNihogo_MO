@@ -153,7 +153,7 @@ export const ReadingContent: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Animated.View
+      {/* <Animated.View
         style={[
           styles.statsCard,
           { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
@@ -182,7 +182,7 @@ export const ReadingContent: React.FC = () => {
             </ThemedText>
           </View>
         </View>
-      </Animated.View>
+      </Animated.View> */}
 
       <ThemedText type="subtitle" style={styles.sectionTitle}>
         📚 {t("reading.materials_title")}
