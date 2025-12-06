@@ -220,7 +220,6 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
       playbackProgressAnim.setValue(0);
       onPlaybackStart?.();
 
-
       newSound.setOnPlaybackStatusUpdate((status) => {
         if (status.isLoaded) {
           if (status.didJustFinish) {

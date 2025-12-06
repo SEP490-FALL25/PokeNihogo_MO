@@ -863,7 +863,6 @@ export default function HomeScreen() {
                           // First card relative
                           cardStyle = { 
                             zIndex: 10,
-                            elevation: 10, // Shadow Android
                           };
                         } else {
                           // Stacked cards
@@ -874,7 +873,6 @@ export default function HomeScreen() {
                             right: 0,
                             height: '100%', // FORCE HEIGHT to match first card, hiding bottom
                             zIndex: 10 - index,
-                            elevation: 10 - index,
                             transform: [{ scaleX: 1 - (index * 0.04) }], // Slight width reduction
                             backgroundColor: '#fff', // Ensure opacity doesn't show through
                           };
@@ -1204,18 +1202,8 @@ const styles = StyleSheet.create({
   aiHeroCard: {
     borderRadius: 24,
     padding: 20,
-    shadowColor: "#7c3aed",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 6,
   },
   aiHeroCardLocked: {
-    shadowColor: "#d97706",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 6,
     borderWidth: 1,
     borderColor: "#fcd34d",
     opacity: 0.6,
@@ -1304,10 +1292,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
   },
   insightBadgeRow: {
     flexDirection: "row",
@@ -1399,11 +1383,6 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#fffef9",
     gap: 12,
-    shadowColor: "#d97706",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
     opacity: 0.6,
   },
   insightLockedBadge: {
@@ -1473,11 +1452,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: "rgba(217, 119, 6, 0.4)",
-    shadowColor: "#d97706",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
   },
   lockOverlayText: {
     fontSize: 18,
@@ -1532,14 +1506,6 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH * 0.75,
     backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
     marginRight: 12,
   },
   recentCardContent: {
@@ -1590,14 +1556,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.95)",
     padding: 20,
     borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
   },
   suggestionsList: {
     gap: 12,
@@ -1639,15 +1597,7 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH * 0.6,
     backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderRadius: 12,
-    shadowColor: "#000",
     padding: 8,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
     marginRight: 12,
     flexDirection: "row",
     overflow: "hidden",
@@ -1716,11 +1666,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
   },
   flashcardWrapper: {
     width: "100%",
@@ -1733,11 +1678,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 24,
     padding: 32,
-    shadowColor: "#0f172a",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.15,
-    shadowRadius: 18,
-    elevation: 10,
   },
   flashcardBack: {
     position: "absolute",
@@ -1842,11 +1782,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "center",
-    shadowColor: "#3b82f6",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
   },
   markAsReadButtonText: {
     fontSize: 14,

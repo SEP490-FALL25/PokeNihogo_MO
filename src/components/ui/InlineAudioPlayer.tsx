@@ -136,13 +136,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 28,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 6,
-  },
+    paddingVertical: 10,},
   playWrapper: {
     width: 44,
     height: 44,
@@ -179,5 +173,4 @@ const styles = StyleSheet.create({
   barFill: { position: "absolute", left: 0, height: 4, borderRadius: 2 },
   knob: { position: "absolute", width: 24, height: 24, borderRadius: 12, top: 0, opacity: 0.9 },
 });
-
 

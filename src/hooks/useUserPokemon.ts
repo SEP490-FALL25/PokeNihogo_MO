@@ -12,7 +12,6 @@ export const useGetUserPokemonStats = () => {
 };
 //------------------------End------------------------//
 
-
 /**
  * Infinite list of user pokemons with pagination support
  */
@@ -37,7 +36,6 @@ export const useInfiniteUserPokemons = (params: Omit<IQueryRequest, 'currentPage
     return query;
 };
 //------------------------End------------------------//
-
 
 /**
  * Get pokemon by id with evolution chain

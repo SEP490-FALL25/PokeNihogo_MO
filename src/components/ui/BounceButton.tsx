@@ -81,7 +81,6 @@ const shadowVariants = cva("absolute top-1.5 left-0 right-0 h-16 rounded-xl", {
   },
 });
 
-
 interface BounceButtonProps extends VariantProps<typeof bounceButtonVariants> {
   children?: React.ReactNode;
   onPress?: () => void;

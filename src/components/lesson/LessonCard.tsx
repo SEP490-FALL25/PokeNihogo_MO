@@ -37,7 +37,6 @@ const LessonCard: React.FC<LessonCardProps> = React.memo(
       color: "#10b981",
     };
 
-
     return (
       <TouchableOpacity
         style={[styles.lessonCard, { borderLeftColor: typeConfig.color }]}
@@ -62,7 +61,6 @@ const LessonCard: React.FC<LessonCardProps> = React.memo(
             </ThemedText>
           </View>
         </View>
-
 
         {/* Progress */}
         {lesson.progressPercentage > 0 && (
@@ -118,16 +116,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     borderLeftWidth: 4,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
-  },
+    marginBottom: 12,},
   lessonHeader: {
     flexDirection: "row",
     alignItems: "flex-start",

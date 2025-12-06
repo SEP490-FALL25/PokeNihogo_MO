@@ -305,11 +305,6 @@ const styles = StyleSheet.create({
     height: OVERLAY_SIZE,
     borderRadius: 10,
     backgroundColor: "transparent", // Bỏ nền màu xanh
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
     // Các thuộc tính style cho view cha để căn chỉnh vị trí được đặt trong animatedStyle
     overflow: "hidden", // Ensure content doesn't overflow rounded corners
   },

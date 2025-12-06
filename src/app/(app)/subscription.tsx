@@ -522,16 +522,9 @@ export default function SubscriptionScreen() {
                                     }}
                                     className={`rounded-3xl overflow-hidden shadow-lg ${isUltra || isPopular ? 'border-2 border-amber-400' : ''} ${isHighlighted ? 'border-4' : ''}`}
                                     style={[
-                                        isUltra || isPopular ? { shadowColor: '#f59e0b', shadowOpacity: 0.3, shadowRadius: 10 } : {},
-                                        isHighlighted && borderColor && shadowOpacity ? {
+                                        isHighlighted && borderColor ? {
                                             borderWidth: 4,
-                                            borderColor: borderColor,
-                                            shadowColor: '#3b82f6',
-                                            shadowOpacity: shadowOpacity,
-                                            shadowRadius: 15,
-                                            shadowOffset: { width: 0, height: 4 },
-                                            elevation: 8,
-                                        } : {},
+                                            borderColor: borderColor,} : {},
                                     ]}
                                 >
                                     <TWLinearGradient

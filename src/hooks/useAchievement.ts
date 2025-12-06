@@ -30,7 +30,6 @@ export const useAchievement = (params?: {
 };
 //---------------------End---------------------//
 
-
 /**
  * Hook to receive the achievement reward.
  * @returns The mutation hook to receive the achievement reward.

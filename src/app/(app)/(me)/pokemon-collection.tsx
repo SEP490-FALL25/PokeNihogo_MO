@@ -50,7 +50,6 @@ export default function PokemonCollectionScreen() {
     const resultsCount = flattenedPokemons.length;
     //------------------------End------------------------//
 
-
     /**
      * Handle use Hook useGetUserPokemonStats
      */
@@ -243,13 +242,7 @@ const styles = StyleSheet.create({
     statsCard: {
         borderRadius: 24,
         padding: 20,
-        overflow: 'hidden',
-        shadowColor: '#6FAFB2',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.25,
-        shadowRadius: 16,
-        elevation: 10,
-    },
+        overflow: 'hidden',},
     progressBarFill: {
         height: '100%',
         borderRadius: 4,
@@ -261,13 +254,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderRadius: 20,
         paddingHorizontal: 16,
-        paddingVertical: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-        elevation: 5,
-    },
+        paddingVertical: 12,},
 
     // Grid
     gridRow: {

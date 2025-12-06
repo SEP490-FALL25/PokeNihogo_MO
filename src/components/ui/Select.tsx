@@ -165,16 +165,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 12,
     width: width * 0.85,
-    maxHeight: "70%",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
-  },
+    maxHeight: "70%",},
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

@@ -98,13 +98,7 @@ export default function AnimatedSubscriptionCard() {
         activeOpacity={0.8}
         className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-2xl p-4 flex-row items-center justify-between shadow-lg"
         style={{
-          backgroundColor: '#f59e0b',
-          shadowColor: '#f59e0b',
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.4,
-          shadowRadius: 12,
-          elevation: 8,
-        }}
+          backgroundColor: '#f59e0b',}}
       >
         <View className="flex-row items-center gap-3 flex-1">
           <View className="w-12 h-12 bg-white/20 rounded-xl items-center justify-center">

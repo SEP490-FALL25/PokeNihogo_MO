@@ -340,17 +340,10 @@ const styles = StyleSheet.create({
         backgroundColor: "#ffffff",
         borderWidth: 1,
         borderColor: "#f3f4f6", // Very subtle border
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.03,
-        shadowRadius: 8,
-        elevation: 2,
     },
     itemUnread: {
         backgroundColor: "#ffffff",
         borderColor: "#dbeafe", // Blue border for unread
-        shadowColor: "#3b82f6",
-        shadowOpacity: 0.08,
     },
     iconContainer: {
         width: 48,

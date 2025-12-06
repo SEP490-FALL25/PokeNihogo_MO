@@ -49,18 +49,11 @@ export default function QuestIcon({ onPress, size = "small", style }: QuestIconP
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: 20,
-        elevation: 3,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-    },
+        borderRadius: 20,},
     gradient: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
     },
 });
-
 

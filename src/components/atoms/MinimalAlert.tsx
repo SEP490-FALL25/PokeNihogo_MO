@@ -82,13 +82,7 @@ const MinimalGameAlert = ({ message, visible, onHide, type = 'error' }: MinimalG
         <View
             className={`${getBorderColor()} rounded-lg overflow-hidden`}
             style={{
-                borderWidth: 2,
-                shadowColor: getGlowColor(),
-                shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 1,
-                shadowRadius: 15,
-                elevation: 10,
-                minWidth: 280,
+                borderWidth: 2,minWidth: 280,
                 maxWidth: '85%',
             }}
             pointerEvents="auto"

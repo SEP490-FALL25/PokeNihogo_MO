@@ -1,7 +1,6 @@
 import { PaginationSchema } from "@models/user-pokemon/user-pokemon.common";
 import z from "zod";
 
-
 export const RewardEntitySchema = z.object({
     id: z.number(),
     nameKey: z.string(),

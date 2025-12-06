@@ -75,16 +75,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 12,
     padding: 16,
-    minWidth: 280,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
+    minWidth: 280,},
   tooltipText: {
     fontSize: 15,
     color: "#111827",

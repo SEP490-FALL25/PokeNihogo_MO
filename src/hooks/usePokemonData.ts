@@ -63,7 +63,6 @@ export const usePokemonData = (params: any, starterId: string) => {
 
 export default usePokemonData;
 
-
 /**
  * List of pokemons
  * @param params 
@@ -77,7 +76,6 @@ export const useListPokemons = (params: IQueryRequest) => {
   return { data: data?.data, isLoading, isError };
 };
 //------------------------End------------------------//
-
 
 /**
  * Get pokemon by id

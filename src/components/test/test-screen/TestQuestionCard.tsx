@@ -80,13 +80,7 @@ const styles = StyleSheet.create({
   qaCard: {
     backgroundColor: "white",
     borderRadius: 16,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 10,
-    position: "relative",
+    padding: 20,position: "relative",
   },
   qaCardUnanswered: {
     borderWidth: 2,

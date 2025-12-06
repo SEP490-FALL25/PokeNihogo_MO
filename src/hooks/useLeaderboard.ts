@@ -34,7 +34,6 @@ export const useLeaderboard = ({
     };
 };
 
-
 /**
  * Get leaderboard season now
  * @returns Leaderboard season now data

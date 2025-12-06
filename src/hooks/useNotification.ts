@@ -58,7 +58,6 @@ export const useNotification = () => {
 };
 //------------------------End------------------------//
 
-
 /**
  * Hook to read notification
  * @returns Mutation object with mutate function
@@ -77,8 +76,6 @@ export const useReadNotification = () => {
     });
 };
 //------------------------End------------------------//
-
-
 
 /**
  * Hook to read all notifications

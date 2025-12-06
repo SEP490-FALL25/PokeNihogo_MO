@@ -8,7 +8,6 @@ import { ActivityIndicator, Dimensions, Image, Pressable, StyleSheet, Text, View
 const { width } = Dimensions.get('window');
 const CARD_SIZE = (width - 48) / 3;
 
-
 const PokemonGridItem = memo<{ item: IUserPokemonResponse }>(({ item }) => {
     const [isLoading, setIsLoading] = useState(true);
 
@@ -113,13 +112,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#6FAFB2',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 10,
-        elevation: 6,
-    },
+        justifyContent: 'center',},
     pokemonCardUncaught: {
         opacity: 0.6,
     },

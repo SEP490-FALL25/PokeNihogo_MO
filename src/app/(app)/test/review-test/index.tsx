@@ -167,4 +167,3 @@ const styles = StyleSheet.create({
   block: { marginBottom: 10 },
 });
 
-

@@ -9,7 +9,6 @@ export const EmailFormDataRequest = z.object({
 export type IEmailFormDataRequest = z.infer<typeof EmailFormDataRequest>;
 //-----------------End-Email-Request-----------------//
 
-
 /**
  * Password form data request
  */
@@ -31,14 +30,12 @@ export const OtpFormDataRequest = z.object({
 export type IOtpFormDataRequest = z.infer<typeof OtpFormDataRequest>;
 //-----------------End-Otp-Request-----------------//
 
-
 export const LoginFormDataRequest = z.object({
     email: z.string().email(),
     password: z.string().min(6),
 });
 export type ILoginFormDataRequest = z.infer<typeof LoginFormDataRequest>;
 //-----------------End-Login-Request-----------------//
-
 
 /**
  * Create account form data request
@@ -51,7 +48,6 @@ export const CreateAccountFormDataRequest = z.object({
 });
 export type ICreateAccountFormDataRequest = z.infer<typeof CreateAccountFormDataRequest>;
 //-----------------End-Create-Account-Request-----------------//
-
 
 /**
  * Reset password form data request

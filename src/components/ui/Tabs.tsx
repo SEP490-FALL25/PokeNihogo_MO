@@ -103,16 +103,7 @@ const TabsTrigger = React.forwardRef<any, TabsTriggerProps>(
             borderRadius: 4,
             backgroundColor: isActive ? "#ffffff" : "transparent",
           },
-          isActive && {
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: 1,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 2,
-            elevation: 1,
-          },
+          isActive && {},
           style,
         ]}
         onPress={() => {

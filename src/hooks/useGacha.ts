@@ -4,7 +4,6 @@ import gachaService from "@services/gacha";
 import { useGlobalStore } from "@stores/global/global.config";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-
 //--------------------------------Gacha Hook--------------------------------//
 /**
  * Gacha banner today hook
@@ -20,8 +19,6 @@ export const useGachaBannerToday = () => {
 };
 //--------------------------End------------------------//
 //---------------------------------------------End---------------------------------------------//
-
-
 
 //--------------------------------Gacha Items--------------------------------//
 /**
@@ -61,8 +58,6 @@ export const useGetGachaItemsByBannerIdInfinite = (gachaBannerId: number) => {
 //--------------------------End------------------------//
 //---------------------------------------------End---------------------------------------------//
 
-
-
 //--------------------------------Gacha Purchase--------------------------------//
 export const useGachaPurchase = () => {
     const queryClient = useQueryClient();
@@ -79,7 +74,6 @@ export const useGachaPurchase = () => {
 }
 //--------------------------End------------------------//
 
-
 /**
  * Get pity by user hook
  * @returns Pity data
@@ -91,7 +85,6 @@ export const useGetPityByUser = () => {
     });
 }
 //---------------------------------------------End---------------------------------------------//
-
 
 /**
  * Get gacha purchase history hook with infinite scroll

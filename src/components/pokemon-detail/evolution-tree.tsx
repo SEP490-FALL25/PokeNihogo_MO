@@ -37,7 +37,6 @@ export const EvolutionTree = ({
     }
     //------------------------End------------------------//
 
-
     /**
      * If there are multiple branches, render the branches horizontally
      */

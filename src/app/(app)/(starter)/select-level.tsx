@@ -265,11 +265,6 @@ export default function SelectLevelScreen() {
           borderColor: isActive ? meta.active : meta.border,
           backgroundColor: isActive ? meta.fill : "#ffffff",
           marginBottom: 12,
-          shadowColor: isActive ? meta.active : undefined,
-          shadowOpacity: 0,
-          shadowRadius: 0,
-          shadowOffset: { width: 0, height: 0 },
-          elevation: isActive ? 0 : 0,
           flexDirection: "row",
           alignItems: "center",
           overflow: "hidden",
@@ -337,11 +332,6 @@ export default function SelectLevelScreen() {
               borderRadius: 16,
               paddingVertical: 12,
               paddingHorizontal: 14,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.08,
-              shadowRadius: 4,
-              elevation: 3,
             }}
           >
             <TypingText

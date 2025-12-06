@@ -46,7 +46,6 @@ export type IUserPokemonResponse = z.infer<typeof UserPokemonResponseSchema>;
 export type IUserPokemonResponsePagination = z.infer<typeof UserPokemonResponsePaginationSchema>;
 //------------------------End------------------------//
 
-
 /**
  * User Pokemon stats response schema
  */

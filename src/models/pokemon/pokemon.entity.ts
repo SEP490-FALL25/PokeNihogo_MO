@@ -22,7 +22,6 @@ export const PokemonEntitySchema = z.object({
 
 export type PokemonEntityType = z.infer<typeof PokemonEntitySchema>;
 
-
 export const PokemonEntityLiteSchema = PokemonEntitySchema.omit({
     createdById: true,
     updatedById: true,
@@ -37,7 +36,6 @@ export const PokemonEntityLiteSchema = PokemonEntitySchema.omit({
 
 export type PokemonEntityLiteType = z.infer<typeof PokemonEntityLiteSchema>;
 
-
 export const PokemonEntitySchemaWithoutUser = PokemonEntitySchema.omit({
     createdById: true,
     updatedById: true,
@@ -49,7 +47,6 @@ export const PokemonEntitySchemaWithoutUser = PokemonEntitySchema.omit({
 
 export type PokemonEntitySchemaWithoutUserType = z.infer<typeof PokemonEntitySchemaWithoutUser>;
 //------------------------End------------------------//
-
 
 /**
  * Pokemon By Id Entity Schema - Extends PokemonEntitySchema with additional attributes
@@ -63,7 +60,6 @@ export const PokemonByIdEntitySchema = PokemonEntitySchema.extend({
 
 export type PokemonByIdEntityType = z.infer<typeof PokemonByIdEntitySchema>;
 //------------------------End------------------------//
-
 
 /**
  * Evolution Pokemon Entity Schema
@@ -83,7 +79,6 @@ export const EvolutionPokemonEntitySchema: z.ZodType<any> = z.lazy(() => z.objec
 
 export type IEvolutionPokemonEntityType = z.infer<typeof EvolutionPokemonEntitySchema>;
 //------------------------End------------------------//
-
 
 /**
  * User Pokemon Round Entity Schema

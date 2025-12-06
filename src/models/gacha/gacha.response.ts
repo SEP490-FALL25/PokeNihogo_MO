@@ -11,7 +11,6 @@ export const GachaBannerListResponseSchema = BackendResponseModel(z.array(GachaB
 export type IGachaBannerListResponse = z.infer<typeof GachaBannerListResponseSchema>;
 //------------------------End------------------------//
 
-
 /**
  * Gacha Purchase Response Schema
  */
@@ -27,7 +26,6 @@ export const GachaPurchaseResponseSchema = BackendResponseModel(z.array(z.object
 })));
 export type IGachaPurchaseResponse = z.infer<typeof GachaPurchaseResponseSchema>;
 //------------------------End------------------------//
-
 
 /**
  * Gacha Purchase History Response Schema
@@ -55,7 +53,6 @@ export const GachaPurchaseHistoryResponseSchema = BackendResponsePaginationModel
 export type IGachaPurchaseHistoryResponse = z.infer<typeof GachaPurchaseHistoryResponseSchema>;
 //------------------------End------------------------//
 
-
 /**
  * Gacha Pity Response Schema
  */
@@ -68,7 +65,6 @@ export const GachaPityResponseSchema = BackendResponseModel(z.object({
 }));
 export type IGachaPityResponse = z.infer<typeof GachaPityResponseSchema>;
 //------------------------End------------------------//
-
 
 /**
  * Gacha Item Response Schema

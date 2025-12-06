@@ -87,13 +87,7 @@ const LetterTile = React.memo(({
           width: 56,
           height: 56,
           justifyContent: "center",
-          alignItems: "center",
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 3,
-        }}
+          alignItems: "center",}}
       >
         <ThemedText
           style={{
@@ -214,13 +208,7 @@ const SelectedLetterSlot = React.memo(({
           width: 56,
           height: 56,
           justifyContent: "center",
-          alignItems: "center",
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 3,
-        }}
+          alignItems: "center",}}
       >
         {letter ? (
           <ThemedText
@@ -1094,13 +1082,7 @@ const ScrambleGameScreen = () => {
                 padding: 32,
                 alignItems: "center",
                 width: "100%",
-                maxWidth: 400,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.3,
-                shadowRadius: 16,
-                elevation: 10,
-              }}
+                maxWidth: 400,}}
             >
               <LinearGradient
                 colors={

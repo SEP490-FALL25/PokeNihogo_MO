@@ -19,7 +19,6 @@ import { Image, Text, View } from 'react-native';
 import { z } from 'zod';
 import { makeZodI18nMap } from 'zod-i18n-map';
 
-
 export default function CreateAccountScreen() {
     /**
      * Define variables
@@ -28,7 +27,6 @@ export default function CreateAccountScreen() {
     const email = useEmailSelector();
     const { showAlert } = useMinimalAlert();
     const setAccessToken = useAuthStore((state) => state.setAccessToken);
-
 
     z.setErrorMap(makeZodI18nMap({ t }));
     //-----------------------End-----------------------//

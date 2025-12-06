@@ -60,13 +60,7 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     borderRadius: 16,
-    overflow: "hidden",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
+    overflow: "hidden",},
   gradient: {
     flexDirection: "row",
     alignItems: "center",

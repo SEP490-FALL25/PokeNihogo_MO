@@ -101,7 +101,6 @@ const AchievementCard = ({
             <TWLinearGradient
                 colors={item.badgeColors}
                 className={`w-20 h-20 rounded-2xl items-center justify-center shadow-lg ${!item.unlocked && 'opacity-60'}`}
-                style={{ shadowColor: item.badgeColors[1] }}
             >
                 {item.imageUrl ? (
                     <Image
@@ -175,13 +174,7 @@ const AchievementCard = ({
                     style={{
                         borderWidth: 2,
                         borderColor: '#22c55e',
-                        borderRadius: 16,
-                        shadowColor: '#22c55e',
-                        shadowOffset: { width: 0, height: 0 },
-                        shadowOpacity: animatedShadowOpacity,
-                        shadowRadius: animatedShadowRadius,
-                        elevation: 12,
-                    }}
+                        borderRadius: 16,}}
                 >
                     {cardContent}
                 </Animated.View>

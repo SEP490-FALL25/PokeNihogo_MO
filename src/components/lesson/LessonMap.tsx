@@ -50,29 +50,17 @@ const STATUS_STYLE_MAP: Record<
   { backgroundColor: string; shadowColor: string }
 > = {
   COMPLETED: {
-    backgroundColor: "#dcfce7",
-    shadowColor: "#166534",
-  },
+    backgroundColor: "#dcfce7",},
   FAILED: {
-    backgroundColor: "#fee2e2",
-    shadowColor: "#991b1b",
-  },
+    backgroundColor: "#fee2e2",},
   IN_PROGRESS: {
-    backgroundColor: "#dbeafe",
-    shadowColor: "#1e3a8a",
-  },
+    backgroundColor: "#dbeafe",},
   NOT_STARTED: {
-    backgroundColor: "#f3f4f6",
-    shadowColor: "#222222",
-  },
+    backgroundColor: "#f3f4f6",},
   TESTING_LAST: {
-    backgroundColor: "#dbeafe",
-    shadowColor: "#1e3a8a",
-  },
+    backgroundColor: "#dbeafe",},
   TESTING_LAST_FAILED: {
-    backgroundColor: "#fee2e2",
-    shadowColor: "#991b1b",
-  },
+    backgroundColor: "#fee2e2",},
 };
 
 // Định nghĩa kiểu dữ liệu cho node bài học
@@ -662,13 +650,7 @@ const styles = StyleSheet.create({
   progressRing: {
     // Position, top, left, zIndex được set inline để căn giữa với node
   },
-  baseIconContainer: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
-  },
+  baseIconContainer: {},
   lessonIconWrapper: {
     width: NODE_SIZE,
     height: NODE_SIZE,

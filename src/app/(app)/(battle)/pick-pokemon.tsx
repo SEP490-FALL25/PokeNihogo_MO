@@ -1335,13 +1335,7 @@ export default function PickPokemonScreen() {
                       {isCurrentlySelected && (
                         <View
                           className="absolute inset-0 rounded-3xl border-2 border-green-400 pointer-events-none"
-                          style={{
-                            shadowColor: "#22c55e",
-                            shadowOpacity: 0.45,
-                            shadowRadius: 18,
-                            shadowOffset: { width: 0, height: 0 },
-                            elevation: 8,
-                          }}
+                          style={{}}
                         />
                       )}
                       {(isSelected || !canPick) && (

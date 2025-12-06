@@ -187,7 +187,6 @@ const AccordionContent = React.forwardRef<View, AccordionContentProps & { value?
       }).start()
     }, [isOpen])
 
-
     if (!isOpen) {
       return null
     }

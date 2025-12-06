@@ -84,16 +84,7 @@ const TooltipContent = React.forwardRef<View, TooltipContentProps & { isOpen?: b
             borderRadius: 6,
             paddingHorizontal: 12,
             paddingVertical: 6,
-            marginTop: sideOffset,
-            shadowColor: '#000',
-            shadowOffset: {
-              width: 0,
-              height: 2,
-            },
-            shadowOpacity: 0.25,
-            shadowRadius: 8,
-            elevation: 8,
-          },
+            marginTop: sideOffset,},
           style,
         ]}
         {...props}

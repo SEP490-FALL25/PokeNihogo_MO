@@ -103,14 +103,7 @@ const CustomTab = () => {
         style={[
           styles.tabBar,
           Platform.select({
-            ios: {
-              shadowColor: COLORS.SHADOW,
-              shadowOffset: { width: 0, height: -4 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-            },
             android: {
-              elevation: 12,
               borderTopWidth: StyleSheet.hairlineWidth,
               borderTopColor: "#eeeeee",
             },
@@ -201,14 +194,11 @@ const TabButton = ({ tab, active, onPress }: TabButtonProps) => {
               Platform.select({
                 ios: [
                   active && {
-                    backgroundColor: tab.color,
-                    shadowColor: tab.color,
-                  },
+                    backgroundColor: tab.color,},
                 ],
                 android: {
                   // Only show solid background when active; keep inactive transparent
                   backgroundColor: active ? tab.color : "transparent",
-                  elevation: active ? 10 : 0,
                 },
               }),
             ]}
@@ -280,11 +270,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
     paddingTop: 20,
-    shadowColor: COLORS.SHADOW,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
     width: "100%",
   },
   notificationBadge: {
@@ -336,10 +321,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 10,
     borderWidth: 0,
   },
   label: {

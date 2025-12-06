@@ -21,10 +21,6 @@ const StarterCard: React.FC<StarterCardProps> = ({
       style={({ pressed }) => [
         styles.card,
         {
-          shadowColor: selected ? typeColor : "#000",
-          shadowOpacity: selected ? 0.3 : 0.1,
-          shadowRadius: selected ? 12 : 8,
-          elevation: selected ? 8 : 4,
           transform: [{ scale: pressed ? 0.95 : 1 }],
         },
       ]}
@@ -62,12 +58,7 @@ const styles = StyleSheet.create({
   card: {
     height: 200,
     borderRadius: 24,
-    overflow: "hidden",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-  },
+    overflow: "hidden",},
   backgroundImage: {
     position: "absolute",
     width: "102%",

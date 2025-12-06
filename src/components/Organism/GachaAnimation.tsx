@@ -115,11 +115,7 @@ const ExplosionParticle = ({ x, y, size, delay, duration, color, isLast, onCompl
                     width: size,
                     height: size,
                     borderRadius: size / 2,
-                    backgroundColor: color,
-                    shadowColor: color,
-                    shadowRadius: 10,
-                    shadowOpacity: 0.8,
-                },
+                    backgroundColor: color,},
             ]}
         />
     )
@@ -156,11 +152,7 @@ const ExplosionFlash = ({ color }: { color: string }) => {
                     marginLeft: -125,
                     marginTop: -125,
                     borderRadius: 125,
-                    backgroundColor: color,
-                    shadowColor: color,
-                    shadowRadius: 80,
-                    shadowOpacity: 1,
-                },
+                    backgroundColor: color,},
             ]}
         />
     )

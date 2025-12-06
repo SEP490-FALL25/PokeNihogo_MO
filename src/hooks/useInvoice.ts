@@ -8,7 +8,6 @@ import { useCallback } from "react";
 import { useSubscriptionMarketplacePackages, useUserSubscription } from "./useSubscription";
 import { useWalletUser } from "./useWallet";
 
-
 /**
  * Hook to refetch all user-related data
  * Useful after payment success, manual refresh, or any data update
@@ -56,7 +55,6 @@ export const useRefetchUserData = () => {
     return { refetchAll };
 };
 //----------------------End----------------------//
-
 
 /**
  * Hook to create an invoice

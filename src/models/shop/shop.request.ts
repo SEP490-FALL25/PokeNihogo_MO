@@ -1,7 +1,6 @@
 import { TranslationRequest } from "@models/common/request";
 import z from "zod";
 
-
 /**
  * Create Shop Banner Request Schema with translations
  */
@@ -44,7 +43,6 @@ export interface IGetRandomPokemonRequest {
     amount: number;
 }
 
-
 /**
  * Create Shop Items Request Schema
  */
@@ -60,7 +58,6 @@ export const createCreateShopItemsRequest = (t: (key: string) => string) => z.ob
 
 export type ICreateShopItemsRequest = z.infer<ReturnType<typeof createCreateShopItemsRequest>>;
 //-------------------End-------------------//
-
 
 /**
  * Create Shop Items Request Schema

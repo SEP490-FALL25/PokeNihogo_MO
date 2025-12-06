@@ -61,14 +61,12 @@ export const EvolutionPokemonSchema = z.object({
 export type IEvolutionPokemonSchema = z.infer<typeof EvolutionPokemonSchema>;
 //------------------------End------------------------//
 
-
 /**
  * List User Pokemon Round Response Schema
  */
 export const ListUserPokemonRoundResponseSchema = BackendResponsePaginationModel(UserPokemonRoundEntitySchema);
 export type IListUserPokemonRoundResponse = z.infer<typeof ListUserPokemonRoundResponseSchema>;
 //------------------------End------------------------//
-
 
 // Export types
 export type IGetPokemonListRequest = z.infer<typeof GetPokemonListRequestSchema>;

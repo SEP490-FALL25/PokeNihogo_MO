@@ -256,16 +256,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     width: "90%",
-    maxWidth: 400,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
-  },
+    maxWidth: 400,},
   header: {
     marginBottom: 20,
   },
