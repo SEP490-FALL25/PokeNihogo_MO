@@ -158,6 +158,26 @@ export default function QuizResultScreen() {
     return `${score}%`;
   }, [result]);
 
+  // Calculate correct and incorrect answers
+  const correctAnswers = useMemo(() => {
+    if (!result) return 0;
+    // If all correct, then all answered questions are correct
+    if (result.allCorrect) {
+      return result.answeredQuestions;
+    }
+    // If score is available, calculate from score
+    if (typeof result.score === "number" && result.score > 0) {
+      return Math.round((result.score / 100) * result.totalQuestions);
+    }
+    // Fallback: if no score, return 0
+    return 0;
+  }, [result]);
+
+  const incorrectAnswers = useMemo(() => {
+    if (!result) return 0;
+    return result.answeredQuestions - correctAnswers;
+  }, [result, correctAnswers]);
+
   // Determine title based on status
   const titleText = useMemo(() => {
     if (!result) {
@@ -229,7 +249,7 @@ export default function QuizResultScreen() {
 
         <View style={styles.tileRow}>
           <ResultValueCard
-            title="Đã trả lời"
+            title="Số câu đã trả lời"
             value={answeredSummary}
             icon={
               <MaterialCommunityIcons
@@ -250,6 +270,40 @@ export default function QuizResultScreen() {
               icon={
                 <MaterialCommunityIcons
                   name="alert-circle"
+                  size={18}
+                  color="#ef4444"
+                />
+              }
+              headerGradientColors={["#ef4444", "#f87171"]}
+              style={styles.tile}
+              size="compact"
+            />
+          )}
+        </View>
+
+        <View style={styles.tileRow}>
+          <ResultValueCard
+            title="Số câu đúng"
+            value={correctAnswers}
+            icon={
+              <MaterialCommunityIcons
+                name="check-circle"
+                size={18}
+                color="#059669"
+              />
+            }
+            headerGradientColors={["#059669", "#34d399"]}
+            style={styles.tile}
+            size="compact"
+          />
+
+          {incorrectAnswers > 0 && (
+            <ResultValueCard
+              title="Số câu sai"
+              value={incorrectAnswers}
+              icon={
+                <MaterialCommunityIcons
+                  name="close-circle"
                   size={18}
                   color="#ef4444"
                 />

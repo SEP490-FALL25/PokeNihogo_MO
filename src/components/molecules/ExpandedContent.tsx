@@ -99,7 +99,7 @@ export default function ExpandedContent({
             <ExpProgressBar
               currentExp={user.exp}
               currentLevel={user.level.levelNumber}
-              expToNextLevel={user.level.requiredExp}
+              expToNextLevel={user.level.nextLevel?.requiredExp ?? 0}
               size="large"
             />
           </View>

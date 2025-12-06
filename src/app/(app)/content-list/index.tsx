@@ -1,5 +1,7 @@
 import KanjiWriter from "@components/KanjiWriter";
 import { ThemedText } from "@components/ThemedText";
+import { ConfirmModal } from "@components/ui/ConfirmModal";
+import { ExerciseAttemptStatus } from "@constants/exercise.enum";
 import { useLesson } from "@hooks/useLessons";
 import { useUserExerciseAttempt } from "@hooks/useUserExerciseAttempt";
 import { ROUTES } from "@routes/routes";
@@ -974,6 +976,19 @@ const VocabularyListScreen = () => {
     return map;
   }, [latestExerciseAttempt]);
 
+  // Map attempt status by category
+  const statusByCategory = React.useMemo(() => {
+    const list: any[] = latestExerciseAttempt?.data || [];
+    const map: Record<string, string | undefined> = {};
+    for (const item of list) {
+      const type = (item.exerciseType || "").toString().toLowerCase();
+      if (type === "vocabulary") map.vocabulary = item.status;
+      if (type === "grammar") map.grammar = item.status;
+      if (type === "kanji") map.kanji = item.status;
+    }
+    return map;
+  }, [latestExerciseAttempt]);
+
   // State for Kanji Writer Modal
   const [showKanjiWriterModal, setShowKanjiWriterModal] = useState(false);
   const [selectedKanji, setSelectedKanji] = useState<string>("");
@@ -982,6 +997,10 @@ const VocabularyListScreen = () => {
   const [showKanjiExplanationModal, setShowKanjiExplanationModal] =
     useState(false);
   const [selectedKanjiItem, setSelectedKanjiItem] = useState<any>(null);
+
+  // State for Retry Confirmation Modal
+  const [showRetryModal, setShowRetryModal] = useState(false);
+  const [pendingCategory, setPendingCategory] = useState<ExerciseCategory | null>(null);
 
   // Ref for horizontal scroll view
   const horizontalScrollRef = useRef<ScrollView>(null);
@@ -1140,18 +1159,18 @@ const VocabularyListScreen = () => {
         return;
       }
 
-      const proceed = () => {
-        Haptics.selectionAsync();
-        router.push({
-          pathname: ROUTES.QUIZ.QUIZ,
-          params: {
-            exerciseAttemptId: exerciseAttemptId.toString(),
-            lessonId: id || "",
-          },
-        });
-      };
+      // Check if exercise is already completed
+      const status = statusByCategory[category];
+      const normalizedStatus = (status || "").toUpperCase();
+      
+      if (normalizedStatus === ExerciseAttemptStatus.COMPLETED) {
+        // Show confirmation modal for retry
+        setPendingCategory(category);
+        setShowRetryModal(true);
+        return;
+      }
 
-      proceed();
+      proceedToExercise(category, exerciseAttemptId);
     } catch (e) {
       console.warn("Failed to start exercise", e);
       Alert.alert(
@@ -1159,6 +1178,42 @@ const VocabularyListScreen = () => {
         t("common.something_wrong", "Something went wrong. Please try again.")
       );
     }
+  };
+
+  // Proceed to exercise
+  const proceedToExercise = (category: ExerciseCategory, exerciseAttemptId: number | string) => {
+    Haptics.selectionAsync();
+    router.push({
+      pathname: ROUTES.QUIZ.QUIZ,
+      params: {
+        exerciseAttemptId: exerciseAttemptId.toString(),
+        lessonId: id || "",
+      },
+    });
+  };
+
+  // Handle retry confirmation
+  const handleRetryConfirm = () => {
+    if (!pendingCategory) return;
+    
+    const exerciseAttemptId = attemptIdByCategory[pendingCategory];
+    if (!exerciseAttemptId) {
+      Alert.alert(
+        t("common.error") || "Error",
+        t("common.something_wrong", "Something went wrong. Please try again.")
+      );
+      return;
+    }
+
+    setShowRetryModal(false);
+    proceedToExercise(pendingCategory, exerciseAttemptId);
+    setPendingCategory(null);
+  };
+
+  // Handle retry cancel
+  const handleRetryCancel = () => {
+    setShowRetryModal(false);
+    setPendingCategory(null);
   };
 
   // Reset progress when content data changes
@@ -2242,6 +2297,32 @@ const VocabularyListScreen = () => {
             </View>
           </SafeAreaView>
         </Modal>
+
+        {/* Retry Confirmation Modal */}
+        <ConfirmModal
+          visible={showRetryModal}
+          title={t(
+            "content_list.retry_modal.title",
+            "Làm lại bài tập?"
+          )}
+          message={t(
+            "content_list.retry_modal.message",
+            "Bạn đã hoàn thành bài tập này rồi. Nếu làm lại, bạn sẽ chỉ nhận được 10% phần thưởng so với lần trước."
+          )}
+          buttons={[
+            {
+              label: t("common.cancel", "Hủy"),
+              onPress: handleRetryCancel,
+              variant: "secondary",
+            },
+            {
+              label: t("common.confirm", "Xác nhận"),
+              onPress: handleRetryConfirm,
+              variant: "primary",
+            },
+          ]}
+          onRequestClose={handleRetryCancel}
+        />
       </LinearGradient>
     </SafeAreaView>
   );

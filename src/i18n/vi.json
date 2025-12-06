@@ -21,6 +21,7 @@
     "simple_dialog_test": "Đây là test hộp thoại đơn giản",
     "close": "Đóng",
     "cancel": "Hủy",
+    "confirm": "Xác nhận",
     "exit": "Thoát",
     "shop": "Cửa hàng",
     "open-shop": "Mở cửa hàng",
@@ -634,6 +635,10 @@
       "stroke_value": "{{count}} nét",
       "details_heading": "📖 Giải thích chi tiết",
       "meaning_label": "Nghĩa"
+    },
+    "retry_modal": {
+      "title": "Làm lại bài tập?",
+      "message": "Bạn đã hoàn thành bài tập này rồi. Nếu làm lại, bạn sẽ chỉ nhận được 10% phần thưởng so với lần trước."
     },
     "flashcard": {
       "progress": {
