@@ -784,7 +784,10 @@
                 "kanji": "漢字を学ぶ",
                 "grammar": "文法を学ぶ"
             },
-            "match": "カードマッチゲーム",
+            "match": {
+                "kanji": "漢字マッチ",
+                "vocabulary": "語彙マッチ"
+            },
             "scramble": {
                 "kanji": "漢字スクランブル",
                 "vocabulary": "語彙スクランブル"
@@ -821,6 +824,7 @@
             "message": "この練習は既に完了しています。やり直す場合、前回と比べて報酬は10%のみとなります。"
         },
         "flashcard": {
+            "title": "フラッシュカードで学ぶ",
             "progress": {
                 "deck": "{{reviewed}}/{{total}} 枚（フラッシュカードデッキ）",
                 "vocabulary": "{{reviewed}}/{{total}} 語彙カードを閲覧",

@@ -596,7 +596,10 @@
         "kanji": "Learn kanji",
         "grammar": "Learn grammar"
       },
-      "match": "Card matching game",
+      "match": {
+        "kanji": "Match kanji",
+        "vocabulary": "Match vocabulary"
+      },
       "scramble": {
         "kanji": "Scramble kanji",
         "vocabulary": "Scramble vocabulary"
@@ -641,6 +644,7 @@
       "message": "You have already completed this exercise. If you retry, you will only receive 10% of the reward compared to the previous attempt."
     },
     "flashcard": {
+      "title": "Learn with flashcards",
       "progress": {
         "deck": "{{reviewed}}/{{total}} cards in flashcard deck",
         "vocabulary": "{{reviewed}}/{{total}} vocabulary cards reviewed",

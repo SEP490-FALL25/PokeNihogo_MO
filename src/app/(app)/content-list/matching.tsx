@@ -7,12 +7,12 @@ import { ChevronLeft, RotateCcw, Trophy } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    ActivityIndicator,
-    Animated,
-    Dimensions,
-    Modal,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  Modal,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -309,39 +309,18 @@ const MatchingGameScreen = () => {
 
   // Helper function to initialize displayed cards from pool
   const initializeDisplayedCards = useCallback((allCards: MatchingCard[]) => {
-    // Display first 6 complete pairs (12 cards)
-    // Find first 6 unique pairIds and get both cards (word + meaning) for each pair
-    const displayedPairIds = new Set<string>();
-    const initialDisplayed: MatchingCard[] = [];
+    // Simply take first 12 cards from shuffled pool - they are already randomly shuffled
+    // This ensures true randomness, cards are not grouped by pairs
+    const initialDisplayed = allCards.slice(0, MAX_DISPLAYED_CARDS);
     
-    for (const card of allCards) {
-      if (initialDisplayed.length >= MAX_DISPLAYED_CARDS) break;
-      
-      if (!displayedPairIds.has(card.pairId)) {
-        // Find both cards (word and meaning) of this pair
-        const pairCards = allCards.filter((c) => c.pairId === card.pairId);
-        if (pairCards.length === 2) {
-          // Add both cards to display
-          initialDisplayed.push(...pairCards);
-          displayedPairIds.add(card.pairId);
-          
-          // Initialize animation refs for displayed cards
-          pairCards.forEach((c) => {
-            initCardAnimation(c.id);
-          });
-        }
-      }
-    }
+    // Initialize animation refs for displayed cards
+    initialDisplayed.forEach((card) => {
+      initCardAnimation(card.id);
+    });
     
     setCards(initialDisplayed);
-    // Update nextCardIndex to skip all displayed cards
-    setNextCardIndex(
-      allCards.findIndex(
-        (card) => !displayedPairIds.has(card.pairId)
-      ) === -1
-        ? allCards.length
-        : allCards.findIndex((card) => !displayedPairIds.has(card.pairId))
-    );
+    // Start from index 12 (after displayed cards)
+    setNextCardIndex(MAX_DISPLAYED_CARDS);
   }, [initCardAnimation]);
 
   // Initialize game on mount and when data changes
@@ -462,40 +441,21 @@ const MatchingGameScreen = () => {
         initCardAnimation(firstCard.id);
         initCardAnimation(secondCard.id);
         
-        // Find next complete pair from pool before animation
+        // Take next 2 cards from pool (truly random, not looking for complete pairs)
         let newNextIndex = nextCardIndex;
         let nextPairCards: MatchingCard[] = [];
         
-        // Get all displayed pairIds to avoid duplicates
-        const displayedPairIds = new Set(cards.map((card) => card.pairId));
-        
-        // Find next pair in pool that hasn't been displayed yet
-        if (newNextIndex < allCardsPool.length) {
-          const remainingPool = allCardsPool.slice(newNextIndex);
-          
-          let foundPairId: string | null = null;
-          for (const card of remainingPool) {
-            if (!displayedPairIds.has(card.pairId)) {
-              foundPairId = card.pairId;
-              break;
-            }
-          }
-          
-          if (foundPairId) {
-            const pairCards = allCardsPool
-              .slice(newNextIndex)
-              .filter((card) => card.pairId === foundPairId);
-            
-            if (pairCards.length === 2) {
-              nextPairCards = pairCards;
-              const lastCardIndex = allCardsPool.findIndex(
-                (card, idx) => idx >= newNextIndex && card.pairId === foundPairId && card.type === "meaning"
-              );
-              if (lastCardIndex !== -1) {
-                newNextIndex = lastCardIndex + 1;
-              }
-            }
-          }
+        // Just take the next 2 cards from the pool sequentially
+        if (newNextIndex + 1 < allCardsPool.length) {
+          nextPairCards = [
+            allCardsPool[newNextIndex],
+            allCardsPool[newNextIndex + 1]
+          ];
+          newNextIndex = newNextIndex + 2;
+        } else if (newNextIndex < allCardsPool.length) {
+          // Only 1 card left
+          nextPairCards = [allCardsPool[newNextIndex]];
+          newNextIndex = newNextIndex + 1;
         }
         
         // Animate matched cards out (zoom in -> zoom out -> fade out)
@@ -507,7 +467,7 @@ const MatchingGameScreen = () => {
             const newCards = [...cards];
             
             // Replace cards at the same positions (firstIndex and secondIndex)
-            if (nextPairCards.length === 2) {
+            if (nextPairCards.length >= 2) {
               // Initialize animation refs for new cards
               nextPairCards.forEach((card) => {
                 initCardAnimation(card.id, true);
@@ -518,9 +478,14 @@ const MatchingGameScreen = () => {
               newCards[secondIndex] = nextPairCards[1];
               
               setNextCardIndex(newNextIndex);
+            } else if (nextPairCards.length === 1) {
+              // Only 1 card left, replace first position only
+              initCardAnimation(nextPairCards[0].id, true);
+              newCards[firstIndex] = nextPairCards[0];
+              newCards[secondIndex] = { ...secondCard, isMatched: true };
+              setNextCardIndex(newNextIndex);
             } else {
-              // No more pairs, remove matched cards (set to null or remove)
-              // But we want to keep positions, so we'll mark them as matched
+              // No more cards, mark both as matched
               newCards[firstIndex] = { ...firstCard, isMatched: true };
               newCards[secondIndex] = { ...secondCard, isMatched: true };
             }
@@ -528,7 +493,7 @@ const MatchingGameScreen = () => {
             setCards(newCards);
             
             // Animate new cards in after a short delay
-            if (nextPairCards.length === 2) {
+            if (nextPairCards.length > 0) {
               setTimeout(() => {
                 nextPairCards.forEach((card) => {
                   animateCardIn(card.id);
@@ -631,10 +596,7 @@ const MatchingGameScreen = () => {
                 {t(
                   contentType === "kanji"
                     ? "content_list.activity.match.kanji"
-                    : "content_list.activity.match.vocabulary",
-                  contentType === "kanji"
-                    ? "Match kanji"
-                    : "Match vocabulary"
+                    : "content_list.activity.match.vocabulary"
                 )}
               </ThemedText>
             </View>
@@ -642,7 +604,7 @@ const MatchingGameScreen = () => {
           </View>
           <View className="flex-1 items-center justify-center p-6">
             <ThemedText style={{ fontSize: 18, color: "#6b7280", textAlign: "center" }}>
-              {t("content_list.matching.no_content", "No content available")}
+              {t("content_list.matching.no_content")}
             </ThemedText>
           </View>
         </LinearGradient>
@@ -668,10 +630,7 @@ const MatchingGameScreen = () => {
               {t(
                 contentType === "kanji"
                   ? "content_list.activity.match.kanji"
-                  : "content_list.activity.match.vocabulary",
-                contentType === "kanji"
-                  ? "Match kanji"
-                  : "Match vocabulary"
+                  : "content_list.activity.match.vocabulary"
               )}
             </ThemedText>
           </View>
@@ -684,7 +643,7 @@ const MatchingGameScreen = () => {
         <View className="px-6 py-6">
           <View className="flex-row items-center justify-between mb-2">
             <ThemedText style={{ fontSize: 14, fontWeight: "600", color: "#1f2937" }}>
-              {t("content_list.matching.time", "Time")}
+              {t("content_list.matching.time")}
             </ThemedText>
             <ThemedText
               style={{
@@ -829,8 +788,8 @@ const MatchingGameScreen = () => {
                 }}
               >
                 {isTimeUp
-                  ? t("content_list.matching.time_up", "Time's Up!")
-                  : t("content_list.matching.complete", "Congratulations!")}
+                  ? t("content_list.matching.time_up")
+                  : t("content_list.matching.complete")}
               </ThemedText>
 
               <ThemedText
@@ -845,9 +804,8 @@ const MatchingGameScreen = () => {
                   ? t("content_list.matching.time_up_message", {
                       matchedPairs,
                       total: contentData.length,
-                      defaultValue: `You matched ${matchedPairs} out of ${contentData.length} pairs!`,
                     })
-                  : t("content_list.matching.complete_message", "You matched all pairs!")}
+                  : t("content_list.matching.complete_message")}
               </ThemedText>
 
               <ThemedText
@@ -859,7 +817,6 @@ const MatchingGameScreen = () => {
                 }}
               >
                 {t("content_list.matching.total_moves", {
-                  defaultValue: `Total moves: ${moves}`,
                   moves,
                 })}
               </ThemedText>
@@ -886,7 +843,7 @@ const MatchingGameScreen = () => {
                       color: "#ffffff",
                     }}
                   >
-                    {t("content_list.matching.play_again", "Play Again")}
+                    {t("content_list.matching.play_again")}
                   </ThemedText>
                 </TouchableOpacity>
 
@@ -924,3 +881,4 @@ const MatchingGameScreen = () => {
 };
 
 export default MatchingGameScreen;
+

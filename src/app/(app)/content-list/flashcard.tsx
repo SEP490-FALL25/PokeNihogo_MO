@@ -698,7 +698,7 @@ const VocabularyFlashcardScreen = () => {
             <ChevronLeft size={24} color="#1f2937" />
           </TouchableOpacity>
           <ThemedText style={{ fontSize: 18, fontWeight: "bold", color: "#1f2937" }}>
-            Học với Flashcard
+            {t("content_list.flashcard.title")}
           </ThemedText>
           <View className="flex-row items-center gap-2">
             <TouchableOpacity

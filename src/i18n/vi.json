@@ -596,7 +596,10 @@
         "kanji": "Học Kanji",
         "grammar": "Học ngữ pháp"
       },
-      "match": "Trò chơi ghép thẻ",
+      "match": {
+        "kanji": "Ghép Kanji",
+        "vocabulary": "Ghép từ vựng"
+      },
       "scramble": {
         "kanji": "Xáo trộn Kanji",
         "vocabulary": "Xáo trộn từ vựng"
@@ -641,6 +644,7 @@
       "message": "Bạn đã hoàn thành bài tập này rồi. Nếu làm lại, bạn sẽ chỉ nhận được 10% phần thưởng so với lần trước."
     },
     "flashcard": {
+      "title": "Học với thẻ từ",
       "progress": {
         "deck": "{{reviewed}}/{{total}} thẻ trong bộ flashcard",
         "vocabulary": "{{reviewed}}/{{total}} thẻ từ vựng đã xem",
