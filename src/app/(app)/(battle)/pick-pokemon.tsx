@@ -78,6 +78,8 @@ export default function PickPokemonScreen() {
   const setStartRoundPayload = useMatchingStore((s) => s.setStartRoundPayload);
   const setServerTimeOffset = useMatchingStore((s) => s.setServerTimeOffset);
   const serverTimeOffset = useMatchingStore((s) => s.serverTimeOffset);
+  const roundStartingData = useMatchingStore((s) => s.roundStartingData);
+  const setRoundStartingData = useMatchingStore((s) => s.setRoundStartingData);
 
   const battleContext = useMemo(() => {
     if (!matchRound) return null;
@@ -283,12 +285,6 @@ export default function PickPokemonScreen() {
   }, [matchRound, currentUserId]);
 
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
-  const [roundStartingData, setRoundStartingData] = useState<{
-    matchId: number;
-    roundNumber: string;
-    delaySeconds: number;
-    message: string;
-  } | null>(null);
   const parseRoundNumber = (roundValue?: string | null) => {
     if (!roundValue) return null;
     if (roundValue === "ONE") return 1;
