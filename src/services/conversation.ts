@@ -66,6 +66,7 @@ export async function submitUserSpeech(
 }
 
 export interface ConversationRoom {
+  id: string;
   conversationId: string;
   title?: string;
   lastMessage?: string;
@@ -99,5 +100,9 @@ export async function getConversationRooms(params?: {
     `/ai-conversation-room${queryString ? `?${queryString}` : ''}`
   );
   return data;
+}
+
+export async function deleteConversationRoom(id: string): Promise<void> {
+  await axiosPrivate.delete(`/ai-conversation-room/${id}`);
 }
 

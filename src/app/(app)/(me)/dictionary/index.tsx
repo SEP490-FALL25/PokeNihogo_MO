@@ -216,8 +216,6 @@ export default function DictionaryScreen() {
         );
         closeFlashcardModal();
       } catch (error) {
-        console.error("Error adding word to flashcard deck:", error);
-        
         // Check if it's a 409 conflict error (content already exists)
         const axiosError = error as AxiosError<{ statusCode?: number; message?: string }>;
         const isConflictError = 
@@ -273,8 +271,6 @@ export default function DictionaryScreen() {
             "success"
           );
         } catch (error) {
-          console.error("Error adding word to new flashcard deck:", error);
-          
           // Check if it's a 409 conflict error (content already exists)
           const axiosError = error as AxiosError<{ statusCode?: number; message?: string }>;
           const isConflictError = 
@@ -305,7 +301,6 @@ export default function DictionaryScreen() {
       closeCreateFlashcardModal();
       closeFlashcardModal();
     } catch (error) {
-      console.error("Error creating flashcard deck:", error);
       showDictionaryAlert(
         "dictionary.create_deck_error_title",
         "dictionary.create_deck_error_description",

@@ -1,8 +1,9 @@
 import {
+    deleteConversationRoom,
     getConversationRooms,
     GetConversationRoomsResponse,
 } from "@services/conversation";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Hook to fetch conversation rooms list
@@ -23,5 +24,20 @@ export const useConversationRooms = (params?: {
     isError,
     refetch,
   };
+};
+
+/**
+ * Hook to delete a conversation room
+ */
+export const useDeleteConversationRoom = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (conversationId: string) => deleteConversationRoom(conversationId),
+    onSuccess: () => {
+      // Invalidate and refetch conversation rooms
+      queryClient.invalidateQueries({ queryKey: ["conversation-rooms"] });
+    },
+  });
 };
 

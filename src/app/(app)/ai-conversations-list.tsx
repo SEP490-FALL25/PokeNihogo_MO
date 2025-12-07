@@ -1,30 +1,41 @@
 import { ThemedText } from "@components/ThemedText";
+import MinimalGameAlert, { AlertWrapper } from "@components/atoms/MinimalAlert";
 import { ConversationCard } from "@components/conversation/ConversationCard";
-import { useConversationRooms } from "@hooks/useConversation";
+import { ConfirmModal } from "@components/ui/ConfirmModal";
+import { useConversationRooms, useDeleteConversationRoom } from "@hooks/useConversation";
 import { ROUTES } from "@routes/routes";
 import { ConversationRoom } from "@services/conversation";
 import { router } from "expo-router";
 import { ArrowLeft, MessageSquare, Plus } from "lucide-react-native";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
-  FlatList,
   ListRenderItem,
   RefreshControl,
   StyleSheet,
   TouchableOpacity,
   View,
 } from "react-native";
+import { FlatList, Swipeable } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AiConversationsListScreen() {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState<"success" | "error">("success");
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<ConversationRoom | null>(null);
+  const swipeableRefs = useRef<{ [key: string]: Swipeable | null }>({});
+  
   const { data, isLoading, refetch } = useConversationRooms({
     currentPage: 1,
     pageSize: 50,
   });
+  
+  const deleteMutation = useDeleteConversationRoom();
 
   const conversations = useMemo(
     () => data?.results ?? [],
@@ -41,28 +52,110 @@ export default function AiConversationsListScreen() {
     router.back();
   }, []);
 
+  const closeAllSwipeables = useCallback(() => {
+    // Close all swipeable items
+    Object.keys(swipeableRefs.current).forEach((id) => {
+      if (swipeableRefs.current[id]) {
+        swipeableRefs.current[id]?.close();
+      }
+    });
+  }, []);
+
   const handleSelectConversation = useCallback(
     (conversation: ConversationRoom) => {
+      // Close all swipeables before navigating
+      closeAllSwipeables();
       router.push({
         pathname: ROUTES.APP.AI_CONVERSATION,
         params: { conversationId: conversation.conversationId },
       });
     },
-    []
+    [closeAllSwipeables]
   );
 
   const handleNewConversation = useCallback(() => {
     router.push(ROUTES.APP.AI_CONVERSATION);
   }, []);
 
+  const handleSwipeableWillOpen = useCallback((conversationId: string) => {
+    // Close all other swipeable items when a new one opens
+    Object.keys(swipeableRefs.current).forEach((id) => {
+      if (id !== conversationId && swipeableRefs.current[id]) {
+        swipeableRefs.current[id]?.close();
+      }
+    });
+  }, []);
+
+  const handleSwipeableClose = useCallback(() => {
+    // Optional: handle when swipeable closes
+  }, []);
+
+  const handleDeleteConversation = useCallback(
+    (conversation: ConversationRoom) => {
+      setConversationToDelete(conversation);
+      setDeleteModalVisible(true);
+    },
+    []
+  );
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!conversationToDelete) return;
+
+    try {
+      await deleteMutation.mutateAsync(conversationToDelete.id);
+      setDeleteModalVisible(false);
+      setConversationToDelete(null);
+      // Close swipeable after successful delete
+      if (swipeableRefs.current[conversationToDelete.conversationId]) {
+        swipeableRefs.current[conversationToDelete.conversationId]?.close();
+      }
+      setAlertMessage(
+        t(
+          "home.ai.conversation.delete_success",
+          "Đã xóa cuộc hội thoại thành công"
+        )
+      );
+      setAlertType("success");
+      setAlertVisible(true);
+    } catch {
+      setDeleteModalVisible(false);
+      setConversationToDelete(null);
+      setAlertMessage(
+        t(
+          "home.ai.conversation.delete_error",
+          "Không thể xóa cuộc hội thoại. Vui lòng thử lại."
+        )
+      );
+      setAlertType("error");
+      setAlertVisible(true);
+    }
+  }, [conversationToDelete, deleteMutation, t]);
+
+  const handleCancelDelete = useCallback(() => {
+    if (conversationToDelete) {
+      // Close swipeable when canceling
+      if (swipeableRefs.current[conversationToDelete.conversationId]) {
+        swipeableRefs.current[conversationToDelete.conversationId]?.close();
+      }
+    }
+    setDeleteModalVisible(false);
+    setConversationToDelete(null);
+  }, [conversationToDelete]);
+
   const renderItem: ListRenderItem<ConversationRoom> = useCallback(
     ({ item }) => (
       <ConversationCard
         conversation={item}
         onPress={() => handleSelectConversation(item)}
+        onDelete={() => handleDeleteConversation(item)}
+        swipeableRef={(ref) => {
+          swipeableRefs.current[item.conversationId] = ref;
+        }}
+        onSwipeableWillOpen={() => handleSwipeableWillOpen(item.conversationId)}
+        onSwipeableClose={handleSwipeableClose}
       />
     ),
-    [handleSelectConversation]
+    [handleSelectConversation, handleDeleteConversation, handleSwipeableWillOpen, handleSwipeableClose]
   );
 
   const keyExtractor = useCallback(
@@ -148,6 +241,7 @@ export default function AiConversationsListScreen() {
             />
           }
           showsVerticalScrollIndicator={false}
+          onScrollBeginDrag={closeAllSwipeables}
         />
       )}
 
@@ -161,6 +255,39 @@ export default function AiConversationsListScreen() {
           <Plus size={24} color="#ffffff" />
         </TouchableOpacity>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        visible={deleteModalVisible}
+        title={t("home.ai.conversation.delete_confirm_title", "Xóa cuộc hội thoại")}
+        message={t(
+          "home.ai.conversation.delete_confirm_message",
+          "Bạn có chắc chắn muốn xóa cuộc hội thoại này? Hành động này không thể hoàn tác."
+        )}
+        buttons={[
+          {
+            label: t("common.cancel", "Hủy"),
+            onPress: handleCancelDelete,
+            variant: "secondary",
+          },
+          {
+            label: t("home.ai.conversation.delete", "Xóa"),
+            onPress: handleConfirmDelete,
+            variant: "danger",
+          },
+        ]}
+        onRequestClose={handleCancelDelete}
+      />
+
+      {/* Alert Notification */}
+      <AlertWrapper visible={alertVisible}>
+        <MinimalGameAlert
+          message={alertMessage}
+          visible={alertVisible}
+          onHide={() => setAlertVisible(false)}
+          type={alertType}
+        />
+      </AlertWrapper>
     </SafeAreaView>
   );
 }
