@@ -12,6 +12,8 @@ export const BattleUserMatchingHistoryEntitySchema = z.object({
         name: z.string(),
         avatar: z.string().nullable(),
     }),
+    createdAt: z.string(),
+    timeMatch: z.number(),
 });
 
 export type IBattleUserMatchingHistoryEntity = z.infer<typeof BattleUserMatchingHistoryEntitySchema>;

@@ -144,7 +144,7 @@ export default function BattleResultScreen() {
 
         try {
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['user-matching-history'] }),
+                queryClient.refetchQueries({ queryKey: ['user-matching-history'] }),
                 queryClient.refetchQueries({ queryKey: ['user-stats-season'], type: 'all' }),
                 queryClient.removeQueries({ queryKey: ['leaderboard'] }),
             ]);
