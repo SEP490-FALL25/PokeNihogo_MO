@@ -4,21 +4,21 @@ import MainNavigation from "@components/MainNavigation";
 import { ThemedText } from "@components/ThemedText";
 import WelcomeModal from "@components/ui/WelcomeModal";
 import { SubscriptionFeatureKey } from "@constants/subscription.enum";
+import { useAttendanceSummary, useCheckIn } from "@hooks/useAttendance";
 import { useAuth } from "@hooks/useAuth";
 import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useSrsReview } from "@hooks/useSrsReview";
 import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
 import { useCreateNewExerciseAttempt } from "@hooks/useUserExerciseAttempt";
 import { useRecentExercises } from "@hooks/useUserHistory";
+import { useMarkAsRead } from "@hooks/useUserSrsReview";
 import { ISrsReviewItem } from "@models/srs/srs-review.response";
 import { IRecentExerciseItem } from "@models/user-history/user-history.response";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { ROUTES } from "@routes/routes";
-import attendanceService from "@services/attendance";
-import userSrsReviewService from "@services/user-srs-review";
 import { useUserStore } from "@stores/user/user.config";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -69,13 +69,15 @@ if (
 // Storage key for welcome modal shown state
 const WELCOME_MODAL_SHOWN_KEY = "@WelcomeModal:hasBeenShown";
 
-const normalizeDateKey = (dateString?: string) => {
-  if (!dateString) return "";
-  try {
-    return new Date(dateString).toISOString().split("T")[0];
-  } catch {
-    return "";
-  }
+const useNormalizeDateKey = () => {
+  return useCallback((dateString?: string) => {
+    if (!dateString) return "";
+    try {
+      return new Date(dateString).toISOString().split("T")[0];
+    } catch {
+      return "";
+    }
+  }, []);
 };
 
 /**
@@ -88,7 +90,7 @@ const ExerciseCard: React.FC<{
 }> = ({ exercise, onPress, isLoading = false }) => {
   const { t } = useTranslation();
 
-  const getExerciseTypeInfo = (exerciseName: string) => {
+  const getExerciseTypeInfo = useCallback((exerciseName: string) => {
     const name = exerciseName.toLowerCase();
     if (name.includes("vocabulary") || name.includes("vocab")) {
       return {
@@ -115,9 +117,9 @@ const ExerciseCard: React.FC<{
         type: t("home.exercise_types.exercise", "Bài tập"),
       };
     }
-  };
+  }, [t]);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case "COMPLETED":
         return "#10b981";
@@ -128,9 +130,9 @@ const ExerciseCard: React.FC<{
       default:
         return "#3b82f6";
     }
-  };
+  }, []);
 
-  const getStatusText = (status: string) => {
+  const getStatusText = useCallback((status: string) => {
     switch (status) {
       case "COMPLETED":
         return t("home.exercise_status.completed", "Hoàn thành");
@@ -141,11 +143,11 @@ const ExerciseCard: React.FC<{
       default:
         return status;
     }
-  };
+  }, [t]);
 
-  const typeInfo = getExerciseTypeInfo(exercise.exerciseName);
+  const typeInfo = useMemo(() => getExerciseTypeInfo(exercise.exerciseName), [exercise.exerciseName, getExerciseTypeInfo]);
   const Icon = typeInfo.icon;
-  const statusColor = getStatusColor(exercise.status);
+  const statusColor = useMemo(() => getStatusColor(exercise.status), [exercise.status, getStatusColor]);
 
   return (
     <TouchableOpacity
@@ -238,47 +240,51 @@ const useSrsTypeConfig = () => {
   );
 };
 
-const getInsightContentCopy = (insight: ISrsReviewItem, t: ReturnType<typeof useTranslation>["t"]) => {
-  const content = insight.content as any;
+const useInsightContentCopy = () => {
+  const { t } = useTranslation();
+  
+  return useCallback((insight: ISrsReviewItem) => {
+    const content = insight.content as any;
 
-  if (!content) {
-    return {
-      primary: t("home.srs_insights.review_now", "Ôn tập ngay"),
-      secondary: "",
-    };
-  }
-
-  switch (content.type) {
-    case "vocabulary":
-      return {
-        primary: content.wordJp ?? t("home.srs_insights.vocabulary_title", "Từ mới"),
-        secondary: [content.reading, content.meaning]
-          .filter(Boolean)
-          .join(" · "),
-      };
-    case "kanji":
-      return {
-        primary: content.character ?? t("home.srs_insights.kanji_title", "Kanji"),
-        secondary: [content.meaning, content.jlptLevel && `JLPT N${content.jlptLevel}`]
-          .filter(Boolean)
-          .join(" · "),
-      };
-    case "grammar":
-      return {
-        primary: content.structure ?? t("home.srs_insights.grammar_title", "Ngữ pháp"),
-        secondary: content.level
-          ? t("home.srs_insights.grammar_level", {
-              level: content.level,
-              defaultValue: `Trình độ ${content.level}`,
-            })
-          : "",
-      };
-    default:
+    if (!content) {
       return {
         primary: t("home.srs_insights.review_now", "Ôn tập ngay"),
         secondary: "",
       };
-  }
+    }
+
+    switch (content.type) {
+      case "vocabulary":
+        return {
+          primary: content.wordJp ?? t("home.srs_insights.vocabulary_title", "Từ mới"),
+          secondary: [content.reading, content.meaning]
+            .filter(Boolean)
+            .join(" · "),
+        };
+      case "kanji":
+        return {
+          primary: content.character ?? t("home.srs_insights.kanji_title", "Kanji"),
+          secondary: [content.meaning, content.jlptLevel && `JLPT N${content.jlptLevel}`]
+            .filter(Boolean)
+            .join(" · "),
+        };
+      case "grammar":
+        return {
+          primary: content.structure ?? t("home.srs_insights.grammar_title", "Ngữ pháp"),
+          secondary: content.level
+            ? t("home.srs_insights.grammar_level", {
+                level: content.level,
+                defaultValue: `Trình độ ${content.level}`,
+              })
+            : "",
+        };
+      default:
+        return {
+          primary: t("home.srs_insights.review_now", "Ôn tập ngay"),
+          secondary: "",
+        };
+    }
+  }, [t]);
 };
 
 const InsightCard: React.FC<{
@@ -288,8 +294,9 @@ const InsightCard: React.FC<{
   style?: ViewStyle;
 }> = ({ insight, onPress, metaConfig, style }) => {
   const { t } = useTranslation();
+  const getInsightContentCopy = useInsightContentCopy();
   const meta = metaConfig[insight.contentType] || metaConfig.VOCABULARY;
-  const { primary, secondary } = getInsightContentCopy(insight, t);
+  const { primary, secondary } = useMemo(() => getInsightContentCopy(insight), [insight, getInsightContentCopy]);
   const Icon = meta.icon;
 
   return (
@@ -368,11 +375,7 @@ export default function HomeScreen() {
   const {
     data: attendanceSummary,
     isLoading: isAttendanceLoading,
-  } = useQuery({
-    queryKey: ["attendance-summary", user?.data?.id],
-    queryFn: attendanceService.getAttendanceSummary,
-    enabled: !!user?.data?.id,
-  });
+  } = useAttendanceSummary();
 
   const username = useMemo(() => {
     const trimmedName = user?.data?.name?.trim();
@@ -394,6 +397,7 @@ export default function HomeScreen() {
   });
 
   const todayKey = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const normalizeDateKey = useNormalizeDateKey();
 
   const attendanceHistory = useMemo(() => {
     return (
@@ -401,7 +405,7 @@ export default function HomeScreen() {
         normalizeDateKey(record.date)
       ) || []
     );
-  }, [attendanceSummary?.attendances]);
+  }, [attendanceSummary?.attendances, normalizeDateKey]);
 
   const hasCheckedInToday = useMemo(() => {
     if (!attendanceHistory.length) {
@@ -470,37 +474,39 @@ export default function HomeScreen() {
     }, [refetchSrsReview, refetchRecentExercises])
   );
 
-  const handleWelcomeModalClose = () => {
+  const handleWelcomeModalClose = useCallback(() => {
     setShowWelcomeModal(false);
-  };
+  }, []);
 
-  const checkInMutation = useMutation({
-    mutationFn: attendanceService.checkIn,
-    onSuccess: (response) => {
-      queryClient.invalidateQueries({
-        queryKey: ["attendance-summary", user?.data?.id],
-      });
-      queryClient.invalidateQueries({ queryKey: ['wallet-user'] });
+  const checkInMutation = useCheckIn();
+  
+  // Handle check-in success/error with alerts
+  useEffect(() => {
+    if (checkInMutation.isSuccess && checkInMutation.data) {
       showAlert(
-        response?.message ||
+        checkInMutation.data?.message ||
           t("daily_login.success_message", "Điểm danh thành công!"),
         "success"
       );
-    },
-    onError: () => {
+    }
+  }, [checkInMutation.isSuccess, checkInMutation.data, showAlert, t]);
+
+  useEffect(() => {
+    if (checkInMutation.isError) {
       const errorMessage = t(
         "daily_login.error_message",
         "Không thể điểm danh, vui lòng thử lại."
       );
       Alert.alert(t("daily_login.error_title", "Có lỗi xảy ra"), errorMessage);
       showAlert(errorMessage, "error");
-    },
-  });
+    }
+  }, [checkInMutation.isError, showAlert, t]);
 
-  const markAsReadMutation = useMutation({
-    mutationFn: (id: number) => userSrsReviewService.markAsRead(String(id)),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-srs-review"] });
+  const markAsReadMutation = useMarkAsRead();
+  
+  // Handle mark as read success/error with alerts
+  useEffect(() => {
+    if (markAsReadMutation.isSuccess) {
       if (selectedInsight) {
         setSelectedInsight({ ...selectedInsight, isRead: true });
       }
@@ -508,20 +514,23 @@ export default function HomeScreen() {
         t("home.flashcard.marked_as_read", "Đã đánh dấu đã đọc"),
         "success"
       );
-    },
-    onError: () => {
+    }
+  }, [markAsReadMutation.isSuccess, selectedInsight, showAlert, t]);
+
+  useEffect(() => {
+    if (markAsReadMutation.isError) {
       showAlert(
         t("home.flashcard.mark_read_error", "Không thể đánh dấu đã đọc"),
         "error"
       );
-    },
-  });
+    }
+  }, [markAsReadMutation.isError, showAlert, t]);
 
-  const handleDailyCheckin = async () => {
+  const handleDailyCheckin = useCallback(async () => {
     try {
       await checkInMutation.mutateAsync();
     } catch {}
-  };
+  }, [checkInMutation]);
 
   const recentExercises = useMemo(() => {
     return recentExercisesData?.data?.results || [];
@@ -554,7 +563,7 @@ export default function HomeScreen() {
 
   const { mutateAsync: createNewExerciseAttemptAsync, isPending: isCreatingExercise } = useCreateNewExerciseAttempt();
 
-  const handleExercisePress = async (exercise: IRecentExerciseItem) => {
+  const handleExercisePress = useCallback(async (exercise: IRecentExerciseItem) => {
     if (isCreatingExercise || creatingExerciseId !== null) {
       return; // Prevent multiple clicks
     }
@@ -588,9 +597,9 @@ export default function HomeScreen() {
         "error"
       );
     }
-  };
+  }, [isCreatingExercise, creatingExerciseId, createNewExerciseAttemptAsync, t, showAlert]);
 
-  const handleSuggestionPress = (type: string) => {
+  const handleSuggestionPress = useCallback((type: string) => {
     if (type === "learn") {
       router.push(ROUTES.TABS.LEARN);
       return;
@@ -598,24 +607,12 @@ export default function HomeScreen() {
     if (type === "practice") {
       router.push(ROUTES.TABS.LISTENING);
     }
-  };
+  }, []);
 
   /**
    * Handle personalized insight tap with Stack -> Expand logic
    */
-  const handleInsightCardPress = (insight: ISrsReviewItem) => {
-    if (!isInsightsExpanded) {
-      toggleInsightsExpansion();
-    } else {
-      // If expanded, tapping opens the flashcard modal
-      setSelectedInsight(insight);
-      setShowFlashcardModal(true);
-      setIsFrontSide(true);
-      flipAnim.setValue(0);
-    }
-  };
-
-  const toggleInsightsExpansion = () => {
+  const toggleInsightsExpansion = useCallback(() => {
     // Spring animation for smoother bounce effect
     LayoutAnimation.configureNext({
       duration: 400,
@@ -636,16 +633,28 @@ export default function HomeScreen() {
     const nextState = !isInsightsExpanded;
     setIsInsightsExpanded(nextState);
     expandIconRotation.value = withSpring(nextState ? 180 : 0);
-  };
+  }, [isInsightsExpanded, expandIconRotation]);
 
-  const handleCloseFlashcardModal = () => {
+  const handleInsightCardPress = useCallback((insight: ISrsReviewItem) => {
+    if (!isInsightsExpanded) {
+      toggleInsightsExpansion();
+    } else {
+      // If expanded, tapping opens the flashcard modal
+      setSelectedInsight(insight);
+      setShowFlashcardModal(true);
+      setIsFrontSide(true);
+      flipAnim.setValue(0);
+    }
+  }, [isInsightsExpanded, toggleInsightsExpansion, flipAnim]);
+
+  const handleCloseFlashcardModal = useCallback(() => {
     setShowFlashcardModal(false);
     setSelectedInsight(null);
     setIsFrontSide(true);
     flipAnim.setValue(0);
-  };
+  }, [flipAnim]);
 
-  const toggleCardSide = () => {
+  const toggleCardSide = useCallback(() => {
     const nextSideIsBack = isFrontSide;
     const toValue = nextSideIsBack ? 1 : 0;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -656,13 +665,13 @@ export default function HomeScreen() {
       useNativeDriver: true,
     }).start();
     setIsFrontSide(!isFrontSide);
-  };
+  }, [isFrontSide, flipAnim]);
 
-  const handleUnlockPress = () => {
+  const handleUnlockPress = useCallback(() => {
     router.push(ROUTES.APP.SUBSCRIPTION);
-  };
+  }, []);
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       await Promise.all([
@@ -678,7 +687,7 @@ export default function HomeScreen() {
     } finally {
       setRefreshing(false);
     }
-  };
+  }, [queryClient, user?.data?.id]);
 
   const WTTouchable = walkthroughable(TouchableOpacity);
   const { copilotEvents } = useCopilot();
@@ -989,6 +998,7 @@ export default function HomeScreen() {
         onClose={() => setShowDailyLogin(false)}
         onCheckIn={handleDailyCheckin}
         streak={attendanceSummary?.totalStreak ?? 0}
+        weeklyCount={attendanceSummary?.count ?? 0}
         hasCheckedInToday={hasCheckedInToday}
         checkInHistory={attendanceHistory}
         isLoading={isAttendanceLoading && !attendanceSummary}

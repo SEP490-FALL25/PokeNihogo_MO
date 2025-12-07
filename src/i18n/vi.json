@@ -992,6 +992,9 @@
     "title": "Điểm danh hàng ngày",
     "subtitle": "Duy trì thói quen tốt mỗi ngày",
     "consecutive_days": "ngày liên tiếp",
+    "weekly_count": "{{count}} ngày tuần này",
+    "weekly_count_label": "ngày tuần này",
+    "weekly_badge": "{{count}}/{{total}} tuần này",
     "motivation": {
       "start_streak": "Bắt đầu chuỗi điểm danh của bạn!",
       "keep_going": "Tuyệt vời! Hãy tiếp tục!",
@@ -999,6 +1002,7 @@
       "legendary": "Đỉnh cao! Bạn là huyền thoại!"
     },
     "check_in_button": "Điểm danh ngay 🎯",
+    "check_in_progress": "Đang điểm danh...",
     "already_checked": "✓ Đã điểm danh hôm nay",
     "close": "Đóng",
     "day_names": {

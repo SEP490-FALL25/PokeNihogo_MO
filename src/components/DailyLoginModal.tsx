@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import BounceButton from "./ui/BounceButton";
+import LottieAnimation from "./ui/LottieAnimation";
 
 interface CheckInDay {
   date: string;
@@ -23,18 +24,54 @@ interface DailyLoginModalProps {
   visible: boolean;
   onClose: () => void;
   onCheckIn: () => Promise<void> | void;
+  /**
+   * Total consecutive check-in streak (across all weeks)
+   */
   streak: number;
+  /**
+   * Number of check-ins in the current week only
+   */
+  weeklyCount?: number;
   hasCheckedInToday: boolean;
   checkInHistory: string[];
   isLoading?: boolean;
   isSubmitting?: boolean;
 }
 
+const useCreateLast7Days = (history: string[], todayChecked: boolean) => {
+  return useMemo(() => {
+    const days: CheckInDay[] = [];
+    const today = new Date();
+    const todayDate = today.toISOString().split("T")[0];
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateString = date.toISOString().split("T")[0];
+
+      let status: "checked" | "missed" | "future" = "missed";
+
+      if (dateString === todayDate) {
+        status = todayChecked ? "checked" : "future";
+      } else if (history.includes(dateString)) {
+        status = "checked";
+      } else if (date < today) {
+        status = "missed";
+      }
+
+      days.push({ date: dateString, status });
+    }
+
+    return days;
+  }, [history, todayChecked]);
+};
+
 export function DailyLoginModal({
   visible,
   onClose,
   onCheckIn,
   streak,
+  weeklyCount = 0,
   hasCheckedInToday,
   checkInHistory = [],
   isLoading = false,
@@ -45,7 +82,6 @@ export function DailyLoginModal({
 
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const streakPulse = useRef(new Animated.Value(1)).current;
   const celebrationAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -63,26 +99,11 @@ export function DailyLoginModal({
           useNativeDriver: true,
         }),
       ]).start();
-
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(streakPulse, {
-            toValue: 1.1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(streakPulse, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
     } else {
       scaleAnim.setValue(0);
       fadeAnim.setValue(0);
     }
-  }, [visible, fadeAnim, scaleAnim, streakPulse]);
+  }, [visible, fadeAnim, scaleAnim]);
 
   const normalizedHistory = useMemo(
     () =>
@@ -92,41 +113,9 @@ export function DailyLoginModal({
     [checkInHistory]
   );
 
-  const checkInDays = useMemo(
-    () => createLast7Days(normalizedHistory, hasCheckedInToday),
-    [normalizedHistory, hasCheckedInToday]
-  );
+  const checkInDays = useCreateLast7Days(normalizedHistory, hasCheckedInToday);
 
-  function getTodayDate() {
-    return new Date().toISOString().split("T")[0];
-  }
-
-  function createLast7Days(history: string[], todayChecked: boolean) {
-    const days: CheckInDay[] = [];
-    const today = new Date();
-
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateString = date.toISOString().split("T")[0];
-
-      let status: "checked" | "missed" | "future" = "missed";
-
-      if (dateString === getTodayDate()) {
-        status = todayChecked ? "checked" : "future";
-      } else if (history.includes(dateString)) {
-        status = "checked";
-      } else if (date < today) {
-        status = "missed";
-      }
-
-      days.push({ date: dateString, status });
-    }
-
-    return days;
-  }
-
-  const triggerCelebration = () => {
+  const triggerCelebration = useCallback(() => {
     setShowCelebration(true);
     Animated.sequence([
       Animated.timing(celebrationAnim, {
@@ -140,9 +129,9 @@ export function DailyLoginModal({
         useNativeDriver: true,
       }),
     ]).start(() => setShowCelebration(false));
-  };
+  }, [celebrationAnim]);
 
-  const handleCheckIn = async () => {
+  const handleCheckIn = useCallback(async () => {
     if (hasCheckedInToday || isSubmitting) {
       return;
     }
@@ -153,9 +142,9 @@ export function DailyLoginModal({
     } catch (error) {
       console.error("Error during attendance check-in:", error);
     }
-  };
+  }, [hasCheckedInToday, isSubmitting, onCheckIn, triggerCelebration]);
 
-  const getDayName = (dateString: string) => {
+  const getDayName = useCallback((dateString: string) => {
     const date = new Date(dateString);
     const days = [
       t("daily_login.day_names.sun"),
@@ -167,12 +156,12 @@ export function DailyLoginModal({
       t("daily_login.day_names.sat")
     ];
     return days[date.getDay()];
-  };
+  }, [t]);
 
-  const getDateNumber = (dateString: string) => {
+  const getDateNumber = useCallback((dateString: string) => {
     const date = new Date(dateString);
     return date.getDate();
-  };
+  }, []);
 
   return (
     <Modal
@@ -207,20 +196,37 @@ export function DailyLoginModal({
                   </Text>
                 </View>
 
-                <Animated.View
-                  style={[
-                    styles.streakContainer,
-                    { transform: [{ scale: streakPulse }] },
-                  ]}
-                >
+                <View style={styles.streakContainer}>
                   <View style={styles.streakGlow}>
-                    <Text style={styles.flameIcon}>🔥</Text>
+                    <LottieAnimation
+                      source={require("../../assets/animations/Fire.json")}
+                      autoPlay
+                      loop
+                      width={48}
+                      height={68}
+                      style={styles.flameIcon}
+                    />
                     <View style={styles.streakInfo}>
                       <Text style={styles.streakNumber}>{streak}</Text>
                       <Text style={styles.streakLabel}>{t("daily_login.consecutive_days")}</Text>
                     </View>
                   </View>
-                </Animated.View>
+                </View>
+
+                {weeklyCount > 0 && (
+                  <View style={styles.weeklyBadgeContainer}>
+                    <View style={styles.weeklyBadge}>
+                      <Text style={styles.weeklyBadgeIcon}>📅</Text>
+                      <Text style={styles.weeklyBadgeText}>
+                        {t("daily_login.weekly_badge", {
+                          count: weeklyCount,
+                          total: 7,
+                          defaultValue: "{{count}}/{{total}} tuần này",
+                        })}
+                      </Text>
+                    </View>
+                  </View>
+                )}
 
                 <View style={styles.motivationContainer}>
                   <Text style={styles.motivationText}>
@@ -234,7 +240,6 @@ export function DailyLoginModal({
                 </View>
 
                 <View style={styles.calendarSection}>
-
                   <View style={styles.calendarGrid}>
                     {checkInDays.map((day, index) => (
                       <View key={index} style={styles.dayColumn}>
@@ -349,7 +354,19 @@ const styles = StyleSheet.create({
     maxHeight: height * 0.85,
     backgroundColor: "#ffffff",
     borderRadius: 24,
-    padding: 24,},
+    padding: 24,
+  },
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: "#64748b",
+    textAlign: "center",
+  },
   header: {
     alignItems: "center",
     marginBottom: 24,
@@ -379,10 +396,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     borderWidth: 2,
-    borderColor: "#ffedd5",minWidth: 200,
+    borderColor: "#ffedd5",
+    minWidth: 200,
   },
   flameIcon: {
-    fontSize: 48,
     marginRight: 16,
   },
   streakInfo: {
@@ -399,6 +416,29 @@ const styles = StyleSheet.create({
     color: "#78716c",
     marginTop: 4,
     fontWeight: "600",
+  },
+  weeklyBadgeContainer: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  weeklyBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#eff6ff",
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 1.5,
+    borderColor: "#bfdbfe",
+    gap: 8,
+  },
+  weeklyBadgeIcon: {
+    fontSize: 16,
+  },
+  weeklyBadgeText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#1e40af",
   },
   motivationContainer: {
     backgroundColor: "#f0f9ff",

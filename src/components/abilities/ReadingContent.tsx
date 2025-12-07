@@ -92,6 +92,8 @@ const ReadingCard: React.FC<{
       {isLocked && (
         <LockOverlay
           isVisible={isLocked}
+          pokemonImageUri="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png"
+          pokemonImageSize={70}
           particlePalette={READING_PARTICLE_PALETTE}
         />
       )}
