@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -38,34 +38,33 @@ interface DailyLoginModalProps {
   isSubmitting?: boolean;
 }
 
-function getTodayDate() {
-  return new Date().toISOString().split("T")[0];
-}
+const useCreateLast7Days = (history: string[], todayChecked: boolean) => {
+  return useMemo(() => {
+    const days: CheckInDay[] = [];
+    const today = new Date();
+    const todayDate = today.toISOString().split("T")[0];
 
-function createLast7Days(history: string[], todayChecked: boolean) {
-  const days: CheckInDay[] = [];
-  const today = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateString = date.toISOString().split("T")[0];
 
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const dateString = date.toISOString().split("T")[0];
+      let status: "checked" | "missed" | "future" = "missed";
 
-    let status: "checked" | "missed" | "future" = "missed";
+      if (dateString === todayDate) {
+        status = todayChecked ? "checked" : "future";
+      } else if (history.includes(dateString)) {
+        status = "checked";
+      } else if (date < today) {
+        status = "missed";
+      }
 
-    if (dateString === getTodayDate()) {
-      status = todayChecked ? "checked" : "future";
-    } else if (history.includes(dateString)) {
-      status = "checked";
-    } else if (date < today) {
-      status = "missed";
+      days.push({ date: dateString, status });
     }
 
-    days.push({ date: dateString, status });
-  }
-
-  return days;
-}
+    return days;
+  }, [history, todayChecked]);
+};
 
 export function DailyLoginModal({
   visible,
@@ -114,12 +113,9 @@ export function DailyLoginModal({
     [checkInHistory]
   );
 
-  const checkInDays = useMemo(
-    () => createLast7Days(normalizedHistory, hasCheckedInToday),
-    [normalizedHistory, hasCheckedInToday]
-  );
+  const checkInDays = useCreateLast7Days(normalizedHistory, hasCheckedInToday);
 
-  const triggerCelebration = () => {
+  const triggerCelebration = useCallback(() => {
     setShowCelebration(true);
     Animated.sequence([
       Animated.timing(celebrationAnim, {
@@ -133,9 +129,9 @@ export function DailyLoginModal({
         useNativeDriver: true,
       }),
     ]).start(() => setShowCelebration(false));
-  };
+  }, [celebrationAnim]);
 
-  const handleCheckIn = async () => {
+  const handleCheckIn = useCallback(async () => {
     if (hasCheckedInToday || isSubmitting) {
       return;
     }
@@ -146,9 +142,9 @@ export function DailyLoginModal({
     } catch (error) {
       console.error("Error during attendance check-in:", error);
     }
-  };
+  }, [hasCheckedInToday, isSubmitting, onCheckIn, triggerCelebration]);
 
-  const getDayName = (dateString: string) => {
+  const getDayName = useCallback((dateString: string) => {
     const date = new Date(dateString);
     const days = [
       t("daily_login.day_names.sun"),
@@ -160,12 +156,12 @@ export function DailyLoginModal({
       t("daily_login.day_names.sat")
     ];
     return days[date.getDay()];
-  };
+  }, [t]);
 
-  const getDateNumber = (dateString: string) => {
+  const getDateNumber = useCallback((dateString: string) => {
     const date = new Date(dateString);
     return date.getDate();
-  };
+  }, []);
 
   return (
     <Modal
