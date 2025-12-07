@@ -23,7 +23,14 @@ interface DailyLoginModalProps {
   visible: boolean;
   onClose: () => void;
   onCheckIn: () => Promise<void> | void;
+  /**
+   * Total consecutive check-in streak (across all weeks)
+   */
   streak: number;
+  /**
+   * Number of check-ins in the current week only
+   */
+  weeklyCount?: number;
   hasCheckedInToday: boolean;
   checkInHistory: string[];
   isLoading?: boolean;
@@ -35,6 +42,7 @@ export function DailyLoginModal({
   onClose,
   onCheckIn,
   streak,
+  weeklyCount = 0,
   hasCheckedInToday,
   checkInHistory = [],
   isLoading = false,
@@ -222,6 +230,21 @@ export function DailyLoginModal({
                   </View>
                 </Animated.View>
 
+                {weeklyCount > 0 && (
+                  <View style={styles.weeklyBadgeContainer}>
+                    <View style={styles.weeklyBadge}>
+                      <Text style={styles.weeklyBadgeIcon}>📅</Text>
+                      <Text style={styles.weeklyBadgeText}>
+                        {t("daily_login.weekly_badge", {
+                          count: weeklyCount,
+                          total: 7,
+                          defaultValue: "{{count}}/{{total}} tuần này",
+                        })}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+
                 <View style={styles.motivationContainer}>
                   <Text style={styles.motivationText}>
                     {streak === 0 && t("daily_login.motivation.start_streak")}
@@ -234,7 +257,6 @@ export function DailyLoginModal({
                 </View>
 
                 <View style={styles.calendarSection}>
-
                   <View style={styles.calendarGrid}>
                     {checkInDays.map((day, index) => (
                       <View key={index} style={styles.dayColumn}>
@@ -399,6 +421,29 @@ const styles = StyleSheet.create({
     color: "#78716c",
     marginTop: 4,
     fontWeight: "600",
+  },
+  weeklyBadgeContainer: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  weeklyBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#eff6ff",
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 1.5,
+    borderColor: "#bfdbfe",
+    gap: 8,
+  },
+  weeklyBadgeIcon: {
+    fontSize: 16,
+  },
+  weeklyBadgeText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#1e40af",
   },
   motivationContainer: {
     backgroundColor: "#f0f9ff",

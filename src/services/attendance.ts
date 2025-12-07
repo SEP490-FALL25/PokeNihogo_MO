@@ -25,7 +25,14 @@ export interface IAttendanceSummary {
     email: string;
   };
   attendances: IAttendanceRecord[];
+  /**
+   * Total number of check-in days in the current week only
+   */
   count: number;
+  /**
+   * The streak of consecutive check-ins the user has achieved,
+   * regardless of which week (could be this week or previous weeks)
+   */
   totalStreak: number;
 }
 

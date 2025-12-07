@@ -979,6 +979,9 @@
     "title": "Daily Check-in",
     "subtitle": "Maintain good habits every day",
     "consecutive_days": "consecutive days",
+    "weekly_count": "{{count}} days this week",
+    "weekly_count_label": "days this week",
+    "weekly_badge": "{{count}}/{{total}} this week",
     "motivation": {
       "start_streak": "Start your check-in streak!",
       "keep_going": "Great! Keep going!",
@@ -986,6 +989,7 @@
       "legendary": "Amazing! You're a legend!"
     },
     "check_in_button": "Check-in now 🎯",
+    "check_in_progress": "Checking in...",
     "already_checked": "✓ Already checked in today",
     "close": "Close",
     "day_names": {

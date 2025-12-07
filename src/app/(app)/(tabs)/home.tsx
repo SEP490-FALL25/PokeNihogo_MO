@@ -989,6 +989,7 @@ export default function HomeScreen() {
         onClose={() => setShowDailyLogin(false)}
         onCheckIn={handleDailyCheckin}
         streak={attendanceSummary?.totalStreak ?? 0}
+        weeklyCount={attendanceSummary?.count ?? 0}
         hasCheckedInToday={hasCheckedInToday}
         checkInHistory={attendanceHistory}
         isLoading={isAttendanceLoading && !attendanceSummary}
