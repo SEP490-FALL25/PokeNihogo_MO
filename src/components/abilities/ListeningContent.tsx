@@ -92,6 +92,8 @@ const ListeningCard: React.FC<{
       {isLocked && (
         <LockOverlay
           isVisible={isLocked}
+          pokemonImageUri="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
+          pokemonImageSize={70}
           particlePalette={LISTENING_PARTICLE_PALETTE}
         />
       )}
