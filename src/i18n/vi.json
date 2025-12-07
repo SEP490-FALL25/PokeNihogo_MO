@@ -1294,6 +1294,7 @@
     "in_progress": "Đang làm",
     "not_started": "Chưa bắt đầu",
     "review_requirement": "Cần đạt 80% để xem lại",
+    "can_review": "Có thể xem đáp án",
     "test": "Bài kiểm tra",
     "exercise": "Bài tập",
     "unknown_exercise": "Bài tập không xác định",

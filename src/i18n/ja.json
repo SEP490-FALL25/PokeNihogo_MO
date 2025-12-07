@@ -1241,6 +1241,7 @@
         "in_progress": "進行中",
         "not_started": "未開始",
         "review_requirement": "レビューするには80%必要",
+        "can_review": "回答を閲覧可能",
         "test": "テスト",
         "exercise": "練習",
         "unknown_exercise": "不明な練習",
