@@ -921,7 +921,14 @@
         "list_title": "Cuộc trò chuyện",
         "list_empty_title": "Chưa có cuộc trò chuyện nào",
         "list_empty_description": "Bắt đầu cuộc trò chuyện mới để luyện tiếng Nhật với AI",
-        "new_conversation": "Cuộc trò chuyện mới"
+        "new_conversation": "Cuộc trò chuyện mới",
+        "error_title": "Lỗi",
+        "error_default": "Đã xảy ra lỗi. Vui lòng thử lại.",
+        "delete_confirm_title": "Xóa cuộc hội thoại",
+        "delete_confirm_message": "Bạn có chắc chắn muốn xóa cuộc hội thoại này? Hành động này không thể hoàn tác.",
+        "delete": "Xóa",
+        "delete_success": "Đã xóa cuộc hội thoại thành công",
+        "delete_error": "Không thể xóa cuộc hội thoại. Vui lòng thử lại."
       }
     },
     "insight_locked": {
@@ -1418,8 +1425,8 @@
     "add_word_success_description": "Đã thêm từ vào sổ tay thành công!",
     "add_word_error_title": "Lỗi",
     "add_word_error_description": "Không thể thêm từ vào sổ tay. Vui lòng thử lại.",
-    "add_word_conflict_title": "Đã tồn tại",
-    "add_word_conflict_description": "Từ này đã có trong sổ tay được chọn.",
+    "add_word_conflict_title": "Từ đã tồn tại",
+    "add_word_conflict_description": "Từ này đã có trong sổ tay được chọn. Vui lòng chọn sổ tay khác.",
     "create_deck_success_title": "Thành công",
     "create_deck_success_description": "Đã tạo sổ tay thành công!",
     "create_deck_error_title": "Lỗi",

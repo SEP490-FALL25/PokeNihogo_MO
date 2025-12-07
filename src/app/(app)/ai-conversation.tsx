@@ -28,6 +28,7 @@ import { disconnectSocket, getSocket } from "@configs/socket";
 import { SubscriptionFeatureKey } from "@constants/subscription.enum";
 import { useAuth } from "@hooks/useAuth";
 import { useConversationRooms } from "@hooks/useConversation";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
 import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
 import { ROUTES } from "@routes/routes";
@@ -293,6 +294,7 @@ export default function AiConversationScreen() {
     }>();
   const accessToken = useAuthStore((s) => s.accessToken);
   const { user } = useAuth();
+  const { showAlert } = useMinimalAlert();
   const hasAIKaiwa = useCheckFeature(SubscriptionFeatureKey.AI_KAIWA);
   // const hasAIKaiwa = true;
   const {
@@ -351,8 +353,14 @@ export default function AiConversationScreen() {
     }
   }, [initialConversationId, conversationId, conversationRoomsData]);
 
+  // Sync conversationId to ref for socket connection logic
+  useEffect(() => {
+    conversationIdRef.current = conversationId;
+  }, [conversationId]);
+
   const socketRef = useRef<Socket | null>(null);
   const pendingNewRoomRef = useRef(false);
+  const conversationIdRef = useRef<string | null>(null);
   const updateRoomCache = useCallback(
     (roomUpdate: RoomUpdatePayload) => {
       if (!roomUpdate?.conversationId) {
@@ -377,6 +385,7 @@ export default function AiConversationScreen() {
                   ...roomUpdate,
                 }
               : {
+                  id: roomUpdate.id ?? roomUpdate.conversationId,
                   conversationId: roomUpdate.conversationId,
                   title: roomUpdate.title ?? "Cuộc trò chuyện mới",
                   lastMessage: roomUpdate.lastMessage ?? "",
@@ -801,12 +810,17 @@ export default function AiConversationScreen() {
       setIsConnecting(false);
 
       // Emit join event - use join-kaiwa-room with optional conversationId
-      if (initialConversationId) {
+      // Check both initialConversationId (from params) and conversationId (from state/ref)
+      // to handle reconnection scenarios
+      const effectiveId = initialConversationId || conversationIdRef.current;
+      if (effectiveId) {
         // Join existing conversation immediately
         socket.emit("join-kaiwa-room", {
-          conversationId: initialConversationId,
+          conversationId: effectiveId,
         });
-        setConversationId(initialConversationId);
+        if (!conversationId) {
+          setConversationId(effectiveId);
+        }
         setIsLoading(true);
       } else {
         // Wait for the user to start speaking before creating a room
@@ -1103,11 +1117,19 @@ export default function AiConversationScreen() {
     );
 
     // Listen for errors
-    socket.on("error", (error: { message?: string }) => {
-      console.error("[SOCKET] Error:", error);
+    socket.on("error", (error: { message?: string; suggestion?: string }) => {
       setProcessingStatus(undefined);
       setIsSubmitting(false);
-      // Show error message to user (optional)
+      
+      // Extract error message
+      const errorMessage = error?.message || t("home.ai.conversation.error_default");
+      const suggestion = error?.suggestion;
+      
+      // Show alert to user using MinimalAlert
+      const fullMessage = suggestion 
+        ? `${errorMessage}\n\n${suggestion}`
+        : errorMessage;
+      showAlert(fullMessage, "error");
     });
 
     return () => {
@@ -1128,6 +1150,7 @@ export default function AiConversationScreen() {
       clearTranslationTimer();
       clearTypingInterval();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     accessToken,
     topicId,
@@ -1141,7 +1164,9 @@ export default function AiConversationScreen() {
     t,
     queryClient,
     updateRoomCache,
-    conversationId,
+    showAlert,
+    // Note: conversationId is intentionally excluded to avoid unnecessary socket reconnections.
+    // We use conversationIdRef to track the current conversationId in socket.on("connect").
   ]);
 
   // Send audio to server via WebSocket
@@ -1199,8 +1224,10 @@ export default function AiConversationScreen() {
         // Nếu CHƯA có bất kỳ conversationId nào (mở từ topic, tạo convo mới),
         // thì mới emit join-kaiwa-room {} để server tạo room mới.
         // Case mở lại từ list (có initialConversationId) sẽ KHÔNG chạy nhánh này.
+        // Check pendingNewRoomRef để tránh emit nhiều lần khi đang chờ joined event
         if (
           !effectiveConversationId &&
+          !pendingNewRoomRef.current &&
           socketRef.current &&
           socketRef.current.connected
         ) {

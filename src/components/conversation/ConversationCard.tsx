@@ -1,14 +1,20 @@
 import { ThemedText } from "@components/ThemedText";
 import { ConversationRoom } from "@services/conversation";
 import { TFunction } from "i18next";
-import React, { memo, useMemo } from "react";
+import { Trash2 } from "lucide-react-native";
+import React, { memo, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Animated, Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 
 interface ConversationCardProps {
   conversation: ConversationRoom;
   isActive?: boolean;
   onPress: () => void;
+  onDelete?: () => void;
+  swipeableRef?: (ref: Swipeable | null) => void;
+  onSwipeableWillOpen?: () => void;
+  onSwipeableClose?: () => void;
 }
 
 const formatRelativeTime = (
@@ -60,8 +66,15 @@ const ConversationCardComponent: React.FC<ConversationCardProps> = ({
   conversation,
   isActive = false,
   onPress,
+  onDelete,
+  swipeableRef,
+  onSwipeableWillOpen,
+  onSwipeableClose,
 }) => {
   const { t, i18n } = useTranslation();
+  const [isSwipeOpen, setIsSwipeOpen] = useState(false);
+  const timeTextOpacity = useRef(new Animated.Value(1)).current;
+  
   const title =
     conversation.title ||
     t("home.ai.conversation.card_new_conversation", "New conversation");
@@ -74,7 +87,30 @@ const ConversationCardComponent: React.FC<ConversationCardProps> = ({
     [conversation.lastMessageAt, i18n.language, t]
   );
 
-  return (
+  const renderRightActions = (
+    progress: Animated.AnimatedInterpolation<number>,
+    dragX: Animated.AnimatedInterpolation<number>
+  ) => {
+    const scale = dragX.interpolate({
+      inputRange: [-100, 0],
+      outputRange: [1, 0],
+      extrapolate: "clamp",
+    });
+
+    return (
+      <TouchableOpacity
+        onPress={onDelete}
+        style={styles.deleteButton}
+        activeOpacity={0.8}
+      >
+        <Animated.View style={[styles.deleteButtonContent, { transform: [{ scale }] }]}>
+          <Trash2 size={20} color="#ffffff" />
+        </Animated.View>
+      </TouchableOpacity>
+    );
+  };
+
+  const cardContent = (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
@@ -95,7 +131,9 @@ const ConversationCardComponent: React.FC<ConversationCardProps> = ({
               {title}
             </ThemedText>
             {conversation.lastMessageAt && (
-              <ThemedText style={styles.timeText}>{lastMessageTime}</ThemedText>
+              <Animated.View style={{ opacity: timeTextOpacity }}>
+                <ThemedText style={styles.timeText}>{lastMessageTime}</ThemedText>
+              </Animated.View>
             )}
           </View>
 
@@ -105,6 +143,44 @@ const ConversationCardComponent: React.FC<ConversationCardProps> = ({
         </View>
       </View>
     </TouchableOpacity>
+  );
+
+  if (!onDelete) {
+    return cardContent;
+  }
+
+  const handleSwipeableWillOpen = () => {
+    setIsSwipeOpen(true);
+    // Hide time text when swipeable opens
+    Animated.timing(timeTextOpacity, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: true,
+    }).start();
+    onSwipeableWillOpen?.();
+  };
+
+  const handleSwipeableClose = () => {
+    setIsSwipeOpen(false);
+    // Show time text when swipeable closes
+    Animated.timing(timeTextOpacity, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+    onSwipeableClose?.();
+  };
+
+  return (
+    <Swipeable
+      ref={(ref) => swipeableRef?.(ref)}
+      renderRightActions={renderRightActions}
+      overshootRight={false}
+      onSwipeableWillOpen={handleSwipeableWillOpen}
+      onSwipeableClose={handleSwipeableClose}
+    >
+      {cardContent}
+    </Swipeable>
   );
 };
 
@@ -162,6 +238,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#666",
   },
+  deleteButton: {
+    backgroundColor: "#dc2626",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 80,
+    marginBottom: 4,
+    borderRadius: 8,
+  },
+  deleteButtonContent: {
+    justifyContent: "center",
+    alignItems: "center",
+    flex: 1,
+    width: "100%",
+  },
 });
 
 const arePropsEqual = (
@@ -179,7 +269,8 @@ const arePropsEqual = (
   return (
     hasSameConversation &&
     prev.isActive === next.isActive &&
-    prev.onPress === next.onPress
+    prev.onPress === next.onPress &&
+    prev.onDelete === next.onDelete
   );
 };
 
