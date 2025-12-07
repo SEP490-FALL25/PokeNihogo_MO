@@ -401,6 +401,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     };
 
     const onMatchCompleted = (payload: any) => {
+      console.log("[ARENA] Socket: match-completed", payload);
       setBattleComplete(true);
       setLastMatchResult(payload);
       if (payload?.matchId)
