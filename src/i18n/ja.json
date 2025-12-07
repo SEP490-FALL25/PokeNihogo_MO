@@ -634,6 +634,8 @@
                 "top2-10": "2-10位",
                 "top11-50": "11-50位",
                 "top51-100": "51-100位",
+                "remaining": "その他のトップ",
+                "rank_number": "{{order}}位",
                 "default": "順位 {{order}}"
             },
             "types": {

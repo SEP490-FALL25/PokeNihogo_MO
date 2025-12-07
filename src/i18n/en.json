@@ -321,6 +321,8 @@
         "top2-10": "Top 2-10",
         "top11-50": "Top 11-50",
         "top51-100": "Top 51-100",
+        "remaining": "Remaining Top",
+        "rank_number": "Rank {{order}}",
         "default": "Rank {{order}}"
       },
       "types": {

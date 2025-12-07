@@ -28,7 +28,7 @@ export const leaderboardSeasonNowEntitySchema = z.object({
     seasonRankRewards: z.array(z.object({
         id: z.number(),
         rankName: z.string(),
-        order: z.number(),
+        order: z.number().nullable(),
         rewards: z.array(rewardEntitySchema),
     })),
 });
