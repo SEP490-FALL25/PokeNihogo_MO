@@ -36,10 +36,11 @@ export default function WelcomeModal({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={() => {}}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <ThemedView style={styles.modalContainer}>
+      <Pressable style={styles.overlay}>
+        <Pressable onPress={(e) => e.stopPropagation()}>
+          <ThemedView style={styles.modalContainer}>
           <LinearGradient
             colors={["#3b82f6", "#1d4ed8", "#1e40af"]}
             style={styles.gradientBackground}
@@ -69,6 +70,7 @@ export default function WelcomeModal({
             </View>
           </LinearGradient>
         </ThemedView>
+        </Pressable>
       </Pressable>
     </Modal>
   );

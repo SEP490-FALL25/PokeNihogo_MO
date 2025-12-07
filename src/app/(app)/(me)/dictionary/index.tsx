@@ -493,7 +493,7 @@ export default function DictionaryScreen() {
     setTimeout(() => {
       searchContainerRef.current?.measureInWindow((x, y, width, height) => {
         if (y > 0 && height > 0) {
-          setSearchBarY(y + height + 70);
+          setSearchBarY(y + height + 10);
         }
       });
     }, 0);
