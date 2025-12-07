@@ -1273,6 +1273,7 @@
     "in_progress": "In Progress",
     "not_started": "Not Started",
     "review_requirement": "Need 80% to review",
+    "can_review": "Can view answers",
     "test": "Test",
     "exercise": "Exercise",
     "unknown_exercise": "Unknown exercise",

@@ -15,7 +15,7 @@ import {
 } from '@utils/exercise-status.utils';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { BookOpen, FileText, Trophy } from 'lucide-react-native';
+import { BookOpen, Eye, FileText, Trophy } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -256,9 +256,10 @@ interface HistoryCardProps {
   item: IHistoryItem;
   onPress: () => void;
   t: (key: string) => string;
+  allHistoryItems: IHistoryItem[];
 }
 
-const HistoryCard = React.memo<HistoryCardProps>(({ item, onPress, t }) => {
+const HistoryCard = React.memo<HistoryCardProps>(({ item, onPress, t, allHistoryItems }) => {
   const isTest = !!item.testId;
   const itemName = useMemo(
     () => item.testName || item.exerciseName || t('exercise_history.unknown_item'),
@@ -266,6 +267,35 @@ const HistoryCard = React.memo<HistoryCardProps>(({ item, onPress, t }) => {
   );
   const scoreColor = useMemo(() => getScoreColor(item.score), [item.score]);
   const hasScore = item.score !== null;
+  
+  // Check if there's any previous attempt of the same exercise/test with score >= 80%
+  const hasPreviousHighScore = useMemo(() => {
+    if (isTest) {
+      // For tests, check if there's another attempt with same testId and score >= 80%
+      return allHistoryItems.some(
+        (otherItem) =>
+          otherItem.testId === item.testId &&
+          otherItem.attemptId !== item.attemptId &&
+          otherItem.score !== null &&
+          otherItem.score >= MIN_REVIEW_SCORE
+      );
+    } else {
+      // For exercises, check if there's another attempt with same exerciseId and score >= 80%
+      return allHistoryItems.some(
+        (otherItem) =>
+          otherItem.exerciseId === item.exerciseId &&
+          otherItem.attemptId !== item.attemptId &&
+          otherItem.score !== null &&
+          otherItem.score >= MIN_REVIEW_SCORE
+      );
+    }
+  }, [allHistoryItems, item, isTest]);
+  
+  // Check if can review (current score >= 80% OR has previous high score)
+  const canReview = useMemo(() => {
+    if (item.score === null) return false;
+    return item.score >= MIN_REVIEW_SCORE || hasPreviousHighScore;
+  }, [item.score, hasPreviousHighScore]);
 
   return (
     <Pressable 
@@ -353,10 +383,21 @@ const HistoryCard = React.memo<HistoryCardProps>(({ item, onPress, t }) => {
                 {getExerciseStatusText(item.status, t)}
               </Text>
             </View>
-            {item.score !== null && item.score < MIN_REVIEW_SCORE && (
-              <Text className="text-xs font-semibold text-slate-400">
-                {t('exercise_history.review_requirement')}
-              </Text>
+            {item.score !== null && (
+              <>
+                {canReview ? (
+                  <View className="flex-row items-center">
+                    <Eye size={14} color="#10b981" strokeWidth={2} />
+                    <Text className="text-xs font-semibold text-green-600 ml-1.5">
+                      {t('exercise_history.can_review')}
+                    </Text>
+                  </View>
+                ) : (
+                  <Text className="text-xs font-semibold text-slate-400">
+                    {t('exercise_history.review_requirement')}
+                  </Text>
+                )}
+              </>
             )}
           </View>
         </View>
@@ -713,7 +754,12 @@ export default function ExerciseHistoryScreen() {
             data={filteredData}
             keyExtractor={(item) => `${item.testId ? 'test' : 'exercise'}-${item.attemptId}`}
             renderItem={({ item }) => (
-              <HistoryCard item={item} onPress={() => handleItemPress(item)} t={t} />
+              <HistoryCard 
+                item={item} 
+                onPress={() => handleItemPress(item)} 
+                t={t}
+                allHistoryItems={filteredData}
+              />
             )}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={[
