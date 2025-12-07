@@ -751,7 +751,10 @@
             "end_battle": "バトル終了",
             "summary": "まとめ",
             "you": "あなた",
-            "opponent": "対戦相手"
+            "opponent": "対戦相手",
+            "round_tie": "引き分け",
+            "match_tie": "引き分け",
+            "afk_label": "AFK"
         }
     },
     "lessons": {

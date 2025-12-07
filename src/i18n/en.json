@@ -438,7 +438,10 @@
       "end_battle": "End Battle",
       "summary": "Summary",
       "you": "You",
-      "opponent": "Opponent"
+      "opponent": "Opponent",
+      "round_tie": "Tie",
+      "match_tie": "Tie",
+      "afk_label": "AFK"
     }
   },
   "navigation": {

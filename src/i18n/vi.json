@@ -438,7 +438,10 @@
       "end_battle": "Kết thúc trận đấu",
       "summary": "Tổng kết",
       "you": "Bạn",
-      "opponent": "Đối thủ"
+      "opponent": "Đối thủ",
+      "round_tie": "Hòa",
+      "match_tie": "Hòa",
+      "afk_label": "AFK"
     }
   },
   "navigation": {
