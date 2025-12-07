@@ -286,7 +286,12 @@
         "list": {
           "win_badge": "WIN",
           "loss_badge": "LOSS",
-          "score": "Score: {{score}}"
+          "score": "Score: {{score}}",
+          "just_now": "Just now",
+          "minutes_ago": "{{minutes}} min ago",
+          "hours_ago": "{{hours}} hr ago",
+          "days_ago": "{{days}} days ago",
+          "duration": "Duration"
         },
         "detail": {
           "win_title": "🎉 VICTORY",

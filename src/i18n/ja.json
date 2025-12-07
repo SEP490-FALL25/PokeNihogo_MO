@@ -592,7 +592,12 @@
                 "list": {
                     "win_badge": "勝利",
                     "loss_badge": "敗北",
-                    "score": "スコア: {{score}}"
+                    "score": "スコア: {{score}}",
+                    "just_now": "たった今",
+                    "minutes_ago": "{{minutes}}分前",
+                    "hours_ago": "{{hours}}時間前",
+                    "days_ago": "{{days}}日前",
+                    "duration": "時間"
                 },
                 "detail": {
                     "win_title": "🎉 勝利",

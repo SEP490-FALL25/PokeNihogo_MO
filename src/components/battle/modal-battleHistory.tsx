@@ -2,7 +2,7 @@ import { HapticPressable } from "@components/HapticPressable";
 import { ThemedText } from "@components/ThemedText";
 import { useUserMatchingHistory } from "@hooks/useBattle";
 import { IBattleUserMatchingHistoryEntity } from "@models/battle/battle.entity";
-import { History } from "lucide-react-native";
+import { Clock, History } from "lucide-react-native";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Dimensions, Modal, Pressable, ScrollView, TouchableWithoutFeedback, View } from "react-native";
@@ -12,6 +12,37 @@ interface ModalBattleHistoryProps {
     visible: boolean;
     onRequestClose: () => void;
 }
+
+// Format relative time for createdAt
+const formatBattleDate = (dateString: string, t: (key: string, options?: any) => string): string => {
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+        const minutes = Math.floor(diffInSeconds / 60);
+        const hours = Math.floor(diffInSeconds / 3600);
+        const days = Math.floor(diffInSeconds / 86400);
+
+        if (diffInSeconds < 60) return t("battle.lobby.history.list.just_now");
+        if (minutes < 60) return t("battle.lobby.history.list.minutes_ago", { minutes });
+        if (hours < 24) return t("battle.lobby.history.list.hours_ago", { hours });
+        if (days < 7) return t("battle.lobby.history.list.days_ago", { days });
+
+        return date.toLocaleDateString("vi-VN", { day: "numeric", month: "short", year: "numeric" });
+    } catch {
+        return "";
+    }
+};
+
+// Format timeMatch (in seconds) to MM:SS or seconds
+const formatTimeMatch = (seconds: number): string => {
+    if (seconds < 60) {
+        return `${seconds}s`;
+    }
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${String(secs).padStart(2, "0")}`;
+};
 
 export default function ModalBattleHistory({ visible, onRequestClose }: ModalBattleHistoryProps) {
     const { t } = useTranslation();
@@ -102,6 +133,21 @@ export default function ModalBattleHistory({ visible, onRequestClose }: ModalBat
                                                     <ThemedText style={{ color: "#e5e7eb", fontSize: 15, fontWeight: "600" }}>
                                                         {battle.opponent.name}
                                                     </ThemedText>
+                                                    <View className="flex-row items-center gap-3 mt-1">
+                                                        {battle.createdAt && (
+                                                            <View className="flex-row items-center gap-1">
+                                                                <Clock size={12} color="#64748b" />
+                                                                <ThemedText style={{ color: "#64748b", fontSize: 10 }}>
+                                                                    {formatBattleDate(battle.createdAt, t)}
+                                                                </ThemedText>
+                                                            </View>
+                                                        )}
+                                                        {battle.timeMatch && (
+                                                            <ThemedText style={{ color: "#64748b", fontSize: 10 }}>
+                                                                {t("battle.lobby.history.list.duration", "Thời gian")}: {formatTimeMatch(battle.timeMatch)}
+                                                            </ThemedText>
+                                                        )}
+                                                    </View>
                                                 </View>
                                                 <View className="items-end">
                                                     <ThemedText

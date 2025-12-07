@@ -286,7 +286,12 @@
         "list": {
           "win_badge": "THẮNG",
           "loss_badge": "THUA",
-          "score": "Tỉ số: {{score}}"
+          "score": "Tỉ số: {{score}}",
+          "just_now": "Vừa xong",
+          "minutes_ago": "{{minutes}} phút trước",
+          "hours_ago": "{{hours}} giờ trước",
+          "days_ago": "{{days}} ngày trước",
+          "duration": "Thời gian"
         },
         "detail": {
           "win_title": "🎉 CHIẾN THẮNG",
