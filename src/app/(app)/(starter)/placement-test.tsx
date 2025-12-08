@@ -5,10 +5,12 @@ import StarterScreenLayout from "@components/layouts/StarterScreenLayout";
 import { ThemedText } from "@components/ThemedText";
 import AudioPlayer from "@components/ui/AudioPlayer";
 import BounceButton from "@components/ui/BounceButton";
+import { ConfirmModal } from "@components/ui/ConfirmModal";
 import MascotBubble from "@components/ui/MascotBubble";
 import { Ionicons } from "@expo/vector-icons";
 import { usePlacementTest } from "@hooks/usePlacementTest";
 import { ROUTES } from "@routes/routes";
+import userTestService from "@services/user-test";
 import { useUserStore } from "@stores/user/user.config";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
@@ -54,11 +56,16 @@ export default function PlacementTestScreen() {
     selectedIndex,
     selectOption,
     next,
+    userTestAttemptId,
   } = usePlacementTest(1);
 
   // Speech state
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   const speechScaleAnim = React.useRef(new Animated.Value(1)).current;
+
+  // Cancel confirmation modal state
+  const [showCancelModal, setShowCancelModal] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   // Result state
   const [testResult, setTestResult] = React.useState<{
@@ -178,11 +185,46 @@ export default function PlacementTestScreen() {
   // NAVIGATION HANDLERS
   // ============================================================================
   /**
-   * Handles back navigation
+   * Handles back navigation - shows confirmation modal if test is in progress
    */
   const handleBack = React.useCallback(() => {
-    router.back();
-  }, []);
+    // If test is completed (showing result), allow direct back
+    if (testResult) {
+      router.back();
+      return;
+    }
+    // If test is in progress, show confirmation modal
+    if (questions.length > 0 && !isLoading) {
+      setShowCancelModal(true);
+    } else {
+      router.back();
+    }
+  }, [testResult, questions.length, isLoading]);
+
+  /**
+   * Handles cancel confirmation - deletes test attempt and goes back
+   */
+  const handleConfirmCancel = React.useCallback(async () => {
+    if (!userTestAttemptId) {
+      setShowCancelModal(false);
+      router.back();
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      await userTestService.deleteUserTestAttempt(userTestAttemptId);
+      setShowCancelModal(false);
+      router.back();
+    } catch (error) {
+      console.error("Error deleting test attempt:", error);
+      // Still go back even if delete fails
+      setShowCancelModal(false);
+      router.back();
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [userTestAttemptId]);
 
   /**
    * Handles moving to next question or completing the test
@@ -747,6 +789,28 @@ export default function PlacementTestScreen() {
           {isLast ? t("common.finish") : t("common.next")}
         </BounceButton>
       </View>
+
+      {/* Cancel Confirmation Modal */}
+      <ConfirmModal
+        visible={showCancelModal}
+        title={t("auth.placement_test.cancel_test_title")}
+        message={t("auth.placement_test.cancel_test_message")}
+        buttons={[
+          {
+            label: t("common.cancel"),
+            onPress: () => setShowCancelModal(false),
+            variant: "secondary",
+          },
+          {
+            label: t("common.confirm"),
+            onPress: handleConfirmCancel,
+            variant: "danger",
+            disabled: isDeleting,
+            loadingText: t("common.deleting"),
+          },
+        ]}
+        onRequestClose={() => setShowCancelModal(false)}
+      />
     </StarterScreenLayout>
   );
 }

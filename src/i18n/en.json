@@ -22,6 +22,7 @@
     "close": "Close",
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "deleting": "Deleting...",
     "exit": "Exit",
     "shop": "Shop",
     "open-shop": "Open Shop",
@@ -95,7 +96,9 @@
       "recommended_level": "Recommended Level",
       "total_questions": "Total Questions",
       "correct_answers": "Correct Answers",
-      "percentage": "Score"
+      "percentage": "Score",
+      "cancel_test_title": "Cancel Test?",
+      "cancel_test_message": "Are you sure you want to cancel this test? Your progress will be lost."
     },
     "choose_starter": {
       "title": "Choose your Partner!",
