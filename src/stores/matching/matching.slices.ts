@@ -21,6 +21,19 @@ export const createMatchingSlice = (set: any) => ({
 
   startRoundPayload: null as any,
   setStartRoundPayload: (payload: any) => set({ startRoundPayload: payload }),
+
+  roundStartingData: null as {
+    matchId: number;
+    roundNumber: string;
+    delaySeconds: number;
+    message: string;
+  } | null,
+  setRoundStartingData: (data: {
+    matchId: number;
+    roundNumber: string;
+    delaySeconds: number;
+    message: string;
+  } | null) => set({ roundStartingData: data }),
   // ---------------------------------------
 
   // Match found modal (reuse ModalBattleAccept)

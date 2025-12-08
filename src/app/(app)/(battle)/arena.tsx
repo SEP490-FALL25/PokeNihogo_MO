@@ -387,6 +387,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     };
 
     const onQuestionCompleted = (payload: any) => {
+      console.log("[ARENA] Socket: question-completed", payload);
       setShowResult(true);
       if (payload?.playerCorrect) setPlayerScore((prev) => prev + 1);
       if (payload?.opponentCorrect) setOpponentScore((prev) => prev + 1);
@@ -400,6 +401,7 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
     };
 
     const onMatchCompleted = (payload: any) => {
+      console.log("[ARENA] Socket: match-completed", payload);
       setBattleComplete(true);
       setLastMatchResult(payload);
       if (payload?.matchId)

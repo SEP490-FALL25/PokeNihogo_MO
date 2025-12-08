@@ -74,6 +74,19 @@ declare global {
             startRoundPayload: any | null;
             setStartRoundPayload: (payload: any) => void;
 
+            roundStartingData: {
+                matchId: number;
+                roundNumber: string;
+                delaySeconds: number;
+                message: string;
+            } | null;
+            setRoundStartingData: (data: {
+                matchId: number;
+                roundNumber: string;
+                delaySeconds: number;
+                message: string;
+            } | null) => void;
+
             // Match found modal (reuse ModalBattleAccept)
             matchFoundModal: {
                 show: boolean;

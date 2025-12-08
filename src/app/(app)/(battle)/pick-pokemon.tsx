@@ -78,6 +78,8 @@ export default function PickPokemonScreen() {
   const setStartRoundPayload = useMatchingStore((s) => s.setStartRoundPayload);
   const setServerTimeOffset = useMatchingStore((s) => s.setServerTimeOffset);
   const serverTimeOffset = useMatchingStore((s) => s.serverTimeOffset);
+  const roundStartingData = useMatchingStore((s) => s.roundStartingData);
+  const setRoundStartingData = useMatchingStore((s) => s.setRoundStartingData);
 
   const battleContext = useMemo(() => {
     if (!matchRound) return null;
@@ -283,12 +285,6 @@ export default function PickPokemonScreen() {
   }, [matchRound, currentUserId]);
 
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
-  const [roundStartingData, setRoundStartingData] = useState<{
-    matchId: number;
-    roundNumber: string;
-    delaySeconds: number;
-    message: string;
-  } | null>(null);
   const parseRoundNumber = (roundValue?: string | null) => {
     if (!roundValue) return null;
     if (roundValue === "ONE") return 1;
@@ -319,7 +315,27 @@ export default function PickPokemonScreen() {
   const opponentGlowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (roundStartingData) return;
+    // Nếu có roundStartingData, countdown sẽ được xử lý bởi effect khác
+    if (roundStartingData) {
+      // Nếu có roundStartingData, đảm bảo remainingSeconds được set từ delaySeconds
+      if (roundStartingData.delaySeconds !== undefined) {
+        setRemainingSeconds(roundStartingData.delaySeconds);
+      }
+      return;
+    }
+
+    // Debug: log để kiểm tra pickDeadline
+    if (!battleContext?.pickDeadline) {
+      console.log("[PICK-POKEMON] No pickDeadline in battleContext:", {
+        hasBattleContext: !!battleContext,
+        hasCurrentRound: !!battleContext?.currentRound,
+        currentRoundStatus: battleContext?.currentRound?.status,
+        currentPlayer: battleContext?.currentPlayer?.endTimeSelected,
+        currentOpponent: battleContext?.currentOpponent?.endTimeSelected,
+        roundEndTime: battleContext?.currentRound?.endTimeRound,
+      });
+    }
+
     if (!battleContext?.pickDeadline || !battleContext?.currentRound) {
       setRemainingSeconds(null);
       return;

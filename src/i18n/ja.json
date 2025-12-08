@@ -553,6 +553,15 @@
             "win_rate": "勝率",
             "win_streak": "連勝"
         },
+        "accept": {
+            "title": "🎮 バトル準備完了",
+            "you": "あなた",
+            "vs": "VS",
+            "opponent": "対戦相手",
+            "matched_message": "適切な対戦相手が見つかりました！",
+            "reject": "拒否",
+            "accept": "承諾"
+        },
         "lobby": {
             "title": "⚡ バトルロビー",
             "history_button": "履歴",
@@ -602,7 +611,12 @@
                 "list": {
                     "win_badge": "勝利",
                     "loss_badge": "敗北",
-                    "score": "スコア: {{score}}"
+                    "score": "スコア: {{score}}",
+                    "just_now": "たった今",
+                    "minutes_ago": "{{minutes}}分前",
+                    "hours_ago": "{{hours}}時間前",
+                    "days_ago": "{{days}}日前",
+                    "duration": "時間"
                 },
                 "detail": {
                     "win_title": "🎉 勝利",
@@ -632,6 +646,8 @@
                 "top2-10": "2-10位",
                 "top11-50": "11-50位",
                 "top51-100": "51-100位",
+                "remaining": "その他のトップ",
+                "rank_number": "{{order}}位",
                 "default": "順位 {{order}}"
             },
             "types": {
@@ -749,7 +765,12 @@
             "end_battle": "バトル終了",
             "summary": "まとめ",
             "you": "あなた",
-            "opponent": "対戦相手"
+            "opponent": "対戦相手",
+            "round_tie": "引き分け",
+            "round_win": "勝利",
+            "round_loss": "敗北",
+            "match_tie": "引き分け",
+            "afk_label": "AFK"
         }
     },
     "lessons": {

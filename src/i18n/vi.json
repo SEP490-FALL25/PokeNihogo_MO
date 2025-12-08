@@ -240,6 +240,15 @@
       "win_rate": "Tỷ lệ thắng",
       "win_streak": "Chuỗi thắng"
     },
+    "accept": {
+      "title": "🎮 TRẬN ĐẤU SẴN SÀNG",
+      "you": "Bạn",
+      "vs": "VS",
+      "opponent": "Đối thủ",
+      "matched_message": "Đã tìm thấy đối thủ phù hợp!",
+      "reject": "Từ chối",
+      "accept": "ĐỒNG Ý"
+    },
     "lobby": {
       "title": "⚡ SẢNH ĐẤU",
       "history_button": "Lịch sử",
@@ -289,7 +298,12 @@
         "list": {
           "win_badge": "THẮNG",
           "loss_badge": "THUA",
-          "score": "Tỉ số: {{score}}"
+          "score": "Tỉ số: {{score}}",
+          "just_now": "Vừa xong",
+          "minutes_ago": "{{minutes}} phút trước",
+          "hours_ago": "{{hours}} giờ trước",
+          "days_ago": "{{days}} ngày trước",
+          "duration": "Thời gian"
         },
         "detail": {
           "win_title": "🎉 CHIẾN THẮNG",
@@ -319,6 +333,8 @@
         "top2-10": "Hạng 2-10",
         "top11-50": "Hạng 11-50",
         "top51-100": "Hạng 51-100",
+        "remaining": "Top còn lại",
+        "rank_number": "Hạng {{order}}",
         "default": "Thứ hạng {{order}}"
       },
       "types": {
@@ -436,7 +452,12 @@
       "end_battle": "Kết thúc trận đấu",
       "summary": "Tổng kết",
       "you": "Bạn",
-      "opponent": "Đối thủ"
+      "opponent": "Đối thủ",
+      "round_tie": "Hòa",
+      "round_win": "Thắng",
+      "round_loss": "Thua",
+      "match_tie": "Hòa",
+      "afk_label": "AFK"
     }
   },
   "navigation": {

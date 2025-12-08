@@ -240,6 +240,15 @@
       "win_rate": "Win Rate",
       "win_streak": "Win Streak"
     },
+    "accept": {
+      "title": "🎮 BATTLE READY",
+      "you": "You",
+      "vs": "VS",
+      "opponent": "Opponent",
+      "matched_message": "A suitable opponent has been found!",
+      "reject": "Reject",
+      "accept": "ACCEPT"
+    },
     "lobby": {
       "title": "⚡ BATTLE LOBBY",
       "history_button": "History",
@@ -289,7 +298,12 @@
         "list": {
           "win_badge": "WIN",
           "loss_badge": "LOSS",
-          "score": "Score: {{score}}"
+          "score": "Score: {{score}}",
+          "just_now": "Just now",
+          "minutes_ago": "{{minutes}} min ago",
+          "hours_ago": "{{hours}} hr ago",
+          "days_ago": "{{days}} days ago",
+          "duration": "Duration"
         },
         "detail": {
           "win_title": "🎉 VICTORY",
@@ -319,6 +333,8 @@
         "top2-10": "Top 2-10",
         "top11-50": "Top 11-50",
         "top51-100": "Top 51-100",
+        "remaining": "Remaining Top",
+        "rank_number": "Rank {{order}}",
         "default": "Rank {{order}}"
       },
       "types": {
@@ -436,7 +452,12 @@
       "end_battle": "End Battle",
       "summary": "Summary",
       "you": "You",
-      "opponent": "Opponent"
+      "opponent": "Opponent",
+      "round_tie": "Tie",
+      "round_win": "Win",
+      "round_loss": "Loss",
+      "match_tie": "Tie",
+      "afk_label": "AFK"
     }
   },
   "navigation": {

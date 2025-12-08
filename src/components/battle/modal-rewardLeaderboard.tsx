@@ -30,7 +30,11 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
             grouped[rankReward.rankName].push(rankReward);
         });
         Object.keys(grouped).forEach((rankName) => {
-            grouped[rankName].sort((a: RankRewardType, b: RankRewardType) => a.order - b.order);
+            grouped[rankName].sort((a: RankRewardType, b: RankRewardType) => {
+                if (a.order === null || a.order === undefined) return 1;
+                if (b.order === null || b.order === undefined) return -1;
+                return a.order - b.order;
+            });
         });
         return grouped;
     }, [data]);
@@ -61,19 +65,11 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
         }
     }, [sortedRankNames, activeRank]);
 
-    const getRankLabelKeyByOrder = (order: number) => {
-        switch (order) {
-            case 1:
-                return "battle.rewards.ranks.top1";
-            case 2:
-                return "battle.rewards.ranks.top2-10";
-            case 3:
-                return "battle.rewards.ranks.top11-50";
-            case 4:
-                return "battle.rewards.ranks.top51-100";
-            default:
-                return "battle.rewards.ranks.default";
+    const getRankLabelByOrder = (order: number | null | undefined): string => {
+        if (order === null || order === undefined) {
+            return t("battle.rewards.ranks.remaining");
         }
+        return t("battle.rewards.ranks.rank_number", { order });
     };
 
     const getRewardTypeLabel = (rewardType: string) => {
@@ -194,12 +190,7 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
                                                 <View className="flex-row items-center gap-2.5 mb-3">
                                                     <View className="w-1.5 h-5 bg-amber-400 rounded-full" />
                                                     <ThemedText style={{ color: "#fbbf24", fontSize: 18, fontWeight: "800" }}>
-                                                        {(() => {
-                                                            const key = getRankLabelKeyByOrder(entry.order);
-                                                            return entry.order > 4
-                                                                ? t(key, { order: entry.order })
-                                                                : t(key);
-                                                        })()}
+                                                        {getRankLabelByOrder(entry.order)}
                                                     </ThemedText>
                                                 </View>
 
@@ -208,28 +199,42 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
                                                         entry.rewards.map((reward: IRewardEntity, idx: number) => (
                                                             <View
                                                                 key={`${reward.id}-${idx}`}
-                                                                className="flex-row items-center gap-3 p-3 pl-4 rounded-xl bg-white/5 border border-white/5"
+                                                                className="flex-row items-center justify-between gap-3 p-3 pl-4 rounded-xl bg-white/5 border border-white/5"
                                                             >
+                                                                {reward.nameTranslation ? (
                                                                 <View className="flex-1">
                                                                     <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600" }}>
-                                                                        {reward.nameTranslation || getRewardTypeLabel(reward.rewardType)}
-                                                                    </ThemedText>
-                                                                    <View className="flex-row items-center gap-2 mt-1">
-                                                                        <ThemedText style={{ color: "#94a3b8", fontSize: 12 }}>
-                                                                            {getRewardTypeLabel(reward.rewardType)}
+                                                                            {reward.nameTranslation}
                                                                         </ThemedText>
+                                                                        <View className="flex-row items-center gap-2 mt-1.5">
+                                                                            {reward.rewardItem > 0 && (
+                                                                                <ThemedText style={{ color: "#22d3ee", fontSize: 15, fontWeight: "700" }}>
+                                                                                    ×{reward.rewardItem}
+                                                                                </ThemedText>
+                                                                            )}
+                                                                            {reward.rewardTarget && (
+                                                                                <View className="px-2 py-0.5 rounded-full bg-amber-500/20">
+                                                                                    <ThemedText style={{ color: "#fbbf24", fontSize: 11, fontWeight: "600" }}>
+                                                                                        {getRewardTargetLabel(reward.rewardTarget)}
+                                                                                    </ThemedText>
+                                                                                </View>
+                                                                            )}
+                                                                        </View>
+                                                                    </View>
+                                                                ) : (
+                                                                    <View className="flex-1 flex-row items-center gap-2">
                                                                         {reward.rewardItem > 0 && (
-                                                                            <ThemedText style={{ color: "#22d3ee", fontSize: 12, fontWeight: "600" }}>
+                                                                            <ThemedText style={{ color: "#22d3ee", fontSize: 15, fontWeight: "700" }}>
                                                                                 ×{reward.rewardItem}
                                                                             </ThemedText>
                                                                         )}
-                                                                    </View>
-                                                                </View>
                                                                 {reward.rewardTarget && (
-                                                                    <View className="px-2 py-1 rounded-full bg-amber-500/20">
-                                                                        <ThemedText style={{ color: "#fbbf24", fontSize: 11 }}>
+                                                                            <View className="px-2 py-0.5 rounded-full bg-amber-500/20">
+                                                                                <ThemedText style={{ color: "#fbbf24", fontSize: 11, fontWeight: "600" }}>
                                                                             {getRewardTargetLabel(reward.rewardTarget)}
                                                                         </ThemedText>
+                                                                            </View>
+                                                                        )}
                                                                     </View>
                                                                 )}
                                                             </View>
