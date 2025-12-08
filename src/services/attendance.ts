@@ -41,6 +41,33 @@ export interface IAttendanceCheckInResponse {
   message: string;
 }
 
+export interface IAttendanceConfig {
+  id: number;
+  dayOfWeek: "SUNDAY" | "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
+  bonusCoin: number;
+  baseCoin: number;
+  deletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  createdById: number | null;
+  deletedById: number | null;
+  updatedById: number | null;
+}
+
+export interface IAttendanceConfigResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    results: IAttendanceConfig[];
+    pagination: {
+      current: number;
+      pageSize: number;
+      totalPage: number;
+      totalItem: number;
+    };
+  };
+}
+
 const attendanceService = {
   getAttendanceSummary: async (): Promise<IAttendanceSummary> => {
     const response = await axiosPrivate.get("/attendance/user");
@@ -49,6 +76,10 @@ const attendanceService = {
   checkIn: async (): Promise<IAttendanceCheckInResponse> => {
     const response = await axiosPrivate.post("/attendance");
     return response.data as IAttendanceCheckInResponse;
+  },
+  getAttendanceConfig: async (): Promise<IAttendanceConfigResponse> => {
+    const response = await axiosPrivate.get("/attendence-config");
+    return response.data as IAttendanceConfigResponse;
   },
 };
 

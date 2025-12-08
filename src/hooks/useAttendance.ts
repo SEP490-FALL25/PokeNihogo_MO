@@ -1,8 +1,9 @@
+import { useAuth } from "@hooks/useAuth";
 import attendanceService, {
   IAttendanceCheckInResponse,
+  IAttendanceConfigResponse,
   IAttendanceSummary,
 } from "@services/attendance";
-import { useAuth } from "@hooks/useAuth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
@@ -33,6 +34,17 @@ export const useCheckIn = () => {
       });
       queryClient.invalidateQueries({ queryKey: ["wallet-user"] });
     },
+  });
+};
+
+/**
+ * Hook to fetch attendance configuration (coin rewards per day)
+ */
+export const useAttendanceConfig = () => {
+  return useQuery<IAttendanceConfigResponse>({
+    queryKey: ["attendance-config"],
+    queryFn: attendanceService.getAttendanceConfig,
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour since config rarely changes
   });
 };
 

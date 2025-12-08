@@ -1,5 +1,7 @@
 "use client";
 
+import { MaterialIcons } from "@expo/vector-icons";
+import { useAttendanceConfig } from "@hooks/useAttendance";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -38,7 +40,20 @@ interface DailyLoginModalProps {
   isSubmitting?: boolean;
 }
 
-const useCreateLast7Days = (history: string[], todayChecked: boolean) => {
+const DAY_OF_WEEK_MAP: Record<string, number> = {
+  SUNDAY: 0,
+  MONDAY: 1,
+  TUESDAY: 2,
+  WEDNESDAY: 3,
+  THURSDAY: 4,
+  FRIDAY: 5,
+  SATURDAY: 6,
+};
+
+const useCreateLast7Days = (
+  history: string[],
+  todayChecked: boolean
+) => {
   return useMemo(() => {
     const days: CheckInDay[] = [];
     const today = new Date();
@@ -79,6 +94,7 @@ export function DailyLoginModal({
 }: DailyLoginModalProps) {
   const { t } = useTranslation();
   const [showCelebration, setShowCelebration] = useState(false);
+  const { data: attendanceConfigData, isLoading: isConfigLoading } = useAttendanceConfig();
 
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -113,7 +129,33 @@ export function DailyLoginModal({
     [checkInHistory]
   );
 
-  const checkInDays = useCreateLast7Days(normalizedHistory, hasCheckedInToday);
+  const attendanceConfig = useMemo(
+    () => attendanceConfigData?.data?.results,
+    [attendanceConfigData]
+  );
+
+  const checkInDays = useCreateLast7Days(
+    normalizedHistory,
+    hasCheckedInToday
+  );
+
+  // Get today's baseCoin and bonusCoin from config
+  const todayCoinReward = useMemo(() => {
+    if (!attendanceConfig) return null;
+    const today = new Date();
+    const todayDayIndex = today.getDay();
+    const todayDayOfWeek = Object.keys(DAY_OF_WEEK_MAP).find(
+      (key) => DAY_OF_WEEK_MAP[key] === todayDayIndex
+    );
+    
+    if (!todayDayOfWeek) return null;
+    
+    const config = attendanceConfig.find(
+      (c) => c.dayOfWeek === todayDayOfWeek
+    );
+    
+    return config ? { baseCoin: config.baseCoin, bonusCoin: config.bonusCoin } : null;
+  }, [attendanceConfig]);
 
   const triggerCelebration = useCallback(() => {
     setShowCelebration(true);
@@ -180,7 +222,7 @@ export function DailyLoginModal({
           ]}
         >
           <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-            {isLoading ? (
+            {isLoading || isConfigLoading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#7c3aed" />
                 <Text style={styles.loadingText}>
@@ -228,7 +270,7 @@ export function DailyLoginModal({
                   </View>
                 )}
 
-                <View style={styles.motivationContainer}>
+                {/* <View style={styles.motivationContainer}>
                   <Text style={styles.motivationText}>
                     {streak === 0 && t("daily_login.motivation.start_streak")}
                     {streak > 0 && streak < 7 && t("daily_login.motivation.keep_going")}
@@ -237,7 +279,44 @@ export function DailyLoginModal({
                       t("daily_login.motivation.excellent")}
                     {streak >= 30 && t("daily_login.motivation.legendary")}
                   </Text>
-                </View>
+                </View> */}
+
+                {todayCoinReward && (
+                  <View style={styles.coinRewardSection}>
+                    <View style={styles.coinRewardCard}>
+                      <View style={styles.coinRewardRow}>
+                        <Text style={styles.coinRewardLabel}>
+                          {t("daily_login.today_reward", "Phần thưởng hôm nay")}
+                        </Text>
+                        <View style={styles.coinRewardValue}>
+                          <MaterialIcons name="monetization-on" size={24} color="#f59e0b" />
+                          <Text style={styles.coinAmount}>{todayCoinReward.baseCoin}</Text>
+                        </View>
+                      </View>
+                      {streak < 7 && todayCoinReward.bonusCoin > 0 && (
+                        <View style={styles.bonusCoinInfo}>
+                          <Text style={styles.bonusCoinText}>
+                            {t("daily_login.bonus_info", {
+                              count: 7 - streak,
+                              bonus: todayCoinReward.bonusCoin,
+                              defaultValue: "Điểm danh thêm {{count}} ngày để nhận thêm {{bonus}} coin bonus!",
+                            })}
+                          </Text>
+                        </View>
+                      )}
+                      {streak >= 7 && todayCoinReward.bonusCoin > 0 && (
+                        <View style={styles.bonusCoinInfo}>
+                          <Text style={styles.bonusCoinTextActive}>
+                            {t("daily_login.bonus_active", {
+                              bonus: todayCoinReward.bonusCoin,
+                              defaultValue: "🎉 Bạn sẽ nhận thêm {{bonus}} coin bonus!",
+                            })}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                )}
 
                 <View style={styles.calendarSection}>
                   <View style={styles.calendarGrid}>
@@ -550,6 +629,55 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: "#cbd5e1",
+  },
+  coinRewardSection: {
+    marginBottom: 24,
+  },
+  coinRewardCard: {
+    backgroundColor: "#fffbeb",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: "#fef3c7",
+  },
+  coinRewardRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  coinRewardLabel: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#78350f",
+  },
+  coinRewardValue: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  coinAmount: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#f59e0b",
+  },
+  bonusCoinInfo: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#fde68a",
+  },
+  bonusCoinText: {
+    fontSize: 13,
+    color: "#92400e",
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  bonusCoinTextActive: {
+    fontSize: 13,
+    color: "#16a34a",
+    fontWeight: "700",
+    textAlign: "center",
   },
   legend: {
     flexDirection: "row",
