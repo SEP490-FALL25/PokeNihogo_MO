@@ -237,6 +237,15 @@
       "win_rate": "Tỷ lệ thắng",
       "win_streak": "Chuỗi thắng"
     },
+    "accept": {
+      "title": "🎮 TRẬN ĐẤU SẴN SÀNG",
+      "you": "Bạn",
+      "vs": "VS",
+      "opponent": "Đối thủ",
+      "matched_message": "Đã tìm thấy đối thủ phù hợp!",
+      "reject": "Từ chối",
+      "accept": "ĐỒNG Ý"
+    },
     "lobby": {
       "title": "⚡ SẢNH ĐẤU",
       "history_button": "Lịch sử",

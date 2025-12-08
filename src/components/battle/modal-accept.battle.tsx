@@ -6,6 +6,7 @@ import useAuth from '@hooks/useAuth'
 import { IBattleMatchFound } from '@models/battle/battle.response'
 import battleService from '@services/battle'
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Modal, View } from 'react-native'
 
 interface ModalBattleAcceptProps {
@@ -20,6 +21,7 @@ interface ModalBattleAcceptProps {
 
 const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal, setMatchedPlayer, setInQueue, statusMatch, setStatusMatch }: ModalBattleAcceptProps) => {
     const { user } = useAuth();
+    const { t } = useTranslation();
 
     /**
      * Time remaining
@@ -107,7 +109,7 @@ const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal,
                     >
                         <View className="items-center">
                             <ThemedText style={{ color: "#ffffff", fontSize: 24, fontWeight: "900" }}>
-                                🎮 TRẬN ĐẤU SẴN SÀNG
+                                {t("battle.accept.title")}
                             </ThemedText>
                         </View>
                     </TWLinearGradient>
@@ -117,7 +119,7 @@ const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal,
                             <View className="items-center">
                                 <UserAvatar avatar={user?.data?.avatar} name={user?.data?.name || ""} size="large" />
                                 <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
-                                    {user?.data?.name || "Bạn"}
+                                    {user?.data?.name || t("battle.accept.you")}
                                 </ThemedText>
                             </View>
                             <TWLinearGradient
@@ -127,19 +129,19 @@ const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal,
                                 style={{ padding: 2, borderRadius: 999 }}
                             >
                                 <View className="px-4 py-2 rounded-full bg-black/70">
-                                    <ThemedText style={{ color: "#ffffff", fontWeight: "700", fontSize: 16 }}>VS</ThemedText>
+                                    <ThemedText style={{ color: "#ffffff", fontWeight: "700", fontSize: 16 }}>{t("battle.accept.vs")}</ThemedText>
                                 </View>
                             </TWLinearGradient>
                             <View className="items-center">
                                 <UserAvatar avatar={matchedPlayer?.opponent.avatar} name={matchedPlayer?.opponent.name || ""} size="large" />
                                 <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600", marginTop: 8 }}>
-                                    {matchedPlayer?.opponent.name || "Opponent"}
+                                    {matchedPlayer?.opponent.name || t("battle.accept.opponent")}
                                 </ThemedText>
                             </View>
                         </View>
 
                         <ThemedText style={{ color: "#94a3b8", fontSize: 14, textAlign: "center", marginBottom: 8 }}>
-                            Đã tìm thấy đối thủ phù hợp!
+                            {t("battle.accept.matched_message")}
                         </ThemedText>
 
                         {/* Countdown Timer */}
@@ -160,7 +162,7 @@ const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal,
                             {statusMatch !== "accept" &&
                                 <HapticPressable className="flex-1 py-4 rounded-2xl bg-white/10 border border-white/20" onPress={handleRejectMatch} disabled={statusMatch === "reject"}>
                                     <ThemedText style={{ color: statusMatch === "reject" ? "#64748b" : "#fca5a5", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
-                                        Từ chối
+                                        {t("battle.accept.reject")}
                                     </ThemedText>
                                 </HapticPressable>
                             }
@@ -173,7 +175,7 @@ const ModalBattleAccept = ({ showAcceptModal, matchedPlayer, setShowAcceptModal,
                                         style={{ paddingVertical: 16 }}
                                     >
                                         <ThemedText style={{ color: "#ffffff", fontSize: 16, fontWeight: "700", textAlign: "center" }}>
-                                            ĐỒNG Ý
+                                            {t("battle.accept.accept")}
                                         </ThemedText>
                                     </TWLinearGradient>
                                 </HapticPressable>

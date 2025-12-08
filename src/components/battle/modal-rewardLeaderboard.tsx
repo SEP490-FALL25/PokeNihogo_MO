@@ -202,8 +202,8 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
                                                                 className="flex-row items-center justify-between gap-3 p-3 pl-4 rounded-xl bg-white/5 border border-white/5"
                                                             >
                                                                 {reward.nameTranslation ? (
-                                                                    <View className="flex-1">
-                                                                        <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600" }}>
+                                                                <View className="flex-1">
+                                                                    <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "600" }}>
                                                                             {reward.nameTranslation}
                                                                         </ThemedText>
                                                                         <View className="flex-row items-center gap-2 mt-1.5">
@@ -228,11 +228,11 @@ export default function ModalRewardLeaderboard({ visible, onRequestClose }: Moda
                                                                                 ×{reward.rewardItem}
                                                                             </ThemedText>
                                                                         )}
-                                                                        {reward.rewardTarget && (
+                                                                {reward.rewardTarget && (
                                                                             <View className="px-2 py-0.5 rounded-full bg-amber-500/20">
                                                                                 <ThemedText style={{ color: "#fbbf24", fontSize: 11, fontWeight: "600" }}>
-                                                                                    {getRewardTargetLabel(reward.rewardTarget)}
-                                                                                </ThemedText>
+                                                                            {getRewardTargetLabel(reward.rewardTarget)}
+                                                                        </ThemedText>
                                                                             </View>
                                                                         )}
                                                                     </View>

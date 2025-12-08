@@ -237,6 +237,15 @@
       "win_rate": "Win Rate",
       "win_streak": "Win Streak"
     },
+    "accept": {
+      "title": "🎮 BATTLE READY",
+      "you": "You",
+      "vs": "VS",
+      "opponent": "Opponent",
+      "matched_message": "A suitable opponent has been found!",
+      "reject": "Reject",
+      "accept": "ACCEPT"
+    },
     "lobby": {
       "title": "⚡ BATTLE LOBBY",
       "history_button": "History",
