@@ -116,8 +116,12 @@ export const SpeakingContent: React.FC = () => {
     pageSize: 10,
   });
 
-  const items: UserTestItem[] =
-    (userTestsData as any)?.data?.data?.results ?? [];
+  const items: UserTestItem[] = React.useMemo(() => {
+    if (!userTestsData) return [];
+    const responseData = (userTestsData as any)?.data;
+    if (!responseData) return [];
+    return responseData?.data?.results ?? [];
+  }, [userTestsData]);
 
   React.useEffect(() => {
     const ready = !isLoading;
@@ -204,21 +208,23 @@ export const SpeakingContent: React.FC = () => {
         )}
         {!isLoading &&
           !error &&
-          items.map((item) => (
-            <Animated.View
-              key={item.id}
-              style={{
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              }}
-            >
-              <SpeakingCard
-                item={item}
-                onPress={() => handleSpeakingPress(item.test?.id)}
-                onLockedPress={handleLockedPress}
-              />
-            </Animated.View>
-          ))}
+          items
+            .filter((item) => item && item.test)
+            .map((item) => (
+              <Animated.View
+                key={item.id}
+                style={{
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                }}
+              >
+                <SpeakingCard
+                  item={item}
+                  onPress={() => handleSpeakingPress(item.test?.id)}
+                  onLockedPress={handleLockedPress}
+                />
+              </Animated.View>
+            ))}
       </View>
 
       <ThemedView style={styles.tipsCard}>
