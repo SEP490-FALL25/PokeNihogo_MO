@@ -3,8 +3,6 @@ import BackScreen from "@components/molecules/Back";
 import BounceButton from "@components/ui/BounceButton";
 import { ROUTES } from "@routes/routes";
 import { useAuthStore } from "@stores/auth/auth.config";
-import { useNotificationToastStore } from "@stores/notification/notification-ui.store";
-import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -14,8 +12,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const { deleteAccessToken } = useAuthStore();
-  const queryClient = useQueryClient();
-  const { hideToast } = useNotificationToastStore();
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
@@ -44,9 +40,6 @@ export default function SettingsScreen() {
                 {
                   text: t("settings.logout"),
                   onPress: () => {
-                    // Clear notification cache and toast before logout to prevent showing old notifications
-                    queryClient.removeQueries({ queryKey: ['notification'] });
-                    hideToast();
                     deleteAccessToken();
                     router.replace(ROUTES.AUTH.WELCOME);
                   },
