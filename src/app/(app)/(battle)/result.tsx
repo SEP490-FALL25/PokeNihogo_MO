@@ -256,7 +256,7 @@ export default function BattleResultScreen() {
 
                     {/* Two columns style like MOBA result */}
                     <View className="flex-row gap-4">
-                        {/* Left: Opponent */}
+                        {/* Left: Địch (Opponent) */}
                         <View className="flex-1">
                             <TWLinearGradient
                                 colors={["#ef4444", "#b91c1c"]}
@@ -303,7 +303,7 @@ export default function BattleResultScreen() {
                             </TWLinearGradient>
                         </View>
 
-                        {/* Right: Me */}
+                        {/* Right: Tôi (Me) */}
                         <View className="flex-1">
                             <TWLinearGradient
                                 colors={["#22c55e", "#16a34a"]}
@@ -407,7 +407,7 @@ export default function BattleResultScreen() {
 
                                     {/* Scores Row */}
                                     <View className="flex-row items-center justify-between mb-3">
-                                        {/* Player Score */}
+                                        {/* Left: Địch (Opponent Score) */}
                                         <View className="flex-1 items-start">
                                             <ThemedText
                                                 numberOfLines={1}
@@ -419,17 +419,17 @@ export default function BattleResultScreen() {
                                                     marginBottom: 4
                                                 }}
                                             >
-                                                {meName}
+                                                {foeName}
                                             </ThemedText>
                                             <View className="flex-row items-center gap-2">
                                                 <ThemedText style={{
-                                                    color: meWin ? "#86efac" : isTie && rd.meIsAFK ? "#ef4444" : "#e5e7eb",
+                                                    color: foeWin ? "#fca5a5" : isTie && rd.foeIsAFK ? "#ef4444" : "#e5e7eb",
                                                     fontWeight: "900",
                                                     fontSize: 20
                                                 }}>
-                                                    {rd.me}
+                                                    {rd.foe}
                                                 </ThemedText>
-                                                {rd.meIsAFK && (
+                                                {rd.foeIsAFK && (
                                                     <View className="px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/40">
                                                         <ThemedText style={{ color: "#ef4444", fontSize: 9, fontWeight: "700" }}>
                                                             {t("battle.result.afk_label")}
@@ -444,7 +444,7 @@ export default function BattleResultScreen() {
                                             <ThemedText style={{ color: "#64748b", fontSize: 14, fontWeight: "700" }}>VS</ThemedText>
                                         </View>
 
-                                        {/* Opponent Score */}
+                                        {/* Right: Tôi (Player Score) */}
                                         <View className="flex-1 items-end">
                                             <ThemedText
                                                 numberOfLines={1}
@@ -456,10 +456,10 @@ export default function BattleResultScreen() {
                                                     marginBottom: 4
                                                 }}
                                             >
-                                                {foeName}
+                                                {meName}
                                             </ThemedText>
                                             <View className="flex-row items-center gap-2">
-                                                {rd.foeIsAFK && (
+                                                {rd.meIsAFK && (
                                                     <View className="px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/40">
                                                         <ThemedText style={{ color: "#ef4444", fontSize: 9, fontWeight: "700" }}>
                                                             {t("battle.result.afk_label")}
@@ -467,11 +467,11 @@ export default function BattleResultScreen() {
                                                     </View>
                                                 )}
                                                 <ThemedText style={{
-                                                    color: foeWin ? "#fca5a5" : isTie && rd.foeIsAFK ? "#ef4444" : "#e5e7eb",
+                                                    color: meWin ? "#86efac" : isTie && rd.meIsAFK ? "#ef4444" : "#e5e7eb",
                                                     fontWeight: "900",
                                                     fontSize: 20
                                                 }}>
-                                                    {rd.foe}
+                                                    {rd.me}
                                                 </ThemedText>
                                             </View>
                                         </View>
@@ -481,18 +481,18 @@ export default function BattleResultScreen() {
                                     <View style={{ height: 10 }} className="rounded-full overflow-hidden bg-white/10">
                                         {(() => {
                                             const total = Math.max(1, rd.me + rd.foe);
-                                            const mePct = total > 0 ? Math.round((rd.me / total) * 100) : 50;
-                                            const foePct = 100 - mePct;
+                                            const foePct = total > 0 ? Math.round((rd.foe / total) * 100) : 50;
+                                            const mePct = 100 - foePct;
                                             const tieColor = isTie ? "#fbbf24" : undefined;
                                             return (
                                                 <View style={{ flexDirection: "row", width: "100%", height: "100%" }}>
                                                     <View style={{
-                                                        width: `${mePct}%`,
-                                                        backgroundColor: tieColor || (meWin ? "#22c55e" : "#64748b")
-                                                    }} />
-                                                    <View style={{
                                                         width: `${foePct}%`,
                                                         backgroundColor: tieColor || (foeWin ? "#ef4444" : "#64748b")
+                                                    }} />
+                                                    <View style={{
+                                                        width: `${mePct}%`,
+                                                        backgroundColor: tieColor || (meWin ? "#22c55e" : "#64748b")
                                                     }} />
                                                 </View>
                                             );
