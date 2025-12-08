@@ -287,10 +287,12 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
                 
                 {/* Tooltip */}
                 {isSelected && (
-                  <View className={clsx(
-                      "absolute w-36 bg-white p-3 rounded-xl items-center z-50 shadow-xl",
+                  <View 
+                    className={clsx(
+                      "absolute w-36 bg-white p-3 rounded-xl items-center z-50",
                       isBig ? "bottom-24" : "bottom-16"
-                  )}>
+                    )}
+                  >
                     <View className="flex-row items-center gap-1 mb-1">
                         <MaterialCommunityIcons 
                             name={isBig ? "crown" : "gift"} 
@@ -336,19 +338,18 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
                   onPress={(event) => handleRewardPress(reward, event)}
                   activeOpacity={0.9}
                   className={clsx(
-                    "items-center justify-center shadow-lg transition-transform",
+                    "items-center justify-center transition-transform",
                     isBig ? "w-20 h-20 rounded-3xl rotate-3" : "w-12 h-12 rounded-full",
                     isBig ? "border-[6px]" : "border-4",
                     isReached
                       ? isBig
-                        ? "bg-amber-400 border-white shadow-amber-400/50"
+                        ? "bg-amber-400 border-white"
                         : isClaimed
                           ? "bg-white border-emerald-200"
                           : "bg-white border-amber-300"
                       : "bg-slate-100 border-slate-200",
                     isSelected && "scale-110 bg-white border-amber-300"
                   )}
-                  style={undefined}
                 >
                   {isLocked ? (
                     <MaterialCommunityIcons 
@@ -378,11 +379,15 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
 
                 {/* Badge checkmark */}
                 {isClaimed && (
-                  <View className={clsx(
-                      "absolute items-center justify-center border-2 shadow-sm z-30",
+                  <View 
+                    className={clsx(
+                      "absolute items-center justify-center border-2 z-30",
                       isBig ? "-bottom-2 -right-2 w-8 h-8 rounded-xl" : "-bottom-1 -right-1 w-5 h-5 rounded-full"
-                  )}
-                  style={{ backgroundColor: '#10B981', borderColor: '#FFFFFF' }}
+                    )}
+                    style={{ 
+                      backgroundColor: '#10B981', 
+                      borderColor: '#FFFFFF',
+                    }}
                   >
                     <Ionicons name="checkmark" size={isBig ? 20 : 12} color="white" />
                   </View>

@@ -73,7 +73,7 @@ const MatchingCardComponent = React.memo(({
   return (
     <Animated.View
       style={{
-        width: cardSize,
+        width: "100%",
         height: cardHeight,
         transform: [{ scale: combinedScale }],
         opacity: opacityRef,
@@ -90,7 +90,8 @@ const MatchingCardComponent = React.memo(({
           backgroundColor: isSelected ? "#fef3c7" : "#ffffff",
           borderRadius: 16,
           borderWidth: 3,
-          borderColor: isSelected ? "#f59e0b" : "#d1d5db",padding: 12,
+          borderColor: isSelected ? "#f59e0b" : "#d1d5db",
+          padding: 12,
           justifyContent: "center",
           alignItems: "center",
         }}
@@ -550,14 +551,19 @@ const MatchingGameScreen = () => {
     const cardCount = Math.min(cards.length, MAX_DISPLAYED_CARDS);
     const rows = Math.ceil(cardCount / optimalColumns);
     
-    const cardWidth = (availableWidth - spacing * (optimalColumns - 1)) / optimalColumns;
+    // Calculate card width to ensure exactly 3 columns fit
+    // Total spacing between 3 cards = 2 * spacing (between card 1-2 and card 2-3)
+    const totalSpacing = spacing * (optimalColumns - 1);
+    const cardWidth = (availableWidth - totalSpacing) / optimalColumns;
+    
     const cardH = Math.min(
       (availableHeight - spacing * (rows - 1)) / rows,
       160 // Max card height
     );
     
-    const optimalCardSize = Math.max(80, Math.min(160, cardWidth));
-    const optimalCardHeight = Math.max(90, Math.min(160, cardH));
+    // Ensure card size is calculated precisely to fit 3 columns
+    const optimalCardSize = Math.floor(cardWidth); // Use floor to ensure it fits
+    const optimalCardHeight = Math.max(90, Math.min(160, Math.floor(cardH)));
     
     return {
       cardSize: optimalCardSize,
@@ -694,7 +700,6 @@ const MatchingGameScreen = () => {
               flexDirection: "row",
               flexWrap: "wrap",
               justifyContent: "flex-start",
-              gap: cardSpacing,
             }}
           >
             {cards.map((card, index) => {
@@ -711,21 +716,37 @@ const MatchingGameScreen = () => {
                 cardSelectionScaleRefs.current[card.id] = new Animated.Value(1);
               }
 
+              // Calculate margin for each card to ensure 3 columns
+              // Cards in the middle column get margin on both sides
+              // Cards in first column get margin only on right
+              // Cards in last column get margin only on left
+              const columnIndex = index % 3;
+              const marginRight = columnIndex < 2 ? cardSpacing : 0;
+              const marginBottom = index < cards.length - 3 ? cardSpacing : 0;
+
               return (
-                <MatchingCardComponent
+                <Animated.View
                   key={card.id}
-                  card={card}
-                  index={index}
-                  isSelected={isSelected}
-                  cardSize={cardSize}
-                  cardHeight={cardHeight}
-                  contentType={contentType}
-                  scaleRef={cardScaleRefs.current[card.id]}
-                  opacityRef={cardOpacityRefs.current[card.id]}
-                  selectionScaleRef={cardSelectionScaleRefs.current[card.id]}
-                  onPress={() => handleCardPress(index)}
-                  disabled={isChecking || card.isMatched}
-                />
+                  style={{
+                    width: cardSize,
+                    marginRight,
+                    marginBottom,
+                  }}
+                >
+                  <MatchingCardComponent
+                    card={card}
+                    index={index}
+                    isSelected={isSelected}
+                    cardSize={cardSize}
+                    cardHeight={cardHeight}
+                    contentType={contentType}
+                    scaleRef={cardScaleRefs.current[card.id]}
+                    opacityRef={cardOpacityRefs.current[card.id]}
+                    selectionScaleRef={cardSelectionScaleRefs.current[card.id]}
+                    onPress={() => handleCardPress(index)}
+                    disabled={isChecking || card.isMatched}
+                  />
+                </Animated.View>
               );
             })}
           </View>
