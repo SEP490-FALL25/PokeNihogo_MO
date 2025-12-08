@@ -1,7 +1,9 @@
 import * as SecureStore from 'expo-secure-store';
 
 import { ROUTES } from '@routes/routes';
+import { queryClient } from '@libs/@tanstack/react-query';
 import { useAuthStore } from '@stores/auth/auth.config';
+import { useNotificationToastStore } from '@stores/notification/notification-ui.store';
 import { useGlobalStore } from '@stores/global/global.config';
 import axios, { AxiosError } from 'axios';
 import { router } from 'expo-router';
@@ -134,6 +136,9 @@ axiosPrivate.interceptors.response.use(
             }
 
             // Refresh failed -> force logout
+            // Clear notification cache and toast before logout to prevent showing old notifications
+            queryClient.removeQueries({ queryKey: ['notification'] });
+            useNotificationToastStore.getState().hideToast();
             await SecureStore.deleteItemAsync('accessToken');
             await SecureStore.deleteItemAsync('refreshToken');
             useAuthStore.getState().deleteAccessToken();

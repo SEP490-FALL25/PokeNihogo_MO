@@ -4,7 +4,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 
 // Khởi tạo một QueryClient instance
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
             // Dữ liệu sẽ được coi là "cũ" (stale) sau 5 phút.
