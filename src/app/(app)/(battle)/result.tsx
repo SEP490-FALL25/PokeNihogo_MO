@@ -213,9 +213,6 @@ export default function BattleResultScreen() {
                         <ThemedText style={{ color: "#94a3b8", fontSize: 14, textAlign: "center", marginBottom: 24 }}>
                             {t("battle.result.loading_subtitle")}
                         </ThemedText>
-                        <ThemedText onPress={() => { void handleBack(); }} style={{ color: "#93c5fd", fontSize: 14, textDecorationLine: "underline" }}>
-                            {t("battle.result.back_to_home")}
-                        </ThemedText>
                     </View>
                 </ImageBackground>
             </ThemedView>
