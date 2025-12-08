@@ -259,8 +259,12 @@ interface HistoryCardProps {
   allHistoryItems: IHistoryItem[];
 }
 
-const HistoryCard = React.memo<HistoryCardProps>(({ item, onPress, t, allHistoryItems }) => {
+  const HistoryCard = React.memo<HistoryCardProps>(({ item, onPress, t, allHistoryItems }) => {
   const isTest = !!item.testId;
+  const isPlacementTest = useMemo(() => {
+    if (!isTest || !item.testType) return false;
+    return item.testType.toUpperCase().includes('PLACEMENT');
+  }, [isTest, item.testType]);
   const itemName = useMemo(
     () => item.testName || item.exerciseName || t('exercise_history.unknown_item'),
     [item.testName, item.exerciseName, t]
@@ -292,10 +296,12 @@ const HistoryCard = React.memo<HistoryCardProps>(({ item, onPress, t, allHistory
   }, [allHistoryItems, item, isTest]);
   
   // Check if can review (current score >= 80% OR has previous high score)
+  // For placement tests, always allow review regardless of score
   const canReview = useMemo(() => {
+    if (isPlacementTest) return true; // Placement tests don't need 80% check
     if (item.score === null) return false;
     return item.score >= MIN_REVIEW_SCORE || hasPreviousHighScore;
-  }, [item.score, hasPreviousHighScore]);
+  }, [item.score, hasPreviousHighScore, isPlacementTest]);
 
   return (
     <Pressable 
@@ -527,6 +533,7 @@ export default function ExerciseHistoryScreen() {
   const handleItemPress = useCallback((item: IHistoryItem) => {
     const isAbandoned = item.status === ExerciseAttemptStatus.ABANDONED;
     const isInProgress = item.status === ExerciseAttemptStatus.IN_PROGRESS;
+    const isPlacementTest = item.testId && item.testType && item.testType.toUpperCase().includes('PLACEMENT');
     
     // If in progress or abandoned, navigate to continue (no need to check review access)
     if (isInProgress || isAbandoned) {
@@ -549,6 +556,18 @@ export default function ExerciseHistoryScreen() {
     
     // For review cases, check access first
     if (item.testId) {
+      // Placement tests don't need review access check
+      if (isPlacementTest) {
+        router.push({
+          pathname: ROUTES.TEST.REVIEW,
+          params: { 
+            userTestAttemptId: item.attemptId.toString(),
+            testType: item.testType || "",
+          },
+        });
+        return;
+      }
+      
       // Check test review access
       checkReviewAccessTest(
         {

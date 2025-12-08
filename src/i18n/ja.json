@@ -27,6 +27,7 @@
         "finish": "完了",
         "cancel": "キャンセル",
         "confirm": "確認",
+        "deleting": "削除中...",
         "save": "保存",
         "delete": "削除",
         "edit": "編集",
@@ -118,7 +119,9 @@
             "recommended_level": "推奨レベル",
             "total_questions": "総質問数",
             "correct_answers": "正解数",
-            "percentage": "スコア"
+            "percentage": "スコア",
+            "cancel_test_title": "テストをキャンセルしますか？",
+            "cancel_test_message": "このテストをキャンセルしてもよろしいですか？進行状況が失われます。"
         }
     },
     "kanji_writer": {

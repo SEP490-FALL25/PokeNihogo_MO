@@ -75,6 +75,9 @@ const userTestService = {
   abandonTest: async (userTestAttemptId: string | number) => {
     return axiosPrivate.put(`/user-test-attempt/${userTestAttemptId}/abandon`);
   },
+  deleteUserTestAttempt: async (userTestAttemptId: string | number) => {
+    return axiosPrivate.delete(`/user-test-attempt/${userTestAttemptId}`);
+  },
 };
 
 export default userTestService;

@@ -202,6 +202,7 @@ export function usePlacementTest(testId: number | string = 1) {
     isLoading,
     error,
     selectedIndex,
+    userTestAttemptId,
     // actions
     setSelectedIndex,
     selectOption,

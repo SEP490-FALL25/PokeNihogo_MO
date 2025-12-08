@@ -22,6 +22,7 @@
     "close": "Đóng",
     "cancel": "Hủy",
     "confirm": "Xác nhận",
+    "deleting": "Đang xóa...",
     "exit": "Thoát",
     "shop": "Cửa hàng",
     "open-shop": "Mở cửa hàng",
@@ -95,7 +96,9 @@
       "recommended_level": "Trình độ đề xuất",
       "total_questions": "Tổng số câu hỏi",
       "correct_answers": "Số câu đúng",
-      "percentage": "Điểm số"
+      "percentage": "Điểm số",
+      "cancel_test_title": "Hủy bài kiểm tra?",
+      "cancel_test_message": "Bạn có chắc chắn muốn hủy bài kiểm tra này? Tiến trình của bạn sẽ bị mất."
     },
     "choose_starter": {
       "title": "Chọn Đồng hành của bạn!",
