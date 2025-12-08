@@ -451,6 +451,8 @@
       "you": "Bạn",
       "opponent": "Đối thủ",
       "round_tie": "Hòa",
+      "round_win": "Thắng",
+      "round_loss": "Thua",
       "match_tie": "Hòa",
       "afk_label": "AFK"
     }

@@ -384,13 +384,25 @@ export default function BattleResultScreen() {
                                         <ThemedText style={{ color: "#e5e7eb", fontSize: 14, fontWeight: "800" }}>
                                             {rd.label}
                                         </ThemedText>
-                                        {isTie && (
+                                        {isTie ? (
                                             <View className="px-2 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40">
                                                 <ThemedText style={{ color: "#fbbf24", fontSize: 10, fontWeight: "700" }}>
                                                     {t("battle.result.round_tie")}
                                                 </ThemedText>
                                             </View>
-                                        )}
+                                        ) : meWin ? (
+                                            <View className="px-2 py-1 rounded-full bg-green-500/20 border border-green-500/40">
+                                                <ThemedText style={{ color: "#86efac", fontSize: 10, fontWeight: "700" }}>
+                                                    {t("battle.result.round_win")}
+                                                </ThemedText>
+                                            </View>
+                                        ) : foeWin ? (
+                                            <View className="px-2 py-1 rounded-full bg-red-500/20 border border-red-500/40">
+                                                <ThemedText style={{ color: "#fca5a5", fontSize: 10, fontWeight: "700" }}>
+                                                    {t("battle.result.round_loss")}
+                                                </ThemedText>
+                                            </View>
+                                        ) : null}
                                     </View>
 
                                     {/* Scores Row */}

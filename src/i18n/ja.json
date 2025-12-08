@@ -764,6 +764,8 @@
             "you": "あなた",
             "opponent": "対戦相手",
             "round_tie": "引き分け",
+            "round_win": "勝利",
+            "round_loss": "敗北",
             "match_tie": "引き分け",
             "afk_label": "AFK"
         }

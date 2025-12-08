@@ -451,6 +451,8 @@
       "you": "You",
       "opponent": "Opponent",
       "round_tie": "Tie",
+      "round_win": "Win",
+      "round_loss": "Loss",
       "match_tie": "Tie",
       "afk_label": "AFK"
     }
