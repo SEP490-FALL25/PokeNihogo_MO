@@ -8,6 +8,7 @@ import { useAttendanceSummary, useCheckIn } from "@hooks/useAttendance";
 import { useAuth } from "@hooks/useAuth";
 import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useSrsReview } from "@hooks/useSrsReview";
+import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
 import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
 import { useCreateNewExerciseAttempt } from "@hooks/useUserExerciseAttempt";
 import { useRecentExercises } from "@hooks/useUserHistory";
@@ -68,6 +69,38 @@ if (
 
 // Storage key for welcome modal shown state
 const WELCOME_MODAL_SHOWN_KEY = "@WelcomeModal:hasBeenShown";
+
+type MarketplaceFeature = {
+  id: number;
+  featureId: number;
+  value?: string | null;
+  feature?: {
+    id: number;
+    featureKey?: string;
+    nameKey?: string;
+    nameTranslation?: string;
+  };
+};
+
+type MarketplacePlan = {
+  id: number;
+  subscriptionId: number;
+  price: number;
+  type: string;
+  durationInDays?: number | null;
+  isActive: boolean;
+};
+
+type MarketplacePackage = {
+  id: number;
+  tagName?: string;
+  nameTranslation?: string;
+  descriptionTranslation?: string;
+  plans?: MarketplacePlan[];
+  features?: MarketplaceFeature[];
+  isPopular?: boolean;
+  canBuy?: boolean;
+};
 
 const useNormalizeDateKey = () => {
   return useCallback((dateString?: string) => {
@@ -419,6 +452,11 @@ export default function HomeScreen() {
   );
 
   const {
+    data: marketplaceResponse,
+    isLoading: isMarketplaceLoading,
+  } = useSubscriptionMarketplacePackages();
+
+  const {
     data: srsReviewData,
     isLoading: isSrsLoading,
     refetch: refetchSrsReview,
@@ -426,6 +464,36 @@ export default function HomeScreen() {
     currentPage: 1,
     pageSize: 6,
   });
+
+  const marketplacePackages: MarketplacePackage[] | undefined = useMemo(() => {
+    return marketplaceResponse?.data?.data as MarketplacePackage[] | undefined;
+  }, [marketplaceResponse]);
+
+  // Find AI Coach package (package that includes PERSONALIZED_RECOMMENDATIONS feature)
+  const aiCoachPackage = useMemo(() => {
+    if (!marketplacePackages) {
+      return undefined;
+    }
+    // Try to find package by tagName or name containing "coach" or "ai"
+    let package_ = marketplacePackages.find(
+      (pkg) =>
+        pkg.tagName?.toUpperCase() === "AI_COACH" ||
+        pkg.nameTranslation?.toLowerCase().includes("coach") ||
+        pkg.nameTranslation?.toLowerCase().includes("ai coach")
+    );
+    
+    // If not found by name, try to find by feature
+    if (!package_) {
+      package_ = marketplacePackages.find((pkg) =>
+        pkg.features?.some(
+          (feature) =>
+            feature.feature?.featureKey === SubscriptionFeatureKey.PERSONALIZED_RECOMMENDATIONS
+        )
+      );
+    }
+    
+    return package_;
+  }, [marketplacePackages]);
 
   const selectedStarter = React.useMemo(() => {
     return (
@@ -668,8 +736,15 @@ export default function HomeScreen() {
   }, [isFrontSide, flipAnim]);
 
   const handleUnlockPress = useCallback(() => {
-    router.push(ROUTES.APP.SUBSCRIPTION);
-  }, []);
+    if (aiCoachPackage?.id) {
+      router.push({
+        pathname: ROUTES.APP.SUBSCRIPTION as any,
+        params: { packageId: String(aiCoachPackage.id) },
+      });
+    } else {
+      router.push(ROUTES.APP.SUBSCRIPTION as any);
+    }
+  }, [aiCoachPackage]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
