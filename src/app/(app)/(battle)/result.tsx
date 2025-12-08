@@ -126,17 +126,26 @@ export default function BattleResultScreen() {
                 roundWinnerUserId = winnerParticipant?.userId ?? null;
             }
 
-            // Check for AFK (no questions answered or totalTimeMs is 0)
-            const meIsAFK = meParticipant && (
-                meParticipant.questionsTotal === 0 ||
-                meParticipant.totalTimeMs === 0 ||
-                meParticipant.points === 0
-            );
-            const foeIsAFK = foeParticipant && (
-                foeParticipant.questionsTotal === 0 ||
-                foeParticipant.totalTimeMs === 0 ||
-                foeParticipant.points === 0
-            );
+            const mePoints = meParticipant?.points ?? 0;
+            const meTotalTimeMs = meParticipant?.totalTimeMs;
+            const foePoints = foeParticipant?.points ?? 0;
+            const foeTotalTimeMs = foeParticipant?.totalTimeMs;
+
+            const meIsAFK = meParticipant ? (
+                mePoints === 0 && (
+                    meTotalTimeMs === 0 ||
+                    meTotalTimeMs === null ||
+                    meTotalTimeMs === undefined
+                )
+            ) : false;
+
+            const foeIsAFK = foeParticipant ? (
+                foePoints === 0 && (
+                    foeTotalTimeMs === 0 ||
+                    foeTotalTimeMs === null ||
+                    foeTotalTimeMs === undefined
+                )
+            ) : false;
 
             const roundLabel = r.roundNumber === "ONE"
                 ? t("battle.result.round_1")
