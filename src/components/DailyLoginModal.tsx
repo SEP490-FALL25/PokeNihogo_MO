@@ -226,7 +226,7 @@ export function DailyLoginModal({
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#7c3aed" />
                 <Text style={styles.loadingText}>
-                  {t("daily_login.loading_state", "Đang tải dữ liệu điểm danh...")}
+                  {t("daily_login.loading_state")}
                 </Text>
               </View>
             ) : (
@@ -260,11 +260,10 @@ export function DailyLoginModal({
                     <View style={styles.weeklyBadge}>
                       <Text style={styles.weeklyBadgeIcon}>📅</Text>
                       <Text style={styles.weeklyBadgeText}>
-                        {t("daily_login.weekly_badge", {
-                          count: weeklyCount,
-                          total: 7,
-                          defaultValue: "{{count}}/{{total}} tuần này",
-                        })}
+                      {t("daily_login.weekly_badge", {
+                        count: weeklyCount,
+                        total: 7,
+                      })}
                       </Text>
                     </View>
                   </View>
@@ -286,7 +285,7 @@ export function DailyLoginModal({
                     <View style={styles.coinRewardCard}>
                       <View style={styles.coinRewardRow}>
                         <Text style={styles.coinRewardLabel}>
-                          {t("daily_login.today_reward", "Phần thưởng hôm nay")}
+                          {t("daily_login.today_reward")}
                         </Text>
                         <View style={styles.coinRewardValue}>
                           <MaterialIcons name="monetization-on" size={24} color="#f59e0b" />
@@ -299,7 +298,6 @@ export function DailyLoginModal({
                             {t("daily_login.bonus_info", {
                               count: 7 - streak,
                               bonus: todayCoinReward.bonusCoin,
-                              defaultValue: "Điểm danh thêm {{count}} ngày để nhận thêm {{bonus}} coin bonus!",
                             })}
                           </Text>
                         </View>
@@ -309,7 +307,6 @@ export function DailyLoginModal({
                           <Text style={styles.bonusCoinTextActive}>
                             {t("daily_login.bonus_active", {
                               bonus: todayCoinReward.bonusCoin,
-                              defaultValue: "🎉 Bạn sẽ nhận thêm {{bonus}} coin bonus!",
                             })}
                           </Text>
                         </View>
@@ -363,7 +360,7 @@ export function DailyLoginModal({
                     {hasCheckedInToday
                       ? t("daily_login.already_checked")
                       : isSubmitting
-                      ? t("daily_login.check_in_progress", "Đang điểm danh...")
+                      ? t("daily_login.check_in_progress")
                       : t("daily_login.check_in_button")}
                   </BounceButton>
                 </View>
