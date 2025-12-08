@@ -2,12 +2,12 @@
 
 import { RARITY_MAP } from "@constants/gacha.enum"; // Đảm bảo đường dẫn này đúng
 // import { Sound } from "expo-av" // Bỏ comment nếu bạn muốn thêm âm thanh
-import { LinearGradient } from "expo-linear-gradient"
-import { Sparkles, Star } from "lucide-react-native"
-import { cssInterop } from "nativewind"
-import type React from "react"
-import { useEffect, useMemo, useState } from "react"
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native"
+import { LinearGradient } from "expo-linear-gradient";
+import { Sparkles, Star } from "lucide-react-native";
+import { cssInterop } from "nativewind";
+import type React from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
     Easing,
     FadeIn,
@@ -20,9 +20,9 @@ import Animated, {
     withSequence,
     withTiming,
     type SharedValue,
-} from "react-native-reanimated"
+} from "react-native-reanimated";
 // 1. IMPORT TỪ REACT-NATIVE-SVG
-import Svg, { Circle, Defs, Path, RadialGradient, Rect, Stop } from "react-native-svg"
+import Svg, { Circle, Defs, Path, RadialGradient, Rect, Stop } from "react-native-svg";
 
 cssInterop(LinearGradient, { className: "style" })
 const TWLinearGradient = LinearGradient as unknown as React.ComponentType<
@@ -115,7 +115,8 @@ const ExplosionParticle = ({ x, y, size, delay, duration, color, isLast, onCompl
                     width: size,
                     height: size,
                     borderRadius: size / 2,
-                    backgroundColor: color,},
+                    backgroundColor: color,
+                },
             ]}
         />
     )
@@ -152,7 +153,8 @@ const ExplosionFlash = ({ color }: { color: string }) => {
                     marginLeft: -125,
                     marginTop: -125,
                     borderRadius: 125,
-                    backgroundColor: color,},
+                    backgroundColor: color,
+                },
             ]}
         />
     )
@@ -177,9 +179,12 @@ const AnimatedPokeballIcon = ({ size = 100, isOpen, color = "#facc15" }: Animate
 
     // Hiệu ứng cho nửa trên (di chuyển lên)
     const animatedPropsTopPath = useAnimatedProps(() => {
+        // react-native-svg expects a transform array on native; a string causes
+        // a ReadableArray cast crash in the bridge. Keep it as an array of
+        // transform objects.
         const translateY = -separationDistance * isOpen.value // Dịch chuyển lên khi isOpen tăng
         return {
-            transform: `translate(0, ${translateY})`,
+            transform: [{ translateX: 0 }, { translateY }],
         }
     })
 
@@ -187,7 +192,7 @@ const AnimatedPokeballIcon = ({ size = 100, isOpen, color = "#facc15" }: Animate
     const animatedPropsBottomPath = useAnimatedProps(() => {
         const translateY = separationDistance * isOpen.value // Dịch chuyển xuống khi isOpen tăng
         return {
-            transform: `translate(0, ${translateY})`,
+            transform: [{ translateX: 0 }, { translateY }],
         }
     })
 
