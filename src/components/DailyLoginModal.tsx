@@ -2,6 +2,7 @@
 
 import { MaterialIcons } from "@expo/vector-icons";
 import { useAttendanceConfig } from "@hooks/useAttendance";
+import { Sparkles } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -288,27 +289,33 @@ export function DailyLoginModal({
                           {t("daily_login.today_reward")}
                         </Text>
                         <View style={styles.coinRewardValue}>
-                          <MaterialIcons name="monetization-on" size={24} color="#f59e0b" />
+                          <Sparkles size={16} color="#f59e0b" />
                           <Text style={styles.coinAmount}>{todayCoinReward.baseCoin}</Text>
                         </View>
                       </View>
                       {streak < 7 && todayCoinReward.bonusCoin > 0 && (
                         <View style={styles.bonusCoinInfo}>
-                          <Text style={styles.bonusCoinText}>
-                            {t("daily_login.bonus_info", {
-                              count: 7 - streak,
-                              bonus: todayCoinReward.bonusCoin,
-                            })}
-                          </Text>
+                          <View style={styles.bonusCoinRow}>
+                            <Sparkles size={16} color="#92400e" />
+                            <Text style={styles.bonusCoinText}>
+                              {t("daily_login.bonus_info", {
+                                count: 7 - streak,
+                                bonus: todayCoinReward.bonusCoin,
+                              })}
+                            </Text>
+                          </View>
                         </View>
                       )}
                       {streak >= 7 && todayCoinReward.bonusCoin > 0 && (
                         <View style={styles.bonusCoinInfo}>
-                          <Text style={styles.bonusCoinTextActive}>
-                            {t("daily_login.bonus_active", {
-                              bonus: todayCoinReward.bonusCoin,
-                            })}
-                          </Text>
+                          <View style={styles.bonusCoinRow}>
+                            <Sparkles size={16} color="#16a34a" />
+                            <Text style={styles.bonusCoinTextActive}>
+                              {t("daily_login.bonus_active", {
+                                bonus: todayCoinReward.bonusCoin,
+                              })}
+                            </Text>
+                          </View>
                         </View>
                       )}
                     </View>
@@ -663,6 +670,12 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: "#fde68a",
+  },
+  bonusCoinRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
   },
   bonusCoinText: {
     fontSize: 13,

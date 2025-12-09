@@ -1025,8 +1025,8 @@
     "close": "Close",
     "loading_state": "Loading attendance data...",
     "today_reward": "Today's Reward",
-    "bonus_info": "Check in {{count}} more day(s) to receive {{bonus}} bonus coins!",
-    "bonus_active": "🎉 You will receive {{bonus}} bonus coins!",
+    "bonus_info": "Check in {{count}} more day(s) to receive {{bonus}} sparkles!",
+    "bonus_active": "🎉 You will receive {{bonus}} sparkles!",
     "day_names": {
       "sun": "Sun",
       "mon": "Mon",
@@ -1340,7 +1340,7 @@
     "total_rewards": "Total Rewards",
     "total_exp": "Total EXP",
     "reward_received": "Reward Received",
-    "reward_type": "Reward Type",
+    "reward_type_label": "Reward Type",
     "reward_item": "Quantity",
     "empty_title": "No Rewards Yet",
     "empty_description": "You haven't received any rewards yet. Complete lessons and exercises to earn rewards!",
@@ -1355,10 +1355,19 @@
       "lesson": "Lesson",
       "test": "Test",
       "daily_login": "Daily Login",
+      "daily_request": "Daily Request",
       "achievement": "Achievement",
+      "achievement_reward": "Achievement Reward",
       "attendance": "Attendance",
       "season_reward": "Season Reward",
+      "reward_service": "Reward Service",
+      "admin_adjust": "Admin Adjust",
       "other": "Other"
+    },
+    "reward_type": {
+      "exp": "EXP",
+      "coin": "COIN",
+      "pokemon": "POKEMON"
     },
     "filter": {
       "title": "Filters",

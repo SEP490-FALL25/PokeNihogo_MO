@@ -1038,8 +1038,8 @@
     "close": "Đóng",
     "loading_state": "Đang tải dữ liệu điểm danh...",
     "today_reward": "Phần thưởng hôm nay",
-    "bonus_info": "Điểm danh thêm {{count}} ngày để nhận thêm {{bonus}} coin bonus!",
-    "bonus_active": "🎉 Bạn sẽ nhận thêm {{bonus}} coin bonus!",
+    "bonus_info": "Điểm danh thêm {{count}} ngày để nhận thêm {{bonus}} bụi sao!",
+    "bonus_active": "🎉 Bạn sẽ nhận thêm {{bonus}} bụi sao!",
     "day_names": {
       "sun": "CN",
       "mon": "T2",
@@ -1353,7 +1353,7 @@
     "total_rewards": "Tổng phần thưởng",
     "total_exp": "Tổng EXP",
     "reward_received": "Đã nhận phần thưởng",
-    "reward_type": "Loại phần thưởng",
+    "reward_type_label": "Loại phần thưởng",
     "reward_item": "Số lượng",
     "empty_title": "Chưa có phần thưởng nào",
     "empty_description": "Bạn chưa nhận được phần thưởng nào. Hãy hoàn thành bài học và bài tập để nhận phần thưởng!",
@@ -1368,10 +1368,19 @@
       "lesson": "Bài học",
       "test": "Bài kiểm tra",
       "daily_login": "Đăng nhập hàng ngày",
+      "daily_request": "Yêu cầu hàng ngày",
       "achievement": "Thành tích",
+      "achievement_reward": "Thưởng thành tích",
       "attendance": "Điểm danh",
       "season_reward": "Phần thưởng mùa giải",
+      "reward_service": "Dịch vụ thưởng",
+      "admin_adjust": "Điều chỉnh quản trị",
       "other": "Khác"
+    },
+    "reward_type": {
+      "exp": "EXP",
+      "coin": "COIN",
+      "pokemon": "POKEMON"
     },
     "filter": {
       "title": "Bộ lọc",

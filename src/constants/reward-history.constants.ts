@@ -7,6 +7,8 @@ export const REWARD_HISTORY_COLORS = {
   EXP_REWARD_TEXT: "#f59e0b",
   COIN_REWARD_BG: "#dbeafe",
   COIN_REWARD_TEXT: "#3b82f6",
+  POKEMON_REWARD_BG: "#fce7f3",
+  POKEMON_REWARD_TEXT: "#ec4899",
   EXERCISE_BG: "#dcfce7",
   LESSON_BG: "#dbeafe",
   OTHER_BG: "#fef3c7",
