@@ -6,8 +6,6 @@ import { clsx } from 'clsx';
 import React, { useMemo, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import {
-  GestureResponderEvent,
-  Pressable,
   Text,
   TouchableOpacity,
   View,
@@ -54,11 +52,6 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
   const coinMultiplierValue = hasCoinMultiplier
     ? getFeatureValue(SubscriptionFeatureKey.COIN_MULTIPLIER) ?? 1
     : 1;
-  const handleOutsidePress = () => {
-    if (selectedReward) {
-      setSelectedReward(null);
-    }
-  };
   const getRewardIcon = (
     target?: string,
     type?: string
@@ -139,6 +132,15 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
       .map((item) => item.data);
   }, [normalizedExercises]);
 
+  const handleRewardPress = React.useCallback((reward: RewardMilestone) => {
+    setSelectedReward((prev) => {
+      if (prev?.id === reward.id) {
+        return null;
+      }
+      return reward;
+    });
+  }, []);
+
   if (sortedExercises.length === 0) {
     return null;
   }
@@ -166,31 +168,19 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
     getNodeSize(
       sortedExercises[sortedExercises.length - 1]?.isBigReward
     ) /
-      2 || SMALL_NODE_SIZE / 2;
+    2 || SMALL_NODE_SIZE / 2;
   const trackLeftOffset = TRACK_HORIZONTAL_PADDING + startRadius;
   const trackRightOffset = TRACK_HORIZONTAL_PADDING + endRadius;
   const activeWidth = trackWidth * progressRaw;
 
-  const handleRewardPress = (
-    reward: RewardMilestone,
-    event?: GestureResponderEvent
-  ) => {
-    event?.stopPropagation();
-    if (selectedReward?.id === reward.id) {
-      setSelectedReward(null);
-    } else {
-      setSelectedReward(reward);
-    }
-  };
-
   return (
-    <Pressable
+    <View
       className="w-full rounded-3xl border"
       style={{
         backgroundColor: '#FFFFFF',
         borderColor: '#E2E8F0',
-        padding: 20,}}
-      onPress={handleOutsidePress}
+        padding: 20,
+      }}
     >
       <View className="mb-12 mt-2 flex-row justify-between items-end">
         <View>
@@ -335,21 +325,34 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
 
                 {/* Nút Icon Quà */}
                 <TouchableOpacity
-                  onPress={(event) => handleRewardPress(reward, event)}
+                  onPress={() => handleRewardPress(reward)}
                   activeOpacity={0.9}
-                  className={clsx(
-                    "items-center justify-center transition-transform",
-                    isBig ? "w-20 h-20 rounded-3xl rotate-3" : "w-12 h-12 rounded-full",
-                    isBig ? "border-[6px]" : "border-4",
-                    isReached
+                  style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: isBig ? 80 : 48,
+                    height: isBig ? 80 : 48,
+                    borderRadius: isBig ? 24 : 24,
+                    borderWidth: isBig ? 6 : 4,
+                    backgroundColor: isReached
                       ? isBig
-                        ? "bg-amber-400 border-white"
+                        ? '#FBBF24'
                         : isClaimed
-                          ? "bg-white border-emerald-200"
-                          : "bg-white border-amber-300"
-                      : "bg-slate-100 border-slate-200",
-                    isSelected && "scale-110 bg-white border-amber-300"
-                  )}
+                          ? '#FFFFFF'
+                          : '#FFFFFF'
+                      : '#F1F5F9',
+                    borderColor: isReached
+                      ? isBig
+                        ? '#FFFFFF'
+                        : isClaimed
+                          ? '#A7F3D0'
+                          : '#FCD34D'
+                      : '#E2E8F0',
+                    transform: [
+                      { scale: isSelected ? 1.1 : 1 },
+                      ...(isBig ? [{ rotate: '3deg' }] : [])
+                    ],
+                  }}
                 >
                   {isLocked ? (
                     <MaterialCommunityIcons 
@@ -405,6 +408,6 @@ export const RewardProgress: React.FC<RewardProgressProps> = ({
           components={{ highlight: <Text className="text-slate-900 font-bold" /> }}
         />
       </Text>
-    </Pressable>
+    </View>
   );
 };

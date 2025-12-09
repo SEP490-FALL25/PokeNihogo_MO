@@ -162,10 +162,10 @@ export default function AccountDetailsScreen() {
                         </Text>
                       </View>
                     )}
-                    {!!userProfile?.rankName && (
+                    {!!userProfile?.level?.levelNumber && (
                       <View className="px-3 py-1 rounded-2xl bg-slate-100">
                         <Text className="text-xs font-bold text-slate-700">
-                          {userProfile.rankName}
+                          N{userProfile?.level?.levelNumber}
                         </Text>
                       </View>
                     )}
