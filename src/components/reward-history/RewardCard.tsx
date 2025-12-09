@@ -19,7 +19,31 @@ export const RewardCard: React.FC<RewardCardProps> = React.memo(
   ({ item, t }) => {
     const sourceInfo = getRewardSourceTypeInfo(item.sourceType);
     const Icon = sourceInfo.icon;
-    const isExpReward = item.rewardTargetSnapshot === "EXP";
+    const rewardType = item.rewardTargetSnapshot;
+    const isExpReward = rewardType === "EXP";
+    const isPokemonReward = rewardType === "POKEMON";
+
+    // Get badge colors based on reward type
+    const getBadgeColors = () => {
+      if (isExpReward) {
+        return {
+          bg: REWARD_HISTORY_COLORS.EXP_REWARD_BG,
+          text: REWARD_HISTORY_COLORS.EXP_REWARD_TEXT,
+        };
+      }
+      if (isPokemonReward) {
+        return {
+          bg: REWARD_HISTORY_COLORS.POKEMON_REWARD_BG,
+          text: REWARD_HISTORY_COLORS.POKEMON_REWARD_TEXT,
+        };
+      }
+      return {
+        bg: REWARD_HISTORY_COLORS.COIN_REWARD_BG,
+        text: REWARD_HISTORY_COLORS.COIN_REWARD_TEXT,
+      };
+    };
+
+    const badgeColors = getBadgeColors();
 
     return (
       <View className="mb-4">
@@ -55,18 +79,14 @@ export const RewardCard: React.FC<RewardCardProps> = React.memo(
               style={[
                 styles.amountBadge,
                 {
-                  backgroundColor: isExpReward
-                    ? REWARD_HISTORY_COLORS.EXP_REWARD_BG
-                    : REWARD_HISTORY_COLORS.COIN_REWARD_BG,
+                  backgroundColor: badgeColors.bg,
                 },
               ]}
               className="px-3 py-1.5 rounded-2xl"
             >
               <Text
                 style={{
-                  color: isExpReward
-                    ? REWARD_HISTORY_COLORS.EXP_REWARD_TEXT
-                    : REWARD_HISTORY_COLORS.COIN_REWARD_TEXT,
+                  color: badgeColors.text,
                 }}
                 className="text-lg font-extrabold"
               >
@@ -74,13 +94,13 @@ export const RewardCard: React.FC<RewardCardProps> = React.memo(
               </Text>
               <Text
                 style={{
-                  color: isExpReward
-                    ? REWARD_HISTORY_COLORS.EXP_REWARD_TEXT
-                    : REWARD_HISTORY_COLORS.COIN_REWARD_TEXT,
+                  color: badgeColors.text,
                 }}
                 className="text-xs font-bold"
               >
-                {item.rewardTargetSnapshot}
+                {t(`reward_history.reward_type.${rewardType.toLowerCase()}`, {
+                  defaultValue: rewardType,
+                })}
               </Text>
             </View>
           </View>

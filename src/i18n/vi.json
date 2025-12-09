@@ -1353,7 +1353,7 @@
     "total_rewards": "Tổng phần thưởng",
     "total_exp": "Tổng EXP",
     "reward_received": "Đã nhận phần thưởng",
-    "reward_type": "Loại phần thưởng",
+    "reward_type_label": "Loại phần thưởng",
     "reward_item": "Số lượng",
     "empty_title": "Chưa có phần thưởng nào",
     "empty_description": "Bạn chưa nhận được phần thưởng nào. Hãy hoàn thành bài học và bài tập để nhận phần thưởng!",
@@ -1368,10 +1368,19 @@
       "lesson": "Bài học",
       "test": "Bài kiểm tra",
       "daily_login": "Đăng nhập hàng ngày",
+      "daily_request": "Yêu cầu hàng ngày",
       "achievement": "Thành tích",
+      "achievement_reward": "Thưởng thành tích",
       "attendance": "Điểm danh",
       "season_reward": "Phần thưởng mùa giải",
+      "reward_service": "Dịch vụ thưởng",
+      "admin_adjust": "Điều chỉnh quản trị",
       "other": "Khác"
+    },
+    "reward_type": {
+      "exp": "EXP",
+      "coin": "COIN",
+      "pokemon": "POKEMON"
     },
     "filter": {
       "title": "Bộ lọc",

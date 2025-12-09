@@ -289,7 +289,7 @@ export function DailyLoginModal({
                           {t("daily_login.today_reward")}
                         </Text>
                         <View style={styles.coinRewardValue}>
-                          <MaterialIcons name="monetization-on" size={24} color="#f59e0b" />
+                          <Sparkles size={16} color="#f59e0b" />
                           <Text style={styles.coinAmount}>{todayCoinReward.baseCoin}</Text>
                         </View>
                       </View>
