@@ -397,6 +397,9 @@ export default function HomeScreen() {
   // State for stacked vs expanded mode
   const [isInsightsExpanded, setIsInsightsExpanded] = useState(false);
   const expandIconRotation = useSharedValue(0);
+  
+  // Ref to track processed mutation to prevent infinite loops
+  const processedMutationRef = useRef<number | null>(null);
 
   const flipAnim = useRef(new Animated.Value(0)).current;
   const backScrollRef = useRef(null);
@@ -575,15 +578,24 @@ export default function HomeScreen() {
   // Handle mark as read success/error with alerts
   useEffect(() => {
     if (markAsReadMutation.isSuccess) {
-      if (selectedInsight) {
-        setSelectedInsight({ ...selectedInsight, isRead: true });
+      // Check if we've already processed this mutation
+      const currentInsightId = selectedInsight?.id;
+      if (currentInsightId && processedMutationRef.current !== currentInsightId) {
+        processedMutationRef.current = currentInsightId;
+        
+        // Update local state immediately for better UX using functional update
+        setSelectedInsight((prev) => prev ? { ...prev, isRead: true } : null);
+        showAlert(
+          t("home.flashcard.marked_as_read", "Đã đánh dấu đã đọc"),
+          "success"
+        );
+        
+        // Reset mutation state immediately to prevent re-running
+        markAsReadMutation.reset();
       }
-      showAlert(
-        t("home.flashcard.marked_as_read", "Đã đánh dấu đã đọc"),
-        "success"
-      );
     }
-  }, [markAsReadMutation.isSuccess, selectedInsight, showAlert, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [markAsReadMutation.isSuccess, selectedInsight?.id]);
 
   useEffect(() => {
     if (markAsReadMutation.isError) {
@@ -591,8 +603,11 @@ export default function HomeScreen() {
         t("home.flashcard.mark_read_error", "Không thể đánh dấu đã đọc"),
         "error"
       );
+      // Reset mutation state to prevent re-running
+      markAsReadMutation.reset();
     }
-  }, [markAsReadMutation.isError, showAlert, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [markAsReadMutation.isError]);
 
   const handleDailyCheckin = useCallback(async () => {
     try {
@@ -720,6 +735,8 @@ export default function HomeScreen() {
     setSelectedInsight(null);
     setIsFrontSide(true);
     flipAnim.setValue(0);
+    // Reset processed mutation ref when closing modal
+    processedMutationRef.current = null;
   }, [flipAnim]);
 
   const toggleCardSide = useCallback(() => {

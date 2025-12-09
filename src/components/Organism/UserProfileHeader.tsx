@@ -1,5 +1,5 @@
 import { IUserEntity } from "@models/user/user.entity";
-import React, { useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { Animated, Easing, InteractionManager, Modal, Pressable, StyleSheet } from "react-native";
 import CompactHeader from "../molecules/CompactHeader";
 import ExpandedContent from "../molecules/ExpandedContent";
@@ -14,10 +14,10 @@ export default function UserProfileHeaderAtomic({
   style,
 }: UserProfileHeaderAtomicProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [slideAnim] = useState(new Animated.Value(-300));
-  const [opacityAnim] = useState(new Animated.Value(0));
+  const slideAnim = useRef(new Animated.Value(-300)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
-  const handleOpen = () => {
+  const handleOpen = useCallback(() => {
     setIsExpanded(true);
     // Reset opacity for fade in
     opacityAnim.setValue(0);
@@ -35,9 +35,9 @@ export default function UserProfileHeaderAtomic({
         easing: Easing.out(Easing.ease),
       }),
     ]).start();
-  };
+  }, [slideAnim, opacityAnim]);
 
-  const handleClose = (onComplete?: () => void) => {
+  const handleClose = useCallback((onComplete?: () => void) => {
     // Start navigation slightly before animation completes for seamless transition
     const navigationDelay = 200; // Start navigation at ~67% of animation
     
@@ -66,11 +66,11 @@ export default function UserProfileHeaderAtomic({
         setIsExpanded(false);
       });
     });
-  };
+  }, [slideAnim, opacityAnim]);
 
-  const handleCloseWithoutCallback = () => {
+  const handleCloseWithoutCallback = useCallback(() => {
     handleClose();
-  };
+  }, [handleClose]);
 
   return (
     <>
