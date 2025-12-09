@@ -12,6 +12,7 @@ import { formatDateToMMYYYY } from '@utils/date';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import {
+  Book,
   BookOpen,
   Calendar,
   ChevronRight,
@@ -276,8 +277,8 @@ export default function ProfileScreen() {
               style={styles.levelTag}
               className="flex-row items-center px-4.5 py-2.5 rounded-2xl gap-1.5 mb-3"
             >
-              <Trophy size={16} color="white" strokeWidth={2.5} />
-              <Text className="text-base font-bold text-white tracking-wide">{userProfile?.rankName}</Text>
+              <Book size={16} color="white" strokeWidth={2.5} />
+              <Text className="text-base font-bold text-white tracking-wide">N{userProfile?.level?.levelNumber}</Text>
             </LinearGradient>
 
             <View className="flex-row items-center gap-1.5">
