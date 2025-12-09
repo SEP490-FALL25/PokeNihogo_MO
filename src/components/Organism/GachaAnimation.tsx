@@ -1,7 +1,6 @@
 "use client"
 
-import { RARITY_MAP } from "@constants/gacha.enum"; // Đảm bảo đường dẫn này đúng
-// import { Sound } from "expo-av" // Bỏ comment nếu bạn muốn thêm âm thanh
+import { RARITY_MAP } from "@constants/gacha.enum";
 import { LinearGradient } from "expo-linear-gradient";
 import { Sparkles, Star } from "lucide-react-native";
 import { cssInterop } from "nativewind";
@@ -11,6 +10,7 @@ import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "rea
 import Animated, {
     Easing,
     FadeIn,
+    interpolate,
     runOnJS,
     useAnimatedProps,
     useAnimatedStyle,
@@ -21,14 +21,15 @@ import Animated, {
     withTiming,
     type SharedValue,
 } from "react-native-reanimated";
-// 1. IMPORT TỪ REACT-NATIVE-SVG
-import Svg, { Circle, Defs, Path, RadialGradient, Rect, Stop } from "react-native-svg";
+import Svg, { Circle, Defs, G, Path, RadialGradient, Stop } from "react-native-svg";
 
+// --- Cấu hình Tailwind cho Gradient ---
 cssInterop(LinearGradient, { className: "style" })
 const TWLinearGradient = LinearGradient as unknown as React.ComponentType<
     React.ComponentProps<typeof LinearGradient> & { className?: string }
 >
 
+// --- Màu sắc theo độ hiếm ---
 const RARITY_GLOW_COLORS = {
     [RARITY_MAP.COMMON]: "#64748b",
     [RARITY_MAP.UNCOMMON]: "#10b981",
@@ -37,7 +38,11 @@ const RARITY_GLOW_COLORS = {
     [RARITY_MAP.LEGENDARY]: "#facc15",
 }
 
-// --- Hiệu ứng nổ (Giữ nguyên) ---
+// --- Animation Components cho SVG ---
+const AnimatedG = Animated.createAnimatedComponent(G);
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+// --- 1. Component Hiệu ứng Nổ (Explosion) ---
 const ExplosionBurst = ({ color, onComplete }: { color: string; onComplete: () => void }) => {
     const particles = useMemo(
         () =>
@@ -56,13 +61,7 @@ const ExplosionBurst = ({ color, onComplete }: { color: string; onComplete: () =
     )
 
     return (
-        <View
-            style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-            }}
-        >
+        <View style={{ position: "absolute", top: "50%", left: "50%" }}>
             {particles.map((particle, i) => (
                 <ExplosionParticle
                     key={i}
@@ -160,150 +159,120 @@ const ExplosionFlash = ({ color }: { color: string }) => {
     )
 }
 
-// --- Component Pokéball bằng SVG (Có thể tách ra file riêng) ---
-// Tạo các Animated components từ react-native-svg
-const AnimatedCircle = Animated.createAnimatedComponent(Circle)
-const AnimatedPath = Animated.createAnimatedComponent(Path)
-const AnimatedRect = Animated.createAnimatedComponent(Rect)
-
+// --- 2. Component Pokéball Cao Cấp (Mới) ---
 interface AnimatedPokeballIconProps {
     size?: number
-    isOpen: SharedValue<number> // SharedValue để điều khiển trạng thái mở (0 = đóng, 1 = mở)
-    color?: string // Màu sắc cho hiệu ứng hào quang/ánh sáng
+    isOpen: SharedValue<number>
+    color?: string
 }
 
 const AnimatedPokeballIcon = ({ size = 100, isOpen, color = "#facc15" }: AnimatedPokeballIconProps) => {
     const half = size / 2
-    const strokeWidth = size * 0.07 // Độ dày của đường viền
-    const separationDistance = size * 0.2 // Khoảng cách nửa trên/dưới tách ra
+    const strokeWidth = size * 0.05
 
-    // Hiệu ứng cho nửa trên (di chuyển lên)
-    const animatedPropsTopPath = useAnimatedProps(() => {
-        // react-native-svg expects a transform array on native; a string causes
-        // a ReadableArray cast crash in the bridge. Keep it as an array of
-        // transform objects.
-        const translateY = -separationDistance * isOpen.value // Dịch chuyển lên khi isOpen tăng
+    // 1. Hiệu ứng lõi năng lượng bên trong (Phình to ra khi mở)
+    const innerLightStyle = useAnimatedProps(() => ({
+        r: withTiming(isOpen.value * (size * 0.45), { duration: 300 }), 
+        opacity: withTiming(isOpen.value, { duration: 150 }),
+    }));
+
+    // 2. Hiệu ứng Nắp Trên (Xoay bản lề + Bay lên)
+    const topHalfStyle = useAnimatedStyle(() => {
+        // Mô phỏng xoay quanh tâm (bản lề ảo ở phía sau)
+        const rotate = interpolate(isOpen.value, [0, 1], [0, -50]); 
+        const translateY = interpolate(isOpen.value, [0, 1], [0, -size * 0.2]); 
+        const translateX = interpolate(isOpen.value, [0, 1], [0, -size * 0.1]); 
+
         return {
-            transform: [{ translateX: 0 }, { translateY }],
-        }
-    })
+            transform: [
+                { translateX: half }, { translateY: half }, // Dời tâm xoay về giữa
+                { rotate: `${rotate}deg` },
+                { translateX: -half }, { translateY: -half }, // Trả về vị trí
+                { translateX }, 
+                { translateY }
+            ],
+        };
+    });
 
-    // Hiệu ứng cho nửa dưới (di chuyển xuống)
-    const animatedPropsBottomPath = useAnimatedProps(() => {
-        const translateY = separationDistance * isOpen.value // Dịch chuyển xuống khi isOpen tăng
+    // 3. Hiệu ứng Nắp Dưới (Hơi giật xuống tạo phản lực)
+    const bottomHalfStyle = useAnimatedStyle(() => {
+        const translateY = interpolate(isOpen.value, [0, 1], [0, size * 0.1]);
         return {
-            transform: [{ translateX: 0 }, { translateY }],
-        }
-    })
-
-    // Hiệu ứng cho đường kẻ giữa (mờ dần)
-    const animatedPropsMidRect = useAnimatedProps(() => {
-        const opacity = 1 - isOpen.value // Mờ dần khi mở
-        return { opacity: opacity }
-    })
-
-    // Hiệu ứng cho vòng tròn ngoài cùng của nút giữa (mờ dần)
-    const animatedPropsCenterOuterCircle = useAnimatedProps(() => {
-        const opacity = 1 - isOpen.value // Mờ dần khi mở
-        return { opacity: opacity }
-    })
-
-    // Hiệu ứng cho vòng tròn trong cùng của nút giữa (mờ dần)
-    const animatedPropsCenterInnerCircle = useAnimatedProps(() => {
-        const opacity = 1 - isOpen.value // Mờ dần khi mở
-        return { opacity: opacity }
-    })
-
-    // Hiệu ứng hào quang/ánh sáng khi mở
-    const animatedPropsGlow = useAnimatedProps(() => {
-        const scale = 1 + isOpen.value * 2 // Tăng kích thước hào quang
-        const opacity = isOpen.value * 0.8 // Xuất hiện khi mở
-        return {
-            transform: [{ scale: scale }],
-            opacity: opacity,
-            fill: color, // Sử dụng màu được truyền vào
-        }
-    })
+            transform: [{ translateY }],
+        };
+    });
 
     return (
         <View style={{ width: size, height: size }}>
             <Svg height={size} width={size} viewBox="0 0 100 100">
                 <Defs>
-                    <RadialGradient
-                        id="grad"
-                        cx="50%"
-                        cy="50%"
-                        rx="50%"
-                        ry="50%"
-                        fx="50%"
-                        fy="50%"
-                        gradientUnits="userSpaceOnUse"
-                    >
+                    {/* Gradient cho lõi năng lượng */}
+                    <RadialGradient id="glow" cx="50%" cy="50%" rx="50%" ry="50%">
+                        <Stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+                        <Stop offset="40%" stopColor="#ffffff" stopOpacity="0.9" />
+                        <Stop offset="100%" stopColor={color} stopOpacity="0.2" />
+                    </RadialGradient>
+                    {/* Gradient cho nút bấm */}
+                    <RadialGradient id="btnGrad" cx="50%" cy="50%" rx="50%" ry="50%">
                         <Stop offset="0%" stopColor="#fff" stopOpacity="1" />
-                        <Stop offset="60%" stopColor="#eee" stopOpacity="1" />
-                        <Stop offset="100%" stopColor="#aaa" stopOpacity="1" />
+                        <Stop offset="100%" stopColor="#ddd" stopOpacity="1" />
                     </RadialGradient>
                 </Defs>
 
-                {/* Hào quang khi mở */}
+                {/* --- Lõi ánh sáng (Nằm dưới cùng) --- */}
                 <AnimatedCircle
-                    cx={half}
-                    cy={half}
-                    r={half * 0.7} // Kích thước ban đầu của hào quang
-                    animatedProps={animatedPropsGlow}
+                    cx="50"
+                    cy="50"
+                    fill="url(#glow)"
+                    animatedProps={innerLightStyle}
                 />
 
-                {/* Nửa màu đỏ trên */}
-                <AnimatedPath animatedProps={animatedPropsTopPath} d={`M 5 50 A 45 45 0 0 1 95 50`} fill="#e74c3c" />
+                {/* --- Nắp Dưới (Trắng) --- */}
+                <AnimatedG animatedProps={bottomHalfStyle}>
+                    <Path
+                        d="M 5 50 A 45 45 0 0 0 95 50 L 95 50 L 5 50 Z"
+                        fill="white"
+                        stroke="#2c3e50"
+                        strokeWidth={strokeWidth}
+                    />
+                    <Path
+                        d="M 35 50 A 15 15 0 0 0 65 50"
+                        fill="white"
+                        stroke="#2c3e50"
+                        strokeWidth={strokeWidth}
+                    />
+                </AnimatedG>
 
-                {/* Nửa màu trắng dưới */}
-                <AnimatedPath animatedProps={animatedPropsBottomPath} d={`M 5 50 A 45 45 0 0 0 95 50`} fill="#fff" />
-
-                {/* Viền đen bên ngoài (không cần animation) */}
-                <Circle
-                    cx={half}
-                    cy={half}
-                    r={half - strokeWidth / 2}
-                    fill="none"
-                    stroke="#2c3e50"
-                    strokeWidth={strokeWidth}
-                />
-
-                {/* Đường kẻ đen ở giữa */}
-                <AnimatedRect
-                    animatedProps={animatedPropsMidRect}
-                    x="0"
-                    y={half - strokeWidth / 2}
-                    width={size}
-                    height={strokeWidth}
-                    fill="#2c3e50"
-                />
-
-                {/* Nút tròn ở giữa (viền ngoài) */}
-                <AnimatedCircle
-                    animatedProps={animatedPropsCenterOuterCircle}
-                    cx={half}
-                    cy={half}
-                    r={size * 0.18}
-                    fill="#2c3e50"
-                />
-
-                {/* Nút tròn ở giữa (lòng trong) */}
-                <AnimatedCircle
-                    animatedProps={animatedPropsCenterInnerCircle}
-                    cx={half}
-                    cy={half}
-                    r={size * 0.12}
-                    fill="url(#grad)"
-                    stroke="#2c3e50"
-                    strokeWidth={size * 0.02}
-                />
+                {/* --- Nắp Trên (Đỏ) --- */}
+                <AnimatedG animatedProps={topHalfStyle}>
+                    <Path
+                        d="M 5 50 A 45 45 0 0 1 95 50 L 95 50 L 5 50 Z"
+                        fill="#ef4444"
+                        stroke="#2c3e50"
+                        strokeWidth={strokeWidth}
+                    />
+                    <Path
+                        d="M 35 50 A 15 15 0 0 1 65 50"
+                        fill="#ef4444"
+                        stroke="#2c3e50"
+                        strokeWidth={strokeWidth}
+                    />
+                    {/* Nút bấm (Gắn liền nắp trên) */}
+                    <Circle
+                        cx="50"
+                        cy="50"
+                        r="8"
+                        fill="url(#btnGrad)"
+                        stroke="#2c3e50"
+                        strokeWidth={2}
+                    />
+                </AnimatedG>
             </Svg>
         </View>
     )
 }
 
-// --- Component Ném Bóng (Phần chính bạn hỏi) ---
+// --- 3. Animation Ném Bóng & Mở ---
 enum ThrowStage {
     INITIAL,
     THROWING,
@@ -311,8 +280,7 @@ enum ThrowStage {
     WIGGLE2,
     WIGGLE3,
     CATCH_SUCCESS,
-    OPENING_POKEBALL, // Giai đoạn mở bóng
-    EXPLODE,
+    OPENING_POKEBALL,
 }
 
 const PokeballThrowAnimation = ({ highestRarity, onComplete }: { highestRarity: number; onComplete: () => void }) => {
@@ -325,89 +293,82 @@ const PokeballThrowAnimation = ({ highestRarity, onComplete }: { highestRarity: 
     const pokeballRotate = useSharedValue(0)
     const pokeballOpacity = useSharedValue(0)
     const pokeballWiggle = useSharedValue(0)
-
-    // SharedValue mới để điều khiển việc mở Pokéball
-    const pokeballIsOpen = useSharedValue(0) // 0 = đóng, 1 = mở
+    
+    // SharedValues cho hiệu ứng mở
+    const pokeballIsOpen = useSharedValue(0) 
+    const whiteFlashOpacity = useSharedValue(0)
 
     const [stage, setStage] = useState(ThrowStage.INITIAL)
     const [showExplosion, setShowExplosion] = useState(false)
 
-    // ... (Optional: Load sound) ...
-
     useEffect(() => {
         if (stage === ThrowStage.INITIAL) {
+            // Ném bóng vào
             pokeballOpacity.value = withTiming(1, { duration: 300 })
             pokeballScale.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.quad) })
             pokeballTranslateX.value = withTiming(
-                screenWidth / 2 - 50, // Vị trí trung tâm (trừ 1 nửa width)
+                screenWidth / 2 - 60, // Căn giữa chính xác hơn (size 120/2 = 60)
                 { duration: 1000, easing: Easing.out(Easing.quad) },
             )
             pokeballTranslateY.value = withTiming(
-                screenHeight / 2 - 50, // Vị trí trung tâm (trừ 1 nửa height)
+                screenHeight / 2 - 60, 
                 { duration: 1000, easing: Easing.out(Easing.quad) },
                 (finished) => {
-                    if (finished) {
-                        runOnJS(setStage)(ThrowStage.WIGGLE1)
-                    }
+                    if (finished) runOnJS(setStage)(ThrowStage.WIGGLE1)
                 },
             )
             pokeballRotate.value = withTiming(720, { duration: 1000, easing: Easing.out(Easing.quad) })
-        } else if (stage === ThrowStage.WIGGLE1) {
-            pokeballWiggle.value = withSequence(
-                withTiming(-10, { duration: 200, easing: Easing.inOut(Easing.quad) }),
-                withTiming(10, { duration: 200, easing: Easing.inOut(Easing.quad) }),
-                withTiming(-5, { duration: 150, easing: Easing.inOut(Easing.quad) }),
-                withTiming(5, { duration: 150, easing: Easing.inOut(Easing.quad) }),
-                withTiming(0, { duration: 100, easing: Easing.inOut(Easing.quad) }, (finished) => {
-                    if (finished) runOnJS(setStage)(ThrowStage.WIGGLE2)
-                }),
+        } 
+        // Lắc lần 1
+        else if (stage === ThrowStage.WIGGLE1) {
+             pokeballWiggle.value = withSequence(
+                withTiming(-12, { duration: 150 }), withTiming(12, { duration: 150 }),
+                withTiming(0, { duration: 100 }, (f) => f && runOnJS(setStage)(ThrowStage.WIGGLE2))
             )
-        } else if (stage === ThrowStage.WIGGLE2) {
-            pokeballWiggle.value = withSequence(
-                withDelay(
-                    200, // Độ trễ giữa các lần lắc
-                    withTiming(-8, { duration: 180, easing: Easing.inOut(Easing.quad) }),
-                ),
-                withTiming(8, { duration: 180, easing: Easing.inOut(Easing.quad) }),
-                withTiming(-4, { duration: 120, easing: Easing.inOut(Easing.quad) }),
-                withTiming(4, { duration: 120, easing: Easing.inOut(Easing.quad) }),
-                withTiming(0, { duration: 80, easing: Easing.inOut(Easing.quad) }, (finished) => {
-                    if (finished) runOnJS(setStage)(ThrowStage.WIGGLE3)
-                }),
+        } 
+        // Lắc lần 2
+        else if (stage === ThrowStage.WIGGLE2) {
+             pokeballWiggle.value = withSequence(
+                withDelay(300, withTiming(-8, { duration: 150 })), withTiming(8, { duration: 150 }),
+                withTiming(0, { duration: 100 }, (f) => f && runOnJS(setStage)(ThrowStage.WIGGLE3))
             )
-        } else if (stage === ThrowStage.WIGGLE3) {
-            pokeballWiggle.value = withSequence(
-                withDelay(
-                    200, // Độ trễ giữa các lần lắc
-                    withTiming(-6, { duration: 150, easing: Easing.inOut(Easing.quad) }),
-                ),
-                withTiming(6, { duration: 150, easing: Easing.inOut(Easing.quad) }),
-                withTiming(-3, { duration: 100, easing: Easing.inOut(Easing.quad) }),
-                withTiming(3, { duration: 100, easing: Easing.inOut(Easing.quad) }),
-                withTiming(0, { duration: 70, easing: Easing.inOut(Easing.quad) }, (finished) => {
-                    if (finished) runOnJS(setStage)(ThrowStage.CATCH_SUCCESS)
-                }),
+        }
+        // Lắc lần 3
+        else if (stage === ThrowStage.WIGGLE3) {
+             pokeballWiggle.value = withSequence(
+                withDelay(300, withTiming(-5, { duration: 150 })), withTiming(5, { duration: 150 }),
+                withTiming(0, { duration: 100 }, (f) => f && runOnJS(setStage)(ThrowStage.CATCH_SUCCESS))
             )
-        } else if (stage === ThrowStage.CATCH_SUCCESS) {
-            // Đã bắt thành công, dừng lắc và chuyển sang giai đoạn MỞ
-            pokeballWiggle.value = withTiming(0, { duration: 100 }, (finished) => {
+        }
+        // Dừng lắc, chuẩn bị mở
+        else if (stage === ThrowStage.CATCH_SUCCESS) {
+            pokeballWiggle.value = withTiming(0, { duration: 200 }, (finished) => {
                 if (finished) {
                     runOnJS(setStage)(ThrowStage.OPENING_POKEBALL)
                 }
             })
-        } else if (stage === ThrowStage.OPENING_POKEBALL) {
-            // Kích hoạt hiệu ứng mở bóng
-            pokeballIsOpen.value = withTiming(1, { duration: 600, easing: Easing.out(Easing.quad) }, (finished) => {
-                if (finished) {
-                    // Sau khi mở xong, làm mờ bóng đi
-                    pokeballOpacity.value = withTiming(0, { duration: 300 }, (finishedExplosion) => {
-                        if (finishedExplosion) {
-                            // Sau khi bóng mờ, kích hoạt hiệu ứng nổ
-                            runOnJS(setShowExplosion)(true)
-                        }
-                    })
-                }
-            })
+        } 
+        // Mở bóng và chớp sáng
+        else if (stage === ThrowStage.OPENING_POKEBALL) {
+            // 1. Mở nắp bóng (bật mạnh ra)
+            pokeballIsOpen.value = withTiming(1, { duration: 500, easing: Easing.out(Easing.back(1.5)) });
+            
+            // 2. Bóng to lên một chút trước khi nổ (tạo đà)
+            pokeballScale.value = withTiming(1.3, { duration: 400, easing: Easing.in(Easing.quad) });
+
+            // 3. Màn hình chớp trắng ngay khi mở hết cỡ
+            whiteFlashOpacity.value = withDelay(300, withSequence(
+                withTiming(1, { duration: 100 }), // Chớp sáng cực nhanh
+                withTiming(0, { duration: 600, easing: Easing.out(Easing.quad) }, (finished) => {
+                    if (finished) {
+                        // Kích hoạt nổ hạt sau khi chớp
+                        runOnJS(setShowExplosion)(true)
+                    }
+                })
+            ));
+
+            // 4. Làm biến mất quả bóng ngay trong lúc màn hình trắng xoá
+            pokeballOpacity.value = withDelay(350, withTiming(0, { duration: 100 }));
         }
     }, [stage])
 
@@ -420,6 +381,12 @@ const PokeballThrowAnimation = ({ highestRarity, onComplete }: { highestRarity: 
             { rotate: `${pokeballRotate.value + pokeballWiggle.value}deg` },
         ],
         position: "absolute",
+        zIndex: 10,
+    }))
+
+    const flashStyle = useAnimatedStyle(() => ({
+        opacity: whiteFlashOpacity.value,
+        zIndex: 20, // Phải nằm trên bóng
     }))
 
     const handleExplosionComplete = () => {
@@ -428,24 +395,31 @@ const PokeballThrowAnimation = ({ highestRarity, onComplete }: { highestRarity: 
 
     return (
         <View style={StyleSheet.absoluteFill} className="bg-slate-950">
+            {/* Background mờ ảo */}
             <TWLinearGradient
-                colors={["rgba(15, 23, 42, 0)", color + "15", "rgba(15, 23, 42, 0)"]}
+                colors={["rgba(15, 23, 42, 0)", color + "20", "rgba(15, 23, 42, 0)"]}
                 className="absolute inset-0"
-                style={{ opacity: 0.3 }}
+                style={{ opacity: 0.5 }}
             />
 
+            {/* Quả bóng */}
             <Animated.View style={pokeballAnimatedStyle}>
-                {/* Sử dụng AnimatedPokeballIcon và truyền các props */}
-                <AnimatedPokeballIcon size={100} isOpen={pokeballIsOpen} color={color} />
+                <AnimatedPokeballIcon size={120} isOpen={pokeballIsOpen} color={color} />
             </Animated.View>
 
+            {/* Màn hình chớp trắng (Che khuyết điểm lúc chuyển cảnh) */}
+            <Animated.View 
+                style={[StyleSheet.absoluteFill, { backgroundColor: 'white' }, flashStyle]} 
+                pointerEvents="none"
+            />
+
+            {/* Hiệu ứng nổ hạt */}
             {showExplosion && <ExplosionBurst color={color} onComplete={handleExplosionComplete} />}
         </View>
     )
 }
-// --- Kết thúc: Component Ném Bóng ---
 
-// --- Các component hiển thị (Giữ nguyên) ---
+// --- 4. Các Component hiển thị khác (Giữ nguyên logic cũ) ---
 type FloatingSparkleProps = {
     color: string
     delay: number
@@ -570,7 +544,7 @@ const RevealItem = ({ item, onNext }: { item: any; onNext: () => void }) => {
                                 className="absolute top-2 right-2 bg-amber-500/95 px-2 py-1 rounded flex-row items-center gap-1"
                             >
                                 <Sparkles size={14} color="#ffffff" fill="#ffffff" />
-                                <Text className="text-white font-bold text-xs">{item.sparkles}</Text>
+                                <Text className="text-white font-bold text-xs">{parseFloat(item.sparkles).toFixed(2)}</Text>
                             </Animated.View>
                         )}
                     </View>
@@ -587,7 +561,7 @@ const RevealItem = ({ item, onNext }: { item: any; onNext: () => void }) => {
     )
 }
 
-// --- Component Chính (Giữ nguyên) ---
+// --- 5. Component Chính ---
 export default function GachaAnimation({ results, onFinish }: { results: any; onFinish: () => void }) {
     const [stage, setStage] = useState("pokeballThrow")
     const [currentIndex, setCurrentIndex] = useState(0)
@@ -634,7 +608,7 @@ export default function GachaAnimation({ results, onFinish }: { results: any; on
                                         {item.isDuplicate && item.sparkles && (
                                             <View className="absolute top-1 right-1 bg-amber-500 px-1.5 py-0.5 rounded flex-row items-center gap-0.5">
                                                 <Sparkles size={10} color="#ffffff" fill="#ffffff" />
-                                                <Text className="text-white font-bold text-[10px]">{item.sparkles}</Text>
+                                                <Text className="text-white font-bold text-[10px]">{parseFloat(item.sparkles).toFixed(2)}</Text>
                                             </View>
                                         )}
                                         <Text className="text-white text-xs font-bold">{item.name}</Text>
