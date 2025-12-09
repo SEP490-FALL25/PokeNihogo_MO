@@ -924,10 +924,10 @@ export default function ConversationScreen() {
                 isAudioPlaying ||
                 (isSequencing && !awaitingUser)
               }
-              showWaveform={false}
+              // showWaveform={false}
               maxDuration={10}
               showSaveButton={false}
-              showDeleteButton={false}
+              // showDeleteButton={false}
               autoStopOnSilence={true}
               silenceDurationSeconds={4}
               silenceDbThreshold={-50}

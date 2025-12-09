@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     textAlign: "center",
     marginBottom: 12,
-    paddingHorizontal: 20,
+    padding: 24,
   },
   welcomeMessage: {
     fontSize: 16,
