@@ -1038,8 +1038,8 @@
     "close": "Đóng",
     "loading_state": "Đang tải dữ liệu điểm danh...",
     "today_reward": "Phần thưởng hôm nay",
-    "bonus_info": "Điểm danh thêm {{count}} ngày để nhận thêm {{bonus}} coin bonus!",
-    "bonus_active": "🎉 Bạn sẽ nhận thêm {{bonus}} coin bonus!",
+    "bonus_info": "Điểm danh thêm {{count}} ngày để nhận thêm {{bonus}} bụi sao!",
+    "bonus_active": "🎉 Bạn sẽ nhận thêm {{bonus}} bụi sao!",
     "day_names": {
       "sun": "CN",
       "mon": "T2",

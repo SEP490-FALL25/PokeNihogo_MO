@@ -1025,8 +1025,8 @@
     "close": "Close",
     "loading_state": "Loading attendance data...",
     "today_reward": "Today's Reward",
-    "bonus_info": "Check in {{count}} more day(s) to receive {{bonus}} bonus coins!",
-    "bonus_active": "🎉 You will receive {{bonus}} bonus coins!",
+    "bonus_info": "Check in {{count}} more day(s) to receive {{bonus}} sparkles!",
+    "bonus_active": "🎉 You will receive {{bonus}} sparkles!",
     "day_names": {
       "sun": "Sun",
       "mon": "Mon",
