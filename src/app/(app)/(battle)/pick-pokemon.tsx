@@ -70,6 +70,7 @@ export default function PickPokemonScreen() {
   const totalRounds = matchRound?.rounds?.length ?? 3;
 
   const [typeId, setTypeId] = useState<number>(1);
+  const [timeLimitMs, setTimeLimitMs] = useState<number>(5000);
   const {
     data: listUserPokemonRound,
     isLoading: isLoadingListUserPokemonRound,
@@ -127,64 +128,29 @@ export default function PickPokemonScreen() {
     let isPlayerTurn = false;
     let isOpponentTurn = false;
 
-    if (currentRound?.status === "SELECTING_POKEMON") {
-      const playerHasPicked = !!currentPlayer?.selectedUserPokemonId;
-      const opponentHasPicked = !!currentOpponent?.selectedUserPokemonId;
+    // Logic xác định lượt dựa trên orderSelected và trạng thái đã pick
+    const determineTurn = (p1: any, p2: any) => {
+      const p1Picked = !!p1?.selectedUserPokemonId;
+      const p2Picked = !!p2?.selectedUserPokemonId;
 
-      if (!playerHasPicked && opponentHasPicked) {
-        isPlayerTurn = true;
-      } else if (playerHasPicked && !opponentHasPicked) {
-        isOpponentTurn = true;
-      } else if (!playerHasPicked && !opponentHasPicked) {
-        if (
-          currentPlayer?.orderSelected !== undefined &&
-          currentOpponent?.orderSelected !== undefined
-        ) {
-          if (currentPlayer.orderSelected < currentOpponent.orderSelected) {
-            isPlayerTurn = true;
-          } else if (
-            currentOpponent.orderSelected < currentPlayer.orderSelected
-          ) {
-            isOpponentTurn = true;
-          }
-        } else {
-          const playerOrder = currentPlayer?.orderSelected;
-          const opponentOrder = currentOpponent?.orderSelected;
+      // Nếu 1 người chưa pick và người kia đã pick -> lượt người chưa pick
+      if (!p1Picked && p2Picked) return { p1Turn: true, p2Turn: false };
+      if (p1Picked && !p2Picked) return { p1Turn: false, p2Turn: true };
 
-          if (playerOrder !== undefined && opponentOrder !== undefined) {
-            if (playerOrder < opponentOrder) {
-              isPlayerTurn = true;
-            } else if (opponentOrder < playerOrder) {
-              isOpponentTurn = true;
-            }
-          } else {
-            if (currentPlayer?.orderSelected === 1) isPlayerTurn = true;
-            if (currentOpponent?.orderSelected === 1) isOpponentTurn = true;
-          }
-        }
+      // Nếu cả 2 chưa pick hoặc cả 2 đã pick (tranh chấp/đồng thời) -> check order
+      if (p1?.orderSelected !== undefined && p2?.orderSelected !== undefined) {
+        if (p1.orderSelected < p2.orderSelected) return { p1Turn: true, p2Turn: false };
+        if (p2.orderSelected < p1.orderSelected) return { p1Turn: false, p2Turn: true };
       }
-    } else if (currentRound?.status === "PENDING") {
-      const playerHasPicked = !!currentPlayer?.selectedUserPokemonId;
-      const opponentHasPicked = !!currentOpponent?.selectedUserPokemonId;
 
-      if (!playerHasPicked && opponentHasPicked) {
-        isPlayerTurn = true;
-      } else if (playerHasPicked && !opponentHasPicked) {
-        isOpponentTurn = true;
-      } else if (!playerHasPicked && !opponentHasPicked) {
-        if (
-          currentPlayer?.orderSelected !== undefined &&
-          currentOpponent?.orderSelected !== undefined
-        ) {
-          if (currentPlayer.orderSelected < currentOpponent.orderSelected) {
-            isPlayerTurn = true;
-          } else if (
-            currentOpponent.orderSelected < currentPlayer.orderSelected
-          ) {
-            isOpponentTurn = true;
-          }
-        }
-      }
+      // Fallback
+      return { p1Turn: false, p2Turn: false };
+    };
+
+    if (currentRound?.status === "SELECTING_POKEMON" || currentRound?.status === "PENDING") {
+      const { p1Turn, p2Turn } = determineTurn(currentPlayer, currentOpponent);
+      isPlayerTurn = p1Turn;
+      isOpponentTurn = p2Turn;
     }
 
     const currentPicker: "player" | "opponent" | null = isPlayerTurn
@@ -211,6 +177,7 @@ export default function PickPokemonScreen() {
         currentRound?.status === "SELECTING_POKEMON" ||
         currentRound?.status === "PENDING"
       ) {
+        // Ưu tiên deadline của người đang có lượt
         let activeDeadline: string | null = null;
         if (currentPicker === "player") {
           activeDeadline = validateDeadline(currentPlayer?.endTimeSelected);
@@ -218,12 +185,22 @@ export default function PickPokemonScreen() {
           activeDeadline = validateDeadline(currentOpponent?.endTimeSelected);
         }
         if (activeDeadline) return activeDeadline;
+
+        // Nếu không có, fallback sang người còn lại (để hiển thị countdown chung)
+        if (currentPicker === "player") {
+          // Nếu lượt mình mà chưa có deadline, thử lấy deadline của đối thủ (trường hợp đồng bộ chậm)
+          activeDeadline = validateDeadline(currentOpponent?.endTimeSelected);
+        } else if (currentPicker === "opponent") {
+          activeDeadline = validateDeadline(currentPlayer?.endTimeSelected);
+        }
+        if (activeDeadline) return activeDeadline;
+
+        // Fallback cuối cùng: endTimeRound hoặc tạo giả lập từ timeLimitMs nếu cần
         const roundDeadline = validateDeadline(currentRound?.endTimeRound);
         if (roundDeadline) return roundDeadline;
-        let fallbackDeadline = validateDeadline(currentPlayer?.endTimeSelected);
-        if (fallbackDeadline) return fallbackDeadline;
-        fallbackDeadline = validateDeadline(currentOpponent?.endTimeSelected);
-        if (fallbackDeadline) return fallbackDeadline;
+
+        // Nếu tất cả đều null, có thể server chưa gửi deadline. 
+        // Không tự ý tạo deadline để tránh sai lệch thêm.
       }
       return null;
     })();
@@ -282,7 +259,7 @@ export default function PickPokemonScreen() {
       currentPlayer,
       currentOpponent,
     };
-  }, [matchRound, currentUserId]);
+  }, [matchRound, currentUserId, timeLimitMs]);
 
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
   const parseRoundNumber = (roundValue?: string | null) => {
@@ -646,10 +623,14 @@ export default function PickPokemonScreen() {
     socket.emit("join-user-match-room", { matchId });
 
     const handleSelectPokemon = (payload: any) => {
+      console.log("handleSelectPokemon", payload);
       if (
         payload?.matchId &&
         payload.matchId.toString() === matchId.toString()
       ) {
+        if (payload?.timeLimitMs) {
+          setTimeLimitMs(payload.timeLimitMs);
+        }
         if (payload?.data) {
           queryClient.setQueryData(["list-match-round"], (oldData: any) => {
             return payload.data;
@@ -663,8 +644,14 @@ export default function PickPokemonScreen() {
     };
 
     const handleRoundStarting = (payload: any) => {
+      console.log("handleRoundStarting", payload);
       if (payload?.startTime) {
-        const offset = new Date(payload.startTime).getTime() - Date.now();
+        // startTime là thời gian bắt đầu round (tương lai)
+        // delaySeconds là thời gian đếm ngược từ bây giờ đến startTime
+        // => ServerNow = startTime - delaySeconds
+        // => Offset = ServerNow - ClientNow
+        const delayMs = (payload?.delaySeconds || 0) * 1000;
+        const offset = new Date(payload.startTime).getTime() - delayMs - Date.now();
         setServerTimeOffset(offset);
       }
       if (
@@ -686,6 +673,7 @@ export default function PickPokemonScreen() {
 
     // 🔥 QUAN TRỌNG: ĐỊNH NGHĨA HANDLER RIÊNG
     const handleRoundStarted = (payload: any) => {
+      console.log("handleRoundStarted", payload);
       // Hủy listener này ngay lập tức
       socket.off("round-started", handleRoundStarted);
 

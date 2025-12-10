@@ -952,7 +952,15 @@
         "delete_confirm_message": "Bạn có chắc chắn muốn xóa cuộc hội thoại này? Hành động này không thể hoàn tác.",
         "delete": "Xóa",
         "delete_success": "Đã xóa cuộc hội thoại thành công",
-        "delete_error": "Không thể xóa cuộc hội thoại. Vui lòng thử lại."
+        "delete_error": "Không thể xóa cuộc hội thoại. Vui lòng thử lại.",
+        "card_new_conversation": "Cuộc trò chuyện mới",
+        "card_no_messages": "Chưa có tin nhắn",
+        "time": {
+          "just_now": "Vừa xong",
+          "minutes": "{{count}} phút trước",
+          "hours": "{{count}} giờ trước",
+          "days": "{{count}} ngày trước"
+        }
       }
     },
     "insight_locked": {
