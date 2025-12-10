@@ -23,6 +23,7 @@ export const useRefetchUserData = () => {
     const refetchAll = useCallback(async () => {
         // Invalidate queries
         queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+        // Invalidate subscription marketplace packages (with accessToken in queryKey)
         queryClient.invalidateQueries({ queryKey: ['subscription-marketplace-packages'] });
         queryClient.invalidateQueries({ queryKey: ['user-subscription'] });
         queryClient.invalidateQueries({ queryKey: ['wallet-user'] });
@@ -31,16 +32,18 @@ export const useRefetchUserData = () => {
         queryClient.invalidateQueries({ queryKey: ['user-tests'] });
 
         // Manually refetch to ensure fresh data
-        refetchPackages();
+        if (accessToken) {
+            refetchPackages();
+        }
         refetchSubscription();
         refetchWallet();
-        
+
         // Refetch subscription features and update global state immediately
         if (accessToken) {
             try {
                 // Refetch query
                 await queryClient.refetchQueries({ queryKey: ['user-subscription-features', accessToken] });
-                
+
                 // Also fetch and update global state directly to ensure immediate update
                 const response = await subscriptionService.getUserFeatures();
                 if (response?.features) {

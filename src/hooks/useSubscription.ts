@@ -10,9 +10,12 @@ import { useEffect } from "react";
  * @returns Query object with packages data
  */
 export const useSubscriptionMarketplacePackages = () => {
+    const { accessToken } = useAuthStore();
+
     return useQuery({
-        queryKey: ['subscription-marketplace-packages'],
+        queryKey: ['subscription-marketplace-packages', accessToken],
         queryFn: () => subscriptionService.getMarketplacePackages(),
+        enabled: !!accessToken, // Only fetch when user is authenticated
     });
 };
 //----------------------End----------------------//
