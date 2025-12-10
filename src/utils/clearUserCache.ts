@@ -68,8 +68,14 @@ export const clearUserCache = () => {
         ];
 
         // Remove all queries that start with any of the user query keys
+        // Use try-catch for each removal to prevent one failure from stopping the rest
         userQueryKeys.forEach((key) => {
-            queryClient.removeQueries({ queryKey: [key] });
+            try {
+                queryClient.removeQueries({ queryKey: [key] });
+            } catch (error) {
+                // Silently continue if one query removal fails
+                console.warn(`Failed to remove query key: ${key}`, error);
+            }
         });
 
         console.log('User cache cleared successfully');
@@ -80,6 +86,7 @@ export const clearUserCache = () => {
             queryClient.clear();
         } catch (clearError) {
             console.error('Error clearing all cache:', clearError);
+            // Don't throw - we don't want to break logout flow
         }
     }
 };

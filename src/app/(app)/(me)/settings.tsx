@@ -31,7 +31,7 @@ export default function SettingsScreen() {
         {/* Logout Button */}
         <BounceButton
           variant="secondary"
-          onPress={async () => {
+          onPress={() => {
             Alert.alert(
               t("settings.logout_title"),
               t("settings.logout_message"),
@@ -40,8 +40,14 @@ export default function SettingsScreen() {
                 {
                   text: t("settings.logout"),
                   onPress: async () => {
-                    await deleteAccessToken();
-                    router.replace(ROUTES.AUTH.WELCOME);
+                    try {
+                      await deleteAccessToken();
+                    } catch (error) {
+                      console.error('Logout error:', error);
+                    } finally {
+                      // Always navigate to welcome screen even if logout fails
+                      router.replace(ROUTES.AUTH.WELCOME);
+                    }
                   },
                 },
               ]
