@@ -27,6 +27,7 @@ export const createAuthSlice = (set: any): ZUSTAND.IAuthState => ({
   deleteAccessToken: async () => {
     try {
       await deleteSecureStorage('accessToken');
+      await deleteSecureStorage('refreshToken');
     } catch (error) {
       console.error('Error deleting access token from secure storage:', error);
     }
