@@ -22,8 +22,7 @@ import {
   Shield,
   Sparkles,
   Star,
-  StickyNote,
-  Trophy
+  StickyNote
 } from 'lucide-react-native';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -90,26 +89,46 @@ const AchievementBadge: React.FC<AchievementBadgeProps> = ({ name, icon, colors,
       style={[styles.achievementBadgeShadow, {}]}
       className="w-21 h-21 rounded-full mb-3"
     >
-      <LinearGradient
-        colors={colors}
-        style={styles.achievementBadge}
-        className="w-21 h-21 rounded-full items-center justify-center"
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        {/* Inner Glow Effect */}
-        <View className="w-18 h-18 bg-white/25 rounded-full items-center justify-center overflow-hidden">
-          {imageUrl ? (
+      <View style={{ position: 'relative', width: 84, height: 84 }}>
+        <LinearGradient
+          colors={colors}
+          style={styles.achievementBadge}
+          className="w-21 h-21 rounded-full items-center justify-center"
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
+        {imageUrl ? (
+          <View
+            style={{
+              position: 'absolute',
+              top: 6,
+              left: 6,
+              width: 72,
+              height: 72,
+              borderRadius: 36,
+              overflow: 'hidden',
+              backgroundColor: 'transparent'
+            }}
+            className="items-center justify-center"
+          >
             <Image
               source={{ uri: imageUrl }}
-              className="w-full h-full"
+              style={{
+                width: 72,
+                height: 72
+              }}
               resizeMode="cover"
+              onError={(error) => {
+                console.log('Image load error for:', imageUrl, error);
+              }}
             />
-          ) : (
+          </View>
+        ) : (
+          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
             <Text className="text-4xl">{icon}</Text>
-          )}
-        </View>
-      </LinearGradient>
+          </View>
+        )}
+      </View>
     </View>
     <Text className="text-xs font-extrabold text-slate-700 text-center tracking-wide" numberOfLines={2}>
       {name}
@@ -598,13 +617,14 @@ export default function ProfileScreen() {
                   };
                   const colors = tierColors[achievement.achievementTierType] || ['#64748b', '#475569'];
 
+                  console.log('achievement imageUrl: ', achievement.imageUrl);
                   return (
                     <AchievementBadge
                       key={achievement.id}
                       name={achievement.nameTranslation || achievement.nameKey}
                       icon="🏆"
                       colors={colors}
-                      imageUrl={achievement.imageUrl}
+                      imageUrl={achievement.imageUrl || null}
                     />
                   );
                 })
@@ -668,7 +688,8 @@ const styles = StyleSheet.create({
     height: 152,
     borderRadius: 76,
     backgroundColor: '#10b981',
-    opacity: 0.3,},
+    opacity: 0.3,
+  },
   levelBadge: {
     position: 'absolute',
     bottom: -8,
@@ -677,7 +698,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
-    gap: 4,},
+    gap: 4,
+  },
   levelTag: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -715,26 +737,30 @@ const styles = StyleSheet.create({
   collectionCard: {
     padding: 24,
     borderRadius: 28,
-    overflow: 'hidden',},
+    overflow: 'hidden',
+  },
   collectionIconContainer: {
     width: 52,
     height: 52,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,},
+    marginRight: 14,
+  },
   pokemonCard: {
     width: 84,
     height: 84,
     borderRadius: 20,
     alignItems: 'center',
-    justifyContent: 'center',},
+    justifyContent: 'center',
+  },
 
   // Achievements - Complex shadow styles
   achievementsCard: {
     padding: 24,
     borderRadius: 28,
-    marginBottom: 24,},
+    marginBottom: 24,
+  },
   achievementsList: {
     paddingVertical: 10,
     paddingHorizontal: 4,

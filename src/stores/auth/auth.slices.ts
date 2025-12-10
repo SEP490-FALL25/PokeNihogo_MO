@@ -30,16 +30,16 @@ export const createAuthSlice = (set: any): ZUSTAND.IAuthState => ({
     } catch (error) {
       console.error('Error deleting access token from secure storage:', error);
     }
-    
+
     set({ accessToken: "" });
-    
+
     // Reset user-related UI state when logging out so it doesn't leak to another account
     try {
       useUserStore.getState().resetUserState();
     } catch (error) {
       console.error('Error resetting user state:', error);
     }
-    
+
     // Clear user-related React Query cache when logging out to prevent data leakage between accounts
     // This clears only user-specific queries, keeping public data (dictionary, elemental, etc.) intact
     try {
@@ -48,7 +48,7 @@ export const createAuthSlice = (set: any): ZUSTAND.IAuthState => ({
       console.error('Error clearing user cache:', error);
       // Continue with logout even if cache clearing fails
     }
-    
+
     // Clear onboarding/tour flag so next login can see tour again
     try {
       await AsyncStorage.removeItem("@WelcomeModal:hasBeenShown");
