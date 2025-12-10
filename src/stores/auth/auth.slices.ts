@@ -25,7 +25,7 @@ export const createAuthSlice = (set: any): ZUSTAND.IAuthState => ({
     set({ accessToken: newToken });
   },
   deleteAccessToken: async () => {
-    await deleteSecureStorage('accessToken');
+      await deleteSecureStorage('accessToken');
     set({ accessToken: "" });
     // Reset user-related UI state when logging out so it doesn't leak to another account
     try {

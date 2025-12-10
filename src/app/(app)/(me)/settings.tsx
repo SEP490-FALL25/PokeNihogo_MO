@@ -31,7 +31,7 @@ export default function SettingsScreen() {
         {/* Logout Button */}
         <BounceButton
           variant="secondary"
-          onPress={() => {
+          onPress={async () => {
             Alert.alert(
               t("settings.logout_title"),
               t("settings.logout_message"),
@@ -39,8 +39,8 @@ export default function SettingsScreen() {
                 { text: t("settings.cancel"), style: "cancel" },
                 {
                   text: t("settings.logout"),
-                  onPress: () => {
-                    deleteAccessToken();
+                  onPress: async () => {
+                    await deleteAccessToken();
                     router.replace(ROUTES.AUTH.WELCOME);
                   },
                 },
