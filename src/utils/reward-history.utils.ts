@@ -1,6 +1,6 @@
-import { Award, Gift, Sparkles } from "lucide-react-native";
-import { TFunction } from "react-i18next";
 import { REWARD_HISTORY_COLORS } from "@constants/reward-history.constants";
+import { TFunction } from "i18next";
+import { Award, Gift, Sparkles } from "lucide-react-native";
 
 /**
  * Format date to relative time or absolute date

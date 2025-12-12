@@ -1,4 +1,4 @@
-import { TestQuestion, AnswerOption } from "@components/test/TestQuestionCard";
+import { TestQuestion } from "@components/test/test-screen/TestQuestionCard";
 
 export type TestSet = { id: string; content: string; questions: TestQuestion[] };
 

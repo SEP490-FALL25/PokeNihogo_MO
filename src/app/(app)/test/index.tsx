@@ -138,7 +138,7 @@ export default function TestScreen() {
       ref={scrollRef}
       contentContainerStyle={[styles.scrollContent, { paddingBottom: 24 }]}
     >
-      {sets.map((set, sIdx) => (
+      {sets.map((set: any, sIdx: number) => (
         <View
           key={set.id}
           style={styles.readingBlock}
@@ -148,7 +148,7 @@ export default function TestScreen() {
         >
           <TestSetContent content={set.content} sectionIndex={sIdx} />
 
-          {set.questions.map((q) => {
+          {set.questions.map((q: any) => {
             const selected = selections[q.uid] || [];
             const questionBankIdNumber = parseInt(q.bankId, 10);
             const isUnanswered =

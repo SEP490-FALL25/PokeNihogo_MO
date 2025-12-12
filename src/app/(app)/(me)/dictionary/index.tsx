@@ -218,10 +218,10 @@ export default function DictionaryScreen() {
       } catch (error) {
         // Check if it's a 409 conflict error (content already exists)
         const axiosError = error as AxiosError<{ statusCode?: number; message?: string }>;
-        const isConflictError = 
+        const isConflictError =
           axiosError?.response?.status === 409 ||
           axiosError?.response?.data?.statusCode === 409;
-        
+
         if (isConflictError) {
           showDictionaryAlert(
             "dictionary.add_word_conflict_title",
@@ -273,10 +273,10 @@ export default function DictionaryScreen() {
         } catch (error) {
           // Check if it's a 409 conflict error (content already exists)
           const axiosError = error as AxiosError<{ statusCode?: number; message?: string }>;
-          const isConflictError = 
+          const isConflictError =
             axiosError?.response?.status === 409 ||
             axiosError?.response?.data?.statusCode === 409;
-          
+
           if (isConflictError) {
             showDictionaryAlert(
               "dictionary.add_word_conflict_title",
@@ -522,15 +522,15 @@ export default function DictionaryScreen() {
   }, []);
 
   // Memoized home content component
-  const DictionaryHomeContent = React.memo(({ 
-    searchHistory, 
-    onSearch 
-  }: { 
-    searchHistory: IComponents.SearchHistoryItem[]; 
+  const DictionaryHomeContent = React.memo(({
+    searchHistory,
+    onSearch
+  }: {
+    searchHistory: IComponents.SearchHistoryItem[];
     onSearch: (keyword: string, autoSelect?: boolean) => void;
   }) => {
     const { t } = useTranslation();
-    
+
     return (
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="px-4 py-6">
@@ -652,7 +652,7 @@ export default function DictionaryScreen() {
     >
       {/* Overlay để làm mờ ảnh nền */}
       <View style={styles.overlayBackground} />
-      
+
       {/* Overlay to detect outside clicks - outside SafeAreaView for proper positioning */}
       {isFocused && (
         <Pressable style={styles.overlay} onPress={handleOverlayPress} />
@@ -779,10 +779,10 @@ export default function DictionaryScreen() {
           </View>
         </LinearGradient>
 
-      {/* Results - always show content */}
-      <View className="flex-1">
-        {/* Show word detail if selected */}
-        {selectedWordId && wordDetailData?.data ? (
+        {/* Results - always show content */}
+        <View className="flex-1">
+          {/* Show word detail if selected */}
+          {selectedWordId && wordDetailData?.data ? (
             <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
               <View className="px-4 py-6">
                 {/* Back button to clear selection */}
@@ -953,181 +953,181 @@ export default function DictionaryScreen() {
           )}
         </View>
 
-      {/* Flashcard Selection Modal */}
-      <Modal
-        visible={showFlashcardModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowFlashcardModal(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={closeFlashcardModal}>
-          <Pressable
-            style={styles.modalContent}
-            onPress={handleStopPropagation}
-          >
-            {/* Header */}
-            <View className="flex-row items-center justify-between mb-4 pb-4 border-b border-gray-200">
-              <Text className="text-xl font-bold text-gray-900">
-                {t("dictionary.add_to_flashcard")}
-              </Text>
-              <TouchableOpacity
-                onPress={closeFlashcardModal}
-                className="w-8 h-8 items-center justify-center"
-              >
-                <X size={20} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Notes Input */}
-            <View className="mb-4">
-              <Text className="text-sm font-semibold text-gray-700 mb-2">
-                {t("dictionary.notes_label")}
-              </Text>
-              <TextInput
-                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-900 min-h-[80px]"
-                placeholder={t("dictionary.notes_placeholder")}
-                value={flashcardNotes}
-                onChangeText={setFlashcardNotes}
-                multiline
-                numberOfLines={3}
-                textAlignVertical="top"
-                returnKeyType="done"
-              />
-            </View>
-
-            {/* Create New Flashcard Button */}
-            <TouchableOpacity
-              className="flex-row items-center justify-center bg-blue-50 rounded-xl px-4 py-3 mb-4 border border-blue-200"
-              onPress={handleOpenCreateFlashcardModal}
-              activeOpacity={0.7}
-            >
-              <View className="w-8 h-8 bg-blue-600 rounded-full items-center justify-center mr-2">
-                <Plus size={18} color="white" />
-              </View>
-              <Text className="text-blue-600 font-semibold text-base">
-                {t("dictionary.create_flashcard_deck")}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Flashcard Deck List */}
-            {flashcardDecksLoading ? (
-              <View className="py-8 items-center justify-center">
-                <ActivityIndicator size="small" color="#4A9FA2" />
-              </View>
-            ) : flashcardDecks.length > 0 ? (
-              <ScrollView
-                style={styles.flashcardList}
-                showsVerticalScrollIndicator={false}
-              >
-                {flashcardDecks.map((deck) => (
-                  <TouchableOpacity
-                    key={deck.id}
-                    className="bg-white rounded-xl px-4 py-4 mb-3 border border-gray-200 shadow-sm"
-                    onPress={() => handleAddToFlashcardDeck(deck.id)}
-                    activeOpacity={0.7}
-                    disabled={addWordToFlashcardDeckMutation.isPending}
-                  >
-                    <Text className="text-lg font-bold text-gray-900 mb-1">
-                      {deck.name}
-                    </Text>
-                    <Text className="text-sm text-gray-500">
-                      {t("dictionary.created_date")} {formatDateVN(deck.createdAt, true)}
-                    </Text>
-                    {deck.totalCards !== undefined && (
-                      <Text className="text-sm text-gray-400 mt-1">
-                        {deck.totalCards} {t("dictionary.words_count")}
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            ) : (
-              <View className="py-8 items-center justify-center">
-                <Text className="text-sm text-gray-400 text-center">
-                  {t("dictionary.no_flashcard_decks")} {t("dictionary.no_flashcard_decks_description")}
-                </Text>
-              </View>
-            )}
-          </Pressable>
-        </Pressable>
-      </Modal>
-
-      {/* Create Flashcard Modal */}
-      <Modal
-        visible={showCreateFlashcardModal}
-        transparent
-        animationType="fade"
-        onRequestClose={closeCreateFlashcardModal}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={closeCreateFlashcardModal}
+        {/* Flashcard Selection Modal */}
+        <Modal
+          visible={showFlashcardModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowFlashcardModal(false)}
         >
-          <Pressable
-            style={styles.modalContent}
-            onPress={handleStopPropagation}
-          >
-            {/* Header */}
-            <View className="flex-row items-center justify-between mb-4 pb-4 border-b border-gray-200">
-              <Text className="text-xl font-bold text-gray-900">
-                {t("dictionary.create_new_flashcard_deck")}
-              </Text>
-              <TouchableOpacity
-                onPress={closeCreateFlashcardModal}
-                className="w-8 h-8 items-center justify-center"
-              >
-                <X size={20} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
+          <Pressable style={styles.modalOverlay} onPress={closeFlashcardModal}>
+            <Pressable
+              style={styles.modalContent}
+              onPress={handleStopPropagation}
+            >
+              {/* Header */}
+              <View className="flex-row items-center justify-between mb-4 pb-4 border-b border-gray-200">
+                <Text className="text-xl font-bold text-gray-900">
+                  {t("dictionary.add_to_flashcard")}
+                </Text>
+                <TouchableOpacity
+                  onPress={closeFlashcardModal}
+                  className="w-8 h-8 items-center justify-center"
+                >
+                  <X size={20} color="#6b7280" />
+                </TouchableOpacity>
+              </View>
 
-            {/* Input */}
-            <View className="mb-4">
-              <Text className="text-sm font-semibold text-gray-700 mb-2">
-                {t("dictionary.flashcard_name")}
-              </Text>
-              <TextInput
-                className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-900"
-                placeholder={t("dictionary.flashcard_name_placeholder")}
-                value={newFlashcardName}
-                onChangeText={setNewFlashcardName}
-                autoFocus
-                returnKeyType="done"
-                onSubmitEditing={handleCreateFlashcardDeck}
-              />
-            </View>
+              {/* Notes Input */}
+              <View className="mb-4">
+                <Text className="text-sm font-semibold text-gray-700 mb-2">
+                  {t("dictionary.notes_label")}
+                </Text>
+                <TextInput
+                  className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-900 min-h-[80px]"
+                  placeholder={t("dictionary.notes_placeholder")}
+                  value={flashcardNotes}
+                  onChangeText={setFlashcardNotes}
+                  multiline
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                  returnKeyType="done"
+                />
+              </View>
 
-            {/* Buttons */}
-            <View className="flex-row gap-3">
+              {/* Create New Flashcard Button */}
               <TouchableOpacity
-                className="flex-1 bg-gray-100 rounded-xl px-4 py-3 items-center justify-center"
-                onPress={closeCreateFlashcardModal}
+                className="flex-row items-center justify-center bg-blue-50 rounded-xl px-4 py-3 mb-4 border border-blue-200"
+                onPress={handleOpenCreateFlashcardModal}
                 activeOpacity={0.7}
               >
-                <Text className="text-gray-700 font-semibold text-base">
-                  {t("dictionary.cancel")}
+                <View className="w-8 h-8 bg-blue-600 rounded-full items-center justify-center mr-2">
+                  <Plus size={18} color="white" />
+                </View>
+                <Text className="text-blue-600 font-semibold text-base">
+                  {t("dictionary.create_flashcard_deck")}
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                className="flex-1 bg-blue-600 rounded-xl px-4 py-3 items-center justify-center"
-                onPress={handleCreateFlashcardDeck}
-                activeOpacity={0.8}
-                disabled={
-                  !newFlashcardName.trim() ||
-                  createFlashcardDeckMutation.isPending
-                }
-              >
-                {createFlashcardDeckMutation.isPending ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Text className="text-white font-semibold text-base">
-                    {t("dictionary.create")}
+
+              {/* Flashcard Deck List */}
+              {flashcardDecksLoading ? (
+                <View className="py-8 items-center justify-center">
+                  <ActivityIndicator size="small" color="#4A9FA2" />
+                </View>
+              ) : flashcardDecks.length > 0 ? (
+                <ScrollView
+                  style={styles.flashcardList}
+                  showsVerticalScrollIndicator={false}
+                >
+                  {flashcardDecks.map((deck) => (
+                    <TouchableOpacity
+                      key={deck.id}
+                      className="bg-white rounded-xl px-4 py-4 mb-3 border border-gray-200 shadow-sm"
+                      onPress={() => handleAddToFlashcardDeck(deck.id)}
+                      activeOpacity={0.7}
+                      disabled={addWordToFlashcardDeckMutation.isPending}
+                    >
+                      <Text className="text-lg font-bold text-gray-900 mb-1">
+                        {deck.name}
+                      </Text>
+                      <Text className="text-sm text-gray-500">
+                        {t("dictionary.created_date")} {formatDateVN(deck.createdAt, true)}
+                      </Text>
+                      {deck.totalCards !== undefined && (
+                        <Text className="text-sm text-gray-400 mt-1">
+                          {deck.totalCards} {t("dictionary.words_count")}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              ) : (
+                <View className="py-8 items-center justify-center">
+                  <Text className="text-sm text-gray-400 text-center">
+                    {t("dictionary.no_flashcard_decks")} {t("dictionary.no_flashcard_decks_description")}
                   </Text>
-                )}
-              </TouchableOpacity>
-            </View>
+                </View>
+              )}
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
+        </Modal>
+
+        {/* Create Flashcard Modal */}
+        <Modal
+          visible={showCreateFlashcardModal}
+          transparent
+          animationType="fade"
+          onRequestClose={closeCreateFlashcardModal}
+        >
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={closeCreateFlashcardModal}
+          >
+            <Pressable
+              style={styles.modalContent}
+              onPress={handleStopPropagation}
+            >
+              {/* Header */}
+              <View className="flex-row items-center justify-between mb-4 pb-4 border-b border-gray-200">
+                <Text className="text-xl font-bold text-gray-900">
+                  {t("dictionary.create_new_flashcard_deck")}
+                </Text>
+                <TouchableOpacity
+                  onPress={closeCreateFlashcardModal}
+                  className="w-8 h-8 items-center justify-center"
+                >
+                  <X size={20} color="#6b7280" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Input */}
+              <View className="mb-4">
+                <Text className="text-sm font-semibold text-gray-700 mb-2">
+                  {t("dictionary.flashcard_name")}
+                </Text>
+                <TextInput
+                  className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-base text-gray-900"
+                  placeholder={t("dictionary.flashcard_name_placeholder")}
+                  value={newFlashcardName}
+                  onChangeText={setNewFlashcardName}
+                  autoFocus
+                  returnKeyType="done"
+                  onSubmitEditing={handleCreateFlashcardDeck}
+                />
+              </View>
+
+              {/* Buttons */}
+              <View className="flex-row gap-3">
+                <TouchableOpacity
+                  className="flex-1 bg-gray-100 rounded-xl px-4 py-3 items-center justify-center"
+                  onPress={closeCreateFlashcardModal}
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-gray-700 font-semibold text-base">
+                    {t("dictionary.cancel")}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="flex-1 bg-blue-600 rounded-xl px-4 py-3 items-center justify-center"
+                  onPress={handleCreateFlashcardDeck}
+                  activeOpacity={0.8}
+                  disabled={
+                    !newFlashcardName.trim() ||
+                    createFlashcardDeckMutation.isPending
+                  }
+                >
+                  {createFlashcardDeckMutation.isPending ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <Text className="text-white font-semibold text-base">
+                      {t("dictionary.create")}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
       </SafeAreaView>
     </ImageBackground>
   );
@@ -1180,7 +1180,8 @@ const styles = StyleSheet.create({
     padding: 20,
     width: "100%",
     maxWidth: 400,
-    maxHeight: "80%",},
+    maxHeight: "80%",
+  },
   flashcardList: {
     maxHeight: 300,
   },

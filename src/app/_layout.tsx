@@ -22,6 +22,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { Keyboard, TouchableWithoutFeedback } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import "../../global.css";
@@ -45,29 +46,31 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <MinimalAlertProvider>
-        <LanguageProvider>
-          <ReactQueryProvider>
-            <ThemeProvider
-              value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-            >
-              <CopilotProviderWrapper>
-                <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="(auth)" />
-                  <Stack.Screen name="+not-found" />
-                </Stack>
-              </CopilotProviderWrapper>
-              <StatusBar style="auto" />
-              <GlobalMatchingNotification />
-              <GlobalNotificationToast />
-              <GlobalSocketManager />
-            </ThemeProvider>
-          </ReactQueryProvider>
-        </LanguageProvider>
-        <GlobalAlertLayer />
-      </MinimalAlertProvider>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <MinimalAlertProvider>
+          <LanguageProvider>
+            <ReactQueryProvider>
+              <ThemeProvider
+                value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+              >
+                <CopilotProviderWrapper>
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="index" />
+                    <Stack.Screen name="(tabs)" />
+                    <Stack.Screen name="(auth)" />
+                    <Stack.Screen name="+not-found" />
+                  </Stack>
+                </CopilotProviderWrapper>
+                <StatusBar style="auto" />
+                <GlobalMatchingNotification />
+                <GlobalNotificationToast />
+                <GlobalSocketManager />
+              </ThemeProvider>
+            </ReactQueryProvider>
+          </LanguageProvider>
+          <GlobalAlertLayer />
+        </MinimalAlertProvider>
+      </TouchableWithoutFeedback>
     </GestureHandlerRootView>
   );
 }
