@@ -27,7 +27,8 @@
         "android.permission.MICROPHONE",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
-      "package": "com.adminnn1.PokeNihongo"
+      "package": "com.adminnn1.PokeNihongo",
+      "useCleartextTraffic": true 
     },
     "web": {
       "bundler": "metro",
@@ -36,6 +37,16 @@
     },
     "plugins": [
       "expo-router",
+      
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+
       [
         "expo-splash-screen",
         {
@@ -52,7 +63,8 @@
         {
           "microphonePermission": "Allow Poke Nihongo to access your microphone."
         }
-      ]
+      ],
+      "./plugins/withAndroidXBrowserFix.js"
     ],
     "experiments": {
       "typedRoutes": true
@@ -60,7 +72,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d29e30b6-1973-4331-8867-15226eb6a68a"
+        "projectId": "21497a63-cf2c-46f5-ab42-139cada98a00"
       }
     }
   }

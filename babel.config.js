@@ -21,6 +21,9 @@ module.exports = function (api) {
               "@configs": "./src/configs",
               "@constants": "./src/constants",
               "@routes": "./src/routes",
+
+              "react-native-worklets": "react-native-worklets-core",
+              "react-native-worklets/plugin": "react-native-worklets-core/plugin",
             },
             extensions: [".js", ".jsx", ".ts", ".tsx", ".json", ".lottie"],
           },
