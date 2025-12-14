@@ -1,7 +1,10 @@
 import {
     deleteConversationRoom,
+    getAvailableVoices,
     getConversationRooms,
     GetConversationRoomsResponse,
+    GetVoicesResponse,
+    VoiceOption,
 } from "@services/conversation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -39,5 +42,23 @@ export const useDeleteConversationRoom = () => {
       queryClient.invalidateQueries({ queryKey: ["conversation-rooms"] });
     },
   });
+};
+
+/**
+ * Hook to fetch available voices for AI conversation
+ */
+export const useAvailableVoices = () => {
+  const { data, isLoading, isError, refetch } = useQuery<GetVoicesResponse>({
+    queryKey: ["ai-conversation-voices"],
+    queryFn: () => getAvailableVoices(),
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  return {
+    voices: (data?.data?.voices ?? []) as VoiceOption[],
+    isLoading,
+    isError,
+    refetch,
+  };
 };
 
