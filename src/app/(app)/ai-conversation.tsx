@@ -36,6 +36,7 @@ import { ROUTES } from "@routes/routes";
 import {
   ConversationRoom,
   GetConversationRoomsResponse,
+  previewVoice,
 } from "@services/conversation";
 import { useAuthStore } from "@stores/auth/auth.config";
 import { useQueryClient } from "@tanstack/react-query";
@@ -1317,7 +1318,6 @@ export default function AiConversationScreen() {
   const handlePreviewVoice = useCallback(
     async (voiceName: string, sampleText: string) => {
       try {
-        const { previewVoice } = await import("@services/conversation");
         const response = await previewVoice({
           voiceName,
           sampleText,
