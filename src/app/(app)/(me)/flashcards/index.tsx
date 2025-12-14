@@ -409,7 +409,7 @@ const FlashcardDeckListScreen = () => {
           backgroundColor: "#1d4ed8",
           paddingHorizontal: 20,
           paddingTop: 20,
-          paddingBottom: insetBottom - 16,
+          paddingBottom: insetBottom,
           borderTopLeftRadius: 18,
           borderTopRightRadius: 18,
         }}
