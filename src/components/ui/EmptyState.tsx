@@ -1,5 +1,5 @@
 import { ThemedText } from "@components/ThemedText";
-import { IconSymbol } from "@components/ui/IconSymbol";
+import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
@@ -19,7 +19,7 @@ interface EmptyStateProps {
 const EmptyState: React.FC<EmptyStateProps> = ({
   title,
   description,
-  icon = "tray",
+  icon = "inbox",
   iconSize = 48,
   iconColor = "#9ca3af",
   pokemonTheme = true,
@@ -42,14 +42,14 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   return (
     <View style={[styles.container, pokemonTheme && styles.pokemonContainer, style]}>
       <View style={[styles.iconContainer, pokemonTheme && styles.pokemonIconContainer]}>
-        <IconSymbol
+        <MaterialIcons
           name={icon as any}
           size={iconSize}
           color={iconColor}
         />
         {pokemonTheme && (
           <View style={styles.sparkleContainer}>
-            <IconSymbol name="sparkles" size={16} color="#fbbf24" />
+            <MaterialIcons name="auto-awesome" size={16} color="#fbbf24" />
           </View>
         )}
       </View>
