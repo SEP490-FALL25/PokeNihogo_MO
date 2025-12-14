@@ -36,7 +36,8 @@ export const ReactQueryProvider = ({ children }: { children: React.ReactNode }) 
         <QueryClientProvider client={queryClient}>
             {children}
             {/* <ReactQueryDevtools initialIsOpen={false} /> */}
-            {Platform.OS === 'web' && <ReactQueryDevtools initialIsOpen={false} />}
+            {/* temp comment */}
+            {/* {Platform.OS === 'web' && <ReactQueryDevtools initialIsOpen={false} />} */}
         </QueryClientProvider>
     );
 };
