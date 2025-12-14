@@ -32,6 +32,8 @@ interface VoiceSelectionModalProps {
   onSelectVoice: (voiceName: string) => void;
   isLoading?: boolean;
   onPreviewVoice?: (voiceName: string, sampleText: string) => Promise<void>;
+  onCancel?: () => void;
+  showCancelButton?: boolean;
 }
 
 export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
@@ -42,35 +44,32 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
   onSelectVoice,
   isLoading = false,
   onPreviewVoice,
+  onCancel,
+  showCancelButton = true,
 }) => {
   const { t } = useTranslation();
   const [sampleText, setSampleText] = useState("こんにちは。今日はいい天気ですね。");
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isSelectOpen, setIsSelectOpen] = useState(false);
-  // Temporary selected voice (chưa confirm, chỉ để preview)
   const [tempSelectedVoiceName, setTempSelectedVoiceName] = useState<string | null>(
     selectedVoiceName || null
   );
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
   const scaleAnim = useMemo(() => new Animated.Value(0.9), []);
 
-  // Sync tempSelectedVoiceName khi modal mở hoặc selectedVoiceName thay đổi
+  // Sync temporary selected voice when modal opens or selectedVoiceName changes
   React.useEffect(() => {
     if (isOpen) {
-      // Khi modal mở, sync với selectedVoiceName hiện tại
       setTempSelectedVoiceName(selectedVoiceName || null);
     }
   }, [isOpen, selectedVoiceName]);
 
-  // Animation khi mở/đóng modal
+  // Handle modal open/close animations
   React.useEffect(() => {
     if (isOpen) {
-      // Reset select modal khi mở modal chính
       setIsSelectOpen(false);
-      // Reset animation values
       fadeAnim.setValue(0);
       scaleAnim.setValue(0.9);
-      // Start animation
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -85,7 +84,6 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
         }),
       ]).start();
     } else {
-      // Đóng select modal khi đóng modal chính
       setIsSelectOpen(false);
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -102,15 +100,11 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
     }
   }, [isOpen, fadeAnim, scaleAnim]);
 
-  // Chọn voice tạm thời (chỉ để preview, chưa confirm)
-  const handleSelectVoice = useCallback(
-    (voiceName: string) => {
-      setTempSelectedVoiceName(voiceName);
-      setIsSelectOpen(false);
-      // Không gọi onSelectVoice ở đây, chỉ khi user bấm confirm
-    },
-    []
-  );
+  // Handle temporary voice selection (for preview only, not confirmed)
+  const handleSelectVoice = useCallback((voiceName: string) => {
+    setTempSelectedVoiceName(voiceName);
+    setIsSelectOpen(false);
+  }, []);
 
   const handlePreview = useCallback(
     async () => {
@@ -127,17 +121,35 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
     [onPreviewVoice, sampleText, tempSelectedVoiceName]
   );
 
-  // Dùng tempSelectedVoiceName để hiển thị và preview
+  // Get selected voice for display and preview
   const selectedVoice = useMemo(() => {
     return voices.find((v) => v.name === tempSelectedVoiceName);
   }, [voices, tempSelectedVoiceName]);
 
-  // Handle confirm - mới gọi onSelectVoice
+  // Handle confirm - call onSelectVoice to finalize selection
   const handleConfirm = useCallback(() => {
     if (tempSelectedVoiceName) {
       onSelectVoice(tempSelectedVoiceName);
     }
   }, [tempSelectedVoiceName, onSelectVoice]);
+
+  // Handle cancel - call onCancel if provided, otherwise just close
+  const handleCancel = useCallback(() => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      onClose();
+    }
+  }, [onCancel, onClose]);
+
+  // Handle modal close - if no voice selected and onCancel provided, call onCancel
+  const handleModalClose = useCallback(() => {
+    if (!selectedVoiceName && onCancel) {
+      onCancel();
+    } else {
+      onClose();
+    }
+  }, [selectedVoiceName, onCancel, onClose]);
 
   const getVoiceDisplayName = useCallback((voice: VoiceOption) => {
     const genderLabel =
@@ -159,20 +171,18 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
   }, [t]);
 
   return (
-    <>
-      {/* Main Voice Selection Modal */}
-      <Modal
-        visible={isOpen}
-        transparent
-        animationType="none"
-        onRequestClose={onClose}
-        statusBarTranslucent
-      >
-        <Pressable style={styles.overlay} onPress={onClose}>
-          <Pressable
-            onPress={(e) => e.stopPropagation()}
-            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-          >
+    <Modal
+      visible={isOpen}
+      transparent
+      animationType="none"
+      onRequestClose={handleModalClose}
+      statusBarTranslucent
+    >
+      <Pressable style={styles.overlay} onPress={handleModalClose}>
+        <Pressable
+          onPress={(e) => e.stopPropagation()}
+          style={styles.modalPressable}
+        >
             <Animated.View
               style={[
                 styles.modalContainer,
@@ -236,10 +246,7 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
                           isSelectOpen && styles.selectTriggerOpen,
                           selectedVoice && styles.selectTriggerSelected,
                         ]}
-                        onPress={() => {
-                          console.log("Select trigger pressed, opening select modal");
-                          setIsSelectOpen(!isSelectOpen);
-                        }}
+                        onPress={() => setIsSelectOpen(!isSelectOpen)}
                         activeOpacity={0.7}
                       >
                         <ThemedText
@@ -263,7 +270,7 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
                         </View>
                       </TouchableOpacity>
                       
-                      {/* Dropdown List - Hiển thị ngay trong modal chính */}
+                      {/* Dropdown List */}
                       {isSelectOpen && (
                         <View style={styles.selectDropdown}>
                           <ScrollView
@@ -343,7 +350,7 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
                     </View>
                   )}
 
-                  {/* Preview Button - Chỉ để nghe thử */}
+                  {/* Preview Button */}
                   {onPreviewVoice && tempSelectedVoiceName && (
                     <TouchableOpacity
                       style={[
@@ -367,7 +374,7 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
                     </TouchableOpacity>
                   )}
 
-                  {/* Confirm Button - Xác nhận chọn voice */}
+                  {/* Confirm Button */}
                   <TouchableOpacity
                     style={[
                       styles.confirmButton,
@@ -386,6 +393,19 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
                       {t("home.ai.conversation.confirm_voice", "Confirm Voice Selection")}
                     </ThemedText>
                   </TouchableOpacity>
+
+                  {/* Cancel Button */}
+                  {showCancelButton && (
+                    <TouchableOpacity
+                      style={styles.cancelButton}
+                      onPress={handleCancel}
+                      activeOpacity={0.8}
+                    >
+                      <ThemedText style={styles.cancelButtonText}>
+                        {t("home.ai.conversation.cancel", "Cancel")}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  )}
                 </>
               )}
               </ScrollView>
@@ -394,8 +414,6 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
           </Pressable>
         </Pressable>
       </Modal>
-
-    </>
   );
 };
 
@@ -404,7 +422,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 // Calculate modal dimensions based on screen size
 const MODAL_WIDTH = Math.min(SCREEN_WIDTH * 0.9, 400);
-const MODAL_MAX_HEIGHT = Math.min(SCREEN_HEIGHT * 0.85, 600);
+const MODAL_MAX_HEIGHT = Math.min(SCREEN_HEIGHT * 0.85, 650);
 const DROPDOWN_MAX_HEIGHT = Math.min(SCREEN_HEIGHT * 0.3, 250);
 
 const styles = StyleSheet.create({
@@ -421,14 +439,6 @@ const styles = StyleSheet.create({
     width: MODAL_WIDTH,
     maxHeight: MODAL_MAX_HEIGHT,
     overflow: "visible",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 10,
     flexDirection: "column",
   },
   header: {
@@ -594,6 +604,22 @@ const styles = StyleSheet.create({
   confirmButtonTextDisabled: {
     color: "#9ca3af",
   },
+  cancelButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    backgroundColor: "transparent",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#6b7280",
+  },
   loadingContainer: {
     minHeight: 200,
     alignItems: "center",
@@ -616,53 +642,10 @@ const styles = StyleSheet.create({
     color: "#9ca3af",
     textAlign: "center",
   },
-  // Select Modal Styles
-  selectModalOverlay: {
+  modalPressable: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
-    zIndex: 1000,
-  },
-  selectModalContent: {
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
-    width: "100%",
-    maxWidth: 500,
-    maxHeight: "70%",
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 20,
-    zIndex: 1001,
-  },
-  selectModalHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  selectModalTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  selectModalClose: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#f3f4f6",
-    alignItems: "center",
-    justifyContent: "center",
   },
   selectOptionsList: {
     maxHeight: 400,

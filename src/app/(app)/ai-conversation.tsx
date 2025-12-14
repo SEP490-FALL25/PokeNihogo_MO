@@ -1352,6 +1352,15 @@ export default function AiConversationScreen() {
     []
   );
 
+  // Handle cancel voice selection - quay lại màn hình trước nếu chưa có conversation
+  const handleVoiceCancel = useCallback(() => {
+    setIsVoiceModalOpen(false);
+    // Nếu chưa có conversation và chưa chọn voice, quay lại màn hình trước
+    if (!conversationId && !initialConversationId && !selectedVoiceName) {
+      router.back();
+    }
+  }, [conversationId, initialConversationId, selectedVoiceName]);
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
       <View
@@ -1911,13 +1920,20 @@ export default function AiConversationScreen() {
         <VoiceSelectionModal
           isOpen={isVoiceModalOpen}
           onClose={() => {
-            setIsVoiceModalOpen(false);
+            // Nếu đóng modal mà chưa chọn voice và chưa có conversation, quay lại
+            if (!selectedVoiceName && !conversationId && !initialConversationId) {
+              handleVoiceCancel();
+            } else {
+              setIsVoiceModalOpen(false);
+            }
           }}
           voices={voices}
           selectedVoiceName={selectedVoiceName}
           onSelectVoice={handleVoiceSelected}
           isLoading={isLoadingVoices}
           onPreviewVoice={handlePreviewVoice}
+          onCancel={handleVoiceCancel}
+          showCancelButton={true}
         />
       )}
     </SafeAreaView>
