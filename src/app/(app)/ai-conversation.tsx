@@ -1829,7 +1829,7 @@ export default function AiConversationScreen() {
               }}
               exerciseTitle={isSubmitting ? <AnimatedDots /> : processingStatus}
               showPlayback={false}
-              showWaveform={false}
+              // showWaveform={false}
               disabled={isSubmitting || !isSocketConnected || !hasAIKaiwa}
               maxDuration={10}
               showSaveButton={false}

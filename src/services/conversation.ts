@@ -53,11 +53,10 @@ export async function submitUserSpeech(
   form.append('turnId', turnId);
   if (topicId) form.append('topicId', topicId);
   form.append('file', {
-    // @ts-ignore FormData file for React Native
     uri: fileUri,
     name: fileName ?? `speech_${Date.now()}.m4a`,
     type: mimeType ?? 'audio/m4a',
-  });
+  } as any);
 
   const { data } = await axiosPrivate.post('/conversation/submit-speech', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
