@@ -53,11 +53,10 @@ export async function submitUserSpeech(
   form.append('turnId', turnId);
   if (topicId) form.append('topicId', topicId);
   form.append('file', {
-    // @ts-ignore FormData file for React Native
     uri: fileUri,
     name: fileName ?? `speech_${Date.now()}.m4a`,
     type: mimeType ?? 'audio/m4a',
-  });
+  } as any);
 
   const { data } = await axiosPrivate.post('/conversation/submit-speech', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -104,5 +103,54 @@ export async function getConversationRooms(params?: {
 
 export async function deleteConversationRoom(id: string): Promise<void> {
   await axiosPrivate.delete(`/ai-conversation-room/${id}`);
+}
+
+export interface VoiceOption {
+  name: string; // Voice name (e.g., "ja-JP-Wavenet-A")
+  ssmlGender?: "MALE" | "FEMALE" | "NEUTRAL";
+  languageCode?: string;
+  // For display purposes
+  description?: string;
+  sampleAudioUrl?: string;
+}
+
+export interface GetVoicesResponse {
+  statusCode: number;
+  data: {
+    voices: VoiceOption[];
+  };
+  message?: string;
+}
+
+export interface PreviewVoiceRequest {
+  voiceName: string;
+  sampleText: string;
+}
+
+export interface PreviewVoiceResponse {
+  statusCode: number;
+  data: {
+    audio: string; // Base64 audio
+    audioFormat?: string; // "ogg", "mp3", etc.
+  };
+  message?: string;
+}
+
+/**
+ * Get available voices for Japanese language
+ */
+export async function getAvailableVoices(): Promise<GetVoicesResponse> {
+  const { data } = await axiosPrivate.get("/speech/voices/ja-JP");
+  return data;
+}
+
+/**
+ * Preview voice with sample text
+ */
+export async function previewVoice(
+  params: PreviewVoiceRequest
+): Promise<PreviewVoiceResponse> {
+  const { data } = await axiosPrivate.post("/speech/preview-voice", params);
+  return data;
 }
 

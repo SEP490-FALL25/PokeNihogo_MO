@@ -39,9 +39,12 @@ import React, {
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  Dimensions,
   Image,
   ImageBackground,
+  Keyboard,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -50,11 +53,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function DictionaryScreen() {
   const { t } = useTranslation();
   const { showAlert } = useMinimalAlert();
+  const insets = useSafeAreaInsets();
   const showDictionaryAlert = useCallback(
     (titleKey: string, descriptionKey?: string, type: AlertType = "info") => {
       const parts = [
@@ -73,6 +77,7 @@ export default function DictionaryScreen() {
   const [selectedWordId, setSelectedWordId] = useState<string | null>(null);
   const [shouldAutoSelect, setShouldAutoSelect] = useState(false);
   const [searchBarY, setSearchBarY] = useState(0);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [showFlashcardModal, setShowFlashcardModal] = useState(false);
   const [showCreateFlashcardModal, setShowCreateFlashcardModal] =
     useState(false);
@@ -300,7 +305,7 @@ export default function DictionaryScreen() {
       );
       closeCreateFlashcardModal();
       closeFlashcardModal();
-    } catch (error) {
+    } catch {
       showDictionaryAlert(
         "dictionary.create_deck_error_title",
         "dictionary.create_deck_error_description",
@@ -488,11 +493,46 @@ export default function DictionaryScreen() {
     setTimeout(() => {
       searchContainerRef.current?.measureInWindow((x, y, width, height) => {
         if (y > 0 && height > 0) {
-          setSearchBarY(y + height + 10);
+          setSearchBarY(y + height);
         }
       });
     }, 0);
   }, []);
+
+  // Handle keyboard events to adjust dropdown position
+  useEffect(() => {
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+        // Auto-hide dropdown when keyboard appears to avoid overlap
+        if (isFocused) {
+          setIsFocused(false);
+          searchInputRef.current?.blur();
+        }
+      }
+    );
+    const keyboardWillHideListener = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardWillShowListener.remove();
+      keyboardWillHideListener.remove();
+    };
+  }, [isFocused]);
+
+  // Calculate dropdown max height based on available space
+  const dropdownMaxHeight = useMemo(() => {
+    const screenHeight = Dimensions.get("window").height;
+    const availableHeight =
+      screenHeight - searchBarY - keyboardHeight - insets.bottom - 20;
+    // Ensure minimum height and maximum reasonable height
+    return Math.max(200, Math.min(availableHeight, 400));
+  }, [searchBarY, keyboardHeight, insets.bottom]);
 
   // Render search result item (for dropdown) - memoized component
   const SearchResultItem = React.memo(({ item, onSelect }: { item: DictionaryResult; onSelect: (id: string) => void }) => (
@@ -661,13 +701,19 @@ export default function DictionaryScreen() {
       {/* Dropdown for search suggestions/history - absolute positioned overlay - outside SafeAreaView */}
       {isFocused && searchBarY > 0 && (
         <View
-          style={[styles.dropdownWrapper, { top: searchBarY }]}
+          style={[
+            styles.dropdownWrapper,
+            {
+              top: searchBarY + 4,
+              maxHeight: dropdownMaxHeight,
+            },
+          ]}
           className="absolute left-4 right-4"
         >
           <Pressable onPress={handleStopPropagation}>
             <View
               className="bg-white rounded-xl shadow-lg border border-gray-200"
-              style={styles.dropdownContainer}
+              style={[styles.dropdownContainer, { maxHeight: dropdownMaxHeight }]}
             >
               {searchQuery.trim() ? (
                 <>
@@ -677,10 +723,14 @@ export default function DictionaryScreen() {
                     </View>
                   ) : searchResults.length > 0 ? (
                     <ScrollView
-                      style={styles.dropdownScrollView}
+                      style={[
+                        styles.dropdownScrollView,
+                        { maxHeight: dropdownMaxHeight - 20 },
+                      ]}
                       showsVerticalScrollIndicator={false}
                       keyboardShouldPersistTaps="handled"
                       nestedScrollEnabled={true}
+                      bounces={false}
                     >
                       {searchResults.map((item) => (
                         <SearchResultItem
@@ -708,10 +758,14 @@ export default function DictionaryScreen() {
                       </Text>
                     </View>
                     <ScrollView
-                      style={styles.dropdownScrollView}
+                      style={[
+                        styles.dropdownScrollView,
+                        { maxHeight: dropdownMaxHeight - 60 },
+                      ]}
                       showsVerticalScrollIndicator={false}
                       keyboardShouldPersistTaps="handled"
                       nestedScrollEnabled={true}
+                      bounces={false}
                     >
                       {searchHistory.map((item: IComponents.SearchHistoryItem) => (
                         <TouchableOpacity
@@ -1159,10 +1213,10 @@ const styles = StyleSheet.create({
     zIndex: 1000,// For Android
   },
   dropdownContainer: {
-    maxHeight: 400,
+    // maxHeight will be set dynamically
   },
   dropdownScrollView: {
-    maxHeight: 350,
+    // maxHeight will be set dynamically
   },
   historyScrollContainer: {
     paddingRight: 16,

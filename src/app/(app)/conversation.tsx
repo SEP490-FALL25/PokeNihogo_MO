@@ -94,6 +94,7 @@ export default function ConversationScreen() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [nextUserPrompt, setNextUserPrompt] = useState<string | undefined>();
   const [countdown, setCountdown] = useState<number>(0);
@@ -913,8 +914,12 @@ export default function ConversationScreen() {
                 handleRecordingComplete(uri, _duration);
               }}
               onRecordingStart={() => {
+                setIsRecording(true);
                 setFeedbackText(undefined);
                 setFeedbackWords([]);
+              }}
+              onRecordingStop={() => {
+                setIsRecording(false);
               }}
               exerciseTitle={isSubmitting ? <AnimatedDots /> : "Nhấn để nói"}
               showPlayback={true}
@@ -934,7 +939,7 @@ export default function ConversationScreen() {
               feedbackText={feedbackText || nextUserPrompt}
               feedbackWords={feedbackWords}
             />
-            {awaitingUser ? (
+            {awaitingUser && !isRecording && !isSubmitting ? (
               <View style={{ alignItems: "center", marginTop: 8 }}>
                 <TouchableOpacity
                   onPress={() =>

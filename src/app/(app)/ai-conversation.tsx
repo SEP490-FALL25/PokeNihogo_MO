@@ -21,13 +21,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Socket } from "socket.io-client";
 
 import { ConversationListSheet } from "@components/conversation/ConversationListSheet";
+import { VoiceSelectionModal } from "@components/conversation/VoiceSelectionModal";
 import { ThemedText } from "@components/ThemedText";
 import AudioPlayer from "@components/ui/AudioPlayer";
 import VoiceRecorder from "@components/ui/EnhancedAudioRecorder";
 import { disconnectSocket, getSocket } from "@configs/socket";
 import { SubscriptionFeatureKey } from "@constants/subscription.enum";
 import { useAuth } from "@hooks/useAuth";
-import { useConversationRooms } from "@hooks/useConversation";
+import { useAvailableVoices, useConversationRooms } from "@hooks/useConversation";
 import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
 import { useCheckFeature } from "@hooks/useSubscriptionFeatures";
@@ -313,12 +314,16 @@ export default function AiConversationScreen() {
     string | undefined
   >();
   const [isListSheetOpen, setIsListSheetOpen] = useState(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+  const [selectedVoiceName, setSelectedVoiceName] = useState<string | null>(null);
   const queryClient = useQueryClient();
   // Get conversation rooms to find title
   const { data: conversationRoomsData } = useConversationRooms({
     currentPage: 1,
     pageSize: 50,
   });
+  // Get available voices
+  const { voices, isLoading: isLoadingVoices } = useAvailableVoices();
 
   // Update conversation title when conversationId changes
   useEffect(() => {
@@ -357,6 +362,43 @@ export default function AiConversationScreen() {
   useEffect(() => {
     conversationIdRef.current = conversationId;
   }, [conversationId]);
+
+  // Hiển thị modal chọn voice ngay khi mở màn hình mới (chưa có conversationId)
+  useEffect(() => {
+    // Chỉ hiện modal khi:
+    // 1. Có subscription (hasAIKaiwa)
+    // 2. Đã load xong voices và không đang loading
+    // 3. Chưa có conversationId (màn hình mới, không phải mở từ list)
+    // 4. Chưa chọn voice
+    // 5. Socket đã connected
+    // 6. Modal chưa mở
+    // 7. Không đang loading hoặc connecting
+    if (
+      hasAIKaiwa &&
+      !isLoadingVoices &&
+      voices.length > 0 &&
+      !initialConversationId &&
+      !conversationId &&
+      !selectedVoiceName &&
+      isSocketConnected &&
+      !isVoiceModalOpen &&
+      !isLoading &&
+      !isConnecting
+    ) {
+      setIsVoiceModalOpen(true);
+    }
+  }, [
+    hasAIKaiwa,
+    isLoadingVoices,
+    voices.length,
+    initialConversationId,
+    conversationId,
+    selectedVoiceName,
+    isSocketConnected,
+    isVoiceModalOpen,
+    isLoading,
+    isConnecting,
+  ]);
 
   const socketRef = useRef<Socket | null>(null);
   const pendingNewRoomRef = useRef(false);
@@ -1222,17 +1264,28 @@ export default function AiConversationScreen() {
         }
 
         // Nếu CHƯA có bất kỳ conversationId nào (mở từ topic, tạo convo mới),
-        // thì mới emit join-kaiwa-room {} để server tạo room mới.
+        // thì tạo room với voiceName đã chọn khi user bấm nút nói.
         // Case mở lại từ list (có initialConversationId) sẽ KHÔNG chạy nhánh này.
-        // Check pendingNewRoomRef để tránh emit nhiều lần khi đang chờ joined event
         if (
           !effectiveConversationId &&
           !pendingNewRoomRef.current &&
           socketRef.current &&
           socketRef.current.connected
         ) {
+          // Nếu chưa chọn voice, hiển thị modal để user chọn voice trước
+          if (!selectedVoiceName && voices.length > 0) {
+            setIsVoiceModalOpen(true);
+            return;
+          }
+          
+          // Nếu đã chọn voice, tạo room với voiceName đã chọn
+          // Đây là lúc tạo room khi user bấm nút nói sau khi đã chọn voice
           pendingNewRoomRef.current = true;
-          socketRef.current.emit("join-kaiwa-room", {});
+          const joinPayload: { voiceName?: string } = {};
+          if (selectedVoiceName) {
+            joinPayload.voiceName = selectedVoiceName;
+          }
+          socketRef.current.emit("join-kaiwa-room", joinPayload);
           // Wait a bit for the join to complete
           await new Promise((resolve) => setTimeout(resolve, 500));
         }
@@ -1257,8 +1310,56 @@ export default function AiConversationScreen() {
         setProcessingStatus(t("home.ai.conversation.audio_send_error"));
       }
     },
-    [hasAIKaiwa, conversationId, initialConversationId, t]
+    [hasAIKaiwa, conversationId, initialConversationId, selectedVoiceName, voices, t]
   );
+
+  // Preview voice with sample text
+  const handlePreviewVoice = useCallback(
+    async (voiceName: string, sampleText: string) => {
+      try {
+        const { previewVoice } = await import("@services/conversation");
+        const response = await previewVoice({
+          voiceName,
+          sampleText,
+        });
+        
+        if (response.data?.audio) {
+          // Decode base64 and play audio
+          const ext = response.data.audioFormat || "ogg";
+          const fileUri = await saveBase64ToFile(response.data.audio, ext);
+          await playAudioFromUri(fileUri);
+        }
+      } catch (error) {
+        console.error("[VOICE] Error previewing voice:", error);
+        showAlert(
+          t("home.ai.conversation.preview_voice_error", "Không thể nghe thử voice"),
+          "error"
+        );
+      }
+    },
+    [t, showAlert]
+  );
+
+  // Handle voice selection - chỉ lưu voice, không tạo room
+  // Room sẽ được tạo khi user bấm nút nói lần đầu
+  const handleVoiceSelected = useCallback(
+    (voiceName: string) => {
+      setSelectedVoiceName(voiceName);
+      setIsVoiceModalOpen(false);
+      // Không tạo room ở đây, chỉ lưu voice selection
+      // Room sẽ được tạo khi user bấm nút recording lần đầu
+    },
+    []
+  );
+
+  // Handle cancel voice selection - quay lại màn hình trước nếu chưa có conversation
+  const handleVoiceCancel = useCallback(() => {
+    setIsVoiceModalOpen(false);
+    // Nếu chưa có conversation và chưa chọn voice, quay lại màn hình trước
+    if (!conversationId && !initialConversationId && !selectedVoiceName) {
+      router.back();
+    }
+  }, [conversationId, initialConversationId, selectedVoiceName]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
@@ -1728,7 +1829,7 @@ export default function AiConversationScreen() {
               }}
               exerciseTitle={isSubmitting ? <AnimatedDots /> : processingStatus}
               showPlayback={false}
-              showWaveform={false}
+              // showWaveform={false}
               disabled={isSubmitting || !isSocketConnected || !hasAIKaiwa}
               maxDuration={10}
               showSaveButton={false}
@@ -1807,8 +1908,32 @@ export default function AiConversationScreen() {
               setConversationId(null);
               setConversationTitle(null);
               setIsLoading(false);
+              // Reset voice selection for new conversation
+              setSelectedVoiceName(null);
             }
           }}
+        />
+      )}
+
+      {/* Voice Selection Modal */}
+      {hasAIKaiwa && (
+        <VoiceSelectionModal
+          isOpen={isVoiceModalOpen}
+          onClose={() => {
+            // Nếu đóng modal mà chưa chọn voice và chưa có conversation, quay lại
+            if (!selectedVoiceName && !conversationId && !initialConversationId) {
+              handleVoiceCancel();
+            } else {
+              setIsVoiceModalOpen(false);
+            }
+          }}
+          voices={voices}
+          selectedVoiceName={selectedVoiceName}
+          onSelectVoice={handleVoiceSelected}
+          isLoading={isLoadingVoices}
+          onPreviewVoice={handlePreviewVoice}
+          onCancel={handleVoiceCancel}
+          showCancelButton={true}
         />
       )}
     </SafeAreaView>

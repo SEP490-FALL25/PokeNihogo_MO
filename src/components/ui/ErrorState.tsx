@@ -1,5 +1,5 @@
 import { ThemedText } from "@components/ThemedText";
-import { IconSymbol } from "@components/ui/IconSymbol";
+import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -25,7 +25,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({
   title,
   description,
   error,
-  icon = "exclamationmark.triangle",
+  icon = "warning",
   iconSize = 48,
   iconColor = "#ef4444",
   showRetry = true,
@@ -45,14 +45,14 @@ const ErrorState: React.FC<ErrorStateProps> = ({
   return (
     <View style={[styles.container, pokemonTheme && styles.pokemonContainer, style]}>
       <View style={[styles.iconContainer, pokemonTheme && styles.pokemonIconContainer]}>
-        <IconSymbol
+        <MaterialIcons
           name={icon as any}
           size={iconSize}
           color={iconColor}
         />
         {pokemonTheme && (
           <View style={styles.warningContainer}>
-            <IconSymbol name="bolt.fill" size={16} color="#fbbf24" />
+            <MaterialIcons name="error" size={16} color="#fbbf24" />
           </View>
         )}
       </View>
@@ -84,7 +84,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({
           onPress={onRetry}
           activeOpacity={0.8}
         >
-          <IconSymbol name="arrow.clockwise" size={16} color="#ffffff" />
+          <MaterialIcons name="refresh" size={16} color="#ffffff" />
           <ThemedText style={[styles.retryText, pokemonTheme && styles.pokemonRetryText]}>
             {defaultRetryText}
           </ThemedText>
