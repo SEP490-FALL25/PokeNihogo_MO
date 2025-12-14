@@ -1881,35 +1881,34 @@ export default function AiConversationScreen() {
           onSelectConversation={(convId) => {
             setIsListSheetOpen(false);
             
+            if (!convId || convId === "") {
+              // New conversation: navigate to clean route to reset all state
+              // This ensures complete reset, same as clicking + button from list screen
+              router.replace(ROUTES.APP.AI_CONVERSATION);
+              return;
+            }
+            
+            // Switch to existing conversation
             // Clear current messages before switching
             setMessages([]);
             pendingNewRoomRef.current = false;
+            setIsLoading(true);
+            setConversationId(convId);
             
-            if (convId) {
-              // Switch to existing conversation
-              setIsLoading(true);
-              setConversationId(convId);
-              // Find and set title from conversation rooms
-              const room = conversationRoomsData?.results?.find(
-                (r) => r.conversationId === convId
-              );
-              if (room?.title) {
-                setConversationTitle(room.title);
-              } else {
-                setConversationTitle(null);
-              }
-              if (socketRef.current?.connected) {
-                socketRef.current.emit("join-kaiwa-room", {
-                  conversationId: convId,
-                });
-              }
+            // Find and set title from conversation rooms
+            const room = conversationRoomsData?.results?.find(
+              (r) => r.conversationId === convId
+            );
+            if (room?.title) {
+              setConversationTitle(room.title);
             } else {
-              // New conversation: wait until the first recording before creating the room
-              setConversationId(null);
               setConversationTitle(null);
-              setIsLoading(false);
-              // Reset voice selection for new conversation
-              setSelectedVoiceName(null);
+            }
+            
+            if (socketRef.current?.connected) {
+              socketRef.current.emit("join-kaiwa-room", {
+                conversationId: convId,
+              });
             }
           }}
         />
