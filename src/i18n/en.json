@@ -1091,7 +1091,9 @@
     "logout_message": "Are you sure you want to logout?",
     "cancel": "Cancel",
     "language": "Language",
-    "language_subtitle": "Choose your preferred language"
+    "language_subtitle": "Choose your preferred language",
+    "overlay_title": "Pokémon overlay",
+    "overlay_subtitle": "Show the draggable buddy on the home screen"
   },
   "profile": {
     "title": "Profile",

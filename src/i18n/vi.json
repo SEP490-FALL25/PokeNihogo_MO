@@ -1104,7 +1104,9 @@
     "logout_message": "Bạn có chắc chắn muốn đăng xuất không?",
     "cancel": "Hủy",
     "language": "Ngôn ngữ",
-    "language_subtitle": "Chọn ngôn ngữ ưa thích của bạn"
+    "language_subtitle": "Chọn ngôn ngữ ưa thích của bạn",
+    "overlay_title": "Hiển thị Pokémon nổi",
+    "overlay_subtitle": "Bật/tắt bạn đồng hành kéo thả trên màn hình chính"
   },
   "profile": {
     "title": "Hồ sơ",

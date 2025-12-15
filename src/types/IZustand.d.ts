@@ -13,6 +13,11 @@ declare global {
             setOverlayPosition: (position: { x: number; y: number }) => void;
             setOverlayPositionLoaded: (loaded: boolean) => void;
             resetOverlayPosition: () => void;
+            // Draggable overlay visibility management
+            isPokemonOverlayEnabled: boolean;
+            isOverlayPreferenceLoaded: boolean;
+            setPokemonOverlayEnabled: (enabled: boolean) => Promise<void>;
+            initializeOverlayPreference: () => Promise<void>;
 
             // Subscription features management
             subscriptionKeys: string[];

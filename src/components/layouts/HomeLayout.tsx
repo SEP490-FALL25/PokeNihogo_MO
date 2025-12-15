@@ -17,6 +17,7 @@ import useAuth from "@hooks/useAuth";
 import { ROUTES } from "@routes/routes";
 import userPokemonService from "@services/user-pokemon";
 import { useAuthStore } from "@stores/auth/auth.config";
+import { useGlobalStore } from "@stores/global/global.config";
 import { useUserStore } from "@stores/user/user.config";
 import starters from "../../../mock-data/starters.json";
 import { Starter } from "../../types/starter.types";
@@ -49,6 +50,11 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     const queryClient = useQueryClient();
     const { accessToken } = useAuthStore();
     const { starterId } = useUserStore();
+    const {
+      isPokemonOverlayEnabled,
+      isOverlayPreferenceLoaded,
+      initializeOverlayPreference,
+    } = useGlobalStore();
     
     const [isShopVisible, setIsShopVisible] = useState(false);
     const [mainPokemonImageUrl, setMainPokemonImageUrl] = useState<string | null>(null);
@@ -116,7 +122,13 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     const pokemonImageUri = mainPokemonImageUrl || starterImageUri;
     
     // Show overlay continuously when there's a pokemon image (not just during first time login)
-    const shouldShowPokemonOverlay = !!pokemonImageUri;
+    const shouldShowPokemonOverlay =
+      isOverlayPreferenceLoaded && isPokemonOverlayEnabled && !!pokemonImageUri;
+
+    // Load overlay visibility preference once
+    useEffect(() => {
+      initializeOverlayPreference();
+    }, [initializeOverlayPreference]);
 
     // Refetch user profile khi component mount và khi screen được focus
     // để đảm bảo dữ liệu người dùng luôn được cập nhật mới nhất

@@ -209,7 +209,9 @@
         "logout_message": "ログアウトしてもよろしいですか？",
         "cancel": "キャンセル",
         "language": "言語",
-        "language_subtitle": "お好みの言語を選択してください"
+        "language_subtitle": "お好みの言語を選択してください",
+        "overlay_title": "ポケモンオーバーレイ",
+        "overlay_subtitle": "ホーム画面にドラッグ可能なポケモンを表示する"
     },
     "profile": {
         "title": "プロフィール",
