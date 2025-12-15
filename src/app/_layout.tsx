@@ -18,6 +18,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useAuthStore } from "@stores/auth/auth.config";
+import { Audio } from "expo-av"; // Đã thêm import Audio
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -39,6 +40,27 @@ export default function RootLayout() {
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  // --- Cấu hình Audio Session cho Google Meet ---
+  useEffect(() => {
+    const configureAudio = async () => {
+      try {
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false, // Để false nếu app chỉ phát nhạc
+          playsInSilentModeIOS: true, // Quan trọng: Cho phép phát khi im lặng/chia sẻ màn hình
+          shouldDuckAndroid: true, // Âm thanh nhỏ lại thay vì tắt khi có thông báo
+          staysActiveInBackground: true, // Giữ âm thanh khi app chạy nền (khi đang share screen)
+          playThroughEarpieceAndroid: false, // Phát ra loa ngoài
+        });
+        console.log("Audio configured for screen sharing");
+      } catch (e) {
+        console.error("Failed to configure audio", e);
+      }
+    };
+
+    configureAudio();
+  }, []);
+  // ---------------------------------------------
 
   if (!loaded || isTokenLoading) {
     return <SplashScreen />;
