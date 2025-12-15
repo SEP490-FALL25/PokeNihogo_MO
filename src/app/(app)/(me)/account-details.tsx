@@ -129,6 +129,7 @@ export default function AccountDetailsScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingTop: 100 }}
+          keyboardShouldPersistTaps="handled"
         >
           <View className="px-5 -mt-24 gap-6">
             <LinearGradient
