@@ -101,7 +101,7 @@
       "cancel_test_message": "Bạn có chắc chắn muốn hủy bài kiểm tra này? Tiến trình của bạn sẽ bị mất."
     },
     "choose_starter": {
-      "title": "Chọn Đồng hành của bạn!",
+      "title": "Chọn đồng hành của bạn!",
       "confirm": "Xác nhận",
       "loading": "Đang tải Pokemon khởi đầu...",
       "fetch_error": "Không thể tải Pokemon khởi đầu. Vui lòng thử lại.",
@@ -468,7 +468,7 @@
     "reading": "Đọc",
     "listening": "Nghe",
     "battle": "Chiến đấu",
-    "user_info": "Thông tin người dùng",
+    "user_info": "Thông tin",
     "speaking": "Nói"
   },
   "tour": {
@@ -770,6 +770,7 @@
   "quiz_screen": {
     "title": "Làm bài kiểm tra",
     "loading": "Đang tải...",
+    "back_blocked_message": "Vui lòng dùng nút quay lại ở góc trên.",
     "alerts": {
       "load_quiz_failed": "Không thể tải quiz. Vui lòng thử lại.",
       "load_questions_failed": "Không thể tải câu hỏi. Vui lòng thử lại.",
@@ -878,6 +879,7 @@
     "exercise_status": {
       "completed": "Hoàn thành",
       "failed": "Chưa đạt",
+      "in_progress": "Đang làm",
       "skipped": "Đã bỏ qua"
     },
     "srs_types": {
@@ -1019,6 +1021,7 @@
   },
   "test_screen": {
     "loading": "Đang tải...",
+    "back_blocked_message": "Vui lòng dùng nút quay lại ở góc trên.",
     "config": {
       "reading_test": {
         "title": "Bài đọc",
@@ -1102,7 +1105,13 @@
     "logout_message": "Bạn có chắc chắn muốn đăng xuất không?",
     "cancel": "Hủy",
     "language": "Ngôn ngữ",
-    "language_subtitle": "Chọn ngôn ngữ ưa thích của bạn"
+    "language_subtitle": "Chọn ngôn ngữ ưa thích của bạn",
+    "overlay_title": "Hiển thị Pokémon nổi",
+    "overlay_subtitle": "Bật/tắt bạn đồng hành kéo thả trên màn hình chính",
+    "overlay_modal_title": "Tùy chọn bạn đồng hành",
+    "overlay_modal_description": "Ẩn bạn đồng hành nổi nếu bạn thấy vướng. Bạn có thể bật lại bất cứ lúc nào.",
+    "overlay_turn_off": "Tắt bạn đồng hành",
+    "overlay_hint": "Muốn bật lại? Vào mục Cài đặt và bật “Pokémon overlay”."
   },
   "profile": {
     "title": "Hồ sơ",

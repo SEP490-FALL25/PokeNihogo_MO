@@ -209,7 +209,13 @@
         "logout_message": "ログアウトしてもよろしいですか？",
         "cancel": "キャンセル",
         "language": "言語",
-        "language_subtitle": "お好みの言語を選択してください"
+        "language_subtitle": "お好みの言語を選択してください",
+        "overlay_title": "ポケモンオーバーレイ",
+        "overlay_subtitle": "ホーム画面にドラッグ可能なポケモンを表示する",
+        "overlay_modal_title": "バディの設定",
+        "overlay_modal_description": "邪魔なときはバディを非表示にできます。いつでも再表示できます。",
+        "overlay_turn_off": "バディを隠す",
+        "overlay_hint": "再表示するには「設定」で「ポケモンオーバーレイ」をオンにしてください。"
     },
     "profile": {
         "title": "プロフィール",
@@ -324,6 +330,7 @@
         "exercise_status": {
             "completed": "完了",
             "failed": "未達成",
+            "in_progress": "進行中",
             "skipped": "スキップ"
         },
         "recent_exercises": "直近の練習",
@@ -1013,6 +1020,7 @@
     "quiz_screen": {
         "title": "テストを受ける",
         "loading": "読み込み中...",
+        "back_blocked_message": "画面上部の戻るボタンを使用してください。",
         "alerts": {
             "load_quiz_failed": "クイズを読み込めません。もう一度お試しください。",
             "load_questions_failed": "問題を読み込めません。もう一度お試しください。",
@@ -1083,6 +1091,7 @@
     },
     "test_screen": {
         "loading": "読み込み中...",
+        "back_blocked_message": "画面上部の戻るボタンを使用してください。",
         "config": {
             "reading_test": {
                 "title": "読解テスト",

@@ -5,13 +5,15 @@ import { TestHeader } from "@components/test/test-screen/TestHeader";
 import { TestQuestionCard } from "@components/test/test-screen/TestQuestionCard";
 import { TestSetContent } from "@components/test/test-screen/TestSetContent";
 import { ConfirmModal } from "@components/ui/ConfirmModal";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useTestLogic } from "@hooks/useTestLogic";
 import { useGetTestAttempt } from "@hooks/useUserTestAttempt";
+import { usePreventRemove } from "@react-navigation/native";
 import { getTestConfig, transformTestSets } from "@utils/test.utils";
-import { useLocalSearchParams } from "expo-router";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useFocusEffect, useLocalSearchParams, useNavigation } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { BackHandler, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function TestScreen() {
   const { testId: testIdParam, testType } = useLocalSearchParams<{
@@ -20,6 +22,10 @@ export default function TestScreen() {
   }>();
   const { t } = useTranslation();
   const testId = testIdParam || "";
+  const navigation = useNavigation();
+  const [allowNavigate, setAllowNavigate] = useState(false);
+  const pendingActionRef = useRef<any>(null);
+  const { showAlert } = useMinimalAlert();
 
   const { data, isLoading } = useGetTestAttempt(testId, testType);
   const testConfig = useMemo(() => getTestConfig(testType), [testType]);
@@ -59,7 +65,6 @@ export default function TestScreen() {
     showCompletionModal,
     setShowCompletionModal,
     elapsedSeconds,
-    isTimerPaused,
     setIsTimerPaused,
     unansweredQuestionIds,
     scaleAnims,
@@ -82,6 +87,42 @@ export default function TestScreen() {
       setUserTestAttemptId(data.data.userTestAttemptId);
     }
   }, [data]);
+
+  const handleHeaderBack = useCallback(() => {
+    pendingActionRef.current = null;
+    setShowExitConfirmModal(true);
+    return true;
+  }, [setShowExitConfirmModal]);
+
+  const handleHardwareBack = useCallback(() => {
+    showAlert(
+      t("test_screen.back_blocked_message", "Vui lòng dùng nút quay lại ở góc trên."),
+      "warning"
+    );
+    return true;
+  }, [showAlert, t]);
+
+  usePreventRemove(!allowNavigate, (event) => {
+    pendingActionRef.current = event.data.action;
+    setShowExitConfirmModal(true);
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        handleHardwareBack
+      );
+      return () => subscription.remove();
+    }, [handleHardwareBack])
+  );
+
+  useEffect(() => {
+    (navigation as any)?.setOptions?.({
+      gestureEnabled: false,
+      headerBackButtonMenuEnabled: false,
+    });
+  }, [navigation]);
 
   const handleQuestionPress = (id: string) => {
     const y = questionOffsetsRef.current[id] ?? 0;
@@ -188,7 +229,7 @@ export default function TestScreen() {
             title={data?.data?.name || localizedTestConfig.title}
             icon={localizedTestConfig.icon}
             iconColor={localizedTestConfig.color}
-            onBackPress={() => setShowExitConfirmModal(true)}
+        onBackPress={handleHeaderBack}
             onSubmitPress={handleSubmitPress}
           />
           <QuizProgress
@@ -223,7 +264,11 @@ export default function TestScreen() {
           },
           {
             label: t("common.exit", "Exit"),
-            onPress: handleExitConfirm,
+            onPress: () => {
+              setAllowNavigate(true);
+              handleExitConfirm();
+              setTimeout(() => setAllowNavigate(false), 0);
+            },
             variant: "primary",
           },
         ]}

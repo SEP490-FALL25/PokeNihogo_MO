@@ -2,12 +2,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Animated,
-    Dimensions,
-    PanResponder,
-    StyleSheet,
-    Text,
-    View,
+  Animated,
+  Dimensions,
+  Modal,
+  PanResponder,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { useGlobalStore } from "../../stores/global/global.config";
 import { useUserStore } from "../../stores/user/user.config";
@@ -35,6 +38,8 @@ interface DraggableOverlayProps {
   /** Custom text to display */
   text?: string;
 }
+
+const TAP_THRESHOLD = 5;
 
 /**
  * Component Overlay có thể kéo thả và ghi nhớ vị trí với Pokemon display
@@ -64,6 +69,7 @@ const DraggableOverlay = ({
     isOverlayPositionLoaded,
     setOverlayPosition,
     setOverlayPositionLoaded,
+    setPokemonOverlayEnabled,
   } = useGlobalStore();
 
   // User store to check first time login
@@ -73,6 +79,7 @@ const DraggableOverlay = ({
   const pan = useRef(new Animated.ValueXY()).current;
   const [initialLoadCompleted, setInitialLoadCompleted] = useState(false);
   const isInitializing = useRef(false);
+  const [showOverlayModal, setShowOverlayModal] = useState(false);
 
   // 2. Hàm lưu vị trí vào cả AsyncStorage và Global Store
   const savePosition = useCallback(
@@ -237,6 +244,14 @@ const DraggableOverlay = ({
 
         // Lưu vị trí cuối cùng
         savePosition(finalX, finalY);
+
+        // Detect tap (not a drag) to open modal
+        const isTap =
+          Math.abs(gestureState.dx) < TAP_THRESHOLD &&
+          Math.abs(gestureState.dy) < TAP_THRESHOLD;
+        if (isTap) {
+          setShowOverlayModal(true);
+        }
       },
     })
   ).current;
@@ -263,39 +278,84 @@ const DraggableOverlay = ({
   };
 
   return (
-    <Animated.View
-      style={[styles.container, animatedStyle]}
-      {...panResponder.panHandlers} // Gán các hàm xử lý kéo thả
-    >
-      <View style={styles.overlayContent}>
-        {/* Pokemon Display */}
-        {imageUri ? (
-          showBackground ? (
-            <PokemonDisplay imageUri={imageUri} imageSize={imageSize} />
+    <>
+      <Animated.View
+        style={[styles.container, animatedStyle]}
+        {...panResponder.panHandlers} // Gán các hàm xử lý kéo thả
+      >
+        <View style={styles.overlayContent}>
+          {/* Pokemon Display */}
+          {imageUri ? (
+            showBackground ? (
+              <PokemonDisplay imageUri={imageUri} imageSize={imageSize} />
+            ) : (
+              <PokemonImage imageUri={imageUri} size={imageSize} />
+            )
           ) : (
-            <PokemonImage imageUri={imageUri} size={imageSize} />
-          )
-        ) : (
-          // Fallback to text if no image provided
-          <>
-            <Text style={styles.headerText}>{text}</Text>
-            <Text style={styles.bodyText}>{t("common.position_saved")}</Text>
-          </>
-        )}
+            // Keep showing loading state while waiting for imageUri to be available
+            <PokemonImage imageUri={"" as any} size={imageSize} />
+          )}
 
-        {/* Optional text overlay */}
-        {showText && imageUri && (
-          <View style={styles.textOverlay}>
-            <Text style={styles.overlayText}>{text}</Text>
-          </View>
-        )}
+          {/* Optional text overlay */}
+          {showText && imageUri && (
+            <View style={styles.textOverlay}>
+              <Text style={styles.overlayText}>{text}</Text>
+            </View>
+          )}
+        </View>
+      </Animated.View>
 
-        {/* Nút đóng (tùy chọn) */}
-        {/* <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Text style={styles.closeButtonText}>X</Text>
-        </TouchableOpacity> */}
-      </View>
-    </Animated.View>
+      <Modal
+        visible={showOverlayModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowOverlayModal(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowOverlayModal(false)}>
+          <View style={styles.modalBackdrop} />
+        </TouchableWithoutFeedback>
+
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>
+            {t("settings.overlay_modal_title", "Tùy chọn bạn đồng hành")}
+          </Text>
+          <Text style={styles.modalDescription}>
+            {t(
+              "settings.overlay_modal_description",
+              "Tắt bạn đồng hành nổi nếu bạn thấy vướng. Bạn có thể bật lại bất cứ lúc nào."
+            )}
+          </Text>
+
+          <TouchableOpacity
+            style={styles.modalPrimaryButton}
+            onPress={() => {
+              setShowOverlayModal(false);
+              setPokemonOverlayEnabled(false);
+            }}
+          >
+            <Text style={styles.modalPrimaryText}>
+              {t("settings.overlay_turn_off", "Tắt bạn đồng hành")}
+            </Text>
+          </TouchableOpacity>
+
+          <Text style={styles.modalHint}>
+            {t(
+              "settings.overlay_hint",
+              "Muốn bật lại? Vào mục Cài đặt và bật “Pokémon overlay”."
+            )}
+          </Text>
+
+          <TouchableOpacity
+            style={styles.modalSecondaryButton}
+            onPress={() => setShowOverlayModal(false)}
+          >
+            <Text style={styles.modalSecondaryText}>
+              {t("common.cancel", "Cancel")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    </>
   );
 };
 
@@ -356,6 +416,53 @@ const styles = StyleSheet.create({
     fontSize: 10,
     textAlign: "center",
     fontWeight: "bold",
+  },
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContainer: {
+    position: "absolute",
+    left: 20,
+    right: 20,
+    top: screenHeight / 3,
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 20,
+    gap: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0f172a",
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: "#475569",
+  },
+  modalHint: {
+    fontSize: 13,
+    color: "#94a3b8",
+  },
+  modalPrimaryButton: {
+    backgroundColor: "#ef4444",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  modalPrimaryText: {
+    color: "white",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  modalSecondaryButton: {
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  modalSecondaryText: {
+    color: "#0f172a",
+    fontWeight: "600",
+    fontSize: 15,
   },
 });
 

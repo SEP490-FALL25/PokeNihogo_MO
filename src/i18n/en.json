@@ -770,6 +770,7 @@
   "quiz_screen": {
     "title": "Take the quiz",
     "loading": "Loading...",
+    "back_blocked_message": "Please use the back button at the top.",
     "alerts": {
       "load_quiz_failed": "Unable to load the quiz. Please try again.",
       "load_questions_failed": "Unable to load questions. Please try again.",
@@ -863,6 +864,7 @@
     "exercise_status": {
       "completed": "Completed",
       "failed": "Failed",
+      "in_progress": "In progress",
       "skipped": "Skipped"
     },
     "recent_exercises": "Recent exercises",
@@ -1006,6 +1008,7 @@
   },
   "test_screen": {
     "loading": "Loading...",
+    "back_blocked_message": "Please use the back button at the top.",
     "config": {
       "reading_test": {
         "title": "Reading test",
@@ -1089,7 +1092,13 @@
     "logout_message": "Are you sure you want to logout?",
     "cancel": "Cancel",
     "language": "Language",
-    "language_subtitle": "Choose your preferred language"
+    "language_subtitle": "Choose your preferred language",
+    "overlay_title": "Pokémon overlay",
+    "overlay_subtitle": "Show the draggable buddy on the home screen",
+    "overlay_modal_title": "Buddy options",
+    "overlay_modal_description": "Hide the floating buddy if it feels in the way. You can turn it back on anytime.",
+    "overlay_turn_off": "Hide buddy",
+    "overlay_hint": "Want it back? Go to Settings and enable “Pokémon overlay”."
   },
   "profile": {
     "title": "Profile",

@@ -398,11 +398,16 @@ export default function PlacementTestScreen() {
         >
           <ScrollView
             style={{ flex: 1 }}
-            contentContainerStyle={{ padding: 20, paddingTop: 10 }}
+            contentContainerStyle={{
+              paddingHorizontal: 24,
+              paddingTop: 12,
+              paddingBottom: 40,
+              gap: 20,
+            }}
             showsVerticalScrollIndicator={false}
           >
             {/* Header with Trophy */}
-            <View style={{ alignItems: "center", marginBottom: 32 }}>
+            <View style={{ alignItems: "center", marginBottom: 32, gap: 12 }}>
               <Animated.View
                 style={{
                   transform: [{ scale: trophyScaleAnim }],
@@ -424,7 +429,14 @@ export default function PlacementTestScreen() {
               </Animated.View>
               <ThemedText
                 type="defaultSemiBold"
-                style={{ fontSize: 32, marginBottom: 8, color: "#ffffff", padding: 20 }}
+                style={{
+                  fontSize: 32,
+                  marginBottom: 4,
+                  color: "#ffffff",
+                  textAlign: "center",
+                  paddingHorizontal: 24,
+                  lineHeight: 38,
+                }}
               >
                 {t("auth.placement_test.result_title")}
               </ThemedText>
@@ -433,6 +445,8 @@ export default function PlacementTestScreen() {
                   fontSize: 16,
                   color: "rgba(255,255,255,0.9)",
                   textAlign: "center",
+                  paddingHorizontal: 24,
+                  lineHeight: 22,
                 }}
               >
                 {t("auth.placement_test.result_subtitle")}
@@ -452,17 +466,22 @@ export default function PlacementTestScreen() {
                 end={{ x: 1, y: 1 }}
                 style={{
                   borderRadius: 24,
-                  padding: 32,
+                  paddingHorizontal: 36,
+                  paddingVertical: 40,
                   marginBottom: 24,
                   alignItems: "center",
+                  width: "100%",
+                  gap: 12,
                 }}
               >
                 <ThemedText
                   style={{
                     fontSize: 14,
                     color: "rgba(255,255,255,0.9)",
-                    marginBottom: 16,
                     fontWeight: "500",
+                    textAlign: "center",
+                    paddingHorizontal: 12,
+                    lineHeight: 18,
                   }}
                 >
                   {t("auth.placement_test.recommended_level")}
@@ -473,6 +492,7 @@ export default function PlacementTestScreen() {
                     justifyContent: "center",
                     alignItems: "center",
                     width: "100%",
+                    paddingHorizontal: 12,
                   }}
                 >
                   <ThemedText
@@ -483,7 +503,9 @@ export default function PlacementTestScreen() {
                       textShadowColor: "rgba(0,0,0,0.2)",
                       textShadowOffset: { width: 0, height: 2 },
                       textShadowRadius: 4,
-                      padding: 30,
+                      paddingHorizontal: 30,
+                      paddingVertical: 16,
+                      textAlign: "center",
                     }}
                     numberOfLines={1}
                     adjustsFontSizeToFit
@@ -501,9 +523,11 @@ export default function PlacementTestScreen() {
                 style={{
                   backgroundColor: "#ffffff",
                   borderRadius: 20,
-                  padding: 20,
+                  paddingVertical: 22,
+                  paddingHorizontal: 20,
                   flexDirection: "row",
                   alignItems: "center",
+                  gap: 16,
                 }}
               >
                 <View
@@ -527,7 +551,7 @@ export default function PlacementTestScreen() {
                   </ThemedText>
                   <ThemedText
                     type="defaultSemiBold"
-                    style={{ fontSize: 24, color: "#111827" }}
+                  style={{ fontSize: 24, color: "#111827", flexShrink: 1 }}
                   >
                     {testResult.totalQuestions}
                   </ThemedText>
@@ -539,9 +563,11 @@ export default function PlacementTestScreen() {
                 style={{
                   backgroundColor: "#ffffff",
                   borderRadius: 20,
-                  padding: 20,
+                  paddingVertical: 22,
+                  paddingHorizontal: 20,
                   flexDirection: "row",
                   alignItems: "center",
+                  gap: 16,
                 }}
               >
                 <View
@@ -565,7 +591,11 @@ export default function PlacementTestScreen() {
                   </ThemedText>
                   <ThemedText
                     type="defaultSemiBold"
-                    style={{ fontSize: 24, color: "#10b981" }}
+                  style={{
+                    fontSize: 24,
+                    color: "#10b981",
+                    flexShrink: 1,
+                  }}
                   >
                     {testResult.totalCorrect}
                   </ThemedText>
@@ -577,9 +607,11 @@ export default function PlacementTestScreen() {
                 style={{
                   backgroundColor: "#ffffff",
                   borderRadius: 20,
-                  padding: 20,
+                  paddingVertical: 22,
+                  paddingHorizontal: 20,
                   flexDirection: "row",
                   alignItems: "center",
+                  gap: 16,
                 }}
               >
                 <View
@@ -603,7 +635,11 @@ export default function PlacementTestScreen() {
                   </ThemedText>
                   <ThemedText
                     type="defaultSemiBold"
-                    style={{ fontSize: 24, color: "#3b82f6" }}
+                  style={{
+                    fontSize: 24,
+                    color: "#3b82f6",
+                    flexShrink: 1,
+                  }}
                   >
                     {testResult.percentage.toFixed(1)}%
                   </ThemedText>
@@ -619,6 +655,7 @@ export default function PlacementTestScreen() {
                   backgroundColor: "rgba(255,255,255,0.3)",
                   borderRadius: 9999,
                   overflow: "hidden",
+                  marginHorizontal: 4,
                 }}
               >
                 <Animated.View

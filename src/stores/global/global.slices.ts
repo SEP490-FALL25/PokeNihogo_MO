@@ -2,6 +2,7 @@
 import type { IUserSubscriptionFeatureDetail } from '@models/subscription/subscription.response';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const LANGUAGE_STORAGE_KEY = 'app_language';
+const OVERLAY_STORAGE_KEY = '@DraggableOverlay:enabled';
 
 export const createGlobalSlice = (set: any, get: any): ZUSTAND.IGlobalState => ({
   language: "en", // Default language
@@ -9,6 +10,8 @@ export const createGlobalSlice = (set: any, get: any): ZUSTAND.IGlobalState => (
   // DraggableOverlay position state
   overlayPosition: { x: 0, y: 0 },
   isOverlayPositionLoaded: false,
+  isPokemonOverlayEnabled: true,
+  isOverlayPreferenceLoaded: false,
 
   // Subscription features state
   subscriptionKeys: [],
@@ -68,6 +71,30 @@ export const createGlobalSlice = (set: any, get: any): ZUSTAND.IGlobalState => (
       y: screenHeight / 2 - OVERLAY_SIZE / 2,
     };
     set({ overlayPosition: defaultPosition, isOverlayPositionLoaded: true });
+  },
+
+  // Overlay visibility preference
+  setPokemonOverlayEnabled: async (enabled: boolean) => {
+    try {
+      await AsyncStorage.setItem(OVERLAY_STORAGE_KEY, JSON.stringify(enabled));
+    } catch (error) {
+      console.error('Error saving overlay preference:', error);
+    } finally {
+      set({ isPokemonOverlayEnabled: enabled });
+    }
+  },
+
+  initializeOverlayPreference: async () => {
+    try {
+      const stored = await AsyncStorage.getItem(OVERLAY_STORAGE_KEY);
+      if (stored !== null) {
+        set({ isPokemonOverlayEnabled: stored === "true" });
+      }
+    } catch (error) {
+      console.error('Error loading overlay preference:', error);
+    } finally {
+      set({ isOverlayPreferenceLoaded: true });
+    }
   },
 
   // Subscription features management
