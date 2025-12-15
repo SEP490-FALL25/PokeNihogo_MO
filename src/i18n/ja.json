@@ -1013,6 +1013,7 @@
     "quiz_screen": {
         "title": "テストを受ける",
         "loading": "読み込み中...",
+        "back_blocked_message": "画面上部の戻るボタンを使用してください。",
         "alerts": {
             "load_quiz_failed": "クイズを読み込めません。もう一度お試しください。",
             "load_questions_failed": "問題を読み込めません。もう一度お試しください。",
@@ -1083,6 +1084,7 @@
     },
     "test_screen": {
         "loading": "読み込み中...",
+        "back_blocked_message": "画面上部の戻るボタンを使用してください。",
         "config": {
             "reading_test": {
                 "title": "読解テスト",

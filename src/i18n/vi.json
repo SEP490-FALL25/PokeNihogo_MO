@@ -101,7 +101,7 @@
       "cancel_test_message": "Bạn có chắc chắn muốn hủy bài kiểm tra này? Tiến trình của bạn sẽ bị mất."
     },
     "choose_starter": {
-      "title": "Chọn Đồng hành của bạn!",
+      "title": "Chọn đồng hành của bạn!",
       "confirm": "Xác nhận",
       "loading": "Đang tải Pokemon khởi đầu...",
       "fetch_error": "Không thể tải Pokemon khởi đầu. Vui lòng thử lại.",
@@ -770,6 +770,7 @@
   "quiz_screen": {
     "title": "Làm bài kiểm tra",
     "loading": "Đang tải...",
+    "back_blocked_message": "Vui lòng dùng nút quay lại ở góc trên.",
     "alerts": {
       "load_quiz_failed": "Không thể tải quiz. Vui lòng thử lại.",
       "load_questions_failed": "Không thể tải câu hỏi. Vui lòng thử lại.",
@@ -1019,6 +1020,7 @@
   },
   "test_screen": {
     "loading": "Đang tải...",
+    "back_blocked_message": "Vui lòng dùng nút quay lại ở góc trên.",
     "config": {
       "reading_test": {
         "title": "Bài đọc",

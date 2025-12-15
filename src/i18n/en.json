@@ -770,6 +770,7 @@
   "quiz_screen": {
     "title": "Take the quiz",
     "loading": "Loading...",
+    "back_blocked_message": "Please use the back button at the top.",
     "alerts": {
       "load_quiz_failed": "Unable to load the quiz. Please try again.",
       "load_questions_failed": "Unable to load questions. Please try again.",
@@ -1006,6 +1007,7 @@
   },
   "test_screen": {
     "loading": "Loading...",
+    "back_blocked_message": "Please use the back button at the top.",
     "config": {
       "reading_test": {
         "title": "Reading test",
