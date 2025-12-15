@@ -2,12 +2,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    Animated,
-    Dimensions,
-    PanResponder,
-    StyleSheet,
-    Text,
-    View,
+  Animated,
+  Dimensions,
+  PanResponder,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { useGlobalStore } from "../../stores/global/global.config";
 import { useUserStore } from "../../stores/user/user.config";
@@ -276,11 +276,8 @@ const DraggableOverlay = ({
             <PokemonImage imageUri={imageUri} size={imageSize} />
           )
         ) : (
-          // Fallback to text if no image provided
-          <>
-            <Text style={styles.headerText}>{text}</Text>
-            <Text style={styles.bodyText}>{t("common.position_saved")}</Text>
-          </>
+          // Keep showing loading state while waiting for imageUri to be available
+          <PokemonImage imageUri={"" as any} size={imageSize} />
         )}
 
         {/* Optional text overlay */}

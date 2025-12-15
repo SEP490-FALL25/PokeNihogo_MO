@@ -237,14 +237,7 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
         </ImageBackground>
         {/* Draggable overlay now lives inside HomeLayout so it stays scoped to the home screen */}
         {shouldShowPokemonOverlay && (
-          <DraggableOverlay
-            imageUri={
-              pokemonImageUri ||
-              "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/25.gif"
-            }
-            imageSize={100}
-            showBackground={false}
-          />
+          <DraggableOverlay imageUri={pokemonImageUri || ""} imageSize={100} showBackground={false} />
         )}
       </HomeTourGuide>
     );
