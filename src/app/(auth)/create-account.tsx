@@ -15,7 +15,7 @@ import { router } from 'expo-router';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Image, Text, View } from 'react-native';
+import { Image, Text, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { z } from 'zod';
 import { makeZodI18nMap } from 'zod-i18n-map';
 
@@ -63,94 +63,96 @@ export default function CreateAccountScreen() {
 
     return (
         <AuthScreenLayout>
-            <View className="flex-1">
-                <BackScreen />
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View className="flex-1">
+                    <BackScreen />
 
-                <View className="flex-1 px-5">
-                    <View className="absolute inset-0 justify-center items-center -z-10">
-                        <Image
-                            source={require('../../../assets/images/PokeNihongoLogo.png')}
-                            className='w-80 h-52 object-contain opacity-10'
-                        />
-                    </View>
-
-                    <View className="flex-1 justify-between pt-16">
-
-                        <View className="gap-5">
-                            <Text className="text-3xl font-bold text-white mb-8">{t('auth.whats-your-name')}</Text>
-                            {/* Name Input */}
-                            <View className="gap-2">
-                                <Text className="text-base font-medium text-white">{t('auth.name')}</Text>
-                                <Controller
-                                    control={control}
-                                    name="name"
-                                    render={({ field: { onChange, onBlur, value } }) => (
-                                        <Input
-                                            value={value}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            placeholder={t('auth.enter-your-name')}
-                                            autoCapitalize="words"
-                                            autoCorrect={false}
-                                            error={errors.name?.message as string}
-                                            autoFocus={true}
-                                        />
-                                    )}
-                                />
-                            </View>
-
-                            {/* Password Input */}
-                            <View className="gap-2">
-                                <Text className="text-base font-medium text-white">{t('auth.password')}</Text>
-                                <Controller
-                                    control={control}
-                                    name="password"
-                                    render={({ field: { onChange, onBlur, value } }) => (
-                                        <Input
-                                            value={value}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            placeholder={t('auth.enter-your-password')}
-                                            isPassword={true}
-                                            error={errors.password?.message as string}
-                                        />
-                                    )}
-                                />
-                            </View>
-
-                            {/* Confirm Password Input */}
-                            <View className="gap-2">
-                                <Text className="text-base font-medium text-white">{t('auth.confirm-password')}</Text>
-                                <Controller
-                                    control={control}
-                                    name="confirmPassword"
-                                    render={({ field: { onChange, onBlur, value } }) => (
-                                        <Input
-                                            value={value}
-                                            onBlur={onBlur}
-                                            onChangeText={onChange}
-                                            placeholder={t('auth.enter-your-password')}
-                                            isPassword={true}
-                                            error={errors.confirmPassword?.message as string}
-                                        />
-                                    )}
-                                />
-                            </View>
+                    <View className="flex-1 px-5">
+                        <View className="absolute inset-0 justify-center items-center -z-10">
+                            <Image
+                                source={require('../../../assets/images/PokeNihongoLogo.png')}
+                                className='w-80 h-52 object-contain opacity-10'
+                            />
                         </View>
 
-                        <View className="pb-5">
-                            <BounceButton
-                                variant="solid"
-                                loading={isSubmitting}
-                                disabled={!isValid || isSubmitting}
-                                onPress={handleSubmit(handleCompleteRegistration)}
-                            >
-                                <Text className="text-white font-bold text-lg">{t('auth.next')}</Text>
-                            </BounceButton>
+                        <View className="flex-1 justify-between pt-16">
+
+                            <View className="gap-5">
+                                <Text className="text-3xl font-bold text-white mb-8">{t('auth.whats-your-name')}</Text>
+                                {/* Name Input */}
+                                <View className="gap-2">
+                                    <Text className="text-base font-medium text-white">{t('auth.name')}</Text>
+                                    <Controller
+                                        control={control}
+                                        name="name"
+                                        render={({ field: { onChange, onBlur, value } }) => (
+                                            <Input
+                                                value={value}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                placeholder={t('auth.enter-your-name')}
+                                                autoCapitalize="words"
+                                                autoCorrect={false}
+                                                error={errors.name?.message as string}
+                                                autoFocus={true}
+                                            />
+                                        )}
+                                    />
+                                </View>
+
+                                {/* Password Input */}
+                                <View className="gap-2">
+                                    <Text className="text-base font-medium text-white">{t('auth.password')}</Text>
+                                    <Controller
+                                        control={control}
+                                        name="password"
+                                        render={({ field: { onChange, onBlur, value } }) => (
+                                            <Input
+                                                value={value}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                placeholder={t('auth.enter-your-password')}
+                                                isPassword={true}
+                                                error={errors.password?.message as string}
+                                            />
+                                        )}
+                                    />
+                                </View>
+
+                                {/* Confirm Password Input */}
+                                <View className="gap-2">
+                                    <Text className="text-base font-medium text-white">{t('auth.confirm-password')}</Text>
+                                    <Controller
+                                        control={control}
+                                        name="confirmPassword"
+                                        render={({ field: { onChange, onBlur, value } }) => (
+                                            <Input
+                                                value={value}
+                                                onBlur={onBlur}
+                                                onChangeText={onChange}
+                                                placeholder={t('auth.enter-your-password')}
+                                                isPassword={true}
+                                                error={errors.confirmPassword?.message as string}
+                                            />
+                                        )}
+                                    />
+                                </View>
+                            </View>
+
+                            <View className="pb-5">
+                                <BounceButton
+                                    variant="solid"
+                                    loading={isSubmitting}
+                                    disabled={!isValid || isSubmitting}
+                                    onPress={handleSubmit(handleCompleteRegistration)}
+                                >
+                                    <Text className="text-white font-bold text-lg">{t('auth.next')}</Text>
+                                </BounceButton>
+                            </View>
                         </View>
                     </View>
                 </View>
-            </View>
+            </TouchableWithoutFeedback>
         </AuthScreenLayout>
     );
 }

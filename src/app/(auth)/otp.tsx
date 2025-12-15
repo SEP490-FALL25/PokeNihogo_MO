@@ -10,7 +10,7 @@ import { saveSecureStorage } from '@utils/secure-storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TextInput, TouchableOpacity, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
 
 export default function OTPScreen() {
     /**
@@ -86,54 +86,56 @@ export default function OTPScreen() {
 
     return (
         <AuthScreenLayout>
-            <View className="flex-1">
-                <BackScreen title={t('auth.enter-code')} />
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View className="flex-1">
+                    <BackScreen title={t('auth.enter-code')} />
 
-                <View className="flex-1 px-5 pt-16">
-                    <View className="absolute inset-0 justify-center items-center -z-10">
-                        <Image source={require('../../../assets/images/PokeNihongoLogo.png')} className='w-80 h-52 object-contain opacity-20' />
-                    </View>
+                    <View className="flex-1 px-5 pt-16">
+                        <View className="absolute inset-0 justify-center items-center -z-10">
+                            <Image source={require('../../../assets/images/PokeNihongoLogo.png')} className='w-80 h-52 object-contain opacity-20' />
+                        </View>
 
-                    <Text className="text-3xl font-bold text-white mb-2">{t('auth.enter-code')}</Text>
-                    <Text className="text-base text-white/80 mb-12">
-                        {t('auth.we-sent-a-6-digit-code-to')} {'\n'}
-                        <Text className="font-bold">{email}</Text>
-                    </Text>
+                        <Text className="text-3xl font-bold text-white mb-2">{t('auth.enter-code')}</Text>
+                        <Text className="text-base text-white/80 mb-12">
+                            {t('auth.we-sent-a-6-digit-code-to')} {'\n'}
+                            <Text className="font-bold">{email}</Text>
+                        </Text>
 
-                    {/* Ô nhập OTP */}
-                    <TextInput
-                        value={code}
-                        onChangeText={setCode}
-                        className="text-white text-4xl text-center font-bold tracking-[16px]"
-                        maxLength={6}
-                        keyboardType="number-pad"
-                        autoFocus={true}
-                    />
-                    {/* Đường gạch chân giả */}
-                    <View className="w-full h-px bg-white/30 mt-2" />
+                        {/* Ô nhập OTP */}
+                        <TextInput
+                            value={code}
+                            onChangeText={setCode}
+                            className="text-white text-4xl text-center font-bold tracking-[16px]"
+                            maxLength={6}
+                            keyboardType="number-pad"
+                            autoFocus={true}
+                        />
+                        {/* Đường gạch chân giả */}
+                        <View className="w-full h-px bg-white/30 mt-2" />
 
-                    <View className="flex-row justify-center mt-6">
-                        <Text className="text-base text-white/80">{t('auth.didnt-receive-a-code')} </Text>
-                        <TouchableOpacity onPress={handleResend} disabled={timer > 0}>
-                            <Text className={`text-base font-bold ${timer > 0 ? 'text-white/50' : 'text-white'}`}>
-                                {t('auth.resend')} {timer > 0 ? `(${timer}s)` : ''}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                        <View className="flex-row justify-center mt-6">
+                            <Text className="text-base text-white/80">{t('auth.didnt-receive-a-code')} </Text>
+                            <TouchableOpacity onPress={handleResend} disabled={timer > 0}>
+                                <Text className={`text-base font-bold ${timer > 0 ? 'text-white/50' : 'text-white'}`}>
+                                    {t('auth.resend')} {timer > 0 ? `(${timer}s)` : ''}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
 
-                    <View className="mt-auto pb-5">
-                        <BounceButton
-                            variant="solid"
-                            loading={isSubmitting}
-                            // Nút bị vô hiệu hóa khi chưa nhập đủ 6 số
-                            disabled={code.length !== 6 || isSubmitting}
-                            onPress={handleVerify}
-                        >
-                            <Text className="text-white font-bold text-lg">{t('auth.verify')}</Text>
-                        </BounceButton>
+                        <View className="mt-auto pb-5">
+                            <BounceButton
+                                variant="solid"
+                                loading={isSubmitting}
+                                // Nút bị vô hiệu hóa khi chưa nhập đủ 6 số
+                                disabled={code.length !== 6 || isSubmitting}
+                                onPress={handleVerify}
+                            >
+                                <Text className="text-white font-bold text-lg">{t('auth.verify')}</Text>
+                            </BounceButton>
+                        </View>
                     </View>
                 </View>
-            </View>
+            </TouchableWithoutFeedback>
         </AuthScreenLayout>
     );
 }
