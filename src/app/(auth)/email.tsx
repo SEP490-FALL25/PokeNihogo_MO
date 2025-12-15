@@ -12,7 +12,7 @@ import { router } from 'expo-router';
 import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { Image, Text, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { Image, Keyboard, Text, TouchableWithoutFeedback, View } from 'react-native';
 import z from 'zod';
 import { makeZodI18nMap } from 'zod-i18n-map';
 
