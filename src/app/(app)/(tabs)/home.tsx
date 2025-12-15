@@ -158,6 +158,8 @@ const ExerciseCard: React.FC<{
         return "#10b981";
       case "FAILED":
         return "#ef4444";
+      case "IN_PROGRESS":
+        return "#6366f1";
       case "SKIPPED":
         return "#f59e0b";
       default:
@@ -171,6 +173,8 @@ const ExerciseCard: React.FC<{
         return t("home.exercise_status.completed", "Hoàn thành");
       case "FAILED":
         return t("home.exercise_status.failed", "Chưa đạt");
+      case "IN_PROGRESS":
+        return t("home.exercise_status.in_progress", "Đang làm");
       case "SKIPPED":
         return t("home.exercise_status.skipped", "Đã bỏ qua");
       default:

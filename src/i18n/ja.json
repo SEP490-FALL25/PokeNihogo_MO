@@ -330,6 +330,7 @@
         "exercise_status": {
             "completed": "完了",
             "failed": "未達成",
+            "in_progress": "進行中",
             "skipped": "スキップ"
         },
         "recent_exercises": "直近の練習",

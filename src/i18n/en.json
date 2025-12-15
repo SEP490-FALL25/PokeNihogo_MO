@@ -864,6 +864,7 @@
     "exercise_status": {
       "completed": "Completed",
       "failed": "Failed",
+      "in_progress": "In progress",
       "skipped": "Skipped"
     },
     "recent_exercises": "Recent exercises",
