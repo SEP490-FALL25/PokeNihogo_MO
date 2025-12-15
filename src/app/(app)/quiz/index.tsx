@@ -5,6 +5,7 @@ import { QuizQuestionCard } from "@components/quiz/index/QuizQuestionCard";
 import { QuizHeader } from "@components/quiz/shared/QuizHeader";
 import { ConfirmModal } from "@components/ui/ConfirmModal";
 import { ExerciseAttemptStatus } from "@constants/exercise.enum";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 // import BounceButton from "@components/ui/BounceButton";
 // import { Button } from "@components/ui/Button";
 import { useUpsertUserAnswerLog } from "@hooks/useUserAnswerLog";
@@ -16,10 +17,16 @@ import {
   useSubmitCompletion,
   useUserExerciseQuestions,
 } from "@hooks/useUserExerciseAttempt";
+import { usePreventRemove } from "@react-navigation/native";
 import { ROUTES } from "@routes/routes";
 import userExerciseAttemptService from "@services/user-exercise-attempt";
 import { useQueryClient } from "@tanstack/react-query";
-import { router, useLocalSearchParams } from "expo-router";
+import {
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+  useNavigation,
+} from "expo-router";
 import React, {
   useCallback,
   useEffect,
@@ -31,6 +38,7 @@ import { useTranslation } from "react-i18next";
 import {
   Alert,
   Animated,
+  BackHandler,
   ScrollView,
   StyleSheet,
   Text,
@@ -60,6 +68,8 @@ export default function QuizScreen() {
       lessonId?: string;
     }>();
   const { t } = useTranslation();
+  const navigation = useNavigation();
+  const { showAlert } = useMinimalAlert();
   const queryClient = useQueryClient();
 
   // Parse exerciseAttemptId từ params (chắc chắn có khi vào màn hình này)
@@ -114,6 +124,8 @@ export default function QuizScreen() {
   );
   const [isTimerPaused, setIsTimerPaused] = useState(false);
   const [hasCheckedResume, setHasCheckedResume] = useState(false);
+  const [allowNavigate, setAllowNavigate] = useState(false);
+  const pendingActionRef = useRef<any>(null);
 
   // Current exercise attempt ID - ưu tiên từ BE response, fallback về params
   const currentExerciseAttemptId = useMemo(() => {
@@ -405,10 +417,56 @@ export default function QuizScreen() {
     );
   };
 
-  const handleBackPress = () => {
-    // Always show confirm modal when user presses back
+  const handleHeaderBack = useCallback(() => {
+    pendingActionRef.current = null;
     setShowExitConfirmModal(true);
-  };
+    return true;
+  }, []);
+
+  const handleHardwareBack = useCallback(() => {
+    showAlert(
+      t("quiz_screen.back_blocked_message", "Vui lòng dùng nút quay lại ở góc trên."),
+      "warning"
+    );
+    return true;
+  }, [showAlert, t]);
+
+  usePreventRemove(!allowNavigate, (event) => {
+    // Block native removal (iOS gesture/header back)
+    pendingActionRef.current = event.data.action;
+    setShowExitConfirmModal(true);
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        handleHardwareBack
+      );
+      return () => subscription.remove();
+    }, [handleHardwareBack])
+  );
+
+  useEffect(() => {
+    (navigation as any)?.setOptions?.({
+      gestureEnabled: false,
+      headerBackButtonMenuEnabled: false,
+    });
+  }, [navigation]);
+
+  const proceedNavigation = useCallback(() => {
+    setAllowNavigate(true);
+    const action = pendingActionRef.current;
+    pendingActionRef.current = null;
+    if (action) {
+      navigation.dispatch(action);
+    } else {
+      router.back();
+    }
+    setTimeout(() => {
+      setAllowNavigate(false);
+    }, 0);
+  }, [navigation]);
 
   const handleSaveAndExit = () => {
     if (!currentExerciseAttemptId) {
@@ -425,7 +483,7 @@ export default function QuizScreen() {
       {
         onSuccess: () => {
           setShowExitConfirmModal(false);
-          router.back();
+          proceedNavigation();
         },
         onError: (error) => {
           console.error("Error abandoning exercise:", error);
@@ -433,6 +491,7 @@ export default function QuizScreen() {
             "quiz_screen.alerts.save_failed",
             "Không thể lưu bài tập. Vui lòng thử lại."
           );
+          setAllowNavigate(false);
         },
       }
     );
@@ -453,7 +512,7 @@ export default function QuizScreen() {
         onSuccess: () => {
           setShowExitConfirmModal(false);
           refetchLatestLessonAttempt();
-          router.back();
+          proceedNavigation();
         },
         onError: (error) => {
           console.error("Error continuing exercise:", error);
@@ -461,6 +520,7 @@ export default function QuizScreen() {
             "quiz_screen.alerts.continue_failed",
             "Không thể tiếp tục bài tập. Vui lòng thử lại."
           );
+          setAllowNavigate(false);
         },
       }
     );
@@ -564,7 +624,7 @@ export default function QuizScreen() {
         <View>
           <QuizHeader
             title={t("quiz_screen.title", "Làm bài kiểm tra")}
-            onBackPress={handleBackPress}
+            onBackPress={handleHeaderBack}
             onSubmitPress={handleCheckCompletion}
             submitDisabled={isSubmitting}
           />
