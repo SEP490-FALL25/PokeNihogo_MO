@@ -331,15 +331,15 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     if (!recordingUri) {
       return formatTime(recordingDuration);
     }
-    
+
     // Nếu chưa có playbackDuration (chưa load audio), dùng recordingDuration
-    const totalDuration = playbackDuration > 0 ? playbackDuration : recordingDuration;
-    
+    const totalDuration =
+      playbackDuration > 0 ? playbackDuration : recordingDuration;
+
     // Nếu đang phát, dùng playbackPosition; nếu không (chưa phát hoặc dừng), hiển thị 00:00
-    const currentPosition = isPlaying && playbackPosition >= 0 
-      ? playbackPosition 
-      : 0;
-    
+    const currentPosition =
+      isPlaying && playbackPosition >= 0 ? playbackPosition : 0;
+
     return `${formatTime(currentPosition)} / ${formatTime(totalDuration)}`;
   }, [
     recordingUri,
@@ -400,13 +400,11 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       // Lưu ý: Trong Expo managed workflow, không thể tắt hoàn toàn system sounds,
       // nhưng cấu hình này sẽ giúp yêu cầu audio focus và giảm âm khác xuống
       await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-        shouldDuckAndroid: true, // giảm âm khác trên Android xuống mức tối thiểu
-        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix, // yêu cầu focus độc quyền - ngăn âm khác phát
-        interruptionModeIOS: InterruptionModeIOS.DoNotMix, // ngăn mixing trên iOS - tạm dừng âm khác
-        playThroughEarpieceAndroid: false,
-        staysActiveInBackground: false,
+        allowsRecordingIOS: true, // Bắt buộc để dùng Mic
+        playsInSilentModeIOS: true, // Cho phép chạy khi máy để im lặng/đang call
+        shouldDuckAndroid: true, // Khi app chạy, âm thanh khác (Meet) sẽ nhỏ đi chút xíu chứ không tắt hẳn
+        staysActiveInBackground: true, // Giữ kết nối khi lỡ tay ẩn app
+        playThroughEarpieceAndroid: false, // Phát ra loa ngoài
       });
 
       // Create recording options with custom path if provided
@@ -497,7 +495,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
       // Call callback
       onRecordingStart?.();
-      
+
       setIsRecordingLoading(false);
     } catch (err) {
       console.error("Failed to start recording", err);
@@ -698,7 +696,13 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     if (feedbackWords && feedbackWords.length > 0) {
       return (
         <View style={styles.feedbackContainer}>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center" }}>
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "center",
+            }}
+          >
             {feedbackWords.map((w, idx) => {
               const { fg, bg, br } = getFeedbackColors(w.score, w.correct);
               return (
@@ -706,7 +710,12 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
                   key={`${w.word}-${idx}`}
                   style={[
                     styles.feedbackWord,
-                    { color: fg, backgroundColor: bg, borderColor: br, borderWidth: 1 },
+                    {
+                      color: fg,
+                      backgroundColor: bg,
+                      borderColor: br,
+                      borderWidth: 1,
+                    },
                   ]}
                 >
                   {w.word}
@@ -734,7 +743,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       <View style={styles.card}>
         {/* Feedback Text - displayed above exercise title */}
         {renderFeedbackText()}
-        
+
         {/* Exercise Title */}
         {exerciseTitle ? (
           typeof exerciseTitle === "string" ? (
@@ -864,10 +873,10 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
                 )}
               </TouchableOpacity>
               <Text style={styles.recordLabel}>
-                {isRecording 
-                  ? "Nhấn để dừng" 
-                  : isRecordingLoading 
-                    ? "Đang khởi tạo..." 
+                {isRecording
+                  ? "Nhấn để dừng"
+                  : isRecordingLoading
+                    ? "Đang khởi tạo..."
                     : "Nhấn để ghi âm"}
               </Text>
             </View>
@@ -935,7 +944,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 20,
     padding: 16,
-    paddingVertical: 12,},
+    paddingVertical: 12,
+  },
   waveContainer: {
     height: 60,
     marginBottom: 12,
@@ -975,9 +985,11 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     backgroundColor: "#007AFF",
     alignItems: "center",
-    justifyContent: "center",},
+    justifyContent: "center",
+  },
   recordButtonActive: {
-    backgroundColor: "#FF3B30",},
+    backgroundColor: "#FF3B30",
+  },
   disabledButton: {
     backgroundColor: "#e5e7eb",
     opacity: 0.6,
@@ -1033,7 +1045,8 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     backgroundColor: "#007AFF",
     alignItems: "center",
-    justifyContent: "center",},
+    justifyContent: "center",
+  },
   iconButton: {
     width: 48,
     height: 48,
