@@ -13,7 +13,7 @@ import { Dimensions, ImageBackground, ScrollView, StyleSheet, View } from "react
 import { CopilotStep, walkthroughable } from "react-native-copilot";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import useAuth from "@hooks/useAuth";
+import useAuthHook from "@hooks/useAuth";
 import { ROUTES } from "@routes/routes";
 import userPokemonService from "@services/user-pokemon";
 import { useAuthStore } from "@stores/auth/auth.config";
@@ -46,7 +46,7 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
   function HomeLayout({ children, refreshControl }, ref) {
     const { t } = useTranslation();
     const scrollViewRef = useRef<ScrollView>(null);
-    const { user } = useAuth();
+    const { user } = useAuthHook();
     const queryClient = useQueryClient();
     const { accessToken } = useAuthStore();
     const { starterId } = useUserStore();

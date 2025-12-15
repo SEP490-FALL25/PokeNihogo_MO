@@ -1093,7 +1093,11 @@
     "language": "Language",
     "language_subtitle": "Choose your preferred language",
     "overlay_title": "Pokémon overlay",
-    "overlay_subtitle": "Show the draggable buddy on the home screen"
+    "overlay_subtitle": "Show the draggable buddy on the home screen",
+    "overlay_modal_title": "Buddy options",
+    "overlay_modal_description": "Hide the floating buddy if it feels in the way. You can turn it back on anytime.",
+    "overlay_turn_off": "Hide buddy",
+    "overlay_hint": "Want it back? Go to Settings and enable “Pokémon overlay”."
   },
   "profile": {
     "title": "Profile",

@@ -211,7 +211,11 @@
         "language": "言語",
         "language_subtitle": "お好みの言語を選択してください",
         "overlay_title": "ポケモンオーバーレイ",
-        "overlay_subtitle": "ホーム画面にドラッグ可能なポケモンを表示する"
+        "overlay_subtitle": "ホーム画面にドラッグ可能なポケモンを表示する",
+        "overlay_modal_title": "バディの設定",
+        "overlay_modal_description": "邪魔なときはバディを非表示にできます。いつでも再表示できます。",
+        "overlay_turn_off": "バディを隠す",
+        "overlay_hint": "再表示するには「設定」で「ポケモンオーバーレイ」をオンにしてください。"
     },
     "profile": {
         "title": "プロフィール",
