@@ -172,23 +172,23 @@ const AnimatedPokeballIcon = ({ size = 100, isOpen, color = "#facc15" }: Animate
 
     // 1. Hiệu ứng lõi năng lượng bên trong (Phình to ra khi mở)
     const innerLightStyle = useAnimatedProps(() => ({
-        r: withTiming(isOpen.value * (size * 0.45), { duration: 300 }), 
+        r: withTiming(isOpen.value * (size * 0.45), { duration: 300 }),
         opacity: withTiming(isOpen.value, { duration: 150 }),
     }));
 
     // 2. Hiệu ứng Nắp Trên (Xoay bản lề + Bay lên)
     const topHalfStyle = useAnimatedStyle(() => {
         // Mô phỏng xoay quanh tâm (bản lề ảo ở phía sau)
-        const rotate = interpolate(isOpen.value, [0, 1], [0, -50]); 
-        const translateY = interpolate(isOpen.value, [0, 1], [0, -size * 0.2]); 
-        const translateX = interpolate(isOpen.value, [0, 1], [0, -size * 0.1]); 
+        const rotate = interpolate(isOpen.value, [0, 1], [0, -50]);
+        const translateY = interpolate(isOpen.value, [0, 1], [0, -size * 0.2]);
+        const translateX = interpolate(isOpen.value, [0, 1], [0, -size * 0.1]);
 
         return {
             transform: [
                 { translateX: half }, { translateY: half }, // Dời tâm xoay về giữa
                 { rotate: `${rotate}deg` },
                 { translateX: -half }, { translateY: -half }, // Trả về vị trí
-                { translateX }, 
+                { translateX },
                 { translateY }
             ],
         };
@@ -207,13 +207,31 @@ const AnimatedPokeballIcon = ({ size = 100, isOpen, color = "#facc15" }: Animate
             <Svg height={size} width={size} viewBox="0 0 100 100">
                 <Defs>
                     {/* Gradient cho lõi năng lượng */}
-                    <RadialGradient id="glow" cx="50%" cy="50%" rx="50%" ry="50%">
+                    <RadialGradient
+                        id="glow"
+                        cx="50"
+                        cy="50"
+                        rx="50"
+                        ry="50"
+                        fx="50"
+                        fy="50"
+                        gradientUnits="userSpaceOnUse"
+                    >
                         <Stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
                         <Stop offset="40%" stopColor="#ffffff" stopOpacity="0.9" />
                         <Stop offset="100%" stopColor={color} stopOpacity="0.2" />
                     </RadialGradient>
                     {/* Gradient cho nút bấm */}
-                    <RadialGradient id="btnGrad" cx="50%" cy="50%" rx="50%" ry="50%">
+                    <RadialGradient
+                        id="btnGrad"
+                        cx="50"
+                        cy="50"
+                        rx="50"
+                        ry="50"
+                        fx="50"
+                        fy="50"
+                        gradientUnits="userSpaceOnUse"
+                    >
                         <Stop offset="0%" stopColor="#fff" stopOpacity="1" />
                         <Stop offset="100%" stopColor="#ddd" stopOpacity="1" />
                     </RadialGradient>
@@ -293,9 +311,9 @@ const PokeballThrowAnimation = ({ highestRarity, onComplete }: { highestRarity: 
     const pokeballRotate = useSharedValue(0)
     const pokeballOpacity = useSharedValue(0)
     const pokeballWiggle = useSharedValue(0)
-    
+
     // SharedValues cho hiệu ứng mở
-    const pokeballIsOpen = useSharedValue(0) 
+    const pokeballIsOpen = useSharedValue(0)
     const whiteFlashOpacity = useSharedValue(0)
 
     const [stage, setStage] = useState(ThrowStage.INITIAL)
@@ -311,31 +329,31 @@ const PokeballThrowAnimation = ({ highestRarity, onComplete }: { highestRarity: 
                 { duration: 1000, easing: Easing.out(Easing.quad) },
             )
             pokeballTranslateY.value = withTiming(
-                screenHeight / 2 - 60, 
+                screenHeight / 2 - 60,
                 { duration: 1000, easing: Easing.out(Easing.quad) },
                 (finished) => {
                     if (finished) runOnJS(setStage)(ThrowStage.WIGGLE1)
                 },
             )
             pokeballRotate.value = withTiming(720, { duration: 1000, easing: Easing.out(Easing.quad) })
-        } 
+        }
         // Lắc lần 1
         else if (stage === ThrowStage.WIGGLE1) {
-             pokeballWiggle.value = withSequence(
+            pokeballWiggle.value = withSequence(
                 withTiming(-12, { duration: 150 }), withTiming(12, { duration: 150 }),
                 withTiming(0, { duration: 100 }, (f) => f && runOnJS(setStage)(ThrowStage.WIGGLE2))
             )
-        } 
+        }
         // Lắc lần 2
         else if (stage === ThrowStage.WIGGLE2) {
-             pokeballWiggle.value = withSequence(
+            pokeballWiggle.value = withSequence(
                 withDelay(300, withTiming(-8, { duration: 150 })), withTiming(8, { duration: 150 }),
                 withTiming(0, { duration: 100 }, (f) => f && runOnJS(setStage)(ThrowStage.WIGGLE3))
             )
         }
         // Lắc lần 3
         else if (stage === ThrowStage.WIGGLE3) {
-             pokeballWiggle.value = withSequence(
+            pokeballWiggle.value = withSequence(
                 withDelay(300, withTiming(-5, { duration: 150 })), withTiming(5, { duration: 150 }),
                 withTiming(0, { duration: 100 }, (f) => f && runOnJS(setStage)(ThrowStage.CATCH_SUCCESS))
             )
@@ -347,12 +365,12 @@ const PokeballThrowAnimation = ({ highestRarity, onComplete }: { highestRarity: 
                     runOnJS(setStage)(ThrowStage.OPENING_POKEBALL)
                 }
             })
-        } 
+        }
         // Mở bóng và chớp sáng
         else if (stage === ThrowStage.OPENING_POKEBALL) {
             // 1. Mở nắp bóng (bật mạnh ra)
             pokeballIsOpen.value = withTiming(1, { duration: 500, easing: Easing.out(Easing.back(1.5)) });
-            
+
             // 2. Bóng to lên một chút trước khi nổ (tạo đà)
             pokeballScale.value = withTiming(1.3, { duration: 400, easing: Easing.in(Easing.quad) });
 
@@ -408,8 +426,8 @@ const PokeballThrowAnimation = ({ highestRarity, onComplete }: { highestRarity: 
             </Animated.View>
 
             {/* Màn hình chớp trắng (Che khuyết điểm lúc chuyển cảnh) */}
-            <Animated.View 
-                style={[StyleSheet.absoluteFill, { backgroundColor: 'white' }, flashStyle]} 
+            <Animated.View
+                style={[StyleSheet.absoluteFill, { backgroundColor: 'white' }, flashStyle]}
                 pointerEvents="none"
             />
 

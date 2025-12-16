@@ -377,12 +377,14 @@ export default function GachaScreen() {
                                                                     </Text>
                                                                 </View>
                                                                 <View className="h-1 bg-slate-800 rounded-full overflow-hidden">
-                                                                    <LinearGradient
-                                                                        colors={['#facc15', '#fbbf24']}
-                                                                        start={{ x: 0, y: 0 }}
-                                                                        end={{ x: 1, y: 0 }}
-                                                                        style={{ width: `${pityProgress * 100}%`, height: '100%' }}
-                                                                    />
+                                                                    {pityProgress > 0 && (
+                                                                        <LinearGradient
+                                                                            colors={['#facc15', '#fbbf24']}
+                                                                            start={{ x: 0, y: 0 }}
+                                                                            end={{ x: 1, y: 0 }}
+                                                                            style={{ width: `${pityProgress * 100}%`, height: '100%' }}
+                                                                        />
+                                                                    )}
                                                                 </View>
                                                             </View>
                                                         </View>
@@ -525,7 +527,7 @@ export default function GachaScreen() {
                                 <View className="relative">
                                     <View className="absolute w-full h-2.5 bg-slate-700 rounded-full" />
                                     <Progress.Bar
-                                        progress={currentPity / (selectedBanner.hardPity5Star || 90)}
+                                        progress={Math.max(0.01, currentPity / (selectedBanner.hardPity5Star || 90))}
                                         width={null}
                                         height={10}
                                         color="#facc15"
