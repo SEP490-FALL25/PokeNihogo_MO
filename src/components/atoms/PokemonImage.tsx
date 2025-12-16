@@ -16,15 +16,18 @@ export default function PokemonImage({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  // Reset loading/error state when the image changes
+  // Reset loading and error state when the image changes
   useEffect(() => {
     setIsLoading(true);
     setHasError(false);
   }, [imageUri]);
 
+  // If no imageUri or empty string, keep loading indefinitely
+  const shouldKeepLoading = !imageUri || imageUri.trim() === "";
+
   return (
     <View style={[styles.wrapper, { width: size, height: size }, style]}>
-      {isLoading && (
+      {(isLoading || shouldKeepLoading || hasError) && (
         <ActivityIndicator
           testID="pokemon-image-loading"
           size="small"
@@ -32,23 +35,21 @@ export default function PokemonImage({
           style={styles.loader}
         />
       )}
-      <Image
-        source={{ uri: imageUri }}
-        style={[styles.image, { width: size, height: size }]}
-        contentFit="contain"
-        onLoadStart={() => setIsLoading(true)}
-        onLoadEnd={() => setIsLoading(false)}
-        onError={() => {
-          setIsLoading(false);
-          setHasError(true);
-        }}
-      />
-      {hasError && !isLoading && (
-        <ActivityIndicator
-          testID="pokemon-image-error"
-          size="small"
-          color="#888"
-          style={styles.loader}
+      {!shouldKeepLoading && !hasError && (
+        <Image
+          source={{ uri: imageUri }}
+          style={[styles.image, { width: size, height: size }]}
+          contentFit="contain"
+          onLoadStart={() => {
+            setIsLoading(true);
+            setHasError(false);
+          }}
+          onLoadEnd={() => setIsLoading(false)}
+          onError={() => {
+            // Keep loading when error occurs - don't stop loading, don't show image
+            setIsLoading(true);
+            setHasError(true);
+          }}
         />
       )}
     </View>

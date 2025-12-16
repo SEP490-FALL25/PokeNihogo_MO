@@ -60,14 +60,6 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     const [mainPokemonImageUrl, setMainPokemonImageUrl] = useState<string | null>(null);
     useWalletUser();
 
-    const starterImageUri = useMemo(() => {
-      if (!starterId) {
-        return STARTERS[0]?.image ?? "";
-      }
-      const starter = STARTERS.find((item) => item.id === starterId);
-      return starter?.image ?? STARTERS[0]?.image ?? "";
-    }, [starterId]);
-
     // Fetch main pokemon on mount and when screen is focused
     useEffect(() => {
       const fetchMainPokemon = async () => {
@@ -119,7 +111,7 @@ const HomeLayout = forwardRef<HomeLayoutRef, HomeLayoutProps>(
     );
 
     // Use main pokemon if available, otherwise fallback to STARTERS array
-    const pokemonImageUri = mainPokemonImageUrl || starterImageUri;
+    const pokemonImageUri = mainPokemonImageUrl;
     
     // Show overlay continuously when there's a pokemon image (not just during first time login)
     const shouldShowPokemonOverlay =
