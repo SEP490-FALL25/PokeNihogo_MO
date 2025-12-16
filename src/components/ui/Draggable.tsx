@@ -113,7 +113,7 @@ const DraggableOverlay = ({
         const storedPosition = await AsyncStorage.getItem(STORAGE_KEY);
         if (storedPosition !== null) {
           const { x, y } = JSON.parse(storedPosition);
-          console.log("Loaded position from AsyncStorage:", { x, y });
+          // console.log("Loaded position from AsyncStorage:", { x, y });
 
           // Validate position is within screen bounds
           const validX = Math.max(0, Math.min(x, screenWidth - OVERLAY_SIZE));
@@ -125,7 +125,7 @@ const DraggableOverlay = ({
           setOverlayPosition(validPosition);
           pan.setValue(validPosition);
         } else {
-          console.log("No stored position, using default:", defaultPosition);
+          // console.log("No stored position, using default:", defaultPosition);
           // Update global store with default position
           setOverlayPosition(defaultPosition);
           pan.setValue(defaultPosition);
@@ -155,10 +155,10 @@ const DraggableOverlay = ({
           y: screenHeight / 2 - OVERLAY_SIZE / 2,
         };
 
-        console.log(
-          "First time login detected, setting default center position:",
-          defaultPosition
-        );
+        // console.log(
+        //   "First time login detected, setting default center position:",
+        //   defaultPosition
+        // );
 
         // Update global store with default position
         setOverlayPosition(defaultPosition);
