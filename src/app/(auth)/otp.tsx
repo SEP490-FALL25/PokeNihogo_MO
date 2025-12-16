@@ -10,7 +10,7 @@ import { saveSecureStorage } from '@utils/secure-storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, Text, TextInput, TouchableOpacity, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { Image, Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 export default function OTPScreen() {
     /**
@@ -52,14 +52,20 @@ export default function OTPScreen() {
 
             if (res.data.statusCode === 201 && type === AuthType.REGISTER) {
                 showAlert(res.data.message, 'success');
-                router.replace(ROUTES.AUTH.CREATE_ACCOUNT);
+                setTimeout(() => {
+                    router.replace(ROUTES.AUTH.CREATE_ACCOUNT);
+                }, 100);
             } else if (res.data.statusCode === 201 && type === AuthType.LOGIN) {
                 showAlert(res.data.message, 'success');
-                router.replace(ROUTES.AUTH.PASSWORD);
+                setTimeout(() => {
+                    router.replace(ROUTES.AUTH.PASSWORD);
+                }, 100);
             } else if (res.data.statusCode === 200 && type === AuthType.FORGOT_PASSWORD) {
                 showAlert(res.data.message, 'success');
                 saveSecureStorage('accessToken', res.data.data.accessToken);
-                router.replace(ROUTES.AUTH.RESET_PASSWORD);
+                setTimeout(() => {
+                    router.replace(ROUTES.AUTH.RESET_PASSWORD);
+                }, 100);
             }
         } catch (error: any) {
             showAlert(error.message, 'error');
