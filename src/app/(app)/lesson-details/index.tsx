@@ -83,7 +83,7 @@ const DashboardCard = ({
             marginRight: 12,
           }}
         >
-          <ThemedText style={{ fontSize: 28 }}>{emoji}</ThemedText>
+          <ThemedText style={{ fontSize: 28, lineHeight: 32 }}>{emoji}</ThemedText>
         </View>
 
         {/* Title and Subtitle */}
@@ -623,6 +623,7 @@ const LessonDetailScreen = () => {
             <View style={{ alignItems: "center" }}>
               <ThemedText
                 style={{
+                  lineHeight: 32,
                   fontSize: 26,
                   fontWeight: "bold",
                   color: "#6366f1",
@@ -632,6 +633,7 @@ const LessonDetailScreen = () => {
               </ThemedText>
               <ThemedText
                 style={{
+                  lineHeight: 16,
                   fontSize: 12,
                   color: "#6b7280",
                   fontWeight: "600",
@@ -650,6 +652,7 @@ const LessonDetailScreen = () => {
             <View style={{ alignItems: "center" }}>
               <ThemedText
                 style={{
+                  lineHeight: 32,
                   fontSize: 26,
                   fontWeight: "bold",
                   color: "#10b981",
@@ -659,6 +662,7 @@ const LessonDetailScreen = () => {
               </ThemedText>
               <ThemedText
                 style={{
+                  lineHeight: 16,
                   fontSize: 12,
                   color: "#6b7280",
                   fontWeight: "600",
