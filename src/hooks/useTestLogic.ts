@@ -14,12 +14,14 @@ interface UseTestLogicProps {
   userTestAttemptId: number | null;
   sets: TestSet[];
   testType?: string;
+  onAllowNavigate?: (allow: boolean) => void;
 }
 
 export const useTestLogic = ({
   userTestAttemptId,
   sets,
   testType,
+  onAllowNavigate,
 }: UseTestLogicProps) => {
   const [selections, setSelections] = useState<Record<string, string[]>>({});
   const [showExitConfirmModal, setShowExitConfirmModal] = useState(false);
@@ -132,6 +134,8 @@ export const useTestLogic = ({
   const handleCompletionSubmit = () => {
     if (!userTestAttemptId) return;
     setShowCompletionModal(false);
+    // Allow navigation when submitting successfully (normal flow)
+    onAllowNavigate?.(true);
     submitCompletion(
       { attemptId: String(userTestAttemptId), time: elapsedSeconds },
       {
@@ -149,9 +153,16 @@ export const useTestLogic = ({
                 testType: testType || "",
               },
             });
+          } else {
+            // Reset allowNavigate if no data received
+            onAllowNavigate?.(false);
           }
         },
-        onError: () => setIsTimerPaused(false),
+        onError: () => {
+          setIsTimerPaused(false);
+          // Reset allowNavigate on error
+          onAllowNavigate?.(false);
+        },
       }
     );
   };
