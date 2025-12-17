@@ -38,29 +38,28 @@ const ListeningCard: React.FC<{
   return (
     <TouchableOpacity
       style={[
-        styles.card, 
+        styles.card,
         { borderLeftColor: LISTENING_ACCENT },
-        isLocked && styles.lockedCard
+        isLocked && styles.lockedCard,
       ]}
       onPress={isLocked ? onLockedPress : onPress}
       activeOpacity={0.8}
     >
       <View style={styles.cardHeader}>
-        <View style={[
-          styles.iconContainer, 
-          { backgroundColor: "#10b981" },
-          isLocked && styles.lockedIconContainer
-        ]}>
+        <View
+          style={[
+            styles.iconContainer,
+            { backgroundColor: "#10b981" },
+            isLocked && styles.lockedIconContainer,
+          ]}
+        >
           <HeadphonesIcon size={24} color={isLocked ? "#9ca3af" : "#ffffff"} />
         </View>
         <View style={styles.exerciseInfo}>
           <View style={styles.materialHeaderRow}>
-            <ThemedText 
-              type="subtitle" 
-              style={[
-                styles.exerciseTitle,
-                isLocked && styles.lockedText
-              ]}
+            <ThemedText
+              type="subtitle"
+              style={[styles.exerciseTitle, isLocked && styles.lockedText]}
             >
               {item.test?.name}
             </ThemedText>
@@ -70,10 +69,9 @@ const ListeningCard: React.FC<{
               </ThemedText>
             </View>
           </View>
-          <ThemedText style={[
-            styles.exerciseDescription,
-            isLocked && styles.lockedText
-          ]}>
+          <ThemedText
+            style={[styles.exerciseDescription, isLocked && styles.lockedText]}
+          >
             {item.test?.description}
           </ThemedText>
         </View>
@@ -257,7 +255,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 12,
     padding: 16,
-    borderLeftWidth: 4,},
+    borderLeftWidth: 4,
+  },
   cardHeader: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -319,7 +318,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 16,
     padding: 20,
-    marginBottom: 16,},
+    marginBottom: 16,
+  },
   statsTitle: {
     fontSize: 18,
     fontWeight: "600",
@@ -349,7 +349,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 16,
     padding: 20,
-    marginTop: 16,},
+    marginTop: 16,
+    marginBottom: 40,
+  },
   tipsTitle: {
     fontSize: 18,
     fontWeight: "600",
@@ -374,4 +376,3 @@ const styles = StyleSheet.create({
     color: "#9ca3af",
   },
 });
-
