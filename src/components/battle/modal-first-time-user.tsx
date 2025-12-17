@@ -2,7 +2,7 @@ import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
 import { HapticPressable } from "@components/HapticPressable";
 import { ThemedText } from "@components/ThemedText";
 import { useJoinNewSeason } from "@hooks/useBattle";
-import { Sparkles } from "lucide-react-native";
+import { Crown, Sparkles } from "lucide-react-native";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Modal, View } from "react-native";
@@ -13,8 +13,8 @@ interface ModalFirstTimeUserProps {
     onJoinComplete: (newSeasonInfo: any) => void;
 }
 
-export default function ModalFirstTimeUser({ 
-    visible, 
+export default function ModalFirstTimeUser({
+    visible,
     onRequestClose,
     onJoinComplete
 }: ModalFirstTimeUserProps) {
@@ -24,7 +24,7 @@ export default function ModalFirstTimeUser({
 
     const handleJoin = async () => {
         if (isJoining) return;
-        
+
         setIsJoining(true);
         try {
             const response = await joinNewSeasonMutation.mutateAsync();
@@ -36,7 +36,6 @@ export default function ModalFirstTimeUser({
             }
         } catch (error: any) {
             console.error("Failed to join new season:", error);
-            // Still close on error, let the user retry
             onRequestClose();
         } finally {
             setIsJoining(false);
@@ -68,15 +67,36 @@ export default function ModalFirstTimeUser({
 
                     {/* Content */}
                     <View className="px-6 py-6">
+                        {/* Welcome message */}
                         <View className="items-center mb-6">
-                            <ThemedText style={{ color: "#e5e7eb", fontSize: 16, textAlign: "center", marginBottom: 4, lineHeight: 24 }}>
-                                {t("battle.first_time.message") || "Chào mừng bạn đến với hệ thống thi đấu! Hãy tham gia mùa giải đầu tiên của bạn."}
+                            <ThemedText style={{ color: "#22d3ee", fontSize: 18, fontWeight: "700", textAlign: "center", marginBottom: 4 }}>
+                                {t("battle.first_time.welcome_header") || "Đấu Trường"}
+                            </ThemedText>
+                            <ThemedText style={{ color: "#94a3b8", fontSize: 13, textAlign: "center" }}>
+                                {t("battle.first_time.welcome_subheader") || "Tham gia để tranh tài cùng mọi người"}
                             </ThemedText>
                         </View>
 
+                        {/* Rank Info (Preview) */}
+                        <View className="bg-white/5 rounded-2xl p-4 border border-white/10 mb-4">
+                            <View className="flex-row items-center justify-center gap-2 mb-2">
+                                <Crown size={20} color="#fbbf24" />
+                                <ThemedText style={{ color: "#fde68a", fontSize: 18, fontWeight: "700" }}>
+                                    N5
+                                </ThemedText>
+                            </View>
+                            <ThemedText style={{ color: "#94a3b8", fontSize: 14, textAlign: "center" }}>
+                                0 {t("battle.new_season.elo") || "ELO"}
+                            </ThemedText>
+                        </View>
+
+                        <ThemedText style={{ color: "#64748b", fontSize: 13, textAlign: "center", marginBottom: 4, lineHeight: 20 }}>
+                            {t("battle.first_time.message") || "Bắt đầu hành trình leo hạng của bạn ngay hôm nay!"}
+                        </ThemedText>
+
                         {/* Join Button */}
                         <HapticPressable
-                            className="rounded-2xl overflow-hidden"
+                            className="rounded-2xl overflow-hidden mt-4"
                             onPress={handleJoin}
                             disabled={isJoining || joinNewSeasonMutation.isPending}
                         >
