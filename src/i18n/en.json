@@ -868,6 +868,9 @@
       "skipped": "Skipped"
     },
     "recent_exercises": "Recent exercises",
+    "exercise": {
+      "error_creating": "Unable to create exercise. Please try again."
+    },
     "see_all": "See all",
     "srs_types": {
       "vocabulary": "Vocabulary",
@@ -897,6 +900,7 @@
       "highlight_hint": "Focus for 5 minutes to remember longer",
       "locked_highlight_title": "Members-only benefit",
       "locked_highlight_subtitle": "Unlock the roadmap and smart reminders",
+      "unlock_button": "Unlock now",
       "conversation": {
         "title": "Conversation",
         "connecting": "Connecting...",
@@ -1053,6 +1057,9 @@
     "today_reward": "Today's Reward",
     "bonus_info": "Check in {{count}} more day(s) to receive {{bonus}} sparkles!",
     "bonus_active": "🎉 You will receive {{bonus}} sparkles!",
+    "success_message": "Check-in successful!",
+    "error_message": "Unable to check in. Please try again.",
+    "error_title": "An error occurred",
     "day_names": {
       "sun": "Sun",
       "mon": "Mon",

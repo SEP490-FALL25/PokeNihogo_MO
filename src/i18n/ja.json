@@ -334,6 +334,9 @@
             "skipped": "スキップ"
         },
         "recent_exercises": "直近の練習",
+        "exercise": {
+            "error_creating": "練習を作成できません。もう一度お試しください。"
+        },
         "see_all": "すべて表示",
         "srs_types": {
             "vocabulary": "語彙",
@@ -363,6 +366,7 @@
             "highlight_hint": "5分集中して記憶を定着させましょう",
             "locked_highlight_title": "メンバー限定の特典",
             "locked_highlight_subtitle": "ロードマップとスマートリマインダーをアンロック",
+            "unlock_button": "今すぐアンロック",
             "conversation": {
                 "title": "会話",
                 "list_title": "会話",

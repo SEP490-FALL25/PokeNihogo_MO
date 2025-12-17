@@ -870,6 +870,9 @@
     "suggestion_practice": "Luyện tập",
     "suggestion_practice_desc": "Cải thiện kỹ năng nghe và phát âm",
     "recent_exercises": "Bài tập gần đây",
+    "exercise": {
+      "error_creating": "Không thể tạo bài tập. Vui lòng thử lại."
+    },
     "exercise_types": {
       "vocabulary": "Từ vựng",
       "kanji": "Kanji",
@@ -910,6 +913,7 @@
       "highlight_hint": "Tập trung trong 5 phút để nhớ lâu hơn",
       "locked_highlight_title": "Quyền lợi dành riêng cho hội viên",
       "locked_highlight_subtitle": "Mở khoá để xem roadmap học và nhắc nhở thông minh",
+      "unlock_button": "Mở khóa ngay",
       "conversation": {
         "title": "Hội thoại",
         "connecting": "Đang kết nối...",
@@ -1066,6 +1070,9 @@
     "today_reward": "Phần thưởng hôm nay",
     "bonus_info": "Điểm danh thêm {{count}} ngày để nhận thêm {{bonus}} bụi sao!",
     "bonus_active": "🎉 Bạn sẽ nhận thêm {{bonus}} bụi sao!",
+    "success_message": "Điểm danh thành công!",
+    "error_message": "Không thể điểm danh, vui lòng thử lại.",
+    "error_title": "Có lỗi xảy ra",
     "day_names": {
       "sun": "CN",
       "mon": "T2",
