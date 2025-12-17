@@ -213,9 +213,10 @@ export default function DiscomfortVision({
             <View style={styles.content}>{children}</View>
             <BlurView
                 pointerEvents="none"
-                intensity={isAndroid ? adjustedBlur * 2.5 : adjustedBlur}
+                intensity={adjustedBlur}
                 tint="dark"
                 experimentalBlurMethod="dimezisBlurView"
+                blurReductionFactor={isAndroid ? 8 : undefined}
                 style={[StyleSheet.absoluteFill, styles.blurLayer]}
             />
             {overlayLayers}
