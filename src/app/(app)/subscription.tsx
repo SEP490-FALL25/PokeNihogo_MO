@@ -5,13 +5,13 @@ import SubscriptionHistoryModal from "@components/subscription/SubscriptionHisto
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { WALLET } from "@constants/wallet.enum";
+import { useGeminiSRSRecommendations } from "@hooks/useGeminiSRSRecommendations";
 import { useCreateInvoice, useRefetchUserData } from "@hooks/useInvoice";
 import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
 import { useWalletUser } from "@hooks/useWallet";
 import { ISubscriptionMarketplaceEntity } from "@models/subscription/subscription.entity";
 import { SubscriptionPackageType } from "@models/subscription/subscription.request";
-import geminiService from "@services/gemini";
 import payosService from "@services/payos";
 import { useLocalSearchParams } from "expo-router";
 import { BookOpen, Check, Coins, Crown, Headphones, History, RefreshCw } from "lucide-react-native";
@@ -31,6 +31,7 @@ export default function SubscriptionScreen() {
     const { mutate: createInvoice, isPending: isPurchasing } = useCreateInvoice();
     const { refetchAll } = useRefetchUserData();
     const { showAlert } = useMinimalAlert();
+    const { checkAndCall: checkAndCallGemini } = useGeminiSRSRecommendations({ limit: 10, useServiceAccount: false });
     const scrollViewRef = useRef<ScrollView>(null);
     const packageRefs = useRef<Record<number, View | null>>({});
     const [highlightedPackageId, setHighlightedPackageId] = useState<number | null>(null);
@@ -211,27 +212,14 @@ export default function SubscriptionScreen() {
                 // packagesResponse.data is AxiosResponse, packagesResponse.data.data is backend response body
                 const updatedPackages = packagesResponse?.data?.data?.data || [];
 
-                // Find Ultra package
-                const ultraPackage = updatedPackages.find(
-                    (pkg: ISubscriptionMarketplaceEntity) => pkg.tagName === 'ULTRA'
-                );
-
-                // If Ultra package exists and canBuy is false (meaning it's purchased), call Gemini API
-                if (ultraPackage && !ultraPackage.canBuy) {
-                    try {
-                        await geminiService.getSRSRecommendations(10, false);
-                        console.log('Gemini SRS recommendations API called successfully');
-                    } catch (error: any) {
-                        console.error('Error calling Gemini SRS recommendations API:', error);
-                        // Don't show error to user as this is a background operation
-                    }
-                }
+                // Check and call Gemini API if Ultra package is purchased
+                checkAndCallGemini(updatedPackages);
             } catch (error) {
                 console.error('Error checking Ultra package status:', error);
                 // Don't show error to user as this is a background operation
             }
         }, 1000); // Wait 1 second for refetch to complete
-    }, [refetchAll, refetchPackages]);
+    }, [refetchAll, refetchPackages, checkAndCallGemini]);
 
     const handleBrowserError = useCallback((error: Error) => {
         showAlert(error.message || t('subscription.purchase_failed'), 'error');
