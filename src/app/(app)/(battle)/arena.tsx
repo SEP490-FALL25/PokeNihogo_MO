@@ -840,22 +840,6 @@ export default function BattleArenaScreen({ }: BattleArenaScreenProps) {
             </View>
           )}
 
-          {upcomingDebuff?.debuff && (
-            <View className="px-5 mb-3">
-              <View className="flex-row items-center gap-3 rounded-2xl border border-amber-400/40 bg-amber-400/10 px-4 py-3">
-                <AlertTriangle size={20} color="#fbbf24" />
-                <View className="flex-1">
-                  <Text className="text-amber-200 font-bold text-xs tracking-wide uppercase">
-                    {t("battle.arena.debuff.next_turn_warning_label")}
-                  </Text>
-                  <Text className="text-amber-50 text-sm font-semibold">
-                    {t("battle.arena.debuff.next_turn_warning_generic")}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          )}
-
           {currentDebuffDisplay && (
             <View className="px-5 mb-3">
               <View className="flex-row items-center gap-3 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3">
