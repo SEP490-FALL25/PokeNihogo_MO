@@ -11,6 +11,7 @@ import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
 import { useWalletUser } from "@hooks/useWallet";
 import { ISubscriptionMarketplaceEntity } from "@models/subscription/subscription.entity";
 import { SubscriptionPackageType } from "@models/subscription/subscription.request";
+import geminiService from "@services/gemini";
 import payosService from "@services/payos";
 import { useLocalSearchParams } from "expo-router";
 import { BookOpen, Check, Coins, Crown, Headphones, History, RefreshCw } from "lucide-react-native";
@@ -25,7 +26,7 @@ const POKECOIN_DEDUCTION_STEP = 10000;
 export default function SubscriptionScreen() {
     const { t } = useTranslation();
     const params = useLocalSearchParams<{ testType?: string; packageId?: string }>();
-    const { data: packagesData, isLoading: isLoadingPackages } = useSubscriptionMarketplacePackages();
+    const { data: packagesData, isLoading: isLoadingPackages, refetch: refetchPackages } = useSubscriptionMarketplacePackages();
     const { walletUser, isLoading: isLoadingWallet } = useWalletUser();
     const { mutate: createInvoice, isPending: isPurchasing } = useCreateInvoice();
     const { refetchAll } = useRefetchUserData();
@@ -201,7 +202,36 @@ export default function SubscriptionScreen() {
     const handleBrowserClose = useCallback(async () => {
         // Refetch data after payment (when browser closes)
         await refetchAll();
-    }, [refetchAll]);
+
+        // Wait a bit for packages to be refetched, then check if Ultra package was purchased
+        setTimeout(async () => {
+            try {
+                // Refetch packages to get latest data
+                const packagesResponse = await refetchPackages();
+                // packagesResponse.data is AxiosResponse, packagesResponse.data.data is backend response body
+                const updatedPackages = packagesResponse?.data?.data?.data || [];
+
+                // Find Ultra package
+                const ultraPackage = updatedPackages.find(
+                    (pkg: ISubscriptionMarketplaceEntity) => pkg.tagName === 'ULTRA'
+                );
+
+                // If Ultra package exists and canBuy is false (meaning it's purchased), call Gemini API
+                if (ultraPackage && !ultraPackage.canBuy) {
+                    try {
+                        await geminiService.getSRSRecommendations(10, false);
+                        console.log('Gemini SRS recommendations API called successfully');
+                    } catch (error: any) {
+                        console.error('Error calling Gemini SRS recommendations API:', error);
+                        // Don't show error to user as this is a background operation
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking Ultra package status:', error);
+                // Don't show error to user as this is a background operation
+            }
+        }, 1000); // Wait 1 second for refetch to complete
+    }, [refetchAll, refetchPackages]);
 
     const handleBrowserError = useCallback((error: Error) => {
         showAlert(error.message || t('subscription.purchase_failed'), 'error');
