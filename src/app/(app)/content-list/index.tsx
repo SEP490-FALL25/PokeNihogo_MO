@@ -52,7 +52,8 @@ const ModernCardExpandable = ({ children, style }: any) => (
     className="bg-white rounded-3xl shadow-xl mb-4"
     style={[
       {
-        padding: 20,minHeight: 220,
+        padding: 20,
+        minHeight: 220,
         borderWidth: 4,
         borderColor: "#FCD34D",
       },
@@ -72,7 +73,8 @@ const ModernCard = ({ children, style }: any) => (
         {
           borderRadius: 14,
           backgroundColor: "#FCD34D",
-          padding: 2,},
+          padding: 2,
+        },
       ]}
     >
       <View
@@ -201,6 +203,9 @@ const ExpandableVocabularyCard = ({
             {
               position: "absolute",
               width: "100%",
+              top: 24,
+              bottom: 0,
+              justifyContent: "center",
             },
             frontAnimatedStyle,
           ]}
@@ -273,6 +278,9 @@ const ExpandableVocabularyCard = ({
             {
               position: "absolute",
               width: "100%",
+              top: 24,
+              bottom: 0,
+              justifyContent: "center",
             },
             backAnimatedStyle,
           ]}
@@ -282,39 +290,36 @@ const ExpandableVocabularyCard = ({
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
               <View
                 style={{
-                  minHeight: 180,
+                  minHeight: 150,
                   justifyContent: "center",
                   alignItems: "center",
-                  paddingVertical: 16,
+                  paddingVertical: 12,
+                  width: "100%",
                 }}
               >
-                <View style={{ width: "100%", paddingHorizontal: 16 }}>
+                <View style={{ width: "100%" }}>
                   {meanings.length > 0 ? (
-                    meanings.map((m: string, i: number) => (
-                      <View
-                        key={i}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <ThemedText
                         style={{
-                          flexDirection: "row",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          marginBottom: i < meanings.length - 1 ? 16 : 0,
+                          fontSize: 30,
+                          color: "#1f2937",
+                          fontWeight: "600",
+                          textAlign: "center",
+                          flex: 1,
+                          flexShrink: 1,
+                          lineHeight: 44,
                         }}
                       >
-                        <ThemedText
-                          style={{
-                            fontSize: 30,
-                            color: "#1f2937",
-                            fontWeight: "600",
-                            textAlign: "center",
-                            flex: 1,
-                            flexShrink: 1,
-                            lineHeight: 44,
-                          }}
-                        >
-                          {m}
-                        </ThemedText>
-                      </View>
-                    ))
+                        {meanings[0]}
+                      </ThemedText>
+                    </View>
                   ) : (
                     <ThemedText
                       style={{
@@ -345,169 +350,34 @@ const ExpandableGrammarCard = ({
   item: any;
   index: number;
 }) => {
-  const { t } = useTranslation();
-  const [isFlipped, setIsFlipped] = useState(false);
-  const flipAnim = useRef(new Animated.Value(0)).current;
-
-  const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const toValue = isFlipped ? 0 : 1;
-    setIsFlipped(!isFlipped);
-
-    Animated.spring(flipAnim, {
-      toValue,
-      tension: 65,
-      friction: 8,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const frontInterpolate = flipAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "180deg"],
-  });
-
-  const backInterpolate = flipAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["180deg", "360deg"],
-  });
-
-  const frontOpacity = flipAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [1, 0, 0],
-  });
-
-  const backOpacity = flipAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0, 0, 1],
-  });
-
-  const frontAnimatedStyle = {
-    transform: [{ rotateY: frontInterpolate }],
-    opacity: frontOpacity,
-  };
-
-  const backAnimatedStyle = {
-    transform: [{ rotateY: backInterpolate }],
-    opacity: backOpacity,
-  };
-
   return (
-    <View style={{ width: "100%" }}>
-      <View style={{ position: "relative", width: "100%", minHeight: 220 }}>
-        {/* Front Side */}
-        <Animated.View
-          style={[
-            {
-              position: "absolute",
-              width: "100%",
-            },
-            frontAnimatedStyle,
-          ]}
-          pointerEvents={isFlipped ? "none" : "auto"}
+    <View style={{ width: "100%", top: 7 }}>
+      <ModernCardExpandable
+        style={{ paddingTop: 28, paddingBottom: 28, paddingHorizontal: 20 }}
+      >
+        <View
+          style={{
+            minHeight: 160,
+            justifyContent: "center",
+            alignItems: "center",
+            paddingVertical: 16,
+            paddingHorizontal: 12,
+          }}
         >
-          <ModernCardExpandable
-            style={{ paddingTop: 28, paddingBottom: 28, paddingHorizontal: 20 }}
+          <ThemedText
+            style={{
+              fontSize: 32,
+              fontWeight: "bold",
+              color: "#0891b2",
+              textAlign: "center",
+              flexShrink: 1,
+              lineHeight: 42,
+            }}
           >
-            <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-              <View
-                style={{
-                  minHeight: 160,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  paddingVertical: 16,
-                  paddingHorizontal: 12,
-                }}
-              >
-                <ThemedText
-                  style={{
-                    fontSize: 32,
-                    fontWeight: "bold",
-                    color: "#0891b2",
-                    textAlign: "center",
-                    flexShrink: 1,
-                    lineHeight: 42,
-                  }}
-                >
-                  {item.title}
-                </ThemedText>
-              </View>
-            </TouchableOpacity>
-          </ModernCardExpandable>
-        </Animated.View>
-
-        {/* Back Side */}
-        <Animated.View
-          style={[
-            {
-              position: "absolute",
-              width: "100%",
-            },
-            backAnimatedStyle,
-          ]}
-          pointerEvents={isFlipped ? "auto" : "none"}
-        >
-          <ModernCardExpandable style={{ padding: 20 }}>
-            <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
-              <View
-                style={{
-                  minHeight: 180,
-                  justifyContent: "center",
-                  paddingVertical: 16,
-                }}
-              >
-                <View style={{ width: "100%", paddingHorizontal: 16 }}>
-                  {item.description && (
-                    <ThemedText
-                      style={{
-                        fontSize: 28,
-                        color: "#1f2937",
-                        fontWeight: "600",
-                        textAlign: "center",
-                        lineHeight: 42,
-                        marginBottom: 20,
-                        flexShrink: 1,
-                      }}
-                    >
-                      {item.description}
-                    </ThemedText>
-                  )}
-                  {item.usage && (
-                    <View className="bg-cyan-50 p-6 rounded-2xl mt-4">
-                      <ThemedText
-                        style={{
-                          fontSize: 24,
-                          color: "#155e75",
-                          textAlign: "center",
-                          flexShrink: 1,
-                          lineHeight: 36,
-                        }}
-                      >
-                        <ThemedText style={{ fontWeight: "bold" }}>
-                          {t("lessons.usage")}:
-                        </ThemedText>{" "}
-                        {item.usage}
-                      </ThemedText>
-                    </View>
-                  )}
-                  {!item.description && !item.usage && (
-                    <ThemedText
-                      style={{
-                        fontSize: 28,
-                        color: "#6b7280",
-                        textAlign: "center",
-                        lineHeight: 42,
-                      }}
-                    >
-                      {t("lessons.no_description", "No description available")}
-                    </ThemedText>
-                  )}
-                </View>
-              </View>
-            </TouchableOpacity>
-          </ModernCardExpandable>
-        </Animated.View>
-      </View>
+            {item.title}
+          </ThemedText>
+        </View>
+      </ModernCardExpandable>
     </View>
   );
 };
@@ -581,6 +451,9 @@ const ExpandableKanjiCard = ({
             {
               position: "absolute",
               width: "100%",
+              top: 24,
+              bottom: 0,
+              justifyContent: "center",
             },
             frontAnimatedStyle,
           ]}
@@ -621,6 +494,9 @@ const ExpandableKanjiCard = ({
             {
               position: "absolute",
               width: "100%",
+              top: 24,
+              bottom: 0,
+              justifyContent: "center",
             },
             backAnimatedStyle,
           ]}
@@ -630,7 +506,7 @@ const ExpandableKanjiCard = ({
             <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
               <View
                 style={{
-                  minHeight: 180,
+                  minHeight: 150,
                   justifyContent: "center",
                   alignItems: "center",
                   paddingVertical: 16,
@@ -1000,7 +876,8 @@ const VocabularyListScreen = () => {
 
   // State for Retry Confirmation Modal
   const [showRetryModal, setShowRetryModal] = useState(false);
-  const [pendingCategory, setPendingCategory] = useState<ExerciseCategory | null>(null);
+  const [pendingCategory, setPendingCategory] =
+    useState<ExerciseCategory | null>(null);
 
   // Ref for horizontal scroll view
   const horizontalScrollRef = useRef<ScrollView>(null);
@@ -1162,7 +1039,7 @@ const VocabularyListScreen = () => {
       // Check if exercise is already completed
       const status = statusByCategory[category];
       const normalizedStatus = (status || "").toUpperCase();
-      
+
       if (normalizedStatus === ExerciseAttemptStatus.COMPLETED) {
         // Show confirmation modal for retry
         setPendingCategory(category);
@@ -1181,7 +1058,10 @@ const VocabularyListScreen = () => {
   };
 
   // Proceed to exercise
-  const proceedToExercise = (category: ExerciseCategory, exerciseAttemptId: number | string) => {
+  const proceedToExercise = (
+    category: ExerciseCategory,
+    exerciseAttemptId: number | string
+  ) => {
     Haptics.selectionAsync();
     router.push({
       pathname: ROUTES.QUIZ.QUIZ,
@@ -1195,7 +1075,7 @@ const VocabularyListScreen = () => {
   // Handle retry confirmation
   const handleRetryConfirm = () => {
     if (!pendingCategory) return;
-    
+
     const exerciseAttemptId = attemptIdByCategory[pendingCategory];
     if (!exerciseAttemptId) {
       Alert.alert(
@@ -1341,6 +1221,7 @@ const VocabularyListScreen = () => {
                     style={{
                       width: cardWidth,
                       marginRight: i < contentData.length - 1 ? cardSpacing : 0,
+                      minHeight: 230,
                     }}
                   >
                     {contentTypeValue === "grammar" ? (
@@ -1425,148 +1306,151 @@ const VocabularyListScreen = () => {
                       backgroundColor: "#E0F2FE",
                     }}
                   >
-                  <View className="items-center mb-3">
-                    <View
-                      className="rounded-full items-center justify-center"
+                    <View className="items-center mb-3">
+                      <View
+                        className="rounded-full items-center justify-center"
+                        style={{
+                          width: 80,
+                          height: 80,
+                          backgroundColor: "#3B82F6",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
+                          ⚡
+                        </ThemedText>
+                      </View>
+                    </View>
+                    <ThemedText
                       style={{
-                        width: 80,
-                        height: 80,
-                        backgroundColor: "#3B82F6",overflow: "hidden",
+                        textAlign: "center",
+                        fontSize: 16,
+                        fontWeight: "bold",
+                        color: "#1e40af",
                       }}
                     >
-                      <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
-                        ⚡
-                      </ThemedText>
-                    </View>
-                  </View>
-                  <ThemedText
+                      {t(
+                        contentTypeValue === "kanji"
+                          ? "content_list.activity.learn.kanji"
+                          : "content_list.activity.learn.vocabulary",
+                        contentTypeValue === "kanji"
+                          ? "Learn kanji"
+                          : "Learn vocabulary"
+                      )}
+                    </ThemedText>
+                  </TouchableOpacity>
+                )}
+
+                {/* Matching Game - Chỉ hiển thị khi không phải grammar */}
+                {contentTypeValue !== "grammar" && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.selectionAsync();
+                      router.push({
+                        pathname: "/(app)/content-list/matching",
+                        params: {
+                          id,
+                          contentType: contentTypeValue,
+                        },
+                      });
+                    }}
+                    className="rounded-3xl p-6 shadow-lg"
                     style={{
-                      textAlign: "center",
-                      fontSize: 16,
-                      fontWeight: "bold",
-                      color: "#1e40af",
+                      width: (width - 48 - 12) / 2,
+                      backgroundColor: "#F3E8FF",
                     }}
                   >
-                    {t(
-                      contentTypeValue === "kanji"
-                        ? "content_list.activity.learn.kanji"
-                        : "content_list.activity.learn.vocabulary",
-                      contentTypeValue === "kanji"
-                        ? "Learn kanji"
-                        : "Learn vocabulary"
-                    )}
-                  </ThemedText>
-                </TouchableOpacity>
-              )}
-
-              {/* Matching Game - Chỉ hiển thị khi không phải grammar */}
-              {contentTypeValue !== "grammar" && (
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    router.push({
-                      pathname: "/(app)/content-list/matching",
-                      params: {
-                        id,
-                        contentType: contentTypeValue,
-                      },
-                    });
-                  }}
-                  className="rounded-3xl p-6 shadow-lg"
-                  style={{
-                    width: (width - 48 - 12) / 2,
-                    backgroundColor: "#F3E8FF",
-                  }}
-                >
-                  <View className="items-center mb-3">
-                    <View
-                      className="rounded-full items-center justify-center"
+                    <View className="items-center mb-3">
+                      <View
+                        className="rounded-full items-center justify-center"
+                        style={{
+                          width: 80,
+                          height: 80,
+                          backgroundColor: "#A855F7",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
+                          🎯
+                        </ThemedText>
+                      </View>
+                    </View>
+                    <ThemedText
                       style={{
-                        width: 80,
-                        height: 80,
-                        backgroundColor: "#A855F7",overflow: "hidden",
+                        textAlign: "center",
+                        fontSize: 16,
+                        fontWeight: "bold",
+                        color: "#7c3aed",
                       }}
                     >
-                      <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
-                        🎯
-                      </ThemedText>
-                    </View>
-                  </View>
-                  <ThemedText
+                      {t(
+                        contentTypeValue === "kanji"
+                          ? "content_list.activity.match.kanji"
+                          : "content_list.activity.match.vocabulary",
+                        contentTypeValue === "kanji"
+                          ? "Match kanji"
+                          : "Match vocabulary"
+                      )}
+                    </ThemedText>
+                  </TouchableOpacity>
+                )}
+
+                {/* Scramble Game - Chỉ hiển thị khi không phải grammar */}
+                {contentTypeValue !== "grammar" && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.selectionAsync();
+                      router.push({
+                        pathname: "/(app)/content-list/scramble",
+                        params: {
+                          id,
+                          contentType: contentTypeValue,
+                        },
+                      });
+                    }}
+                    className="rounded-3xl p-6 shadow-lg"
                     style={{
-                      textAlign: "center",
-                      fontSize: 16,
-                      fontWeight: "bold",
-                      color: "#7c3aed",
+                      width: (width - 48 - 12) / 2,
+                      backgroundColor: "#DCFCE7",
                     }}
                   >
-                    {t(
-                      contentTypeValue === "kanji"
-                        ? "content_list.activity.match.kanji"
-                        : "content_list.activity.match.vocabulary",
-                      contentTypeValue === "kanji"
-                        ? "Match kanji"
-                        : "Match vocabulary"
-                    )}
-                  </ThemedText>
-                </TouchableOpacity>
-              )}
-
-              {/* Scramble Game - Chỉ hiển thị khi không phải grammar */}
-              {contentTypeValue !== "grammar" && (
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    router.push({
-                      pathname: "/(app)/content-list/scramble",
-                      params: {
-                        id,
-                        contentType: contentTypeValue,
-                      },
-                    });
-                  }}
-                  className="rounded-3xl p-6 shadow-lg"
-                  style={{
-                    width: (width - 48 - 12) / 2,
-                    backgroundColor: "#DCFCE7",
-                  }}
-                >
-                  <View className="items-center mb-3">
-                    <View
-                      className="rounded-full items-center justify-center"
+                    <View className="items-center mb-3">
+                      <View
+                        className="rounded-full items-center justify-center"
+                        style={{
+                          width: 80,
+                          height: 80,
+                          backgroundColor: "#22C55E",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
+                          🔤
+                        </ThemedText>
+                      </View>
+                    </View>
+                    <ThemedText
                       style={{
-                        width: 80,
-                        height: 80,
-                        backgroundColor: "#22C55E",overflow: "hidden",
+                        textAlign: "center",
+                        fontSize: 16,
+                        fontWeight: "bold",
+                        color: "#15803d",
                       }}
                     >
-                      <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
-                        🔤
-                      </ThemedText>
-                    </View>
-                  </View>
-                  <ThemedText
-                    style={{
-                      textAlign: "center",
-                      fontSize: 16,
-                      fontWeight: "bold",
-                      color: "#15803d",
-                    }}
-                  >
-                    {t(
-                      contentTypeValue === "kanji"
-                        ? "content_list.activity.scramble.kanji"
-                        : "content_list.activity.scramble.vocabulary",
-                      contentTypeValue === "kanji"
-                        ? "Scramble kanji"
-                        : "Scramble vocabulary"
-                    )}
-                  </ThemedText>
-                </TouchableOpacity>
-              )}
+                      {t(
+                        contentTypeValue === "kanji"
+                          ? "content_list.activity.scramble.kanji"
+                          : "content_list.activity.scramble.vocabulary",
+                        contentTypeValue === "kanji"
+                          ? "Scramble kanji"
+                          : "Scramble vocabulary"
+                      )}
+                    </ThemedText>
+                  </TouchableOpacity>
+                )}
 
-              {/* Fill in the Blank Game - Chỉ hiển thị khi không phải grammar */}
-              {/* {contentTypeValue !== "grammar" && (
+                {/* Fill in the Blank Game - Chỉ hiển thị khi không phải grammar */}
+                {/* {contentTypeValue !== "grammar" && (
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.selectionAsync();
@@ -1618,8 +1502,8 @@ const VocabularyListScreen = () => {
                 </TouchableOpacity>
               )} */}
 
-              {/* Word Chain Game - Chỉ hiển thị khi không phải grammar */}
-              {/* {contentTypeValue !== "grammar" && (
+                {/* Word Chain Game - Chỉ hiển thị khi không phải grammar */}
+                {/* {contentTypeValue !== "grammar" && (
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.selectionAsync();
@@ -1671,35 +1555,36 @@ const VocabularyListScreen = () => {
                 </TouchableOpacity>
               )} */}
 
-              {/* Kiểm tra - Full width khi là grammar, một nửa khi không phải grammar */}
-              <TouchableOpacity
-                onPress={() => {
-                  Haptics.selectionAsync();
-                  startExercise(contentTypeValue as ExerciseCategory);
-                }}
-                className="rounded-3xl p-6 shadow-lg"
-                style={{
-                  width:
-                    contentTypeValue === "grammar"
-                      ? width - 48
-                      : (width - 48 - 12) / 2,
-                  backgroundColor: "#FEF3C7",
-                }}
-              >
-                <View className="items-center mb-3">
-                  <View
-                    className="rounded-full items-center justify-center"
-                    style={{
-                      width: 80,
-                      height: 80,
-                      backgroundColor: "#F59E0B",overflow: "hidden",
-                    }}
-                  >
-                    <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
-                      🔥
-                    </ThemedText>
+                {/* Kiểm tra - Full width khi là grammar, một nửa khi không phải grammar */}
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.selectionAsync();
+                    startExercise(contentTypeValue as ExerciseCategory);
+                  }}
+                  className="rounded-3xl p-6 shadow-lg"
+                  style={{
+                    width:
+                      contentTypeValue === "grammar"
+                        ? width - 48
+                        : (width - 48 - 12) / 2,
+                    backgroundColor: "#FEF3C7",
+                  }}
+                >
+                  <View className="items-center mb-3">
+                    <View
+                      className="rounded-full items-center justify-center"
+                      style={{
+                        width: 80,
+                        height: 80,
+                        backgroundColor: "#F59E0B",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <ThemedText style={{ fontSize: 32, lineHeight: 32 }}>
+                        🔥
+                      </ThemedText>
+                    </View>
                   </View>
-                </View>
                   <ThemedText
                     style={{
                       textAlign: "center",
@@ -1930,7 +1815,8 @@ const VocabularyListScreen = () => {
                 end={{ x: 1, y: 0 }}
                 style={{
                   paddingHorizontal: 20,
-                  paddingVertical: 16,}}
+                  paddingVertical: 16,
+                }}
               >
                 <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center flex-1">
@@ -1944,10 +1830,7 @@ const VocabularyListScreen = () => {
                         textShadowRadius: 3,
                       }}
                     >
-                      {t(
-                        "content_list.kanji_modal.title",
-                        "Kanji explanation"
-                      )}
+                      {t("content_list.kanji_modal.title", "Kanji explanation")}
                     </ThemedText>
                   </View>
                   <TouchableOpacity
@@ -1980,7 +1863,8 @@ const VocabularyListScreen = () => {
                       style={{
                         backgroundColor: "#ffffff",
                         borderRadius: 28,
-                        padding: 24,borderWidth: 3,
+                        padding: 24,
+                        borderWidth: 3,
                         borderColor: "#fcd34d",
                       }}
                     >
@@ -1994,7 +1878,8 @@ const VocabularyListScreen = () => {
                             paddingVertical: 30,
                             paddingHorizontal: 40,
                             alignItems: "center",
-                            justifyContent: "center",borderWidth: 2,
+                            justifyContent: "center",
+                            borderWidth: 2,
                             borderColor: "#fbbf24",
                           }}
                         >
@@ -2176,13 +2061,10 @@ const VocabularyListScreen = () => {
                                   color: "#166534",
                                 }}
                               >
-                                {t(
-                                  "content_list.kanji_modal.stroke_value",
-                                  {
-                                    count: selectedKanjiItem.strokeCount,
-                                    defaultValue: `${selectedKanjiItem.strokeCount} strokes`,
-                                  }
-                                )}
+                                {t("content_list.kanji_modal.stroke_value", {
+                                  count: selectedKanjiItem.strokeCount,
+                                  defaultValue: `${selectedKanjiItem.strokeCount} strokes`,
+                                })}
                               </ThemedText>
                             </View>
                           </View>
@@ -2198,7 +2080,8 @@ const VocabularyListScreen = () => {
                         style={{
                           backgroundColor: "#ffffff",
                           borderRadius: 24,
-                          padding: 12,borderWidth: 3,
+                          padding: 12,
+                          borderWidth: 3,
                           borderColor: "#e5e7eb",
                         }}
                       >
@@ -2232,7 +2115,8 @@ const VocabularyListScreen = () => {
                           <View
                             style={{
                               backgroundColor: "#ffffff",
-                              borderRadius: 24,overflow: "hidden",
+                              borderRadius: 24,
+                              overflow: "hidden",
                               borderWidth: 3,
                               borderColor: "#e0e7ff",
                             }}
@@ -2301,10 +2185,7 @@ const VocabularyListScreen = () => {
         {/* Retry Confirmation Modal */}
         <ConfirmModal
           visible={showRetryModal}
-          title={t(
-            "content_list.retry_modal.title",
-            "Làm lại bài tập?"
-          )}
+          title={t("content_list.retry_modal.title", "Làm lại bài tập?")}
           message={t(
             "content_list.retry_modal.message",
             "Bạn đã hoàn thành bài tập này rồi. Nếu làm lại, bạn sẽ chỉ nhận được 10% phần thưởng so với lần trước."
