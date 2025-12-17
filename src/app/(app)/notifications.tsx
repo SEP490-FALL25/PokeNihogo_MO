@@ -53,7 +53,7 @@ const getNotificationBody = (item: NotificationItem) => {
         }
     }
 
-    if ((item.type === 'REWARD' || item.type === 'EXERCISE' || item.type === 'LESSON') && data) {
+    if ((item.type === 'REWARD' || item.type === 'EXERCISE' || item.type === 'LESSON' || item.type === 'ACHIEVEMENT' || item.type === 'ATTENDANCE') && data) {
         const parts = [];
         if (data.sparkles?.amount) {
             parts.push(`+${data.sparkles.amount} Sparkles ✨`);
