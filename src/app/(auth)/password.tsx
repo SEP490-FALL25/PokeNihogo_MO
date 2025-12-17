@@ -71,8 +71,6 @@ export default function PasswordScreen() {
         try {
             const res = await authService.forgotPassword({ email });
 
-            console.log(res);
-
             if (res.data.statusCode === 200) {
                 showAlert(res.data.message, 'success');
                 router.push({ pathname: ROUTES.AUTH.OTP, params: { type: res.data.data.type } });

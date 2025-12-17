@@ -3,6 +3,7 @@ import BackScreen from '@components/molecules/Back';
 import BounceButton from '@components/ui/BounceButton';
 import { AuthType } from '@constants/auth.enum';
 import { useMinimalAlert } from '@hooks/useMinimalAlert';
+import { IBackendResponse } from '@models/backend/common';
 import { ROUTES } from '@routes/routes';
 import authService from '@services/auth';
 import { useEmailSelector } from '@stores/user/user.selectors';
@@ -76,16 +77,28 @@ export default function OTPScreen() {
 
     const handleResend = async () => {
         if (timer > 0) return;
-        try {
-            const res = await authService.resendOtp(email);
 
-            if (res.data.statusCode === 201) {
-                showAlert(res.data.data.message, 'success');
-                setTimer(60);
+        if (type === AuthType.FORGOT_PASSWORD) {
+            const res = await authService.forgotPassword({ email }) as IBackendResponse<any>
+            switch (res.data.statusCode) {
+                case 200:
+                    showAlert(t('auth.a-new-code-has-been-sent-to-your-email'), 'success');
+                    setTimer(60);
+                    break;
             }
-        } catch (error: any) {
-            showAlert(error.message, 'error');
-            setTimer(60);
+        } else {
+            const res = await authService.checkEmail(email) as IBackendResponse<any>
+
+            switch (res.data.statusCode) {
+                case 401:
+                    showAlert(t('auth.a-new-code-has-been-sent-to-your-email'), 'success');
+                    setTimer(60);
+                    break;
+                case 200:
+                    showAlert(t('auth.a-new-code-has-been-sent-to-your-email'), 'success');
+                    setTimer(60);
+                    break;
+            }
         }
     };
     //-----------------------End-----------------------//

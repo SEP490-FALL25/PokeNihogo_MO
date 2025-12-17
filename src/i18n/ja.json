@@ -54,6 +54,12 @@
         "simple_dialog_test": "これはテストダイアログです"
     },
     "auth": {
+        "enter-code": "コードを入力",
+        "we-sent-a-6-digit-code-to": "6桁のコードを次のメールアドレスに送信しました",
+        "didnt-receive-a-code": "コードが届きませんか？",
+        "resend": "再送信",
+        "verify": "確認",
+        "a-new-code-has-been-sent-to-your-email": "新しいコードをメールに送信しました。",
         "welcome": {
             "title": "PokeNihongoへようこそ！",
             "subtitle": "日本語学習の冒険を始めましょう",
