@@ -133,6 +133,8 @@ export default function PickPokemonScreen() {
       const p1Picked = !!p1?.selectedUserPokemonId;
       const p2Picked = !!p2?.selectedUserPokemonId;
 
+      if (p1Picked && p2Picked) return { p1Turn: false, p2Turn: false };
+
       // Nếu 1 người chưa pick và người kia đã pick -> lượt người chưa pick
       if (!p1Picked && p2Picked) return { p1Turn: true, p2Turn: false };
       if (p1Picked && !p2Picked) return { p1Turn: false, p2Turn: true };
