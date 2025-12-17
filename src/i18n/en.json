@@ -235,6 +235,14 @@
       "range_between": "{{min}} - {{max}} ELO",
       "range_min": "≥ {{min}} ELO"
     },
+    "rank_change": {
+      "up_title": "RANK UP!",
+      "down_title": "RANK DOWN",
+      "up_message": "Congrats! You ranked up to {{rank}}",
+      "down_message": "Unlucky! You dropped to {{rank}}",
+      "old_rank": "Previous Rank",
+      "new_rank": "New Rank"
+    },
     "stats": {
       "total_wins": "Total Wins",
       "win_rate": "Win Rate",

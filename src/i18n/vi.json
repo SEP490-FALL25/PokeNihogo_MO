@@ -235,6 +235,14 @@
       "range_between": "{{min}} - {{max}} ELO",
       "range_min": "≥ {{min}} ELO"
     },
+    "rank_change": {
+      "up_title": "THĂNG HẠNG!",
+      "down_title": "RỚT HẠNG",
+      "up_message": "Chúc mừng! Bạn đã thăng hạng lên {{rank}}",
+      "down_message": "Tiếc quá! Bạn đã rớt xuống hạng {{rank}}",
+      "old_rank": "Hạng Cũ",
+      "new_rank": "Hạng Mới"
+    },
     "stats": {
       "total_wins": "Trận thắng",
       "win_rate": "Tỷ lệ thắng",

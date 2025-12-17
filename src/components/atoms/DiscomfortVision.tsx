@@ -146,6 +146,7 @@ export default function DiscomfortVision({
     const adjustedBlur = blurIntensity * (0.4 + 0.6 * severity);
 
     const isWeb = Platform.OS === "web";
+    const isAndroid = Platform.OS === "android";
 
     if (!shouldApply) {
         return <View style={[styles.container, style]}>{children}</View>;
@@ -212,8 +213,9 @@ export default function DiscomfortVision({
             <View style={styles.content}>{children}</View>
             <BlurView
                 pointerEvents="none"
-                intensity={adjustedBlur}
+                intensity={isAndroid ? adjustedBlur * 2.5 : adjustedBlur}
                 tint="dark"
+                experimentalBlurMethod="dimezisBlurView"
                 style={[StyleSheet.absoluteFill, styles.blurLayer]}
             />
             {overlayLayers}
