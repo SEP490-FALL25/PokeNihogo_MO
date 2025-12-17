@@ -16,6 +16,7 @@ export const UserEntity = z.object({
     status: z.enum(["ACTIVE", "INACTIVE"]),
     levelId: z.number(),
     roleId: z.number(),
+    levelJLPT: z.number(),
     ...byUser,
     ...at,
     role: RoleEntitySchema,

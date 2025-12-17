@@ -1,21 +1,24 @@
-import UserAvatar from '@components/atoms/UserAvatar';
-import BackScreen from '@components/molecules/Back';
-import BounceButton from '@components/ui/BounceButton';
-import ImageUploader from '@components/ui/ImageUploader';
-import { Input } from '@components/ui/Input';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@hooks/useAuth';
-import { useMinimalAlert } from '@hooks/useMinimalAlert';
-import { useUpdateProfile } from '@hooks/useUpdateProfile';
-import { IUserEntity } from '@models/user/user.entity';
-import { IUpdateProfileFormDataRequest, UpdateProfileFormDataRequest } from '@models/user/user.request';
-import { formatDateToMMYYYY } from '@utils/date';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import { Calendar, Shield, Star } from 'lucide-react-native';
-import React, { useEffect, useMemo } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
+import UserAvatar from "@components/atoms/UserAvatar";
+import BackScreen from "@components/molecules/Back";
+import BounceButton from "@components/ui/BounceButton";
+import ImageUploader from "@components/ui/ImageUploader";
+import { Input } from "@components/ui/Input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuth } from "@hooks/useAuth";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
+import { useUpdateProfile } from "@hooks/useUpdateProfile";
+import { IUserEntity } from "@models/user/user.entity";
+import {
+  IUpdateProfileFormDataRequest,
+  UpdateProfileFormDataRequest,
+} from "@models/user/user.request";
+import { formatDateToMMYYYY } from "@utils/date";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import { Calendar, Shield, Star } from "lucide-react-native";
+import React, { useEffect, useMemo } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -23,17 +26,17 @@ import {
   StatusBar,
   Text,
   View,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { z } from 'zod';
-import { makeZodI18nMap } from 'zod-i18n-map';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { z } from "zod";
+import { makeZodI18nMap } from "zod-i18n-map";
 
 const buildPayload = (values: IUpdateProfileFormDataRequest) => {
   const payload: Record<string, string> = {};
 
-  (['name', 'phoneNumber', 'avatar'] as const).forEach((key) => {
+  (["name", "phoneNumber", "avatar"] as const).forEach((key) => {
     const value = values[key];
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       const trimmed = value.trim();
       if (trimmed.length > 0) {
         payload[key] = trimmed;
@@ -50,15 +53,17 @@ export default function AccountDetailsScreen() {
   const insets = useSafeAreaInsets();
   const { user, isLoading } = useAuth();
   const userProfile = user?.data as IUserEntity | undefined;
-  const joinDate = userProfile?.createdAt ? formatDateToMMYYYY(userProfile.createdAt) : undefined;
+  const joinDate = userProfile?.createdAt
+    ? formatDateToMMYYYY(userProfile.createdAt)
+    : undefined;
 
   z.setErrorMap(makeZodI18nMap({ t }));
 
   const initialValues = useMemo(
     () => ({
-      name: userProfile?.name ?? '',
-      phoneNumber: userProfile?.phoneNumber ?? '',
-      avatar: userProfile?.avatar ?? '',
+      name: userProfile?.name ?? "",
+      phoneNumber: userProfile?.phoneNumber ?? "",
+      avatar: userProfile?.avatar ?? "",
     }),
     [userProfile?.name, userProfile?.phoneNumber, userProfile?.avatar]
   );
@@ -73,7 +78,7 @@ export default function AccountDetailsScreen() {
   } = useForm<IUpdateProfileFormDataRequest>({
     resolver: zodResolver(UpdateProfileFormDataRequest),
     defaultValues: initialValues,
-    mode: 'onChange',
+    mode: "onChange",
   });
 
   // Chỉ reset một lần khi userProfile load lần đầu, không reset lại khi user đang edit
@@ -90,18 +95,18 @@ export default function AccountDetailsScreen() {
     const payload = buildPayload(values);
 
     if (Object.keys(payload).length === 0) {
-      showAlert(t('account_details.nothing_to_update'), 'info');
+      showAlert(t("account_details.nothing_to_update"), "info");
       return;
     }
 
     try {
       await mutateAsync(payload);
-      showAlert(t('account_details.update_success'), 'success');
+      showAlert(t("account_details.update_success"), "success");
       // Reset form với giá trị mới sau khi update thành công
       hasInitializedRef.current = false;
       router.back();
     } catch (error: any) {
-      showAlert(error?.message || t('account_details.update_error'), 'error');
+      showAlert(error?.message || t("account_details.update_error"), "error");
     }
   };
 
@@ -109,7 +114,7 @@ export default function AccountDetailsScreen() {
     <View className="flex-1 bg-slate-100">
       <StatusBar barStyle="light-content" translucent />
       <LinearGradient
-        colors={['#4A9FA2', '#5FA8AB', '#6FAFB2', '#7EC5C8']}
+        colors={["#4A9FA2", "#5FA8AB", "#6FAFB2", "#7EC5C8"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ paddingTop: insets.top + 12 }}
@@ -118,12 +123,12 @@ export default function AccountDetailsScreen() {
         <BackScreen
           onPress={() => router.back()}
           color="white"
-          title={t('account_details.title')}
+          title={t("account_details.title")}
         />
       </LinearGradient>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
       >
         <ScrollView
@@ -133,7 +138,7 @@ export default function AccountDetailsScreen() {
         >
           <View className="px-5 -mt-24 gap-6">
             <LinearGradient
-              colors={['#f5fffe', '#ecfeff']}
+              colors={["#f5fffe", "#ecfeff"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               className="p-6 rounded-3xl shadow-lg border border-white/40"
@@ -141,14 +146,17 @@ export default function AccountDetailsScreen() {
               <View className="flex-row items-center">
                 <View className="w-20 h-20 rounded-3xl bg-white/80 items-center justify-center shadow-md">
                   <UserAvatar
-                    name={userProfile?.name ?? ''}
+                    name={userProfile?.name ?? ""}
                     avatar={userProfile?.avatar ?? undefined}
                     size="large"
                   />
                 </View>
 
                 <View className="ml-12 flex-1">
-                  <Text className="text-2xl font-extrabold text-slate-900" numberOfLines={1}>
+                  <Text
+                    className="text-2xl font-extrabold text-slate-900"
+                    numberOfLines={1}
+                  >
                     {userProfile?.name}
                   </Text>
                   <Text className="text-sm font-semibold text-slate-500 mt-1">
@@ -163,17 +171,19 @@ export default function AccountDetailsScreen() {
                         </Text>
                       </View>
                     )}
-                    {!!userProfile?.level?.levelNumber && (
+                    {!!userProfile?.levelJLPT && (
                       <View className="px-3 py-1 rounded-2xl bg-slate-100">
                         <Text className="text-xs font-bold text-slate-700">
-                          N{userProfile?.level?.levelNumber}
+                          N{userProfile?.levelJLPT}
                         </Text>
                       </View>
                     )}
                     {!!joinDate && (
                       <View className="px-3 py-1 rounded-2xl bg-white/70">
                         <Text className="text-xs font-semibold text-slate-600">
-                          {t('account_details.member_since', { date: joinDate })}
+                          {t("account_details.member_since", {
+                            date: joinDate,
+                          })}
                         </Text>
                       </View>
                     )}
@@ -186,10 +196,10 @@ export default function AccountDetailsScreen() {
               <View className="flex-row justify-between items-center mb-4">
                 <View>
                   <Text className="text-lg font-extrabold text-slate-800">
-                    {t('account_details.stats_title')}
+                    {t("account_details.stats_title")}
                   </Text>
                   <Text className="text-sm font-semibold text-slate-500">
-                    {t('account_details.stats_subtitle')}
+                    {t("account_details.stats_subtitle")}
                   </Text>
                 </View>
               </View>
@@ -197,27 +207,29 @@ export default function AccountDetailsScreen() {
                 {[
                   {
                     icon: Star,
-                    label: t('account_details.points'),
+                    label: t("account_details.points"),
                     value:
-                      typeof userProfile?.exp === 'number'
+                      typeof userProfile?.exp === "number"
                         ? userProfile.exp.toLocaleString()
-                        : t('account_details.not_available'),
-                    colors: ['#fef3c7', '#fde68a'] as [string, string],
-                    iconColor: '#f59e0b',
+                        : t("account_details.not_available"),
+                    colors: ["#fef3c7", "#fde68a"] as [string, string],
+                    iconColor: "#f59e0b",
                   },
                   {
                     icon: Shield,
-                    label: t('account_details.rank'),
-                    value: userProfile?.rankName || t('account_details.not_available'),
-                    colors: ['#dbeafe', '#bfdbfe'] as [string, string],
-                    iconColor: '#3b82f6',
+                    label: t("account_details.rank"),
+                    value:
+                      userProfile?.rankName ||
+                      t("account_details.not_available"),
+                    colors: ["#dbeafe", "#bfdbfe"] as [string, string],
+                    iconColor: "#3b82f6",
                   },
                   {
                     icon: Calendar,
-                    label: t('account_details.joined'),
-                    value: joinDate || t('account_details.not_available'),
-                    colors: ['#dcfce7', '#bbf7d0'] as [string, string],
-                    iconColor: '#059669',
+                    label: t("account_details.joined"),
+                    value: joinDate || t("account_details.not_available"),
+                    colors: ["#dcfce7", "#bbf7d0"] as [string, string],
+                    iconColor: "#059669",
                   },
                 ].map((item) => (
                   <LinearGradient
@@ -226,7 +238,11 @@ export default function AccountDetailsScreen() {
                     className="flex-1 rounded-2xl p-4"
                   >
                     <View className="w-10 h-10 rounded-2xl bg-white/70 items-center justify-center mb-3">
-                      <item.icon size={20} color={item.iconColor} strokeWidth={2.3} />
+                      <item.icon
+                        size={20}
+                        color={item.iconColor}
+                        strokeWidth={2.3}
+                      />
                     </View>
                     <Text className="text-2xl font-extrabold text-slate-900">
                       {item.value}
@@ -305,10 +321,10 @@ export default function AccountDetailsScreen() {
 
             <View className="bg-white rounded-3xl p-5 shadow-md mb-4 border border-slate-100">
               <Text className="text-lg font-extrabold text-slate-800 mb-1">
-                {t('account_details.form_title')}
+                {t("account_details.form_title")}
               </Text>
               <Text className="text-sm font-semibold text-slate-500 mb-4">
-                {t('account_details.form_subtitle')}
+                {t("account_details.form_subtitle")}
               </Text>
 
               <Controller
@@ -317,11 +333,11 @@ export default function AccountDetailsScreen() {
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
                     variant="original"
-                    label={t('account_details.name')}
+                    label={t("account_details.name")}
                     value={value}
                     onBlur={onBlur}
                     onChangeText={onChange}
-                    placeholder={t('account_details.name_placeholder')}
+                    placeholder={t("account_details.name_placeholder")}
                     error={errors.name?.message as string}
                     autoCapitalize="words"
                     autoCorrect={false}
@@ -335,12 +351,12 @@ export default function AccountDetailsScreen() {
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
                     variant="original"
-                    label={t('account_details.phone')}
+                    label={t("account_details.phone")}
                     keyboardType="phone-pad"
                     value={value}
                     onBlur={onBlur}
                     onChangeText={onChange}
-                    placeholder={t('account_details.phone_placeholder')}
+                    placeholder={t("account_details.phone_placeholder")}
                     error={errors.phoneNumber?.message as string}
                   />
                 )}
@@ -352,11 +368,11 @@ export default function AccountDetailsScreen() {
                 render={({ field: { onChange, value } }) => (
                   <View className="mt-4">
                     <ImageUploader
-                      label={t('account_details.avatar')}
+                      label={t("account_details.avatar")}
                       value={value}
                       onChange={onChange}
                       folderName="avatars"
-                      placeholder={t('account_details.avatar_placeholder')}
+                      placeholder={t("account_details.avatar_placeholder")}
                       disabled={isPending || isLoading}
                     />
                     {!!errors.avatar?.message && (
@@ -376,7 +392,7 @@ export default function AccountDetailsScreen() {
                 onPress={handleSubmit(onSubmit)}
               >
                 <Text className="text-white font-bold text-lg">
-                  {t('account_details.save')}
+                  {t("account_details.save")}
                 </Text>
               </BounceButton>
             </View>
@@ -386,4 +402,3 @@ export default function AccountDetailsScreen() {
     </View>
   );
 }
-
