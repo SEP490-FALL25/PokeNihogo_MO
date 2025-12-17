@@ -8,8 +8,7 @@ import { ROUTES } from "@routes/routes";
 import { useMatchingStore } from "@stores/matching/matching.config";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronsDown, ChevronsUp } from "lucide-react-native";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Image, ImageBackground, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
@@ -23,6 +22,8 @@ export default function BattleResultScreen() {
     const currentUserId = user?.data?.id as number | undefined;
     const { t } = useTranslation();
     const queryClient = useQueryClient();
+
+    const [showRankModal, setShowRankModal] = React.useState(false);
 
     const {
         me,
@@ -40,6 +41,7 @@ export default function BattleResultScreen() {
         pointDiff,
         isTie,
         rankChangeStatus,
+        rankChangeInfo,
     } = useMemo(() => {
         const result: any = {
             me: null,
@@ -65,6 +67,7 @@ export default function BattleResultScreen() {
             }>,
             pointDiff: 0,
             rankChangeStatus: null,
+            rankChangeInfo: null,
         };
         if (!lastResult?.match) return result;
 
@@ -79,6 +82,7 @@ export default function BattleResultScreen() {
         result.meName = meP?.user?.name || meP?.user?.email || t("battle.result.you");
         result.foeName = foeP?.user?.name || foeP?.user?.email || t("battle.result.opponent");
         result.rankChangeStatus = meP?.rankChangeStatus;
+        result.rankChangeInfo = meP?.rankChangeInfo;
 
 
         // Pick last selected pokémon avatars if available in last round snapshot-like data (if provided)
@@ -380,22 +384,6 @@ export default function BattleResultScreen() {
                                     </View>
                                     {/* Show ONLY my ELO change */}
                                     <View className="mt-2 items-end flex-row justify-end gap-2">
-                                        {rankChangeStatus === RANK_CHANGE_STATUS.RANK_UP && (
-                                            <View className="px-2 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 flex-row items-center gap-1">
-                                                <ChevronsUp size={12} color="#fbbf24" />
-                                                <ThemedText style={{ color: "#fbbf24", fontSize: 10, fontWeight: "800" }}>
-                                                    RANK UP
-                                                </ThemedText>
-                                            </View>
-                                        )}
-                                        {rankChangeStatus === RANK_CHANGE_STATUS.RANK_DOWN && (
-                                            <View className="px-2 py-1 rounded-full bg-red-500/20 border border-red-500/40 flex-row items-center gap-1">
-                                                <ChevronsDown size={12} color="#fca5a5" />
-                                                <ThemedText style={{ color: "#fca5a5", fontSize: 10, fontWeight: "800" }}>
-                                                    RANK DOWN
-                                                </ThemedText>
-                                            </View>
-                                        )}
                                         <View className={`px-3 py-1 rounded-full ${eloDeltaPositive ? "bg-green-500/20 border border-green-500/40" : "bg-red-500/20 border border-red-500/40"}`}>
                                             <ThemedText style={{ color: eloDeltaPositive ? "#86efac" : "#fca5a5", fontWeight: "800" }}>
                                                 {eloDeltaText}
