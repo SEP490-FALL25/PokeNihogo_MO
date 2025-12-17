@@ -13,6 +13,7 @@ interface Reward {
     rewardType: string;
     rewardItem: number;
     rewardTarget?: string;
+    nameTranslation?: string;
 }
 
 interface SeasonEndedData {
@@ -39,12 +40,12 @@ interface ModalSeasonEndedProps {
 
 type ModalStep = 'season_info' | 'rewards';
 
-export default function ModalSeasonEnded({ 
-    visible, 
-    onRequestClose, 
-    data, 
+export default function ModalSeasonEnded({
+    visible,
+    onRequestClose,
+    data,
     onContinue,
-    onClaimComplete 
+    onClaimComplete
 }: ModalSeasonEndedProps) {
     const { t } = useTranslation();
     const [step, setStep] = useState<ModalStep>('season_info');
@@ -90,7 +91,7 @@ export default function ModalSeasonEnded({
 
     const handleClaim = async () => {
         if (!data?.id || isClaiming) return;
-        
+
         setIsClaiming(true);
         try {
             // Only call claimRewardSeason if there are rewards and hasUnclaimedReward is true
@@ -216,7 +217,7 @@ export default function ModalSeasonEnded({
                                             >
                                                 <View className="flex-1">
                                                     <ThemedText style={{ color: "#e5e7eb", fontSize: 15, fontWeight: "600" }}>
-                                                        {reward.nameKey || getRewardTypeLabel(reward.rewardType)}
+                                                        {reward.nameTranslation || reward.nameKey || getRewardTypeLabel(reward.rewardType)}
                                                     </ThemedText>
                                                     <View className="flex-row items-center gap-2 mt-1">
                                                         <ThemedText style={{ color: "#94a3b8", fontSize: 13 }}>
