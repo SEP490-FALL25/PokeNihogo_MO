@@ -17,7 +17,7 @@ import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { BookOpen, Check, Coins, Crown, Headphones, History, RefreshCw } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Animated, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Animated, AppState, AppStateStatus, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const MIN_POKECOIN_DEDUCTION = 10000;
@@ -41,6 +41,7 @@ export default function SubscriptionScreen() {
     const [isResolvingInvoice, setIsResolvingInvoice] = useState<boolean>(false);
     const [isHistoryModalVisible, setIsHistoryModalVisible] = useState<boolean>(false);
     const isPaymentInProgressRef = useRef<boolean>(false);
+    const hasRefetchedRef = useRef<boolean>(false);
 
     const packages = packagesData?.data?.data || [];
     const userBalance = walletUser?.find((w: any) => w.type === WALLET.WALLET_TYPES.PAID_COINS)?.balance ?? 0;
@@ -202,6 +203,17 @@ console.log(packages)
     }, []);
 
     const handleRefetchAfterPayment = useCallback(async () => {
+        // Prevent multiple calls
+        if (!isPaymentInProgressRef.current || hasRefetchedRef.current) {
+            console.log('[Subscription] Skipping refetch - payment not in progress or already refetched');
+            return;
+        }
+
+        // Mark as refetched to prevent duplicate calls
+        hasRefetchedRef.current = true;
+
+        console.log('[Subscription] Refetching after payment...');
+        
         // Refetch data after payment
         await refetchAll();
 
@@ -213,8 +225,13 @@ console.log(packages)
                 // packagesResponse.data is AxiosResponse, packagesResponse.data.data is backend response body
                 const updatedPackages = packagesResponse?.data?.data?.data || [];
 
+                console.log('[Subscription] Updated packages:', updatedPackages.length);
+
                 // Filter packages that have been purchased (!canBuy means already purchased)
                 const purchasedPackages = updatedPackages.filter((pkg: ISubscriptionMarketplaceEntity) => !pkg.canBuy);
+
+                console.log('[Subscription] Purchased packages:', purchasedPackages.length);
+                console.log('[Subscription] Calling Gemini with purchased packages...');
 
                 // Check and call Gemini API if Ultra package is purchased
                 checkAndCallGemini(purchasedPackages);
@@ -224,6 +241,8 @@ console.log(packages)
             } finally {
                 // Reset payment flag
                 isPaymentInProgressRef.current = false;
+                hasRefetchedRef.current = false;
+                console.log('[Subscription] Payment refetch completed, flags reset');
             }
         }, 1000); // Wait 1 second for refetch to complete
     }, [refetchAll, refetchPackages, checkAndCallGemini]);
@@ -241,6 +260,7 @@ console.log(packages)
             // Only refetch if payment was in progress (Android case)
             // This handles the case where webview closes but onClose is not called
             if (Platform.OS === 'android' && isPaymentInProgressRef.current) {
+                console.log('[Subscription] Screen focused, payment in progress, will refetch...');
                 // Small delay to ensure webview is fully closed
                 const timeoutId = setTimeout(() => {
                     handleRefetchAfterPayment();
@@ -249,6 +269,27 @@ console.log(packages)
             }
         }, [handleRefetchAfterPayment])
     );
+
+    // Also listen to AppState changes for Android (when app comes back from background)
+    useEffect(() => {
+        if (Platform.OS !== 'android') {
+            return;
+        }
+
+        const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+            if (nextAppState === 'active' && isPaymentInProgressRef.current) {
+                console.log('[Subscription] AppState changed to active, payment in progress, will refetch...');
+                // Small delay to ensure app is fully active
+                setTimeout(() => {
+                    handleRefetchAfterPayment();
+                }, 500);
+            }
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, [handleRefetchAfterPayment]);
 
     const handleBrowserError = useCallback((error: Error) => {
         showAlert(error.message || t('subscription.purchase_failed'), 'error');
@@ -299,6 +340,8 @@ console.log(packages)
             if (checkoutUrl) {
                 // Set flag to track payment in progress (for Android refetch)
                 isPaymentInProgressRef.current = true;
+                hasRefetchedRef.current = false; // Reset refetch flag
+                console.log('[Subscription] Payment started - flag set to true (handleContinuePayment)');
                 openInAppBrowser(checkoutUrl, {
                     onClose: handleBrowserClose,
                     onError: handleBrowserError,
@@ -351,6 +394,8 @@ console.log(packages)
                     if (checkoutUrl) {
                         // Set flag to track payment in progress (for Android refetch)
                         isPaymentInProgressRef.current = true;
+                        hasRefetchedRef.current = false; // Reset refetch flag
+                        console.log('[Subscription] Payment started - flag set to true (handlePurchase onSuccess)');
                         openInAppBrowser(checkoutUrl, {
                             onClose: handleBrowserClose,
                             onError: handleBrowserError,
@@ -375,6 +420,8 @@ console.log(packages)
                                 if (checkoutUrl) {
                                     // Set flag to track payment in progress (for Android refetch)
                                     isPaymentInProgressRef.current = true;
+                                    hasRefetchedRef.current = false; // Reset refetch flag
+                                    console.log('[Subscription] Payment started - flag set to true (handlePurchase onError recall)');
                                     openInAppBrowser(checkoutUrl, {
                                         onClose: handleBrowserClose,
                                         onError: handleBrowserError,
