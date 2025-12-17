@@ -1,4 +1,5 @@
 import { TWLinearGradient } from "@components/atoms/TWLinearGradient";
+import ModalRankChange from "@components/battle/modal-rank-change";
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { RANK_CHANGE_STATUS } from "@constants/battle.enum";
@@ -189,6 +190,15 @@ export default function BattleResultScreen() {
         return result;
     }, [lastResult, currentUserId, matchIdParam, t]);
 
+    useEffect(() => {
+        if (rankChangeStatus && rankChangeStatus !== RANK_CHANGE_STATUS.RANK_MAINTAIN) {
+            const timer = setTimeout(() => {
+                setShowRankModal(true);
+            }, 800); // Slight delay for effect
+            return () => clearTimeout(timer);
+        }
+    }, [rankChangeStatus]);
+
     const handleBack = async () => {
         try { clearLast(); } catch { /* noop */ }
 
@@ -241,6 +251,13 @@ export default function BattleResultScreen() {
                 style={styles.bg}
                 imageStyle={styles.bgImage}
             >
+                <ModalRankChange
+                    visible={showRankModal}
+                    onRequestClose={() => setShowRankModal(false)}
+                    status={rankChangeStatus}
+                    rankChangeInfo={rankChangeInfo}
+                />
+
                 <TWLinearGradient
                     colors={["rgba(17,24,39,0.85)", "rgba(17,24,39,0.6)", "rgba(17,24,39,0.85)"]}
                     start={{ x: 0, y: 0 }}

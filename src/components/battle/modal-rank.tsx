@@ -84,4 +84,3 @@ export default function ModalRank({ visible, onClose, rankRules, rankName, eloSc
         </Modal>
     );
 }
-
