@@ -53,7 +53,7 @@ const getNotificationBody = (item: NotificationItem) => {
         }
     }
 
-    if (item.type === 'REWARD' && data) {
+    if ((item.type === 'REWARD' || item.type === 'EXERCISE' || item.type === 'LESSON') && data) {
         const parts = [];
         if (data.sparkles?.amount) {
             parts.push(`+${data.sparkles.amount} Sparkles ✨`);
@@ -107,6 +107,7 @@ export default function NotificationsScreen() {
         hasNextPage,
         refetch,
     } = useNotification();
+    console.log("notifications", notifications);
     const { mutate: markAsRead } = useReadNotification();
     const { mutate: readAll } = useReadAllNotifications();
     const router = useRouter();
