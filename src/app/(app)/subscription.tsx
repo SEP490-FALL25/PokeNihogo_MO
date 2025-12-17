@@ -13,11 +13,11 @@ import { useWalletUser } from "@hooks/useWallet";
 import { ISubscriptionMarketplaceEntity } from "@models/subscription/subscription.entity";
 import { SubscriptionPackageType } from "@models/subscription/subscription.request";
 import payosService from "@services/payos";
-import { useLocalSearchParams } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { BookOpen, Check, Coins, Crown, Headphones, History, RefreshCw } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Animated, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Animated, Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const MIN_POKECOIN_DEDUCTION = 10000;
@@ -40,10 +40,11 @@ export default function SubscriptionScreen() {
     const [selectedDiscounts, setSelectedDiscounts] = useState<Record<number, number>>({});
     const [isResolvingInvoice, setIsResolvingInvoice] = useState<boolean>(false);
     const [isHistoryModalVisible, setIsHistoryModalVisible] = useState<boolean>(false);
+    const isPaymentInProgressRef = useRef<boolean>(false);
 
     const packages = packagesData?.data?.data || [];
     const userBalance = walletUser?.find((w: any) => w.type === WALLET.WALLET_TYPES.PAID_COINS)?.balance ?? 0;
-
+console.log(packages)
     // Helper function to map marketplace entity to packageType
     const getPackageType = useCallback((packageItem: ISubscriptionMarketplaceEntity): SubscriptionPackageType => {
         if (packageItem.tagName === 'ULTRA') {
@@ -200,8 +201,8 @@ export default function SubscriptionScreen() {
         });
     }, []);
 
-    const handleBrowserClose = useCallback(async () => {
-        // Refetch data after payment (when browser closes)
+    const handleRefetchAfterPayment = useCallback(async () => {
+        // Refetch data after payment
         await refetchAll();
 
         // Wait a bit for packages to be refetched, then check if Ultra package was purchased
@@ -212,14 +213,42 @@ export default function SubscriptionScreen() {
                 // packagesResponse.data is AxiosResponse, packagesResponse.data.data is backend response body
                 const updatedPackages = packagesResponse?.data?.data?.data || [];
 
+                // Filter packages that have been purchased (!canBuy means already purchased)
+                const purchasedPackages = updatedPackages.filter((pkg: ISubscriptionMarketplaceEntity) => !pkg.canBuy);
+
                 // Check and call Gemini API if Ultra package is purchased
-                checkAndCallGemini(updatedPackages);
+                checkAndCallGemini(purchasedPackages);
             } catch (error) {
                 console.error('Error checking Ultra package status:', error);
                 // Don't show error to user as this is a background operation
+            } finally {
+                // Reset payment flag
+                isPaymentInProgressRef.current = false;
             }
         }, 1000); // Wait 1 second for refetch to complete
     }, [refetchAll, refetchPackages, checkAndCallGemini]);
+
+    const handleBrowserClose = useCallback(async () => {
+        // Refetch data after payment (when browser closes)
+        // Note: On iOS, this is called reliably. On Android, useFocusEffect will handle it
+        await handleRefetchAfterPayment();
+    }, [handleRefetchAfterPayment]);
+
+    // Refetch when screen is focused (especially for Android when webview closes)
+    // On Android, onClose callback may not be called reliably, so we use useFocusEffect
+    useFocusEffect(
+        useCallback(() => {
+            // Only refetch if payment was in progress (Android case)
+            // This handles the case where webview closes but onClose is not called
+            if (Platform.OS === 'android' && isPaymentInProgressRef.current) {
+                // Small delay to ensure webview is fully closed
+                const timeoutId = setTimeout(() => {
+                    handleRefetchAfterPayment();
+                }, 500);
+                return () => clearTimeout(timeoutId);
+            }
+        }, [handleRefetchAfterPayment])
+    );
 
     const handleBrowserError = useCallback((error: Error) => {
         showAlert(error.message || t('subscription.purchase_failed'), 'error');
@@ -268,6 +297,8 @@ export default function SubscriptionScreen() {
             const checkoutUrl = responseData?.payosData?.checkoutUrl;
 
             if (checkoutUrl) {
+                // Set flag to track payment in progress (for Android refetch)
+                isPaymentInProgressRef.current = true;
                 openInAppBrowser(checkoutUrl, {
                     onClose: handleBrowserClose,
                     onError: handleBrowserError,
@@ -318,6 +349,8 @@ export default function SubscriptionScreen() {
                     const checkoutUrl = responseData?.payment?.payosData?.checkoutUrl;
 
                     if (checkoutUrl) {
+                        // Set flag to track payment in progress (for Android refetch)
+                        isPaymentInProgressRef.current = true;
                         openInAppBrowser(checkoutUrl, {
                             onClose: handleBrowserClose,
                             onError: handleBrowserError,
@@ -340,6 +373,8 @@ export default function SubscriptionScreen() {
                                 const checkoutUrl = responseData?.payosData?.checkoutUrl;
 
                                 if (checkoutUrl) {
+                                    // Set flag to track payment in progress (for Android refetch)
+                                    isPaymentInProgressRef.current = true;
                                     openInAppBrowser(checkoutUrl, {
                                         onClose: handleBrowserClose,
                                         onError: handleBrowserError,
