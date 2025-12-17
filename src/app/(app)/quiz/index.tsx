@@ -385,6 +385,8 @@ export default function QuizScreen() {
       },
       {
         onSuccess: (response) => {
+          // Allow navigation when submitting successfully (normal flow)
+          setAllowNavigate(true);
           // Navigate to result screen with response data
           queryClient.invalidateQueries({ queryKey: ["wallet-user"] });
           if (response.data) {
@@ -404,6 +406,7 @@ export default function QuizScreen() {
               "quiz_screen.alerts.submit_missing_result",
               "Không nhận được dữ liệu kết quả."
             );
+            setAllowNavigate(false);
           }
         },
         onError: (error) => {
@@ -412,6 +415,7 @@ export default function QuizScreen() {
             "quiz_screen.alerts.submit_failed",
             "Không thể nộp bài."
           );
+          setAllowNavigate(false);
         },
       }
     );

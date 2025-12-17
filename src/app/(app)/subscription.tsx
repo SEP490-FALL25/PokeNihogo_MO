@@ -5,6 +5,7 @@ import SubscriptionHistoryModal from "@components/subscription/SubscriptionHisto
 import { ThemedText } from "@components/ThemedText";
 import { ThemedView } from "@components/ThemedView";
 import { WALLET } from "@constants/wallet.enum";
+import { useGeminiSRSRecommendations } from "@hooks/useGeminiSRSRecommendations";
 import { useCreateInvoice, useRefetchUserData } from "@hooks/useInvoice";
 import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { useSubscriptionMarketplacePackages } from "@hooks/useSubscription";
@@ -25,11 +26,12 @@ const POKECOIN_DEDUCTION_STEP = 10000;
 export default function SubscriptionScreen() {
     const { t } = useTranslation();
     const params = useLocalSearchParams<{ testType?: string; packageId?: string }>();
-    const { data: packagesData, isLoading: isLoadingPackages } = useSubscriptionMarketplacePackages();
+    const { data: packagesData, isLoading: isLoadingPackages, refetch: refetchPackages } = useSubscriptionMarketplacePackages();
     const { walletUser, isLoading: isLoadingWallet } = useWalletUser();
     const { mutate: createInvoice, isPending: isPurchasing } = useCreateInvoice();
     const { refetchAll } = useRefetchUserData();
     const { showAlert } = useMinimalAlert();
+    const { checkAndCall: checkAndCallGemini } = useGeminiSRSRecommendations({ limit: 10, useServiceAccount: false });
     const scrollViewRef = useRef<ScrollView>(null);
     const packageRefs = useRef<Record<number, View | null>>({});
     const [highlightedPackageId, setHighlightedPackageId] = useState<number | null>(null);
@@ -201,7 +203,23 @@ export default function SubscriptionScreen() {
     const handleBrowserClose = useCallback(async () => {
         // Refetch data after payment (when browser closes)
         await refetchAll();
-    }, [refetchAll]);
+
+        // Wait a bit for packages to be refetched, then check if Ultra package was purchased
+        setTimeout(async () => {
+            try {
+                // Refetch packages to get latest data
+                const packagesResponse = await refetchPackages();
+                // packagesResponse.data is AxiosResponse, packagesResponse.data.data is backend response body
+                const updatedPackages = packagesResponse?.data?.data?.data || [];
+
+                // Check and call Gemini API if Ultra package is purchased
+                checkAndCallGemini(updatedPackages);
+            } catch (error) {
+                console.error('Error checking Ultra package status:', error);
+                // Don't show error to user as this is a background operation
+            }
+        }, 1000); // Wait 1 second for refetch to complete
+    }, [refetchAll, refetchPackages, checkAndCallGemini]);
 
     const handleBrowserError = useCallback((error: Error) => {
         showAlert(error.message || t('subscription.purchase_failed'), 'error');
