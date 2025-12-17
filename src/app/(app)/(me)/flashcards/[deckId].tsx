@@ -582,7 +582,7 @@ const FlashcardDeckDetailScreen = () => {
           onSwipeableWillOpen={() => handleSwipeableWillOpen(card.id)}
         >
           <View
-            className="rounded-2xl bg-white shadow-sm border border-slate-100"
+            className="rounded-2xl bg-white border border-slate-100"
             style={{
               padding: 16,
             }}
