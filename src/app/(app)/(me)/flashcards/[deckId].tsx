@@ -1,21 +1,22 @@
+import type { AlertType } from "@components/atoms/MinimalAlert";
 import EmptyState from "@components/ui/EmptyState";
 import ImageUploader from "@components/ui/ImageUploader";
 import { EnhancedPagination } from "@components/ui/Pagination";
 import { Select } from "@components/ui/Select";
-import type { AlertType } from "@components/atoms/MinimalAlert";
 import { FlashcardContentType } from "@constants/flashcard.enum";
 import { useDebounce } from "@hooks/useDebounce";
-import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import {
   useCreateFlashcardDeckCard,
   useDeleteFlashcardDeckCards,
   useFlashcardDeckCards,
   useUpdateFlashcardDeckCardWithMetadata,
 } from "@hooks/useFlashcard";
+import { useMinimalAlert } from "@hooks/useMinimalAlert";
 import { IFlashcardDeckCard } from "@models/flashcard/flashcard.common";
+import { useQueryClient } from "@tanstack/react-query";
 import { Audio } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   Check,
   ChevronLeft,
@@ -167,6 +168,7 @@ const FlashcardDeckDetailScreen = () => {
   const insetBottom = Math.max(insets.bottom, 10);
   const { t } = useTranslation();
   const { showAlert } = useMinimalAlert();
+  const queryClient = useQueryClient();
   const showFlashcardAlert = useCallback(
     (title: string, description?: string, type: AlertType = "info") => {
       const message = [title, description].filter(Boolean).join(" - ");
@@ -231,6 +233,20 @@ const FlashcardDeckDetailScreen = () => {
   const selectedCard = useMemo(
     () => cards.find((card) => card.id === selectedCardId),
     [cards, selectedCardId]
+  );
+
+  // Refetch data when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (numericDeckId) {
+        // Invalidate all flashcard-deck-cards queries for this deck to trigger refetch
+        queryClient.invalidateQueries({ 
+          queryKey: ["flashcard-deck-cards", numericDeckId] 
+        });
+        // Also manually refetch to ensure fresh data
+        refetch();
+      }
+    }, [queryClient, numericDeckId, refetch])
   );
 
   const handleRefresh = useCallback(async () => {
