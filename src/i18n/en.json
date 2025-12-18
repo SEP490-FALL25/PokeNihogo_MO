@@ -378,6 +378,8 @@
     },
     "first_time": {
       "title": "Welcome!",
+      "welcome_header": "Battle Arena",
+      "welcome_subheader": "Join to compete with everyone",
       "message": "Welcome to the battle system! Join your first season now.",
       "joining": "Joining...",
       "join": "Join Now"

@@ -728,6 +728,8 @@
         },
         "first_time": {
             "title": "ようこそ！",
+            "welcome_header": "バトルアリーナ",
+            "welcome_subheader": "参加して皆と競い合いましょう",
             "message": "バトルシステムへようこそ！最初のシーズンに参加しましょう。",
             "joining": "参加中...",
             "join": "今すぐ参加"
