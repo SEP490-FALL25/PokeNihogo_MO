@@ -70,12 +70,6 @@ const ReadingCard: React.FC<{
               </ThemedText>
             </View>
           </View>
-          <ThemedText style={[
-            styles.materialDescription,
-            isLocked && styles.lockedText
-          ]}>
-            {item.test?.description}
-          </ThemedText>
         </View>
       </View>
 
@@ -288,6 +282,8 @@ const styles = StyleSheet.create({
   materialDescription: {
     fontSize: 14,
     color: "#6b7280",
+    marginTop: 4,
+    lineHeight: 20,
   },
   cardFooter: {
     gap: 8,
