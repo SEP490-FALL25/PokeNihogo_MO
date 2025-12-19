@@ -1001,7 +1001,8 @@
       "mark_as_read": "Mark as read",
       "marking": "Processing...",
       "marked_as_read": "Marked as read",
-      "mark_read_error": "Failed to mark as read"
+      "mark_read_error": "Failed to mark as read",
+      "flip_back": "Flip back"
     }
   },
   "quiz": {
@@ -1535,6 +1536,10 @@
     "note_update_success_desc": "Your note has been updated.",
     "note_update_error_title": "Something went wrong",
     "note_update_error_desc": "Unable to update note. Please try again.",
+    "learned": "Learned",
+    "not_learned": "Not learned",
+    "read_toggle_error_title": "Error",
+    "read_toggle_error_desc": "Unable to update status. Please try again.",
     "unknown_word": "Unknown"
   },
   "flashcard_list": {
@@ -1598,6 +1603,16 @@
     "pending_invoice_title": "You have a pending invoice",
     "pending_invoice_desc": "Complete the payment to activate your benefits.",
     "pending_invoice_amount": "Amount due: {{amount}}₫",
-    "pending_invoice_discount": "PokeCoin applied: -{{amount}}₫"
+    "pending_invoice_discount": "PokeCoin applied: -{{amount}}₫",
+    "history_title": "Subscription History",
+    "start_date": "Start Date",
+    "expires_at": "Expires At",
+    "lifetime_package": "Lifetime Package",
+    "status_active": "Active",
+    "status_expired": "Expired",
+    "status_cancelled": "Cancelled",
+    "end_of_list": "All displayed",
+    "error_loading_history": "Error loading subscription history",
+    "no_history": "No subscription history yet"
   }
 }

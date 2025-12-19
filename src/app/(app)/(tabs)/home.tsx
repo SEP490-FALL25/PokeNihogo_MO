@@ -31,9 +31,15 @@ import {
   Languages,
   Lock,
   Sparkles,
-  X
+  X,
 } from "lucide-react-native";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
@@ -52,8 +58,12 @@ import {
   ViewStyle,
 } from "react-native";
 import { CopilotStep, useCopilot, walkthroughable } from "react-native-copilot";
-import { NativeViewGestureHandler, TapGestureHandler } from "react-native-gesture-handler";
-import Reanimated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { NativeViewGestureHandler } from "react-native-gesture-handler";
+import Reanimated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import starters from "../../../../mock-data/starters.json";
 import { Starter } from "../../../types/starter.types";
 
@@ -61,7 +71,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // Enable LayoutAnimation on Android
 if (
-  Platform.OS === 'android' &&
+  Platform.OS === "android" &&
   UIManager.setLayoutAnimationEnabledExperimental
 ) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -123,34 +133,37 @@ const ExerciseCard: React.FC<{
 }> = ({ exercise, onPress, isLoading = false }) => {
   const { t } = useTranslation();
 
-  const getExerciseTypeInfo = useCallback((exerciseName: string) => {
-    const name = exerciseName.toLowerCase();
-    if (name.includes("vocabulary") || name.includes("vocab")) {
-      return {
-        icon: BookOpen,
-        color: "#3b82f6", // Blue
-        type: t("home.exercise_types.vocabulary", "Từ vựng"),
-      };
-    } else if (name.includes("kanji")) {
-      return {
-        icon: Languages,
-        color: "#ef4444", // Red
-        type: t("home.exercise_types.kanji", "Kanji"),
-      };
-    } else if (name.includes("grammar") || name.includes("gramma")) {
-      return {
-        icon: BookText,
-        color: "#f59e0b", // Amber
-        type: t("home.exercise_types.grammar", "Ngữ pháp"),
-      };
-    } else {
-      return {
-        icon: BookOpen,
-        color: "#8b5cf6", // Purple
-        type: t("home.exercise_types.exercise", "Bài tập"),
-      };
-    }
-  }, [t]);
+  const getExerciseTypeInfo = useCallback(
+    (exerciseName: string) => {
+      const name = exerciseName.toLowerCase();
+      if (name.includes("vocabulary") || name.includes("vocab")) {
+        return {
+          icon: BookOpen,
+          color: "#3b82f6", // Blue
+          type: t("home.exercise_types.vocabulary", "Từ vựng"),
+        };
+      } else if (name.includes("kanji")) {
+        return {
+          icon: Languages,
+          color: "#ef4444", // Red
+          type: t("home.exercise_types.kanji", "Kanji"),
+        };
+      } else if (name.includes("grammar") || name.includes("gramma")) {
+        return {
+          icon: BookText,
+          color: "#f59e0b", // Amber
+          type: t("home.exercise_types.grammar", "Ngữ pháp"),
+        };
+      } else {
+        return {
+          icon: BookOpen,
+          color: "#8b5cf6", // Purple
+          type: t("home.exercise_types.exercise", "Bài tập"),
+        };
+      }
+    },
+    [t]
+  );
 
   const getStatusColor = useCallback((status: string) => {
     switch (status) {
@@ -167,24 +180,33 @@ const ExerciseCard: React.FC<{
     }
   }, []);
 
-  const getStatusText = useCallback((status: string) => {
-    switch (status) {
-      case "COMPLETED":
-        return t("home.exercise_status.completed", "Hoàn thành");
-      case "FAILED":
-        return t("home.exercise_status.failed", "Chưa đạt");
-      case "IN_PROGRESS":
-        return t("home.exercise_status.in_progress", "Đang làm");
-      case "SKIPPED":
-        return t("home.exercise_status.skipped", "Đã bỏ qua");
-      default:
-        return status;
-    }
-  }, [t]);
+  const getStatusText = useCallback(
+    (status: string) => {
+      switch (status) {
+        case "COMPLETED":
+          return t("home.exercise_status.completed", "Hoàn thành");
+        case "FAILED":
+          return t("home.exercise_status.failed", "Chưa đạt");
+        case "IN_PROGRESS":
+          return t("home.exercise_status.in_progress", "Đang làm");
+        case "SKIPPED":
+          return t("home.exercise_status.skipped", "Đã bỏ qua");
+        default:
+          return status;
+      }
+    },
+    [t]
+  );
 
-  const typeInfo = useMemo(() => getExerciseTypeInfo(exercise.exerciseName), [exercise.exerciseName, getExerciseTypeInfo]);
+  const typeInfo = useMemo(
+    () => getExerciseTypeInfo(exercise.exerciseName),
+    [exercise.exerciseName, getExerciseTypeInfo]
+  );
   const Icon = typeInfo.icon;
-  const statusColor = useMemo(() => getStatusColor(exercise.status), [exercise.status, getStatusColor]);
+  const statusColor = useMemo(
+    () => getStatusColor(exercise.status),
+    [exercise.status, getStatusColor]
+  );
 
   return (
     <TouchableOpacity
@@ -279,49 +301,60 @@ const useSrsTypeConfig = () => {
 
 const useInsightContentCopy = () => {
   const { t } = useTranslation();
-  
-  return useCallback((insight: ISrsReviewItem) => {
-    const content = insight.content as any;
 
-    if (!content) {
-      return {
-        primary: t("home.srs_insights.review_now", "Ôn tập ngay"),
-        secondary: "",
-      };
-    }
+  return useCallback(
+    (insight: ISrsReviewItem) => {
+      const content = insight.content as any;
 
-    switch (content.type) {
-      case "vocabulary":
-        return {
-          primary: content.wordJp ?? t("home.srs_insights.vocabulary_title", "Từ mới"),
-          secondary: [content.reading, content.meaning]
-            .filter(Boolean)
-            .join(" · "),
-        };
-      case "kanji":
-        return {
-          primary: content.character ?? t("home.srs_insights.kanji_title", "Kanji"),
-          secondary: [content.meaning, content.jlptLevel && `JLPT N${content.jlptLevel}`]
-            .filter(Boolean)
-            .join(" · "),
-        };
-      case "grammar":
-        return {
-          primary: content.structure ?? t("home.srs_insights.grammar_title", "Ngữ pháp"),
-          secondary: content.level
-            ? t("home.srs_insights.grammar_level", {
-                level: content.level,
-                defaultValue: `Trình độ ${content.level}`,
-              })
-            : "",
-        };
-      default:
+      if (!content) {
         return {
           primary: t("home.srs_insights.review_now", "Ôn tập ngay"),
           secondary: "",
         };
-    }
-  }, [t]);
+      }
+
+      switch (content.type) {
+        case "vocabulary":
+          return {
+            primary:
+              content.wordJp ??
+              t("home.srs_insights.vocabulary_title", "Từ mới"),
+            secondary: [content.reading, content.meaning]
+              .filter(Boolean)
+              .join(" · "),
+          };
+        case "kanji":
+          return {
+            primary:
+              content.character ?? t("home.srs_insights.kanji_title", "Kanji"),
+            secondary: [
+              content.meaning,
+              content.jlptLevel && `JLPT N${content.jlptLevel}`,
+            ]
+              .filter(Boolean)
+              .join(" · "),
+          };
+        case "grammar":
+          return {
+            primary:
+              content.structure ??
+              t("home.srs_insights.grammar_title", "Ngữ pháp"),
+            secondary: content.level
+              ? t("home.srs_insights.grammar_level", {
+                  level: content.level,
+                  defaultValue: `Trình độ ${content.level}`,
+                })
+              : "",
+          };
+        default:
+          return {
+            primary: t("home.srs_insights.review_now", "Ôn tập ngay"),
+            secondary: "",
+          };
+      }
+    },
+    [t]
+  );
 };
 
 const InsightCard: React.FC<{
@@ -333,7 +366,10 @@ const InsightCard: React.FC<{
   const { t } = useTranslation();
   const getInsightContentCopy = useInsightContentCopy();
   const meta = metaConfig[insight.contentType] || metaConfig.VOCABULARY;
-  const { primary, secondary } = useMemo(() => getInsightContentCopy(insight), [insight, getInsightContentCopy]);
+  const { primary, secondary } = useMemo(
+    () => getInsightContentCopy(insight),
+    [insight, getInsightContentCopy]
+  );
   const Icon = meta.icon;
 
   return (
@@ -343,15 +379,15 @@ const InsightCard: React.FC<{
       onPress={() => onPress(insight)}
     >
       <View style={styles.insightBadgeRow}>
-        <View style={[styles.insightBadge, { backgroundColor: `${meta.color}15` }]}>
+        <View
+          style={[styles.insightBadge, { backgroundColor: `${meta.color}15` }]}
+        >
           <Icon size={16} color={meta.color} />
           <ThemedText style={[styles.insightBadgeText, { color: meta.color }]}>
             {meta.label}
           </ThemedText>
         </View>
-        {!insight.isRead && (
-          <View style={styles.insightNewDot} />
-        )}
+        {!insight.isRead && <View style={styles.insightNewDot} />}
       </View>
 
       <ThemedText style={styles.insightMessage} numberOfLines={2}>
@@ -394,14 +430,18 @@ export default function HomeScreen() {
   const [hasAutoOpenedAttendance, setHasAutoOpenedAttendance] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showFlashcardModal, setShowFlashcardModal] = useState(false);
-  const [selectedInsight, setSelectedInsight] = useState<ISrsReviewItem | null>(null);
+  const [selectedInsight, setSelectedInsight] = useState<ISrsReviewItem | null>(
+    null
+  );
   const [isFrontSide, setIsFrontSide] = useState(true);
-  const [creatingExerciseId, setCreatingExerciseId] = useState<number | null>(null);
-  
+  const [creatingExerciseId, setCreatingExerciseId] = useState<number | null>(
+    null
+  );
+
   // State for stacked vs expanded mode
   const [isInsightsExpanded, setIsInsightsExpanded] = useState(false);
   const expandIconRotation = useSharedValue(0);
-  
+
   // Ref to track processed mutation to prevent infinite loops
   const processedMutationRef = useRef<number | null>(null);
 
@@ -412,10 +452,8 @@ export default function HomeScreen() {
 
   const { isFirstTimeLogin, starterId, email } = useUserStore();
 
-  const {
-    data: attendanceSummary,
-    isLoading: isAttendanceLoading,
-  } = useAttendanceSummary();
+  const { data: attendanceSummary, isLoading: isAttendanceLoading } =
+    useAttendanceSummary();
 
   const username = useMemo(() => {
     const trimmedName = user?.data?.name?.trim();
@@ -431,10 +469,11 @@ export default function HomeScreen() {
     return "Trainer";
   }, [user?.data?.name, email]);
 
-  const { data: recentExercisesData, refetch: refetchRecentExercises } = useRecentExercises({
-    currentPage: 1,
-    pageSize: 10,
-  });
+  const { data: recentExercisesData, refetch: refetchRecentExercises } =
+    useRecentExercises({
+      currentPage: 1,
+      pageSize: 10,
+    });
 
   const todayKey = useMemo(() => new Date().toISOString().split("T")[0], []);
   const normalizeDateKey = useNormalizeDateKey();
@@ -458,10 +497,8 @@ export default function HomeScreen() {
     SubscriptionFeatureKey.PERSONALIZED_RECOMMENDATIONS
   );
 
-  const {
-    data: marketplaceResponse,
-    isLoading: isMarketplaceLoading,
-  } = useSubscriptionMarketplacePackages();
+  const { data: marketplaceResponse, isLoading: isMarketplaceLoading } =
+    useSubscriptionMarketplacePackages();
 
   const {
     data: srsReviewData,
@@ -488,17 +525,18 @@ export default function HomeScreen() {
         pkg.nameTranslation?.toLowerCase().includes("coach") ||
         pkg.nameTranslation?.toLowerCase().includes("ai coach")
     );
-    
+
     // If not found by name, try to find by feature
     if (!package_) {
       package_ = marketplacePackages.find((pkg) =>
         pkg.features?.some(
           (feature) =>
-            feature.feature?.featureKey === SubscriptionFeatureKey.PERSONALIZED_RECOMMENDATIONS
+            feature.feature?.featureKey ===
+            SubscriptionFeatureKey.PERSONALIZED_RECOMMENDATIONS
         )
       );
     }
-    
+
     return package_;
   }, [marketplacePackages]);
 
@@ -512,7 +550,9 @@ export default function HomeScreen() {
   useEffect(() => {
     const checkWelcomeModalShown = async () => {
       try {
-        const hasBeenShown = await AsyncStorage.getItem(WELCOME_MODAL_SHOWN_KEY);
+        const hasBeenShown = await AsyncStorage.getItem(
+          WELCOME_MODAL_SHOWN_KEY
+        );
         if (hasBeenShown === "true") return;
         if (isFirstTimeLogin === true) {
           setShowWelcomeModal(true);
@@ -533,7 +573,12 @@ export default function HomeScreen() {
       setShowDailyLogin(true);
       setHasAutoOpenedAttendance(true);
     }
-  }, [attendanceSummary, hasCheckedInToday, hasAutoOpenedAttendance, isAttendanceLoading]);
+  }, [
+    attendanceSummary,
+    hasCheckedInToday,
+    hasAutoOpenedAttendance,
+    isAttendanceLoading,
+  ]);
 
   // Animation Style for Chevron
   const expandIconStyle = useAnimatedStyle(() => {
@@ -546,6 +591,8 @@ export default function HomeScreen() {
     useCallback(() => {
       refetchSrsReview();
       refetchRecentExercises();
+      // Reset creatingExerciseId when returning to home screen
+      setCreatingExerciseId(null);
     }, [refetchSrsReview, refetchRecentExercises])
   );
 
@@ -554,7 +601,7 @@ export default function HomeScreen() {
   }, []);
 
   const checkInMutation = useCheckIn();
-  
+
   // Handle check-in success/error with alerts
   useEffect(() => {
     if (checkInMutation.isSuccess && checkInMutation.data) {
@@ -578,22 +625,25 @@ export default function HomeScreen() {
   }, [checkInMutation.isError, showAlert, t]);
 
   const markAsReadMutation = useMarkAsRead();
-  
+
   // Handle mark as read success/error with alerts
   useEffect(() => {
     if (markAsReadMutation.isSuccess) {
       // Check if we've already processed this mutation
       const currentInsightId = selectedInsight?.id;
-      if (currentInsightId && processedMutationRef.current !== currentInsightId) {
+      if (
+        currentInsightId &&
+        processedMutationRef.current !== currentInsightId
+      ) {
         processedMutationRef.current = currentInsightId;
-        
+
         // Update local state immediately for better UX using functional update
-        setSelectedInsight((prev) => prev ? { ...prev, isRead: true } : null);
+        setSelectedInsight((prev) => (prev ? { ...prev, isRead: true } : null));
         showAlert(
           t("home.flashcard.marked_as_read", "Đã đánh dấu đã đọc"),
           "success"
         );
-        
+
         // Reset mutation state immediately to prevent re-running
         markAsReadMutation.reset();
       }
@@ -631,14 +681,18 @@ export default function HomeScreen() {
     return !hasPersonalizedRecommendations;
   }, [hasPersonalizedRecommendations]);
 
-  const shouldRenderPersonalization = isSrsLoading || !!srsReviewData || isPersonalizationLocked;
+  const shouldRenderPersonalization =
+    isSrsLoading || !!srsReviewData || isPersonalizationLocked;
 
   const dominantInsightType = useMemo(() => {
     if (!srsInsights.length) return null;
-    const counts = srsInsights.reduce<Record<string, number>>((acc, insight) => {
-      acc[insight.contentType] = (acc[insight.contentType] || 0) + 1;
-      return acc;
-    }, {});
+    const counts = srsInsights.reduce<Record<string, number>>(
+      (acc, insight) => {
+        acc[insight.contentType] = (acc[insight.contentType] || 0) + 1;
+        return acc;
+      },
+      {}
+    );
     const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
     if (!sorted.length) return null;
     const [type, count] = sorted[0];
@@ -648,43 +702,65 @@ export default function HomeScreen() {
     return { ...meta, count };
   }, [srsInsights, srsTypeConfig]);
 
-  const { mutateAsync: createNewExerciseAttemptAsync, isPending: isCreatingExercise } = useCreateNewExerciseAttempt();
+  const {
+    mutateAsync: createNewExerciseAttemptAsync,
+    isPending: isCreatingExercise,
+  } = useCreateNewExerciseAttempt();
 
-  const handleExercisePress = useCallback(async (exercise: IRecentExerciseItem) => {
-    if (isCreatingExercise || creatingExerciseId !== null) {
-      return; // Prevent multiple clicks
-    }
+  const handleExercisePress = useCallback(
+    async (exercise: IRecentExerciseItem) => {
+      if (isCreatingExercise || creatingExerciseId !== null) {
+        return; // Prevent multiple clicks
+      }
 
-    try {
-      setCreatingExerciseId(exercise.exerciseId);
-      // Create a new exercise attempt
-      const response = await createNewExerciseAttemptAsync(exercise.exerciseId.toString());
-      console.log(response);
-      if (response?.data?.id) {
-        // Navigate to quiz screen with the new exercise attempt ID
-        router.push({
-          pathname: ROUTES.QUIZ.QUIZ,
-          params: {
-            exerciseAttemptId: response.data.id.toString(),
-            lessonId: exercise.lessonId.toString(),
-          },
-        });
-      } else {
+      try {
+        setCreatingExerciseId(exercise.exerciseId);
+        // Create a new exercise attempt
+        const response = await createNewExerciseAttemptAsync(
+          exercise.exerciseId.toString()
+        );
+        console.log(response);
+        if (response?.data?.id) {
+          // Reset creatingExerciseId before navigation to allow re-clicking when returning
+          setCreatingExerciseId(null);
+          // Navigate to quiz screen with the new exercise attempt ID
+          router.push({
+            pathname: ROUTES.QUIZ.QUIZ,
+            params: {
+              exerciseAttemptId: response.data.id.toString(),
+              lessonId: exercise.lessonId.toString(),
+            },
+          });
+        } else {
+          setCreatingExerciseId(null);
+          showAlert(
+            t(
+              "home.exercise.error_creating",
+              "Không thể tạo bài tập. Vui lòng thử lại."
+            ),
+            "error"
+          );
+        }
+      } catch (error) {
+        console.error("Error creating exercise attempt:", error);
         setCreatingExerciseId(null);
         showAlert(
-          t("home.exercise.error_creating", "Không thể tạo bài tập. Vui lòng thử lại."),
+          t(
+            "home.exercise.error_creating",
+            "Không thể tạo bài tập. Vui lòng thử lại."
+          ),
           "error"
         );
       }
-    } catch (error) {
-      console.error("Error creating exercise attempt:", error);
-      setCreatingExerciseId(null);
-      showAlert(
-        t("home.exercise.error_creating", "Không thể tạo bài tập. Vui lòng thử lại."),
-        "error"
-      );
-    }
-  }, [isCreatingExercise, creatingExerciseId, createNewExerciseAttemptAsync, t, showAlert]);
+    },
+    [
+      isCreatingExercise,
+      creatingExerciseId,
+      createNewExerciseAttemptAsync,
+      t,
+      showAlert,
+    ]
+  );
 
   const handleSuggestionPress = useCallback((type: string) => {
     if (type === "learn") {
@@ -716,23 +792,26 @@ export default function HomeScreen() {
         property: LayoutAnimation.Properties.opacity,
       },
     });
-    
+
     const nextState = !isInsightsExpanded;
     setIsInsightsExpanded(nextState);
     expandIconRotation.value = withSpring(nextState ? 180 : 0);
   }, [isInsightsExpanded, expandIconRotation]);
 
-  const handleInsightCardPress = useCallback((insight: ISrsReviewItem) => {
-    if (!isInsightsExpanded) {
-      toggleInsightsExpansion();
-    } else {
-      // If expanded, tapping opens the flashcard modal
-      setSelectedInsight(insight);
-      setShowFlashcardModal(true);
-      setIsFrontSide(true);
-      flipAnim.setValue(0);
-    }
-  }, [isInsightsExpanded, toggleInsightsExpansion, flipAnim]);
+  const handleInsightCardPress = useCallback(
+    (insight: ISrsReviewItem) => {
+      if (!isInsightsExpanded) {
+        toggleInsightsExpansion();
+      } else {
+        // If expanded, tapping opens the flashcard modal
+        setSelectedInsight(insight);
+        setShowFlashcardModal(true);
+        setIsFrontSide(true);
+        flipAnim.setValue(0);
+      }
+    },
+    [isInsightsExpanded, toggleInsightsExpansion, flipAnim]
+  );
 
   const handleCloseFlashcardModal = useCallback(() => {
     setShowFlashcardModal(false);
@@ -811,7 +890,7 @@ export default function HomeScreen() {
     copilotEvents.on("stop", handleTourStop);
     return () => copilotEvents.off("stop", handleTourStop);
   }, [copilotEvents]);
-  
+
   const refreshControl = (
     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
   );
@@ -834,15 +913,35 @@ export default function HomeScreen() {
             <View style={styles.aiSectionContainer}>
               {/* First Card - AI Coach Intro */}
               <LinearGradient
-                colors={isPersonalizationLocked ? ["#fefcfb", "#fff7ed", "#fff4e6"] : ["#eef2ff", "#fdf2f8"]}
+                colors={
+                  isPersonalizationLocked
+                    ? ["#fefcfb", "#fff7ed", "#fff4e6"]
+                    : ["#eef2ff", "#fdf2f8"]
+                }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={[styles.aiHeroCard, isPersonalizationLocked && styles.aiHeroCardLocked]}
+                style={[
+                  styles.aiHeroCard,
+                  isPersonalizationLocked && styles.aiHeroCardLocked,
+                ]}
               >
                 <View style={styles.aiHeroHeader}>
-                  <View style={[styles.aiHeroBadge, isPersonalizationLocked && styles.aiHeroBadgeLocked]}>
-                    <Sparkles size={16} color={isPersonalizationLocked ? "#d97706" : "#7c3aed"} />
-                    <ThemedText style={[styles.aiHeroBadgeText, isPersonalizationLocked && styles.aiHeroBadgeTextLocked]}>
+                  <View
+                    style={[
+                      styles.aiHeroBadge,
+                      isPersonalizationLocked && styles.aiHeroBadgeLocked,
+                    ]}
+                  >
+                    <Sparkles
+                      size={16}
+                      color={isPersonalizationLocked ? "#d97706" : "#7c3aed"}
+                    />
+                    <ThemedText
+                      style={[
+                        styles.aiHeroBadgeText,
+                        isPersonalizationLocked && styles.aiHeroBadgeTextLocked,
+                      ]}
+                    >
                       {t("home.ai.assistant_badge", "Trợ lý AI")}
                     </ThemedText>
                   </View>
@@ -856,24 +955,44 @@ export default function HomeScreen() {
                   )}
                   {isPersonalizationLocked && (
                     <View style={styles.lockedPremiumBadge}>
-                      <ThemedText style={styles.lockedPremiumBadgeText}>Premium</ThemedText>
+                      <ThemedText style={styles.lockedPremiumBadgeText}>
+                        Premium
+                      </ThemedText>
                     </View>
                   )}
                 </View>
-                <ThemedText style={[styles.aiHeroTitle, isPersonalizationLocked && styles.aiHeroTitleLocked]} numberOfLines={2}>
+                <ThemedText
+                  style={[
+                    styles.aiHeroTitle,
+                    isPersonalizationLocked && styles.aiHeroTitleLocked,
+                  ]}
+                  numberOfLines={2}
+                >
                   {isPersonalizationLocked
                     ? t("home.ai.locked_title", "Nâng cấp để mở khóa")
                     : t("home.ai.unlocked_title", "Cá nhân hoá cho hôm nay")}
                 </ThemedText>
-                <ThemedText style={[styles.aiHeroSubtitle, isPersonalizationLocked && styles.aiHeroSubtitleLocked]} numberOfLines={3}>
+                <ThemedText
+                  style={[
+                    styles.aiHeroSubtitle,
+                    isPersonalizationLocked && styles.aiHeroSubtitleLocked,
+                  ]}
+                  numberOfLines={3}
+                >
                   {isPersonalizationLocked
-                    ? t("home.ai.locked_subtitle", "Mua gói AI Coach để nhận gợi ý học tập riêng cho bạn.")
+                    ? t(
+                        "home.ai.locked_subtitle",
+                        "Mua gói AI Coach để nhận gợi ý học tập riêng cho bạn."
+                      )
                     : dominantInsightType
-                    ? t("home.ai.focus_message", {
-                        topic: dominantInsightType.labelLower,
-                        defaultValue: `Bạn đang cần củng cố ${dominantInsightType.labelLower} nhiều nhất.`,
-                      })
-                    : t("home.ai.no_insight_message", "Hệ thống sẽ theo dõi tiến trình để gửi thêm gợi ý khi có.")}
+                      ? t("home.ai.focus_message", {
+                          topic: dominantInsightType.labelLower,
+                          defaultValue: `Bạn đang cần củng cố ${dominantInsightType.labelLower} nhiều nhất.`,
+                        })
+                      : t(
+                          "home.ai.no_insight_message",
+                          "Hệ thống sẽ theo dõi tiến trình để gửi thêm gợi ý khi có."
+                        )}
                 </ThemedText>
               </LinearGradient>
 
@@ -886,11 +1005,23 @@ export default function HomeScreen() {
                       {t("home.insight_locked.badge", "Tính năng cao cấp")}
                     </ThemedText>
                   </View>
-                  <ThemedText style={styles.insightLockedTitle} numberOfLines={2}>
-                    {t("home.insight_locked.title", "Mở khóa trợ lý cá nhân hóa")}
+                  <ThemedText
+                    style={styles.insightLockedTitle}
+                    numberOfLines={2}
+                  >
+                    {t(
+                      "home.insight_locked.title",
+                      "Mở khóa trợ lý cá nhân hóa"
+                    )}
                   </ThemedText>
-                  <ThemedText style={styles.insightLockedDescription} numberOfLines={3}>
-                    {t("home.insight_locked.description", "Tự động phân tích sai sót, đề xuất flashcard cần ôn và nhắc bạn luyện tập mỗi ngày.")}
+                  <ThemedText
+                    style={styles.insightLockedDescription}
+                    numberOfLines={3}
+                  >
+                    {t(
+                      "home.insight_locked.description",
+                      "Tự động phân tích sai sót, đề xuất flashcard cần ôn và nhắc bạn luyện tập mỗi ngày."
+                    )}
                   </ThemedText>
                 </View>
               )}
@@ -898,11 +1029,18 @@ export default function HomeScreen() {
               {/* Lock Overlay */}
               {isPersonalizationLocked && (
                 <CopilotStep
-                  text={t("tour.ai_unlock_description", "Upgrade to Premium to unlock personalized AI assistant with smart features")}
+                  text={t(
+                    "tour.ai_unlock_description",
+                    "Upgrade to Premium to unlock personalized AI assistant with smart features"
+                  )}
                   order={5}
                   name="ai_unlock"
                 >
-                  <WTTouchable style={styles.lockOverlay} onPress={handleUnlockPress} activeOpacity={0.9}>
+                  <WTTouchable
+                    style={styles.lockOverlay}
+                    onPress={handleUnlockPress}
+                    activeOpacity={0.9}
+                  >
                     <View style={styles.lockOverlayContent}>
                       <View style={styles.lockIconContainer}>
                         <Lock size={48} color="#d97706" />
@@ -917,11 +1055,14 @@ export default function HomeScreen() {
             </View>
 
             {/* SRS Insight Cards List with Stacked Animation */}
-            <View style={[
-              styles.insightList,
-              // Add top margin when stacked to push content down because cards are moved UP by negative margin
-              !isInsightsExpanded && srsInsights.length > 0 && { marginTop: 24 }
-            ]}>
+            <View
+              style={[
+                styles.insightList,
+                // Add top margin when stacked to push content down because cards are moved UP by negative margin
+                !isInsightsExpanded &&
+                  srsInsights.length > 0 && { marginTop: 24 },
+              ]}
+            >
               {!isPersonalizationLocked && isSrsLoading && (
                 <View style={styles.insightSkeletonWrapper}>
                   {[1, 2].map((item) => (
@@ -930,97 +1071,104 @@ export default function HomeScreen() {
                 </View>
               )}
 
-              {!isPersonalizationLocked && !isSrsLoading && srsInsights.length > 0 && (
-                <View style={styles.insightCardsWrapper}>
-                  {isInsightsExpanded ? (
-                    <ScrollView
-                      style={styles.insightScrollView}
-                      contentContainerStyle={styles.insightScrollContent}
-                      showsVerticalScrollIndicator={true}
-                      nestedScrollEnabled={true}
-                    >
-                      {srsInsights.map((insight, index) => {
-                        const cardStyle: ViewStyle = {
-                          marginTop: index === 0 ? 0 : 12,
-                          zIndex: 1,
-                        };
-
-                        return (
-                          <InsightCard
-                            key={insight.id}
-                            insight={insight}
-                            onPress={handleInsightCardPress}
-                            metaConfig={srsTypeConfig}
-                            style={cardStyle}
-                          />
-                        );
-                      })}
-                    </ScrollView>
-                  ) : (
-                    <>
-                      {srsInsights.map((insight, index) => {
-                        // If stacked, only render top 3 cards to save rendering
-                        if (index > 2) return null;
-                        
-                        let cardStyle: ViewStyle = {};
-                        
-                        if (index === 0) {
-                          // First card relative
-                          cardStyle = { 
-                            zIndex: 10,
+              {!isPersonalizationLocked &&
+                !isSrsLoading &&
+                srsInsights.length > 0 && (
+                  <View style={styles.insightCardsWrapper}>
+                    {isInsightsExpanded ? (
+                      <ScrollView
+                        style={styles.insightScrollView}
+                        contentContainerStyle={styles.insightScrollContent}
+                        showsVerticalScrollIndicator={true}
+                        nestedScrollEnabled={true}
+                      >
+                        {srsInsights.map((insight, index) => {
+                          const cardStyle: ViewStyle = {
+                            marginTop: index === 0 ? 0 : 12,
+                            zIndex: 1,
                           };
-                        } else {
-                          // Stacked cards
-                          cardStyle = {
-                            position: 'absolute',
-                            top: -7 * index, // Stack upwards
-                            left: 0,
-                            right: 0,
-                            height: '100%', // FORCE HEIGHT to match first card, hiding bottom
-                            zIndex: 10 - index,
-                            transform: [{ scaleX: 1 - (index * 0.04) }], // Slight width reduction
-                            backgroundColor: '#fff', // Ensure opacity doesn't show through
-                          };
-                        }
 
-                        return (
-                          <InsightCard
-                            key={insight.id}
-                            insight={insight}
-                            onPress={handleInsightCardPress}
-                            metaConfig={srsTypeConfig}
-                            style={cardStyle}
-                          />
-                        );
-                      })}
-                    </>
-                  )}
-                  
-                  {/* Small collapse button ONLY when expanded, to allow user to re-stack */}
-                  {isInsightsExpanded && srsInsights.length > 1 && (
-                    <TouchableOpacity 
-                      onPress={toggleInsightsExpansion} 
-                      style={styles.expandButton}
-                      activeOpacity={0.7}
-                    >
-                      <Reanimated.View style={expandIconStyle}>
-                        <ChevronUp size={20} color="#9ca3af" />
-                      </Reanimated.View>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
+                          return (
+                            <InsightCard
+                              key={insight.id}
+                              insight={insight}
+                              onPress={handleInsightCardPress}
+                              metaConfig={srsTypeConfig}
+                              style={cardStyle}
+                            />
+                          );
+                        })}
+                      </ScrollView>
+                    ) : (
+                      <>
+                        {srsInsights.map((insight, index) => {
+                          // If stacked, only render top 3 cards to save rendering
+                          if (index > 2) return null;
 
-              {!isPersonalizationLocked && !isSrsLoading && srsInsights.length === 0 && (
-                <View style={styles.insightEmptyState}>
-                  <ThemedText style={styles.insightEmptyTitle}>
-                    {t("home.insight_empty.title", "Mọi thứ đang rất tốt!")}
-                  </ThemedText>
-                  <ThemedText style={styles.insightEmptyDescription}>
-                    {t("home.insight_empty.description", "Khi bạn luyện tập thêm, trợ lý AI sẽ dựa vào lịch sử để đề xuất các nội dung cần ưu tiên.")}
-                  </ThemedText>
-                </View>
-              )}
+                          let cardStyle: ViewStyle = {};
+
+                          if (index === 0) {
+                            // First card relative
+                            cardStyle = {
+                              zIndex: 10,
+                            };
+                          } else {
+                            // Stacked cards
+                            cardStyle = {
+                              position: "absolute",
+                              top: -7 * index, // Stack upwards
+                              left: 0,
+                              right: 0,
+                              height: "100%", // FORCE HEIGHT to match first card, hiding bottom
+                              zIndex: 10 - index,
+                              transform: [{ scaleX: 1 - index * 0.04 }], // Slight width reduction
+                              backgroundColor: "#fff", // Ensure opacity doesn't show through
+                            };
+                          }
+
+                          return (
+                            <InsightCard
+                              key={insight.id}
+                              insight={insight}
+                              onPress={handleInsightCardPress}
+                              metaConfig={srsTypeConfig}
+                              style={cardStyle}
+                            />
+                          );
+                        })}
+                      </>
+                    )}
+
+                    {/* Small collapse button ONLY when expanded, to allow user to re-stack */}
+                    {isInsightsExpanded && srsInsights.length > 1 && (
+                      <TouchableOpacity
+                        onPress={toggleInsightsExpansion}
+                        style={styles.expandButton}
+                        activeOpacity={0.7}
+                      >
+                        <Reanimated.View style={expandIconStyle}>
+                          <ChevronUp size={20} color="#9ca3af" />
+                        </Reanimated.View>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+
+              {!isPersonalizationLocked &&
+                !isSrsLoading &&
+                srsInsights.length === 0 && (
+                  <View style={styles.insightEmptyState}>
+                    <ThemedText style={styles.insightEmptyTitle}>
+                      {t("home.insight_empty.title", "Mọi thứ đang rất tốt!")}
+                    </ThemedText>
+                    <ThemedText style={styles.insightEmptyDescription}>
+                      {t(
+                        "home.insight_empty.description",
+                        "Khi bạn luyện tập thêm, trợ lý AI sẽ dựa vào lịch sử để đề xuất các nội dung cần ưu tiên."
+                      )}
+                    </ThemedText>
+                  </View>
+                )}
             </View>
           </View>
         )}
@@ -1031,12 +1179,21 @@ export default function HomeScreen() {
             <ThemedText type="subtitle" style={styles.sectionTitle}>
               {t("home.recent_exercises")}
             </ThemedText>
-            <TouchableOpacity onPress={() => router.push(ROUTES.ME.EXERCISE_HISTORY)} activeOpacity={0.7}>
-              <ThemedText style={styles.seeAllText}>{t("home.see_all")}</ThemedText>
+            <TouchableOpacity
+              onPress={() => router.push(ROUTES.ME.EXERCISE_HISTORY)}
+              activeOpacity={0.7}
+            >
+              <ThemedText style={styles.seeAllText}>
+                {t("home.see_all")}
+              </ThemedText>
             </TouchableOpacity>
           </View>
           {recentExercises.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentScrollContent}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.recentScrollContent}
+            >
               {recentExercises.map((exercise: IRecentExerciseItem) => (
                 <ExerciseCard
                   key={exercise.exerciseId}
@@ -1052,7 +1209,10 @@ export default function HomeScreen() {
                 {t("home.recent_empty.title", "Chưa có bài tập gần đây")}
               </ThemedText>
               <ThemedText style={styles.recentEmptyDescription}>
-                {t("home.recent_empty.description", "Hoàn thành một bài học hoặc luyện tập để xem lịch sử tại đây.")}
+                {t(
+                  "home.recent_empty.description",
+                  "Hoàn thành một bài học hoặc luyện tập để xem lịch sử tại đây."
+                )}
               </ThemedText>
             </View>
           )}
@@ -1119,156 +1279,301 @@ export default function HomeScreen() {
                   <X size={24} color="#6b7280" />
                 </TouchableOpacity>
 
-                {selectedInsight && (() => {
-                  const content = selectedInsight.content as any;
-                  const isKanji = selectedInsight.contentType === "KANJI";
-                  const isGrammar = selectedInsight.contentType === "GRAMMAR";
+                {selectedInsight &&
+                  (() => {
+                    const content = selectedInsight.content as any;
+                    const isKanji = selectedInsight.contentType === "KANJI";
+                    const isGrammar = selectedInsight.contentType === "GRAMMAR";
 
-                  return (
-                    <View style={{ position: "relative", width: "100%" }}>
-                      <TapGestureHandler
-                        enabled={true}
-                        onActivated={toggleCardSide}
-                        waitFor={!isFrontSide ? backScrollRef as any : undefined}
-                      >
-                        <View style={{ position: "relative", width: "100%" }}>
-                        <Animated.View
-                          style={[
-                            styles.flashcard,
-                            {
-                              transform: [{ rotateY: flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "180deg"] }) }],
-                              backfaceVisibility: "hidden" as const,
-                            },
-                          ]}
-                          pointerEvents={isFrontSide ? "auto" : "none"}
-                        >
-                          <View style={styles.flashcardContent}>
-                            {isKanji ? (
-                              <View style={styles.flashcardFrontContent}>
-                                <ThemedText style={[styles.flashcardKanjiCharacter, { color: "#b45309" }]}>
-                                  {content?.character || ""}
-                                </ThemedText>
-                              </View>
-                            ) : isGrammar ? (
-                              <View style={styles.flashcardFrontContent}>
-                                <ThemedText style={[styles.flashcardGrammarStructure, { color: "#0e7490" }]}>
-                                  {content?.structure || ""}
-                                </ThemedText>
-                                {content?.level && (
-                                  <ThemedText style={[styles.flashcardGrammarLevel, { color: "#06b6d4" }]}>
-                                    {content.level}
-                                  </ThemedText>
-                                )}
-                              </View>
-                            ) : (
-                              <View style={styles.flashcardFrontContent}>
-                                <ThemedText style={[styles.flashcardVocabularyWord, { color: "#0369a1" }]}>
-                                  {content?.wordJp || ""}
-                                </ThemedText>
-                                {content?.reading && (
-                                  <ThemedText style={[styles.flashcardVocabularyReading, { color: "#0ea5e9" }]}>
-                                    {content.reading}
-                                  </ThemedText>
-                                )}
-                              </View>
-                            )}
-                          </View>
-                        </Animated.View>
-
-                        <Animated.View
-                          style={[
-                            styles.flashcard,
-                            styles.flashcardBack,
-                            {
-                              transform: [{ rotateY: flipAnim.interpolate({ inputRange: [0, 1], outputRange: ["180deg", "360deg"] }) }],
-                              backfaceVisibility: "hidden" as const,
-                            },
-                          ]}
-                          pointerEvents={isFrontSide ? "none" : "auto"}
-                        >
-                          <NativeViewGestureHandler ref={backScrollRef as any}>
-                            <ScrollView
-                              nestedScrollEnabled
-                              keyboardShouldPersistTaps="always"
-                              scrollEventThrottle={16}
-                              contentContainerStyle={styles.flashcardBackContent}
-                              showsVerticalScrollIndicator={false}
-                              style={{ flex: 1 }}
-                            >
-                              {isKanji ? (
-                                <View style={styles.flashcardBackInner}>
-                                  {content?.meaning && (
-                                    <View style={[styles.flashcardBackBox, { backgroundColor: "#fef3c7", borderColor: "#fde68a" }]}>
-                                      <ThemedText style={[styles.flashcardBackText, { color: "#92400e" }]}>{content.meaning}</ThemedText>
-                                    </View>
-                                  )}
-                                  {(content?.onReading || content?.kunReading) && (
-                                    <View style={styles.flashcardReadingContainer}>
-                                      {content?.onReading && (
-                                        <ThemedText style={[styles.flashcardReadingText, { color: "#d97706" }]}>
-                                          {t("home.flashcard.on_reading", "On")}: {content.onReading}
-                                        </ThemedText>
-                                      )}
-                                      {content?.kunReading && (
-                                        <ThemedText style={[styles.flashcardReadingText, { color: "#d97706" }]}>
-                                          {t("home.flashcard.kun_reading", "Kun")}: {content.kunReading}
-                                        </ThemedText>
-                                      )}
-                                    </View>
-                                  )}
-                                </View>
-                              ) : isGrammar ? (
-                                <View style={styles.flashcardBackInner}>
-                                  {content?.usages && content.usages.length > 0 && (
-                                    <View style={[styles.flashcardBackBox, { backgroundColor: "#cffafe", borderColor: "#a5f3fc" }]}>
-                                      <ThemedText style={[styles.flashcardBackText, { color: "#155e75" }]}>
-                                        {content.usages[0]?.explanation || ""}
-                                      </ThemedText>
-                                      {content.usages[0]?.exampleSentence && (
-                                        <ThemedText style={[styles.flashcardExampleText, { color: "#0e7490" }]}>
-                                          {content.usages[0].exampleSentence}
-                                        </ThemedText>
-                                      )}
-                                    </View>
-                                  )}
-                                </View>
-                              ) : (
-                                <View style={styles.flashcardBackInner}>
-                                  {content?.meaning && (
-                                    <View style={[styles.flashcardBackBox, { backgroundColor: "#e0f2fe", borderColor: "#bae6fd" }]}>
-                                      <ThemedText style={[styles.flashcardBackText, { color: "#0369a1" }]}>{content.meaning}</ThemedText>
-                                    </View>
-                                  )}
-                                </View>
-                              )}
-                            </ScrollView>
-                          </NativeViewGestureHandler>
-                        </Animated.View>
-                        </View>
-                      </TapGestureHandler>
-                      
-                      {/* Mark as Read Button */}
-                      {!selectedInsight.isRead && (
+                    return (
+                      <View style={styles.flashcardWrapper}>
                         <TouchableOpacity
-                          style={styles.markAsReadButton}
-                          onPress={() => {
-                            if (!markAsReadMutation.isPending) {
-                              markAsReadMutation.mutate(selectedInsight.id);
-                            }
-                          }}
-                          disabled={markAsReadMutation.isPending}
-                          activeOpacity={0.7}
+                          activeOpacity={1}
+                          onPress={toggleCardSide}
+                          style={styles.flashcardTouchable}
+                          disabled={!isFrontSide}
                         >
-                          <ThemedText style={styles.markAsReadButtonText}>
-                            {markAsReadMutation.isPending
-                              ? t("home.flashcard.marking", "Đang xử lý...")
-                              : t("home.flashcard.mark_as_read", "Đã đọc")}
-                          </ThemedText>
+                          <View style={styles.flashcardContainer}>
+                            <Animated.View
+                              style={[
+                                styles.flashcard,
+                                {
+                                  transform: [
+                                    { perspective: 1000 },
+                                    {
+                                      rotateY: flipAnim.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: ["0deg", "180deg"],
+                                      }),
+                                    },
+                                  ],
+                                  opacity: flipAnim.interpolate({
+                                    inputRange: [0, 0.5, 1],
+                                    outputRange: [1, 0, 0],
+                                  }),
+                                },
+                              ]}
+                              renderToHardwareTextureAndroid={true}
+                              pointerEvents={isFrontSide ? "auto" : "none"}
+                            >
+                              <View style={styles.flashcardContent}>
+                                {isKanji ? (
+                                  <View style={styles.flashcardFrontContent}>
+                                    <ThemedText
+                                      style={[
+                                        styles.flashcardKanjiCharacter,
+                                        { color: "#b45309" },
+                                      ]}
+                                    >
+                                      {content?.character || ""}
+                                    </ThemedText>
+                                  </View>
+                                ) : isGrammar ? (
+                                  <View style={styles.flashcardFrontContent}>
+                                    <ThemedText
+                                      style={[
+                                        styles.flashcardGrammarStructure,
+                                        { color: "#0e7490" },
+                                      ]}
+                                    >
+                                      {content?.structure || ""}
+                                    </ThemedText>
+                                    {content?.level && (
+                                      <ThemedText
+                                        style={[
+                                          styles.flashcardGrammarLevel,
+                                          { color: "#06b6d4" },
+                                        ]}
+                                      >
+                                        {content.level}
+                                      </ThemedText>
+                                    )}
+                                  </View>
+                                ) : (
+                                  <View style={styles.flashcardFrontContent}>
+                                    <ThemedText
+                                      style={[
+                                        styles.flashcardVocabularyWord,
+                                        { color: "#0369a1" },
+                                      ]}
+                                    >
+                                      {content?.wordJp || ""}
+                                    </ThemedText>
+                                    {content?.reading && (
+                                      <ThemedText
+                                        style={[
+                                          styles.flashcardVocabularyReading,
+                                          { color: "#0ea5e9" },
+                                        ]}
+                                      >
+                                        {content.reading}
+                                      </ThemedText>
+                                    )}
+                                  </View>
+                                )}
+                              </View>
+                            </Animated.View>
+
+                            <Animated.View
+                              style={[
+                                styles.flashcard,
+                                styles.flashcardBack,
+                                {
+                                  transform: [
+                                    { perspective: 1000 },
+                                    {
+                                      rotateY: flipAnim.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: ["180deg", "360deg"],
+                                      }),
+                                    },
+                                  ],
+                                  opacity: flipAnim.interpolate({
+                                    inputRange: [0, 0.5, 1],
+                                    outputRange: [0, 0, 1],
+                                  }),
+                                },
+                              ]}
+                              renderToHardwareTextureAndroid={true}
+                              pointerEvents={isFrontSide ? "none" : "auto"}
+                            >
+                              <NativeViewGestureHandler
+                                ref={backScrollRef as any}
+                              >
+                                <ScrollView
+                                  nestedScrollEnabled
+                                  keyboardShouldPersistTaps="always"
+                                  scrollEventThrottle={16}
+                                  contentContainerStyle={
+                                    styles.flashcardBackContent
+                                  }
+                                  showsVerticalScrollIndicator={false}
+                                  style={{ flex: 1 }}
+                                >
+                                  {isKanji ? (
+                                    <View style={styles.flashcardBackInner}>
+                                      {content?.meaning && (
+                                        <View
+                                          style={[
+                                            styles.flashcardBackBox,
+                                            {
+                                              backgroundColor: "#fef3c7",
+                                              borderColor: "#fde68a",
+                                            },
+                                          ]}
+                                        >
+                                          <ThemedText
+                                            style={[
+                                              styles.flashcardBackText,
+                                              { color: "#92400e" },
+                                            ]}
+                                          >
+                                            {content.meaning}
+                                          </ThemedText>
+                                        </View>
+                                      )}
+                                      {(content?.onReading ||
+                                        content?.kunReading) && (
+                                        <View
+                                          style={
+                                            styles.flashcardReadingContainer
+                                          }
+                                        >
+                                          {content?.onReading && (
+                                            <ThemedText
+                                              style={[
+                                                styles.flashcardReadingText,
+                                                { color: "#d97706" },
+                                              ]}
+                                            >
+                                              {t(
+                                                "home.flashcard.on_reading",
+                                                "On"
+                                              )}
+                                              : {content.onReading}
+                                            </ThemedText>
+                                          )}
+                                          {content?.kunReading && (
+                                            <ThemedText
+                                              style={[
+                                                styles.flashcardReadingText,
+                                                { color: "#d97706" },
+                                              ]}
+                                            >
+                                              {t(
+                                                "home.flashcard.kun_reading",
+                                                "Kun"
+                                              )}
+                                              : {content.kunReading}
+                                            </ThemedText>
+                                          )}
+                                        </View>
+                                      )}
+                                    </View>
+                                  ) : isGrammar ? (
+                                    <View style={styles.flashcardBackInner}>
+                                      {content?.usages &&
+                                        content.usages.length > 0 && (
+                                          <View
+                                            style={[
+                                              styles.flashcardBackBox,
+                                              {
+                                                backgroundColor: "#cffafe",
+                                                borderColor: "#a5f3fc",
+                                              },
+                                            ]}
+                                          >
+                                            <ThemedText
+                                              style={[
+                                                styles.flashcardBackText,
+                                                { color: "#155e75" },
+                                              ]}
+                                            >
+                                              {content.usages[0]?.explanation ||
+                                                ""}
+                                            </ThemedText>
+                                            {content.usages[0]
+                                              ?.exampleSentence && (
+                                              <ThemedText
+                                                style={[
+                                                  styles.flashcardExampleText,
+                                                  { color: "#0e7490" },
+                                                ]}
+                                              >
+                                                {
+                                                  content.usages[0]
+                                                    .exampleSentence
+                                                }
+                                              </ThemedText>
+                                            )}
+                                          </View>
+                                        )}
+                                    </View>
+                                  ) : (
+                                    <View style={styles.flashcardBackInner}>
+                                      {content?.meaning && (
+                                        <View
+                                          style={[
+                                            styles.flashcardBackBox,
+                                            {
+                                              backgroundColor: "#e0f2fe",
+                                              borderColor: "#bae6fd",
+                                            },
+                                          ]}
+                                        >
+                                          <ThemedText
+                                            style={[
+                                              styles.flashcardBackText,
+                                              { color: "#0369a1" },
+                                            ]}
+                                          >
+                                            {content.meaning}
+                                          </ThemedText>
+                                        </View>
+                                      )}
+                                    </View>
+                                  )}
+                                </ScrollView>
+                              </NativeViewGestureHandler>
+                            </Animated.View>
+                          </View>
                         </TouchableOpacity>
-                      )}
-                    </View>
-                  );
-                })()}
+
+                        {/* Tap to flip button for back side */}
+                        {!isFrontSide && (
+                          <TouchableOpacity
+                            style={styles.flashcardFlipButton}
+                            onPress={toggleCardSide}
+                            activeOpacity={0.7}
+                          >
+                            <ThemedText style={styles.flashcardFlipButtonText}>
+                              {t("home.flashcard.flip_back", "Lật lại")}
+                            </ThemedText>
+                          </TouchableOpacity>
+                        )}
+
+                        {/* Mark as Read Button */}
+                        {!selectedInsight.isRead && (
+                          <TouchableOpacity
+                            style={styles.markAsReadButton}
+                            onPress={() => {
+                              if (!markAsReadMutation.isPending) {
+                                markAsReadMutation.mutate(selectedInsight.id);
+                              }
+                            }}
+                            disabled={markAsReadMutation.isPending}
+                            activeOpacity={0.7}
+                          >
+                            <ThemedText style={styles.markAsReadButtonText}>
+                              {markAsReadMutation.isPending
+                                ? t("home.flashcard.marking", "Đang xử lý...")
+                                : t("home.flashcard.mark_as_read", "Đã đọc")}
+                            </ThemedText>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    );
+                  })()}
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -1384,7 +1689,7 @@ const styles = StyleSheet.create({
     gap: 0,
   },
   insightCardsWrapper: {
-    position: 'relative',
+    position: "relative",
     minHeight: 120,
   },
   insightScrollView: {
@@ -1520,9 +1825,9 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
   expandButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 12,
     marginTop: 8,
   },
@@ -1777,6 +2082,13 @@ const styles = StyleSheet.create({
     width: "100%",
     position: "relative",
   },
+  flashcardTouchable: {
+    width: "100%",
+  },
+  flashcardContainer: {
+    width: "100%",
+    position: "relative",
+  },
   flashcard: {
     width: "100%",
     minHeight: 400,
@@ -1893,5 +2205,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#ffffff",
+  },
+  flashcardFlipButton: {
+    marginTop: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: "#f3f4f6",
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  flashcardFlipButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
   },
 });
