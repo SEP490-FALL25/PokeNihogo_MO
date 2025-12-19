@@ -1004,7 +1004,8 @@
       "mark_as_read": "Đã đọc",
       "marking": "Đang xử lý...",
       "marked_as_read": "Đã đánh dấu đã đọc",
-      "mark_read_error": "Không thể đánh dấu đã đọc"
+      "mark_read_error": "Không thể đánh dấu đã đọc",
+      "flip_back": "Lật lại"
     }
   },
   "quiz": {

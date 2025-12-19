@@ -991,7 +991,8 @@
       "mark_as_read": "Mark as read",
       "marking": "Processing...",
       "marked_as_read": "Marked as read",
-      "mark_read_error": "Failed to mark as read"
+      "mark_read_error": "Failed to mark as read",
+      "flip_back": "Flip back"
     }
   },
   "quiz": {

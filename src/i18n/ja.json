@@ -460,7 +460,8 @@
             "mark_as_read": "既読にする",
             "marking": "処理中...",
             "marked_as_read": "既読にしました",
-            "mark_read_error": "既読にできませんでした"
+            "mark_read_error": "既読にできませんでした",
+            "flip_back": "裏返す"
         }
     },
     "daily_login": {
