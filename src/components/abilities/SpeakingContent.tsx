@@ -57,27 +57,24 @@ const SpeakingCard: React.FC<{
           <Mic size={24} color={isLocked ? "#9ca3af" : "#ffffff"} />
         </View>
         <View style={styles.exerciseInfo}>
-          <ThemedText
-            type="subtitle"
-            style={[styles.exerciseTitle, isLocked && styles.lockedText]}
-          >
-            {item.test?.name}
-          </ThemedText>
-          <ThemedText
-            style={[styles.exerciseDescription, isLocked && styles.lockedText]}
-          >
-            {item.test?.description}
-          </ThemedText>
+          <View style={styles.materialHeaderRow}>
+            <ThemedText
+              type="subtitle"
+              style={[styles.exerciseTitle, isLocked && styles.lockedText]}
+            >
+              {item.test?.name}
+            </ThemedText>
+            <View style={styles.levelBadge}>
+              <ThemedText style={styles.levelText}>
+                N{item.test?.levelN}
+              </ThemedText>
+            </View>
+          </View>
         </View>
       </View>
 
       <View style={styles.cardFooter}>
         <View style={styles.metaInfo}>
-          <View style={styles.levelBadge}>
-            <ThemedText style={styles.levelText}>
-              N{item.test?.levelN}
-            </ThemedText>
-          </View>
           {!isLocked && (
             <ThemedText style={styles.timeText}>
               {item.limit} / {item.test?.limit}
@@ -285,6 +282,12 @@ const styles = StyleSheet.create({
   exerciseInfo: {
     flex: 1,
   },
+  materialHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
   exerciseTitle: {
     fontSize: 16,
     fontWeight: "600",
@@ -294,6 +297,8 @@ const styles = StyleSheet.create({
   exerciseDescription: {
     fontSize: 14,
     color: "#6b7280",
+    marginTop: 4,
+    lineHeight: 20,
   },
   cardFooter: {
     gap: 8,
@@ -301,7 +306,8 @@ const styles = StyleSheet.create({
   metaInfo: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
+    width: "100%",
   },
   levelBadge: {
     backgroundColor: "#f3f4f6",
