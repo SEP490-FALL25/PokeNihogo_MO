@@ -1263,7 +1263,17 @@
         "pending_invoice_title": "保留中の請求書があります",
         "pending_invoice_desc": "支払いを完了して特典を有効化してください。",
         "pending_invoice_amount": "お支払い金額: {{amount}}₫",
-        "pending_invoice_discount": "適用済みPokeCoin: -{{amount}}₫"
+        "pending_invoice_discount": "適用済みPokeCoin: -{{amount}}₫",
+        "history_title": "購読履歴",
+        "start_date": "開始日",
+        "expires_at": "有効期限",
+        "lifetime_package": "永久パッケージ",
+        "status_active": "有効",
+        "status_expired": "期限切れ",
+        "status_cancelled": "キャンセル済み",
+        "end_of_list": "すべて表示済み",
+        "error_loading_history": "購読履歴の読み込みエラー",
+        "no_history": "まだ購読履歴がありません"
     },
     "exercise_history": {
         "title": "練習履歴",
@@ -1445,6 +1455,10 @@
         "note_update_success_desc": "メモが更新されました。",
         "note_update_error_title": "エラーが発生しました",
         "note_update_error_desc": "メモを更新できませんでした。もう一度お試しください。",
+        "learned": "習得済み",
+        "not_learned": "未習得",
+        "read_toggle_error_title": "エラーが発生しました",
+        "read_toggle_error_desc": "ステータスを更新できませんでした。もう一度お試しください。",
         "unknown_word": "未設定"
     },
     "flashcard_list": {

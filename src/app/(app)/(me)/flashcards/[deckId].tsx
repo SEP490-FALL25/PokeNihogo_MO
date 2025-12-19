@@ -9,6 +9,7 @@ import {
   useCreateFlashcardDeckCard,
   useDeleteFlashcardDeckCards,
   useFlashcardDeckCards,
+  useMarkFlashcardCardRead,
   useUpdateFlashcardDeckCardWithMetadata,
 } from "@hooks/useFlashcard";
 import { useMinimalAlert } from "@hooks/useMinimalAlert";
@@ -217,6 +218,7 @@ const FlashcardDeckDetailScreen = () => {
   const createDeckCardMutation = useCreateFlashcardDeckCard();
   const updateCardWithMetadataMutation = useUpdateFlashcardDeckCardWithMetadata();
   const deleteCardsMutation = useDeleteFlashcardDeckCards();
+  const markCardReadMutation = useMarkFlashcardCardRead();
   const isSavingCard =
     updateCardWithMetadataMutation.isPending ||
     createDeckCardMutation.isPending;
@@ -326,6 +328,32 @@ const FlashcardDeckDetailScreen = () => {
       }
     );
   };
+
+  const handleToggleRead = useCallback((card: IFlashcardDeckCard) => {
+    if (!numericDeckId) return;
+    
+    const newReadStatus = !card.read;
+    
+    markCardReadMutation.mutate(
+      {
+        deckId: numericDeckId,
+        cardId: card.id,
+        read: newReadStatus,
+      },
+      {
+        onSuccess: () => {
+          // Silent success - no alert needed for read status toggle
+        },
+        onError: () => {
+          showFlashcardAlert(
+            t("flashcard_detail.read_toggle_error_title", "Có lỗi xảy ra"),
+            t("flashcard_detail.read_toggle_error_desc", "Không thể cập nhật trạng thái. Vui lòng thử lại sau."),
+            "error"
+          );
+        },
+      }
+    );
+  }, [numericDeckId, markCardReadMutation, showFlashcardAlert, t]);
 
   const handleOpenEditModal = (card: IFlashcardDeckCard) => {
     setIsCreateMode(false);
@@ -587,6 +615,9 @@ const FlashcardDeckDetailScreen = () => {
   const renderCardItem = (card: IFlashcardDeckCard, index: number) => {
     const vocabulary = card?.vocabulary;
     const meanings = parseMeanings(vocabulary?.meanings);
+    const readings = vocabulary?.reading 
+      ? vocabulary.reading.split(/\s+/).filter(Boolean)
+      : [];
     return (
       <View className="mb-4" key={card.id}>
         <Swipeable
@@ -598,30 +629,54 @@ const FlashcardDeckDetailScreen = () => {
           onSwipeableWillOpen={() => handleSwipeableWillOpen(card.id)}
         >
           <View
-            className="rounded-2xl bg-white border border-slate-100"
+            className="rounded-2xl bg-white border"
             style={{
               padding: 16,
+              borderColor: card.read ? "#dcfce7" : "#e2e8f0",
+              borderWidth: card.read ? 2 : 1,
+              backgroundColor: card.read ? "#f0fdf4" : "#ffffff",
             }}
           >
         <View className="flex-row justify-between items-start mb-3">
-          <View className="flex-row items-center gap-2">
-            <View className="h-8 w-8 rounded-full bg-sky-100 items-center justify-center">
-              <Text style={{ color: "#0284c7", fontWeight: "700" }}>
-                {index + 1 + (currentPage - 1) * pageSize}
-              </Text>
+          <View className="flex-row items-center gap-2 flex-1" style={{ flexShrink: 1, minWidth: 0 }}>
+            <View className="flex-row items-center gap-2" style={{ flexShrink: 0 }}>
+              <View 
+                className="h-8 w-8 rounded-full items-center justify-center"
+                style={{ 
+                  backgroundColor: card.read ? "#dcfce7" : "#e0f2fe",
+                }}
+              >
+                <Text 
+                  style={{ 
+                    color: card.read ? "#15803d" : "#0284c7", 
+                    fontWeight: "700",
+                    fontSize: 12,
+                  }}
+                >
+                  {index + 1 + (currentPage - 1) * pageSize}
+                </Text>
+              </View>
             </View>
-            <View className="flex-row items-center gap-2 flex-wrap">
-              <Text style={{ fontSize: 18, fontWeight: "700", color: "#0ea5e9" }}>
+            <View className="flex-row items-center gap-2 flex-1" style={{ flexShrink: 1, minWidth: 0 }}>
+              <Text 
+                style={{ fontSize: 18, fontWeight: "700", color: "#0ea5e9" }}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {vocabulary?.wordJp || t("flashcard_detail.unknown_word", "Chưa rõ")}
               </Text>
-              {filters.phonetic && !!vocabulary?.reading && (
-                    <Text style={{ color: "#64748b", fontSize: 12, alignSelf: "flex-end" }}>
-                    {vocabulary?.reading}
+              {filters.phonetic && readings.length > 0 && (
+                <Text 
+                  style={{ color: "#64748b", fontSize: 12 }}
+                  numberOfLines={1}
+                >
+                  {readings.slice(0, 2).join(", ")}
+                  {readings.length > 2 && " ..."}
                 </Text>
               )}
             </View>
           </View>
-          <View className="flex-row items-center gap-2">
+          <View className="flex-row items-center gap-2" style={{ flexShrink: 0 }}>
             {vocabulary?.audioUrl && (
               <TouchableOpacity
                 onPress={() => handlePlayAudio(vocabulary?.audioUrl)}
@@ -652,18 +707,30 @@ const FlashcardDeckDetailScreen = () => {
 
         {filters.meaning && meanings.length > 0 && (
           <View className="mb-3">
-            {meanings.map((meaning, idx) => (
+            {meanings.slice(0, 3).map((meaning, idx) => (
               <Text
                 key={`${card.id}-meaning-${idx}`}
                 style={{
                   color: "#1f2937",
                   fontSize: 16,
-                  marginBottom: idx === meanings.length - 1 ? 0 : 4,
+                  marginBottom: idx === Math.min(meanings.length, 3) - 1 ? 0 : 4,
                 }}
               >
                 {meaning}
               </Text>
             ))}
+            {meanings.length > 3 && (
+              <Text
+                style={{
+                  color: "#64748b",
+                  fontSize: 16,
+                  marginTop: 4,
+                  fontStyle: "italic",
+                }}
+              >
+                ...
+              </Text>
+            )}
           </View>
         )}
 

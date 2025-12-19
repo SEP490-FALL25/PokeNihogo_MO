@@ -1538,6 +1538,10 @@
     "note_update_success_desc": "Ghi chú của bạn đã được cập nhật.",
     "note_update_error_title": "Có lỗi xảy ra",
     "note_update_error_desc": "Không thể cập nhật ghi chú. Vui lòng thử lại.",
+    "learned": "Đã thuộc",
+    "not_learned": "Chưa thuộc",
+    "read_toggle_error_title": "Có lỗi xảy ra",
+    "read_toggle_error_desc": "Không thể cập nhật trạng thái. Vui lòng thử lại sau.",
     "unknown_word": "Chưa rõ"
   },
   "flashcard_list": {
@@ -1601,6 +1605,16 @@
     "pending_invoice_title": "Bạn có hóa đơn đang chờ",
     "pending_invoice_desc": "Hoàn tất thanh toán để kích hoạt quyền lợi.",
     "pending_invoice_amount": "Tổng cần thanh toán: {{amount}}₫",
-    "pending_invoice_discount": "Đã trừ PokeCoin: -{{amount}}₫"
+    "pending_invoice_discount": "Đã trừ PokeCoin: -{{amount}}₫",
+    "history_title": "Lịch sử đăng ký",
+    "start_date": "Ngày bắt đầu",
+    "expires_at": "Ngày hết hạn",
+    "lifetime_package": "Gói vĩnh viễn",
+    "status_active": "Đang kích hoạt",
+    "status_expired": "Đã hết hạn",
+    "status_cancelled": "Đã hủy",
+    "end_of_list": "Đã hiển thị tất cả",
+    "error_loading_history": "Có lỗi xảy ra khi tải lịch sử",
+    "no_history": "Chưa có lịch sử đăng ký"
   }
 }
