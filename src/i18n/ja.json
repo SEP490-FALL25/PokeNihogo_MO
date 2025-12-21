@@ -560,6 +560,16 @@
         "controls_title": "録音コントロール",
         "controls_hint": "上記の練習をタップしてスピーキング練習を開始"
     },
+    "audio_recorder": {
+        "error_title": "エラー",
+        "start_recording_error": "録音を開始できませんでした。もう一度お試しください。",
+        "stop_recording_error": "録音を停止できませんでした。もう一度お試しください。",
+        "playback_error": "録音を再生できませんでした。",
+        "grant_permission": "マイクの権限を許可",
+        "tap_to_stop": "タップして停止",
+        "initializing": "初期化中...",
+        "tap_to_record": "タップして録音"
+    },
     "battle": {
         "title": "バトルアリーナ",
         "subtitle": "日本語バトルで他のプレイヤーに挑戦しましょう",

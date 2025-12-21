@@ -209,6 +209,16 @@
     "controls_title": "Điều khiển ghi âm",
     "controls_hint": "Chạm vào bất kỳ bài tập nào ở trên để bắt đầu luyện nói"
   },
+  "audio_recorder": {
+    "error_title": "Lỗi",
+    "start_recording_error": "Không thể bắt đầu ghi âm. Vui lòng thử lại.",
+    "stop_recording_error": "Không thể dừng ghi âm. Vui lòng thử lại.",
+    "playback_error": "Không thể phát lại bản ghi âm.",
+    "grant_permission": "Cấp quyền microphone",
+    "tap_to_stop": "Nhấn để dừng",
+    "initializing": "Đang khởi tạo...",
+    "tap_to_record": "Nhấn để ghi âm"
+  },
   "battle": {
     "title": "Đấu Trường",
     "subtitle": "Thách thức người chơi khác trong các trận chiến ngôn ngữ tiếng Nhật",
