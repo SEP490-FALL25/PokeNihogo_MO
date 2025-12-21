@@ -940,6 +940,7 @@
         "loading": "Đang tải...",
         "connection_error": "Không thể kết nối. Vui lòng thử lại.",
         "empty_message": "Bắt đầu ghi âm để luyện hội thoại nhé!",
+        "tap_to_speak": "Nhấn để nói",
         "locked_title": "Tính năng bị khóa",
         "locked_description": "Bạn cần đăng ký gói Premium để sử dụng tính năng AI Conversation",
         "subscribe_button": "Đăng ký ngay",

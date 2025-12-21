@@ -21,6 +21,7 @@ import AudioPlayer from "@components/ui/AudioPlayer";
 import VoiceRecorder from "@components/ui/EnhancedAudioRecorder";
 import { useAuth } from "@hooks/useAuth";
 import { useTestFullUser } from "@hooks/useUserTest";
+import { useTranslation } from "react-i18next";
 
 type Message = {
   id: string;
@@ -91,6 +92,7 @@ const UserAvatarWithFallback = ({
 export default function ConversationScreen() {
   const { topicId } = useLocalSearchParams<{ topicId?: string }>();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -921,7 +923,13 @@ export default function ConversationScreen() {
               onRecordingStop={() => {
                 setIsRecording(false);
               }}
-              exerciseTitle={isSubmitting ? <AnimatedDots /> : "Nhấn để nói"}
+              exerciseTitle={
+                isSubmitting ? (
+                  <AnimatedDots />
+                ) : (
+                  t("home.ai.conversation.tap_to_speak")
+                )
+              }
               showPlayback={true}
               disabled={
                 isSubmitting ||

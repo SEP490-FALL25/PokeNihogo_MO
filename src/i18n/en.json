@@ -927,6 +927,7 @@
         "loading": "Loading...",
         "connection_error": "Unable to connect. Please try again.",
         "empty_message": "Start recording to practice conversation!",
+        "tap_to_speak": "Tap to speak",
         "locked_title": "Feature Locked",
         "locked_description": "You need to subscribe to Premium to use AI Conversation feature",
         "subscribe_button": "Subscribe Now",

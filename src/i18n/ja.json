@@ -384,6 +384,7 @@
                 "loading": "読み込み中...",
                 "connection_error": "接続できません。もう一度お試しください。",
                 "empty_message": "録音を開始して会話を練習しましょう！",
+                "tap_to_speak": "タップして話す",
                 "locked_title": "機能がロックされています",
                 "locked_description": "AI会話機能を使用するには、プレミアムプランに登録する必要があります",
                 "subscribe_button": "今すぐ登録",

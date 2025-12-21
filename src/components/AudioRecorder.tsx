@@ -5,6 +5,7 @@ import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Animated, PanResponder, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface AudioRecorderProps {
   onRecordingComplete?: (uri: string, duration: number) => void;
@@ -27,10 +28,11 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
   onPlaybackStop,
   maxDuration = 60,
   disabled = false,
-  exerciseTitle = "Bài tập phát âm",
+  exerciseTitle,
   showPlayback = true,
   customSavePath,
 }) => {
+  const { t } = useTranslation();
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
@@ -169,7 +171,10 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
 
     } catch (error) {
       console.error('Failed to start recording:', error);
-      Alert.alert('Lỗi', 'Không thể bắt đầu ghi âm. Vui lòng thử lại.');
+      Alert.alert(
+        t('audio_recorder.error_title'),
+        t('audio_recorder.start_recording_error')
+      );
     }
   };
 
@@ -202,7 +207,10 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
       }
     } catch (error) {
       console.error('Failed to stop recording:', error);
-      Alert.alert('Lỗi', 'Không thể dừng ghi âm. Vui lòng thử lại.');
+      Alert.alert(
+        t('audio_recorder.error_title'),
+        t('audio_recorder.stop_recording_error')
+      );
     }
   };
 
@@ -241,7 +249,10 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
       await newSound.playAsync();
     } catch (error) {
       console.error('Failed to play recording:', error);
-      Alert.alert('Lỗi', 'Không thể phát lại bản ghi âm.');
+      Alert.alert(
+        t('audio_recorder.error_title'),
+        t('audio_recorder.playback_error')
+      );
     }
   };
 
@@ -347,7 +358,9 @@ const AudioRecorder: React.FC<AudioRecorderProps> = ({
 
   return (
     <View style={styles.container}>
-      <ThemedText style={styles.exerciseTitle}>{exerciseTitle}</ThemedText>
+      <ThemedText style={styles.exerciseTitle}>
+        {exerciseTitle || t('speaking.default_exercise')}
+      </ThemedText>
       
       <View style={styles.controls}>
         {!isRecording ? (
