@@ -209,6 +209,16 @@
     "controls_title": "Recording Controls",
     "controls_hint": "Tap any exercise above to start speaking practice"
   },
+  "audio_recorder": {
+    "error_title": "Error",
+    "start_recording_error": "Unable to start recording. Please try again.",
+    "stop_recording_error": "Unable to stop recording. Please try again.",
+    "playback_error": "Unable to playback recording.",
+    "grant_permission": "Grant microphone permission",
+    "tap_to_stop": "Tap to stop",
+    "initializing": "Initializing...",
+    "tap_to_record": "Tap to record"
+  },
   "battle": {
     "title": "Battle Arena",
     "subtitle": "Challenge other players in Japanese language battles",
@@ -917,6 +927,7 @@
         "loading": "Loading...",
         "connection_error": "Unable to connect. Please try again.",
         "empty_message": "Start recording to practice conversation!",
+        "tap_to_speak": "Tap to speak",
         "locked_title": "Feature Locked",
         "locked_description": "You need to subscribe to Premium to use AI Conversation feature",
         "subscribe_button": "Subscribe Now",

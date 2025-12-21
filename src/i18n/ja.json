@@ -384,6 +384,7 @@
                 "loading": "読み込み中...",
                 "connection_error": "接続できません。もう一度お試しください。",
                 "empty_message": "録音を開始して会話を練習しましょう！",
+                "tap_to_speak": "タップして話す",
                 "locked_title": "機能がロックされています",
                 "locked_description": "AI会話機能を使用するには、プレミアムプランに登録する必要があります",
                 "subscribe_button": "今すぐ登録",
@@ -559,6 +560,16 @@
         "tip_4": "英語から翻訳するのではなく、日本語で考えるようにする",
         "controls_title": "録音コントロール",
         "controls_hint": "上記の練習をタップしてスピーキング練習を開始"
+    },
+    "audio_recorder": {
+        "error_title": "エラー",
+        "start_recording_error": "録音を開始できませんでした。もう一度お試しください。",
+        "stop_recording_error": "録音を停止できませんでした。もう一度お試しください。",
+        "playback_error": "録音を再生できませんでした。",
+        "grant_permission": "マイクの権限を許可",
+        "tap_to_stop": "タップして停止",
+        "initializing": "初期化中...",
+        "tap_to_record": "タップして録音"
     },
     "battle": {
         "title": "バトルアリーナ",

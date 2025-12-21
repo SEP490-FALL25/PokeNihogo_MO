@@ -9,6 +9,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
@@ -110,6 +111,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
   const { hasPermission, requestMicrophonePermission } =
     useMicrophonePermission();
+  const { t } = useTranslation();
 
   // Metering values for real-time audio visualization
   const [meteringValues, setMeteringValues] = useState<number[]>([]);
@@ -499,7 +501,10 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       setIsRecordingLoading(false);
     } catch (err) {
       console.error("Failed to start recording", err);
-      Alert.alert("Lỗi", "Không thể bắt đầu ghi âm. Vui lòng thử lại.");
+      Alert.alert(
+        t("audio_recorder.error_title"),
+        t("audio_recorder.start_recording_error")
+      );
       setIsRecordingLoading(false);
     }
   };
@@ -585,7 +590,10 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       isRecordingRef.current = false;
     } catch (err) {
       console.error("Failed to stop recording", err);
-      Alert.alert("Lỗi", "Không thể dừng ghi âm. Vui lòng thử lại.");
+      Alert.alert(
+        t("audio_recorder.error_title"),
+        t("audio_recorder.stop_recording_error")
+      );
     }
   }, [
     recording,
@@ -596,6 +604,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     showDeleteButton,
     showPlayback,
     deleteRecording,
+    t,
   ]);
 
   // Update stopRecording ref
@@ -659,7 +668,10 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       setIsPlayLoading(false);
     } catch (err) {
       console.error("Failed to play sound", err);
-      Alert.alert("Lỗi", "Không thể phát lại bản ghi âm.");
+      Alert.alert(
+        t("audio_recorder.error_title"),
+        t("audio_recorder.playback_error")
+      );
       setIsPlayLoading(false);
     }
   };
@@ -685,7 +697,9 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
           >
             <Ionicons name="mic-off" size={26} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.recordLabel}>Cấp quyền microphone</Text>
+          <Text style={styles.recordLabel}>
+            {t("audio_recorder.grant_permission")}
+          </Text>
         </View>
       </View>
     );
@@ -874,10 +888,10 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
               </TouchableOpacity>
               <Text style={styles.recordLabel}>
                 {isRecording
-                  ? "Nhấn để dừng"
+                  ? t("audio_recorder.tap_to_stop")
                   : isRecordingLoading
-                    ? "Đang khởi tạo..."
-                    : "Nhấn để ghi âm"}
+                    ? t("audio_recorder.initializing")
+                    : t("audio_recorder.tap_to_record")}
               </Text>
             </View>
           ) : showPlayback ? (
