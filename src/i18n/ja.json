@@ -1124,6 +1124,12 @@
         "expand": "展開",
         "collapse": "折りたたむ"
     },
+    "quiz_review": {
+        "title": "解答を確認",
+        "loading": "読み込み中...",
+        "load_error_title": "エラー",
+        "load_error_message": "解答の確認データを読み込めませんでした。"
+    },
     "review_stats": {
         "correct_count": "正解数:",
         "unanswered_count": "未解答数:",

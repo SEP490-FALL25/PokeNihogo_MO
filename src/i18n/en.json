@@ -851,6 +851,12 @@
     "expand": "Expand",
     "collapse": "Collapse"
   },
+  "quiz_review": {
+    "title": "Review answers",
+    "loading": "Loading...",
+    "load_error_title": "Error",
+    "load_error_message": "Unable to load review data."
+  },
   "review_stats": {
     "correct_count": "Correct answers:",
     "unanswered_count": "Unanswered questions:",

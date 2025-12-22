@@ -10,6 +10,7 @@ import { useReviewResultUnified } from "@hooks/useReviewResultUnified";
 import { IReviewResultQuestionBank } from "@models/user-exercise-attempt/user-exercise-attempt.response";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   Animated,
@@ -22,10 +23,11 @@ import {
 } from "react-native";
 
 export default function QuizReviewScreen() {
-  const { sessionId, reviewData: reviewDataParam } = useLocalSearchParams<{ 
+  const { sessionId, reviewData: reviewDataParam } = useLocalSearchParams<{
     sessionId: string;
     reviewData?: string;
   }>();
+  const { t } = useTranslation();
   
   // If reviewData is passed as param, use it; otherwise fetch from API
   const reviewDataFromParams = useMemo(() => {
@@ -143,7 +145,10 @@ export default function QuizReviewScreen() {
   }, [reviewData]);
 
   if (shouldShowError) {
-    Alert.alert("Lỗi", "Không thể tải phần xem đáp án.");
+    Alert.alert(
+      t("quiz_review.load_error_title", "Lỗi"),
+      t("quiz_review.load_error_message", "Không thể tải phần xem đáp án.")
+    );
     router.back();
     return null;
   }
@@ -152,7 +157,9 @@ export default function QuizReviewScreen() {
     return (
       <QuizLayout>
         <View style={styles.center}>
-          <Text style={styles.loadingText}>Đang tải...</Text>
+          <Text style={styles.loadingText}>
+            {t("quiz_review.loading", t("common.loading", "Đang tải..."))}
+          </Text>
         </View>
       </QuizLayout>
     );
@@ -164,7 +171,7 @@ export default function QuizReviewScreen() {
       progressComponent={
         <View>
           <QuizHeader
-            title="Xem đáp án"
+            title={t("quiz_review.title", "Xem đáp án")}
             onBackPress={() => router.back()}
           />
         </View>

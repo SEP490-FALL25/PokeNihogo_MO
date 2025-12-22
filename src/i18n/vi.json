@@ -851,6 +851,12 @@
     "expand": "Mở rộng",
     "collapse": "Thu gọn"
   },
+  "quiz_review": {
+    "title": "Xem đáp án",
+    "loading": "Đang tải...",
+    "load_error_title": "Lỗi",
+    "load_error_message": "Không thể tải phần xem đáp án."
+  },
   "review_stats": {
     "correct_count": "Số câu đúng:",
     "unanswered_count": "Số câu không làm:",
