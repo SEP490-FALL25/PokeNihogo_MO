@@ -1130,6 +1130,28 @@
         "load_error_title": "エラー",
         "load_error_message": "解答の確認データを読み込めませんでした。"
     },
+    "quiz_result": {
+        "title_default": "テストが完了しました！",
+        "title_failed": "テストが完了しました！",
+        "title_all_correct": "満点おめでとう！",
+        "not_found_message": "テスト結果が見つかりません",
+        "message_failed": "テストは完了しましたが、いくつかの問題が不正解でした。",
+        "message_all_correct": "おめでとうございます！すべての問題に正解しました！",
+        "message_default": "テストを完了しました。",
+        "answered_title": "解答した問題数",
+        "answered_value": "{{answered}}/{{total}}",
+        "unanswered_title": "未解答",
+        "correct_title": "正解数",
+        "incorrect_title": "不正解数",
+        "time_title": "時間",
+        "time_seconds": "{{seconds}}秒",
+        "time_minutes_seconds": "{{minutes}}分{{seconds}}秒",
+        "accuracy_title": "正答率",
+        "view_answers": "解答を確認する",
+        "review_forbidden": "解答を確認する権限がありません。",
+        "review_error_title": "解答を表示できません",
+        "review_error_default": "解答を表示できません。"
+    },
     "review_stats": {
         "correct_count": "正解数:",
         "unanswered_count": "未解答数:",

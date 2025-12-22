@@ -857,6 +857,28 @@
     "load_error_title": "Error",
     "load_error_message": "Unable to load review data."
   },
+  "quiz_result": {
+    "title_default": "Quiz completed!",
+    "title_failed": "Quiz completed!",
+    "title_all_correct": "Perfect score!",
+    "not_found_message": "Quiz result not found",
+    "message_failed": "You completed the quiz but some answers were incorrect.",
+    "message_all_correct": "Congratulations! You answered all questions correctly!",
+    "message_default": "You have completed the quiz.",
+    "answered_title": "Questions answered",
+    "answered_value": "{{answered}}/{{total}}",
+    "unanswered_title": "Unanswered",
+    "correct_title": "Correct answers",
+    "incorrect_title": "Incorrect answers",
+    "time_title": "Time",
+    "time_seconds": "{{number}}s",
+    "time_minutes_seconds": "{{minutes}}m {{seconds}}s",
+    "accuracy_title": "Accuracy",
+    "view_answers": "View answers",
+    "review_forbidden": "You are not eligible to view the answers.",
+    "review_error_title": "Unable to view answers",
+    "review_error_default": "Unable to view answers."
+  },
   "review_stats": {
     "correct_count": "Correct answers:",
     "unanswered_count": "Unanswered questions:",
