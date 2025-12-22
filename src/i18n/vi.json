@@ -70,8 +70,11 @@
     "select_level": {
       "title": "Trình độ hiện tại của bạn là gì?",
       "n5": "N5 (Sơ cấp)",
+      "n5_note": "mới bắt đầu",
       "n4": "N4 (Sơ trung cấp)",
+      "n4_note": "đã có nền tảng",
       "n3": "N3 (Trung cấp)",
+      "n3_note": "trung cấp",
       "take_test": "Tôi không chắc, hãy kiểm tra trình độ!",
       "test_result_title": "🎉 Kết quả Placement Test",
       "test_result_desc": "Dựa trên kết quả test, chúng tôi đề xuất bạn bắt đầu với level {{level}}",

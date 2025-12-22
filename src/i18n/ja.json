@@ -128,6 +128,19 @@
             "percentage": "スコア",
             "cancel_test_title": "テストをキャンセルしますか？",
             "cancel_test_message": "このテストをキャンセルしてもよろしいですか？進行状況が失われます。"
+        },
+        "select_level": {
+            "title": "あなたの現在のレベルは？",
+            "n5": "N5 (初級)",
+            "n5_note": "初心者",
+            "n4": "N4 (初中級)",
+            "n4_note": "基礎あり",
+            "n3": "N3 (中級)",
+            "n3_note": "中級",
+            "take_test": "わからない場合は、テストを受けてください！",
+            "test_result_title": "🎉 レベル判定テスト結果",
+            "test_result_desc": "テスト結果に基づいて、レベル {{level}} から始めることをお勧めします",
+            "recommended_from_test": "✨ テストから推奨"
         }
     },
     "kanji_writer": {

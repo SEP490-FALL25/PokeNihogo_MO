@@ -70,8 +70,11 @@
     "select_level": {
       "title": "What is your current level?",
       "n5": "N5 (Beginner)",
+      "n5_note": "just starting",
       "n4": "N4 (Elementary)",
+      "n4_note": "has foundation",
       "n3": "N3 (Intermediate)",
+      "n3_note": "intermediate",
       "take_test": "I'm not sure, give me a test!",
       "test_result_title": "🎉 Placement Test Result",
       "test_result_desc": "Based on the test results, we recommend you start with level {{level}}",
