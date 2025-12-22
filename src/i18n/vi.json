@@ -851,6 +851,34 @@
     "expand": "Mở rộng",
     "collapse": "Thu gọn"
   },
+  "quiz_review": {
+    "title": "Xem đáp án",
+    "loading": "Đang tải...",
+    "load_error_title": "Lỗi",
+    "load_error_message": "Không thể tải phần xem đáp án."
+  },
+  "quiz_result": {
+    "title_default": "Bài làm hoàn thành!",
+    "title_failed": "Bài làm hoàn thành!",
+    "title_all_correct": "Hoàn thành xuất sắc!",
+    "not_found_message": "Không tìm thấy kết quả quiz",
+    "message_failed": "Bạn đã hoàn thành bài tập nhưng có một số câu trả lời sai",
+    "message_all_correct": "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi!",
+    "message_default": "Bạn đã hoàn thành bài tập",
+    "answered_title": "Số câu đã trả lời",
+    "answered_value": "{{answered}}/{{total}}",
+    "unanswered_title": "Chưa trả lời",
+    "correct_title": "Số câu đúng",
+    "incorrect_title": "Số câu sai",
+    "time_title": "Thời gian",
+    "time_seconds": "{{seconds}}s",
+    "time_minutes_seconds": "{{minutes}}m {{seconds}}s",
+    "accuracy_title": "Tỉ lệ đúng",
+    "view_answers": "Xem đáp án",
+    "review_forbidden": "Bạn không đủ điều kiện để xem đáp án",
+    "review_error_title": "Không thể xem đáp án",
+    "review_error_default": "Không thể xem đáp án"
+  },
   "review_stats": {
     "correct_count": "Số câu đúng:",
     "unanswered_count": "Số câu không làm:",

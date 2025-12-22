@@ -13,6 +13,7 @@ import { AxiosError } from "axios";
 import { ResizeMode, Video } from "expo-av";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function QuizResultScreen() {
@@ -31,6 +32,7 @@ export default function QuizResultScreen() {
     origin?: string; // expected 'quiz' if coming from quiz flow
     testType?: string;
   }>();
+  const { t } = useTranslation();
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const { mutate: checkReviewAccess, isPending } = useCheckReviewAccess();
@@ -56,22 +58,41 @@ export default function QuizResultScreen() {
   const timeDisplay = useMemo(() => {
     const minutes = Math.floor(timeSpentNumber / 60);
     const seconds = timeSpentNumber % 60;
-    return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
-  }, [timeSpentNumber]);
+    if (minutes > 0) {
+      return t(
+        "quiz_result.time_minutes_seconds",
+        "{{minutes}}m {{seconds}}s",
+        { minutes, seconds }
+      );
+    }
+    return t("quiz_result.time_seconds", "{{seconds}}s", { seconds });
+  }, [timeSpentNumber, t]);
 
   const openErrorModal = useCallback((msg: string) => {
     setErrorMessage(msg);
     setShowErrorModal(true);
   }, []);
 
-  const parseAxiosErrorMessage = useCallback((error: Error, fallback: string) => {
-    const axiosError = error as AxiosError<any>;
-    const status = axiosError.response?.status;
-    if (status === 403) {
-      return axiosError.response?.data?.message || "Bạn không đủ điều kiện để xem đáp án";
-    }
-    return axiosError.response?.data?.message || fallback;
-  }, []);
+  const parseAxiosErrorMessage = useCallback(
+    (error: Error, fallbackKey: string, fallbackDefault: string) => {
+      const axiosError = error as AxiosError<any>;
+      const status = axiosError.response?.status;
+      if (status === 403) {
+        return (
+          axiosError.response?.data?.message ||
+          t(
+            "quiz_result.review_forbidden",
+            "Bạn không đủ điều kiện để xem đáp án"
+          )
+        );
+      }
+      return (
+        axiosError.response?.data?.message ||
+        t(fallbackKey, fallbackDefault)
+      );
+    },
+    [t]
+  );
 
   const handleGoHome = useCallback(() => {
     // Navigate to learn screen
@@ -86,7 +107,12 @@ export default function QuizResultScreen() {
       checkReviewAccess(resultId, {
         onSuccess: (data) => {
           if ((data as any)?.statusCode === 403) {
-            const errorMsg = (data as any)?.message || "Bạn không đủ điều kiện để xem đáp án";
+            const errorMsg =
+              (data as any)?.message ||
+              t(
+                "quiz_result.review_forbidden",
+                "Bạn không đủ điều kiện để xem đáp án"
+              );
             openErrorModal(errorMsg);
             return;
           }
@@ -100,7 +126,11 @@ export default function QuizResultScreen() {
           });
         },
         onError: (error: Error) => {
-          const errorMsg = parseAxiosErrorMessage(error, "Không thể xem đáp án");
+          const errorMsg = parseAxiosErrorMessage(
+            error,
+            "quiz_result.review_error_default",
+            "Không thể xem đáp án"
+          );
           openErrorModal(errorMsg);
         },
       });
@@ -113,25 +143,34 @@ export default function QuizResultScreen() {
       { userTestAttemptId: resultId, testType },
       {
         onSuccess: (data: any) => {
-        if (data?.statusCode === 403) {
-          const errorMsg = data?.message || "Bạn không đủ điều kiện để xem đáp án";
-          openErrorModal(errorMsg);
-          setIsFetchingReview(false);
-          return;
-        }
+          if (data?.statusCode === 403) {
+            const errorMsg =
+              data?.message ||
+              t(
+                "quiz_result.review_forbidden",
+                "Bạn không đủ điều kiện để xem đáp án"
+              );
+            openErrorModal(errorMsg);
+            setIsFetchingReview(false);
+            return;
+          }
 
-        router.push({
-          pathname: ROUTES.TEST.REVIEW,
-          params: {
-            sessionId: resultId,
-            reviewData: JSON.stringify(data),
+          router.push({
+            pathname: ROUTES.TEST.REVIEW,
+            params: {
+              sessionId: resultId,
+              reviewData: JSON.stringify(data),
               testType: testType || "",
-          },
-        });
-        setIsFetchingReview(false);
-      },
+            },
+          });
+          setIsFetchingReview(false);
+        },
         onError: (error: Error) => {
-          const errorMsg = parseAxiosErrorMessage(error, "Không thể xem đáp án");
+          const errorMsg = parseAxiosErrorMessage(
+            error,
+            "quiz_result.review_error_default",
+            "Không thể xem đáp án"
+          );
           openErrorModal(errorMsg);
           setIsFetchingReview(false);
         },
@@ -144,13 +183,17 @@ export default function QuizResultScreen() {
     origin,
     parseAxiosErrorMessage,
     resultId,
+    t,
     testType,
   ]);
 
   const answeredSummary = useMemo(() => {
     if (!result) return "-";
-    return `${result.answeredQuestions}/${result.totalQuestions}`;
-  }, [result]);
+    return t("quiz_result.answered_value", {
+      answered: result.answeredQuestions,
+      total: result.totalQuestions,
+    });
+  }, [result, t]);
 
   const formattedAccuracy = useMemo(() => {
     if (!result) return "0%";
@@ -181,36 +224,47 @@ export default function QuizResultScreen() {
   // Determine title based on status
   const titleText = useMemo(() => {
     if (!result) {
-      return "Bài làm hoàn thành!";
+      return t("quiz_result.title_default", "Bài làm hoàn thành!");
     }
     if (result.status === QuizCompletionStatus.FAILED) {
-      return "Bài làm hoàn thành!";
+      return t("quiz_result.title_failed", "Bài làm hoàn thành!");
     }
     if (result.allCorrect) {
-      return "Hoàn thành xuất sắc!";
+      return t("quiz_result.title_all_correct", "Hoàn thành xuất sắc!");
     }
-    return "Bài làm hoàn thành!";
-  }, [result]);
+    return t("quiz_result.title_default", "Bài làm hoàn thành!");
+  }, [result, t]);
 
   // Determine status message
   const statusMessage = useMemo(() => {
-    if (!result) return "Không tìm thấy kết quả quiz";
+    if (!result)
+      return t("quiz_result.not_found_message", "Không tìm thấy kết quả quiz");
     if (message) return message;
     if (result.status === QuizCompletionStatus.FAILED) {
-      return "Bạn đã hoàn thành bài tập nhưng có một số câu trả lời sai";
+      return t(
+        "quiz_result.message_failed",
+        "Bạn đã hoàn thành bài tập nhưng có một số câu trả lời sai"
+      );
     }
     if (result.allCorrect) {
-      return "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi!";
+      return t(
+        "quiz_result.message_all_correct",
+        "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi!"
+      );
     }
-    return "Bạn đã hoàn thành bài tập";
-  }, [message, result]);
+    return t("quiz_result.message_default", "Bạn đã hoàn thành bài tập");
+  }, [message, result, t]);
 
   if (!result) {
     return (
       <QuizLayout>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Không tìm thấy kết quả quiz</Text>
-          <Button onPress={() => router.back()}>Quay lại</Button>
+          <Text style={styles.errorText}>
+            {t("quiz_result.not_found_message", "Không tìm thấy kết quả quiz")}
+          </Text>
+          <Button onPress={() => router.back()}>
+            {t("common.back", "Quay lại")}
+          </Button>
         </View>
       </QuizLayout>
     );
@@ -249,7 +303,7 @@ export default function QuizResultScreen() {
 
         <View style={styles.tileRow}>
           <ResultValueCard
-            title="Số câu đã trả lời"
+            title={t("quiz_result.answered_title", "Số câu đã trả lời")}
             value={answeredSummary}
             icon={
               <MaterialCommunityIcons
@@ -265,7 +319,7 @@ export default function QuizResultScreen() {
 
           {result.unansweredQuestions > 0 && (
             <ResultValueCard
-              title="Chưa trả lời"
+              title={t("quiz_result.unanswered_title", "Chưa trả lời")}
               value={result.unansweredQuestions}
               icon={
                 <MaterialCommunityIcons
@@ -283,7 +337,7 @@ export default function QuizResultScreen() {
 
         <View style={styles.tileRow}>
           <ResultValueCard
-            title="Số câu đúng"
+            title={t("quiz_result.correct_title", "Số câu đúng")}
             value={correctAnswers}
             icon={
               <MaterialCommunityIcons
@@ -299,7 +353,7 @@ export default function QuizResultScreen() {
 
           {incorrectAnswers > 0 && (
             <ResultValueCard
-              title="Số câu sai"
+              title={t("quiz_result.incorrect_title", "Số câu sai")}
               value={incorrectAnswers}
               icon={
                 <MaterialCommunityIcons
@@ -317,7 +371,7 @@ export default function QuizResultScreen() {
 
         <View style={styles.tileRow}>
           <ResultValueCard
-            title="Thời gian"
+            title={t("quiz_result.time_title", "Thời gian")}
             value={timeDisplay}
             icon={
               <MaterialCommunityIcons
@@ -332,7 +386,7 @@ export default function QuizResultScreen() {
           />
 
           <ResultValueCard
-            title="Tỉ lệ đúng"
+            title={t("quiz_result.accuracy_title", "Tỉ lệ đúng")}
             value={formattedAccuracy}
             icon={
               <MaterialCommunityIcons
@@ -349,7 +403,7 @@ export default function QuizResultScreen() {
 
         <View style={styles.ctaWrap}>
           <BounceButton variant="default" onPress={handleGoHome}>
-            TIẾP TỤC
+            {t("common.continue", "Tiếp tục")}
           </BounceButton>
           <View style={{ height: 12 }} />
           <BounceButton
@@ -358,18 +412,22 @@ export default function QuizResultScreen() {
             loading={combinedLoading}
             disabled={combinedLoading || !resultId}
           >
-            Xem đáp án
+            {t("quiz_result.view_answers", "Xem đáp án")}
           </BounceButton>
         </View>
       </ScrollView>
 
       <ConfirmModal
         visible={showErrorModal}
-        title="Không thể xem đáp án"
+        title={t("quiz_result.review_error_title", "Không thể xem đáp án")}
         message={errorMessage}
         onRequestClose={() => setShowErrorModal(false)}
         buttons={[
-          { label: "Đóng", onPress: () => setShowErrorModal(false), variant: "primary" },
+          {
+            label: t("common.close", "Đóng"),
+            onPress: () => setShowErrorModal(false),
+            variant: "primary",
+          },
         ]}
       />
     </QuizLayout>
