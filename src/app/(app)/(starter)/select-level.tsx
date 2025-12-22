@@ -248,6 +248,22 @@ export default function SelectLevelScreen() {
   const LevelOption = ({ level, label }: { level: Level; label: string }) => {
     const isActive = selected === level;
     const meta = getLevelMeta(level);
+    
+    // Get note for each level
+    const getLevelNote = (level: Level) => {
+      switch (level) {
+        case "N5":
+          return t("auth.select_level.n5_note");
+        case "N4":
+          return t("auth.select_level.n4_note");
+        case "N3":
+          return t("auth.select_level.n3_note");
+        default:
+          return "";
+      }
+    };
+    
+    const note = getLevelNote(level);
 
     return (
       <TouchableOpacity
@@ -283,7 +299,9 @@ export default function SelectLevelScreen() {
           <ThemedText style={{ fontSize: 16 }}>{meta.icon}</ThemedText>
         </View>
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <ThemedText type="defaultSemiBold">{label}</ThemedText>
+          <ThemedText type="defaultSemiBold">
+            {label} {note && `(${note})`}
+          </ThemedText>
         </View>
       </TouchableOpacity>
     );
@@ -401,9 +419,9 @@ export default function SelectLevelScreen() {
         }}
       >
         <View style={{ gap: 12 }}>
-          <LevelOption level="N5" label={t("auth.select_level.n5")} />
-          <LevelOption level="N4" label={t("auth.select_level.n4")} />
-          <LevelOption level="N3" label={t("auth.select_level.n3")} />
+          <LevelOption level="N5" label="N5" />
+          <LevelOption level="N4" label="N4" />
+          <LevelOption level="N3" label="N3" />
 
           {/* Take Placement Test Button */}
           <TouchableOpacity
