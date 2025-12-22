@@ -500,12 +500,10 @@ export default function PlacementTestScreen() {
                     style={{
                       fontSize: 56,
                       color: "#ffffff",
-                      textShadowColor: "rgba(0,0,0,0.2)",
-                      textShadowOffset: { width: 0, height: 2 },
-                      textShadowRadius: 4,
                       paddingHorizontal: 30,
                       paddingVertical: 16,
                       textAlign: "center",
+                      lineHeight: 65,
                     }}
                     numberOfLines={1}
                     adjustsFontSizeToFit
@@ -551,7 +549,7 @@ export default function PlacementTestScreen() {
                   </ThemedText>
                   <ThemedText
                     type="defaultSemiBold"
-                  style={{ fontSize: 24, color: "#111827", flexShrink: 1 }}
+                    style={{ fontSize: 24, color: "#111827", flexShrink: 1 }}
                   >
                     {testResult.totalQuestions}
                   </ThemedText>
@@ -591,11 +589,11 @@ export default function PlacementTestScreen() {
                   </ThemedText>
                   <ThemedText
                     type="defaultSemiBold"
-                  style={{
-                    fontSize: 24,
-                    color: "#10b981",
-                    flexShrink: 1,
-                  }}
+                    style={{
+                      fontSize: 24,
+                      color: "#10b981",
+                      flexShrink: 1,
+                    }}
                   >
                     {testResult.totalCorrect}
                   </ThemedText>
@@ -635,11 +633,11 @@ export default function PlacementTestScreen() {
                   </ThemedText>
                   <ThemedText
                     type="defaultSemiBold"
-                  style={{
-                    fontSize: 24,
-                    color: "#3b82f6",
-                    flexShrink: 1,
-                  }}
+                    style={{
+                      fontSize: 24,
+                      color: "#3b82f6",
+                      flexShrink: 1,
+                    }}
                   >
                     {testResult.percentage.toFixed(1)}%
                   </ThemedText>

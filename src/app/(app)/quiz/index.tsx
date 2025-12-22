@@ -123,9 +123,10 @@ export default function QuizScreen() {
     lessonIdParam ? parseInt(lessonIdParam, 10) : null
   );
   const [isTimerPaused, setIsTimerPaused] = useState(false);
-  const [hasCheckedResume, setHasCheckedResume] = useState(false);
   const [allowNavigate, setAllowNavigate] = useState(false);
   const pendingActionRef = useRef<any>(null);
+  const previousExerciseAttemptIdRef = useRef<string | undefined>(undefined);
+  const isNavigatingToNewExerciseRef = useRef<boolean>(false);
 
   // Current exercise attempt ID - ưu tiên từ BE response, fallback về params
   const currentExerciseAttemptId = useMemo(() => {
@@ -143,6 +144,13 @@ export default function QuizScreen() {
         "Không tìm thấy bài tập. Vui lòng thử lại."
       );
       router.back();
+      return;
+    }
+
+    // Reset resume modal state when starting to load new data
+    // This prevents modal from showing during loading
+    if (isLoadingQuestions) {
+      setShowResumeModal(false);
       return;
     }
 
@@ -168,16 +176,19 @@ export default function QuizScreen() {
         }
 
         // Check if there's a saved session (time > 0 or answeredQuestions > 0)
-        const savedTime = exercise.time || 0;
-        const answeredQuestions = exercise.answeredQuestions || 0;
+        const savedTime = Number(exercise.time) || 0;
+        const answeredQuestions = Number(exercise.answeredQuestions) || 0;
         const hasSavedProgress = savedTime > 0 || answeredQuestions > 0;
 
-        // If there's saved progress and we haven't checked yet, show resume modal
-        // But still load the session in the background
-        if (hasSavedProgress && !hasCheckedResume) {
+        // Only show resume modal if there's actual saved progress
+        // This check happens AFTER data is loaded, so modal won't flash
+        if (hasSavedProgress) {
           setIsTimerPaused(true);
           setShowResumeModal(true);
-          setHasCheckedResume(true);
+        } else {
+          // No saved progress - ensure modal is hidden and timer can start
+          setShowResumeModal(false);
+          setIsTimerPaused(false);
         }
 
         // Restore saved selections from previous session
@@ -265,9 +276,36 @@ export default function QuizScreen() {
     isLoadingQuestions,
     exerciseAttemptId,
     exerciseAttemptIdNumber,
-    hasCheckedResume,
     showError,
   ]);
+
+  // Reset all states when exerciseAttemptId changes
+  // This ensures clean state when navigating to a new exercise
+  useEffect(() => {
+    // Only reset if exerciseAttemptId actually changed
+    if (exerciseAttemptId && exerciseAttemptId !== previousExerciseAttemptIdRef.current) {
+      setIsLoading(true);
+      setShowResumeModal(false);
+      setSession(null);
+      setSelections({});
+      setElapsedSeconds(0);
+      setIsTimerPaused(false);
+      setUnansweredQuestionIds([]);
+      
+      // If we're navigating to a new exercise (from handleStartNewExercise),
+      // allow navigation temporarily to prevent exit modal
+      if (isNavigatingToNewExerciseRef.current) {
+        setAllowNavigate(true);
+        // Reset flag and allowNavigate after navigation completes
+        setTimeout(() => {
+          isNavigatingToNewExerciseRef.current = false;
+          setAllowNavigate(false);
+        }, 500);
+      }
+      
+      previousExerciseAttemptIdRef.current = exerciseAttemptId;
+    }
+  }, [exerciseAttemptId]);
 
   // Timer (count-up, no limit) - pause when modal is shown
   useEffect(() => {
@@ -565,6 +603,10 @@ export default function QuizScreen() {
     }
 
     try {
+      // Reset loading state immediately to show loading screen
+      setIsLoading(true);
+      setShowResumeModal(false);
+      
       const [, createResponse] = await Promise.all([
         continueAndAbandonExerciseAsync({
           exerciseAttemptId: currentExerciseAttemptId.toString(),
@@ -575,6 +617,18 @@ export default function QuizScreen() {
 
       if (createResponse?.data?.id) {
         const newExerciseAttemptId = createResponse.data.id.toString();
+        
+        // Invalidate query cache to ensure fresh data is fetched
+        queryClient.invalidateQueries({
+          queryKey: ["user-exercise-questions"],
+        });
+        
+        // Set flag to indicate we're navigating to a new exercise
+        // This will allow navigation without showing exit modal
+        isNavigatingToNewExerciseRef.current = true;
+        setAllowNavigate(true);
+        
+        // Navigate to new exercise - component will reset state via useEffect
         router.replace({
           pathname: ROUTES.QUIZ.QUIZ,
           params: {
@@ -582,19 +636,15 @@ export default function QuizScreen() {
             lessonId: lessonId?.toString() || "",
           },
         });
-        setShowResumeModal(false);
-        setIsTimerPaused(false);
-        setHasCheckedResume(false);
-        setSelections({});
-        setElapsedSeconds(0);
-        setSession(null);
       } else {
+        setIsLoading(false);
         showError(
           "quiz_screen.alerts.new_attempt_failed",
           "Không thể tạo bài tập mới."
         );
       }
     } catch (error) {
+      setIsLoading(false);
       console.error("Error creating new exercise:", error);
       showError(
         "quiz_screen.alerts.new_attempt_retry_failed",
