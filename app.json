@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Poke Nihongo",
-    "slug": "Poke_Nihongo",
+    "slug": "poke_nihongo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/PokeNihongoLogo.png",
@@ -28,7 +28,7 @@
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "package": "com.adminnn1.PokeNihongo",
-      "useCleartextTraffic": true 
+      "useCleartextTraffic": true
     },
     "web": {
       "bundler": "metro",
@@ -37,7 +37,6 @@
     },
     "plugins": [
       "expo-router",
-      
       [
         "expo-build-properties",
         {
@@ -46,7 +45,6 @@
           }
         }
       ],
-
       [
         "expo-splash-screen",
         {
@@ -72,8 +70,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "21497a63-cf2c-46f5-ab42-139cada98a00"
+        "projectId": "f4d3ff46-9fdd-4cc7-ba46-83a889febace"
       }
-    }
+    },
+    "owner": "phivu113s-organization"
   }
 }
