@@ -259,7 +259,7 @@ interface HistoryCardProps {
   allHistoryItems: IHistoryItem[];
 }
 
-  const HistoryCard = React.memo<HistoryCardProps>(({ item, onPress, t, allHistoryItems }) => {
+const HistoryCard = React.memo<HistoryCardProps>(({ item, onPress, t, allHistoryItems }) => {
   const isTest = !!item.testId;
   const isPlacementTest = useMemo(() => {
     if (!isTest || !item.testType) return false;
@@ -271,6 +271,7 @@ interface HistoryCardProps {
   );
   const scoreColor = useMemo(() => getScoreColor(item.score), [item.score]);
   const hasScore = item.score !== null;
+  const isSkipped = item.status === ExerciseAttemptStatus.SKIPPED;
   
   // Check if there's any previous attempt of the same exercise/test with score >= 80%
   const hasPreviousHighScore = useMemo(() => {
@@ -305,12 +306,16 @@ interface HistoryCardProps {
 
   return (
     <Pressable 
-      onPress={onPress} 
+      onPress={onPress}
+      disabled={isSkipped}
       className="mb-4"
     >
       <LinearGradient
         colors={['#ffffff', '#fafbfc']}
-        style={styles.card}
+        style={[
+          styles.card,
+          isSkipped && { opacity: 0.6 },
+        ]}
         className="rounded-3xl p-5 overflow-hidden shadow-lg"
       >
         {/* Card Header */}
@@ -531,6 +536,10 @@ export default function ExerciseHistoryScreen() {
   }, [currentData, statusFilter]);
 
   const handleItemPress = useCallback((item: IHistoryItem) => {
+    if (item.status === ExerciseAttemptStatus.SKIPPED) {
+      return;
+    }
+
     const isAbandoned = item.status === ExerciseAttemptStatus.ABANDONED;
     const isInProgress = item.status === ExerciseAttemptStatus.IN_PROGRESS;
     const isPlacementTest = item.testId && item.testType && item.testType.toUpperCase().includes('PLACEMENT');
