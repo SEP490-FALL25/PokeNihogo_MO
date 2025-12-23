@@ -871,10 +871,11 @@
     "correct_title": "Correct answers",
     "incorrect_title": "Incorrect answers",
     "time_title": "Time",
-    "time_seconds": "{{number}}s",
+    "time_seconds": "{{seconds}}s",
     "time_minutes_seconds": "{{minutes}}m {{seconds}}s",
     "accuracy_title": "Accuracy",
     "view_answers": "View answers",
+    "message_incomplete": "You submitted but haven't answered all questions.",
     "review_forbidden": "You are not eligible to view the answers.",
     "review_error_title": "Unable to view answers",
     "review_error_default": "Unable to view answers."
@@ -1656,5 +1657,23 @@
     "end_of_list": "All displayed",
     "error_loading_history": "Error loading subscription history",
     "no_history": "No subscription history yet"
+  },
+  "notification": {
+    "default_title": "New Notification",
+    "default_message": "You have a new notification",
+    "reward_received_title": "Reward received!",
+    "reward_received_message": "You received: {{parts}}",
+    "and": " and ",
+    "title": "Notifications",
+    "empty_title": "No notifications yet",
+    "empty_subtitle": "When you learn or receive rewards, notifications will appear here.",
+    "just_now": "Just now",
+    "minutes_ago": "{{count}} minutes ago",
+    "hours_ago": "{{count}} hours ago",
+    "days_ago": "{{count}} days ago",
+    "sparkles": "+{{amount}} Sparkles ✨",
+    "exp": "+{{amount}} EXP 📈",
+    "reward_congrats": "Congratulations! You received {{parts}}.",
+    "date_locale": "en-US"
   }
 }

@@ -40,7 +40,7 @@ type NotificationItem = {
 
 const PAGE_LOAD_DEBOUNCE_MS = 400;
 
-const getNotificationBody = (item: NotificationItem) => {
+const getNotificationBody = (item: NotificationItem, t: any) => {
     let data: any = item.data;
 
     // Parse data if it's a string
@@ -56,13 +56,14 @@ const getNotificationBody = (item: NotificationItem) => {
     if ((item.type === 'REWARD' || item.type === 'EXERCISE' || item.type === 'LESSON' || item.type === 'ACHIEVEMENT' || item.type === 'ATTENDANCE') && data) {
         const parts = [];
         if (data.sparkles?.amount) {
-            parts.push(`+${data.sparkles.amount} Sparkles ✨`);
+            parts.push(t('notification.sparkles', { amount: data.sparkles.amount, defaultValue: `+${data.sparkles.amount} Sparkles ✨` }));
         }
         if (data.exp?.amount) {
-            parts.push(`+${data.exp.amount} EXP 📈`);
+            parts.push(t('notification.exp', { amount: data.exp.amount, defaultValue: `+${data.exp.amount} EXP 📈` }));
         }
         if (parts.length > 0) {
-            return `Chúc mừng! Bạn nhận được ${parts.join(" và ")}.`;
+            const joinedParts = parts.join(t('notification.and', { defaultValue: " và " }));
+            return t('notification.reward_congrats', { parts: joinedParts, defaultValue: `Chúc mừng! Bạn nhận được ${joinedParts}.` });
         }
     }
     return item.body;
@@ -81,7 +82,7 @@ const getNotificationIcon = (type: string) => {
     }
 };
 
-const formatTime = (dateString: string) => {
+const formatTime = (dateString: string, t: any) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -89,12 +90,12 @@ const formatTime = (dateString: string) => {
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return "Vừa xong";
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffMins < 1) return t('notification.just_now', { defaultValue: "Vừa xong" });
+    if (diffMins < 60) return t('notification.minutes_ago', { count: diffMins, defaultValue: `${diffMins} phút trước` });
+    if (diffHours < 24) return t('notification.hours_ago', { count: diffHours, defaultValue: `${diffHours} giờ trước` });
+    if (diffDays < 7) return t('notification.days_ago', { count: diffDays, defaultValue: `${diffDays} ngày trước` });
 
-    return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+    return date.toLocaleDateString(t('notification.date_locale', { defaultValue: "vi-VN" }), { day: "2-digit", month: "2-digit", year: "numeric" });
 };
 
 export default function NotificationsScreen() {
@@ -175,12 +176,12 @@ export default function NotificationsScreen() {
                                 {item.title}
                             </ThemedText>
                             <ThemedText style={styles.itemTime}>
-                                {formatTime(item.createdAt)}
+                                {formatTime(item.createdAt, t)}
                             </ThemedText>
                         </View>
 
                         <ThemedText style={styles.itemBody} numberOfLines={2}>
-                            {getNotificationBody(item)}
+                            {getNotificationBody(item, t)}
                         </ThemedText>
                     </View>
                 </TouchableOpacity>

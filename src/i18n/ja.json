@@ -1148,6 +1148,7 @@
         "time_minutes_seconds": "{{minutes}}分{{seconds}}秒",
         "accuracy_title": "正答率",
         "view_answers": "解答を確認する",
+        "message_incomplete": "未回答の問題がありますが、提出されました。",
         "review_forbidden": "解答を確認する権限がありません。",
         "review_error_title": "解答を表示できません",
         "review_error_default": "解答を表示できません。"
