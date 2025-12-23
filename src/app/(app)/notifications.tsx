@@ -56,14 +56,14 @@ const getNotificationBody = (item: NotificationItem, t: any) => {
     if ((item.type === 'REWARD' || item.type === 'EXERCISE' || item.type === 'LESSON' || item.type === 'ACHIEVEMENT' || item.type === 'ATTENDANCE') && data) {
         const parts = [];
         if (data.sparkles?.amount) {
-            parts.push(t('notification.sparkles', { amount: data.sparkles.amount, defaultValue: `+${data.sparkles.amount} Sparkles ✨` }));
+            parts.push(t('notification.sparkles', { amount: data.sparkles.amount }));
         }
         if (data.exp?.amount) {
-            parts.push(t('notification.exp', { amount: data.exp.amount, defaultValue: `+${data.exp.amount} EXP 📈` }));
+            parts.push(t('notification.exp', { amount: data.exp.amount }));
         }
         if (parts.length > 0) {
-            const joinedParts = parts.join(t('notification.and', { defaultValue: " và " }));
-            return t('notification.reward_congrats', { parts: joinedParts, defaultValue: `Chúc mừng! Bạn nhận được ${joinedParts}.` });
+            const joinedParts = parts.join(t('notification.and'));
+            return t('notification.reward_congrats', { parts: joinedParts });
         }
     }
     return item.body;
@@ -90,12 +90,12 @@ const formatTime = (dateString: string, t: any) => {
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
-    if (diffMins < 1) return t('notification.just_now', { defaultValue: "Vừa xong" });
-    if (diffMins < 60) return t('notification.minutes_ago', { count: diffMins, defaultValue: `${diffMins} phút trước` });
-    if (diffHours < 24) return t('notification.hours_ago', { count: diffHours, defaultValue: `${diffHours} giờ trước` });
-    if (diffDays < 7) return t('notification.days_ago', { count: diffDays, defaultValue: `${diffDays} ngày trước` });
+    if (diffMins < 1) return t('notification.just_now');
+    if (diffMins < 60) return t('notification.minutes_ago', { count: diffMins });
+    if (diffHours < 24) return t('notification.hours_ago', { count: diffHours });
+    if (diffDays < 7) return t('notification.days_ago', { count: diffDays });
 
-    return date.toLocaleDateString(t('notification.date_locale', { defaultValue: "vi-VN" }), { day: "2-digit", month: "2-digit", year: "numeric" });
+    return date.toLocaleDateString(t('notification.date_locale'), { day: "2-digit", month: "2-digit", year: "numeric" });
 };
 
 export default function NotificationsScreen() {
@@ -108,7 +108,6 @@ export default function NotificationsScreen() {
         hasNextPage,
         refetch,
     } = useNotification();
-    console.log("notifications", notifications);
     const { mutate: markAsRead } = useReadNotification();
     const { mutate: readAll } = useReadAllNotifications();
     const router = useRouter();
@@ -216,7 +215,7 @@ export default function NotificationsScreen() {
                     </View>
                 </TouchableOpacity>
                 <ThemedText type="subtitle" style={styles.headerTitle}>
-                    {t("notification.title", "Thông báo")}
+                    {t("notification.title")}
                 </ThemedText>
 
                 {hasUnread ? (
@@ -242,16 +241,10 @@ export default function NotificationsScreen() {
                         <BellOff size={48} color="#9ca3af" />
                     </View>
                     <ThemedText style={styles.emptyTitle}>
-                        {t(
-                            "notification.empty_title",
-                            "Chưa có thông báo nào"
-                        )}
+                        {t("notification.empty_title")}
                     </ThemedText>
                     <ThemedText style={styles.emptySubtitle}>
-                        {t(
-                            "notification.empty_subtitle",
-                            "Khi bạn học hoặc nhận thưởng, thông báo sẽ xuất hiện tại đây."
-                        )}
+                        {t("notification.empty_subtitle")}
                     </ThemedText>
                 </View>
             ) : (
