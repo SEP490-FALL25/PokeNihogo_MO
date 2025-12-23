@@ -35,6 +35,8 @@ const ReadingCard: React.FC<{
   onLockedPress: () => void;
 }> = ({ item, onPress, onLockedPress }) => {
   const isLocked = item.status === "NOT_STARTED";
+  const isUnlimited =
+    item.limit === 0 && (item.test?.limit === 0 || item.test?.limit == null);
   return (
     <TouchableOpacity
       style={[
@@ -75,11 +77,14 @@ const ReadingCard: React.FC<{
 
       <View style={styles.cardFooter}>
         <View style={styles.metaInfo}>
-          {!isLocked && (
-            <ThemedText style={styles.timeText}>
-              {item.limit} / {item.test?.limit}
-            </ThemedText>
-          )}
+          {!isLocked &&
+            (isUnlimited ? (
+              <ThemedText style={styles.timeText}>∞</ThemedText>
+            ) : (
+              <ThemedText style={styles.timeText}>
+                {item.limit} / {item.test?.limit}
+              </ThemedText>
+            ))}
         </View>
       </View>
 

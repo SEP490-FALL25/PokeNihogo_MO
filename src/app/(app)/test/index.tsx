@@ -270,9 +270,9 @@ export default function TestScreen() {
           {
             label: t("common.exit", "Exit"),
             onPress: () => {
+              setShowExitConfirmModal(false);
               setAllowNavigate(true);
               handleExitConfirm();
-              setTimeout(() => setAllowNavigate(false), 0);
             },
             variant: "primary",
           },

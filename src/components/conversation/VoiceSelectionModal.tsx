@@ -16,10 +16,9 @@ import {
 } from "react-native";
 
 export interface VoiceOption {
-  name: string; // Voice name (e.g., "ja-JP-Wavenet-A")
+  name: string;
   ssmlGender?: "MALE" | "FEMALE" | "NEUTRAL";
   languageCode?: string;
-  // For display purposes
   description?: string;
   sampleAudioUrl?: string;
 }
@@ -54,17 +53,17 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
   const [tempSelectedVoiceName, setTempSelectedVoiceName] = useState<string | null>(
     selectedVoiceName || null
   );
+  
+  // Animation values
   const fadeAnim = useMemo(() => new Animated.Value(0), []);
   const scaleAnim = useMemo(() => new Animated.Value(0.9), []);
 
-  // Sync temporary selected voice when modal opens or selectedVoiceName changes
   React.useEffect(() => {
     if (isOpen) {
       setTempSelectedVoiceName(selectedVoiceName || null);
     }
   }, [isOpen, selectedVoiceName]);
 
-  // Handle modal open/close animations
   React.useEffect(() => {
     if (isOpen) {
       setIsSelectOpen(false);
@@ -100,7 +99,6 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
     }
   }, [isOpen, fadeAnim, scaleAnim]);
 
-  // Handle temporary voice selection (for preview only, not confirmed)
   const handleSelectVoice = useCallback((voiceName: string) => {
     setTempSelectedVoiceName(voiceName);
     setIsSelectOpen(false);
@@ -121,19 +119,16 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
     [onPreviewVoice, sampleText, tempSelectedVoiceName]
   );
 
-  // Get selected voice for display and preview
   const selectedVoice = useMemo(() => {
     return voices.find((v) => v.name === tempSelectedVoiceName);
   }, [voices, tempSelectedVoiceName]);
 
-  // Handle confirm - call onSelectVoice to finalize selection
   const handleConfirm = useCallback(() => {
     if (tempSelectedVoiceName) {
       onSelectVoice(tempSelectedVoiceName);
     }
   }, [tempSelectedVoiceName, onSelectVoice]);
 
-  // Handle cancel - call onCancel if provided, otherwise just close
   const handleCancel = useCallback(() => {
     if (onCancel) {
       onCancel();
@@ -142,7 +137,6 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
     }
   }, [onCancel, onClose]);
 
-  // Handle modal close - if no voice selected and onCancel provided, call onCancel
   const handleModalClose = useCallback(() => {
     if (!selectedVoiceName && onCancel) {
       onCancel();
@@ -215,6 +209,8 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
                 contentContainerStyle={styles.contentContainer}
                 bounces={false}
                 nestedScrollEnabled={true}
+                // FIX: Quan trọng để tap hoạt động tốt trong ScrollView trên Android
+                keyboardShouldPersistTaps="handled"
               >
               {isLoading ? (
                 <View style={styles.loadingContainer}>
@@ -239,6 +235,8 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
                     <ThemedText style={styles.formLabel}>
                       {t("home.ai.conversation.voice_label", "Voice")}
                     </ThemedText>
+                    
+                    {/* Select Container */}
                     <View style={styles.selectContainer}>
                       <TouchableOpacity
                         style={[
@@ -270,7 +268,7 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
                         </View>
                       </TouchableOpacity>
                       
-                      {/* Dropdown List */}
+                      {/* Dropdown List - FIX: Relative layout for better scrolling on Android */}
                       {isSelectOpen && (
                         <View style={styles.selectDropdown}>
                           <ScrollView
@@ -278,6 +276,7 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
                             showsVerticalScrollIndicator={true}
                             nestedScrollEnabled={true}
                             bounces={false}
+                            keyboardShouldPersistTaps="handled"
                           >
                             {voices.map((voice) => {
                               const isSelected = tempSelectedVoiceName === voice.name;
@@ -417,10 +416,8 @@ export const VoiceSelectionModal: React.FC<VoiceSelectionModalProps> = ({
   );
 };
 
-// Get screen dimensions for responsive sizing
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-// Calculate modal dimensions based on screen size
 const MODAL_WIDTH = Math.min(SCREEN_WIDTH * 0.9, 400);
 const MODAL_MAX_HEIGHT = Math.min(SCREEN_HEIGHT * 0.85, 650);
 const DROPDOWN_MAX_HEIGHT = Math.min(SCREEN_HEIGHT * 0.3, 250);
@@ -438,7 +435,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     width: MODAL_WIDTH,
     maxHeight: MODAL_MAX_HEIGHT,
-    overflow: "visible",
+    overflow: "hidden", // Safe to use hidden since dropdown is inside
     flexDirection: "column",
   },
   header: {
@@ -467,7 +464,6 @@ const styles = StyleSheet.create({
   },
   contentWrapper: {
     flexShrink: 1,
-    overflow: "visible",
   },
   content: {
     flexShrink: 1,
@@ -487,9 +483,8 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   selectContainer: {
-    position: "relative",
-    zIndex: 10,
     width: "100%",
+    // Removed zIndex/relative to avoid Android layering issues
   },
   selectTrigger: {
     flexDirection: "row",
@@ -537,18 +532,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#6b7280",
   },
+  // FIX: Dropdown is now relative (pushes content down)
   selectDropdown: {
-    position: "absolute",
-    top: "100%",
-    left: 0,
-    right: 0,
     marginTop: 8,
     backgroundColor: "#ffffff",
     borderRadius: 12,
     borderWidth: 2,
     borderColor: "#e5e7eb",
     maxHeight: DROPDOWN_MAX_HEIGHT,
-    zIndex: 1000,
+    width: "100%",
   },
   sampleTextInputContainer: {
     borderWidth: 2,

@@ -463,6 +463,8 @@ export default function AiConversationScreen() {
     null
   );
   const typingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Track preview audio so we can stop it when leaving the screen
+  const previewSoundRef = useRef<Audio.Sound | null>(null);
 
   const clearTranslationTimer = () => {
     if (translationTimeoutRef.current) {
@@ -538,6 +540,22 @@ export default function AiConversationScreen() {
       typingIntervalRef.current = null;
     }
   };
+
+  const stopPreviewSound = useCallback(async () => {
+    if (previewSoundRef.current) {
+      try {
+        await previewSoundRef.current.stopAsync();
+      } catch {
+        // ignore
+      }
+      try {
+        await previewSoundRef.current.unloadAsync();
+      } catch {
+        // ignore
+      }
+      previewSoundRef.current = null;
+    }
+  }, []);
 
   const startTypingAnimation = useCallback(
     (fullText: string | undefined) => {
@@ -1192,6 +1210,8 @@ export default function AiConversationScreen() {
       disconnectSocket();
       clearTranslationTimer();
       clearTypingInterval();
+      // Ensure any preview audio is stopped when leaving the screen
+      stopPreviewSound();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -1322,12 +1342,26 @@ export default function AiConversationScreen() {
           voiceName,
           sampleText,
         });
-        
+
         if (response.data?.audio) {
           // Decode base64 and play audio
           const ext = response.data.audioFormat || "ogg";
           const fileUri = await saveBase64ToFile(response.data.audio, ext);
-          await playAudioFromUri(fileUri);
+
+          // Stop any existing preview sound before starting a new one
+          await stopPreviewSound();
+
+          const { sound } = await Audio.Sound.createAsync(
+            { uri: fileUri },
+            { shouldPlay: true }
+          );
+          previewSoundRef.current = sound;
+          sound.setOnPlaybackStatusUpdate((status: any) => {
+            if (status.isLoaded && status.didJustFinish) {
+              // Auto cleanup when preview finishes
+              stopPreviewSound();
+            }
+          });
         }
       } catch (error) {
         console.error("[VOICE] Error previewing voice:", error);
@@ -1337,7 +1371,7 @@ export default function AiConversationScreen() {
         );
       }
     },
-    [t, showAlert]
+    [t, showAlert, stopPreviewSound]
   );
 
   // Handle voice selection - chỉ lưu voice, không tạo room
@@ -1354,12 +1388,14 @@ export default function AiConversationScreen() {
 
   // Handle cancel voice selection - quay lại màn hình trước nếu chưa có conversation
   const handleVoiceCancel = useCallback(() => {
+    // Stop preview audio when closing the voice selection flow
+    void stopPreviewSound();
     setIsVoiceModalOpen(false);
     // Nếu chưa có conversation và chưa chọn voice, quay lại màn hình trước
     if (!conversationId && !initialConversationId && !selectedVoiceName) {
       router.back();
     }
-  }, [conversationId, initialConversationId, selectedVoiceName]);
+  }, [conversationId, initialConversationId, selectedVoiceName, stopPreviewSound]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#ffffff" }}>
@@ -1923,6 +1959,8 @@ export default function AiConversationScreen() {
             if (!selectedVoiceName && !conversationId && !initialConversationId) {
               handleVoiceCancel();
             } else {
+              // Just close modal and stop any ongoing preview
+              void stopPreviewSound();
               setIsVoiceModalOpen(false);
             }
           }}

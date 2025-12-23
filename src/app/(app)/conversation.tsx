@@ -97,6 +97,7 @@ export default function ConversationScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [recorderKey, setRecorderKey] = useState(0);
   const [messages, setMessages] = useState<Message[]>([]);
   const [nextUserPrompt, setNextUserPrompt] = useState<string | undefined>();
   const [countdown, setCountdown] = useState<number>(0);
@@ -110,6 +111,7 @@ export default function ConversationScreen() {
   const advanceWaitRef = useRef<(() => void) | null>(null);
   const scaleAnim = useState(new Animated.Value(1))[0];
   const opacityAnim = useState(new Animated.Value(1))[0];
+  const currentSoundRef = useRef<Audio.Sound | null>(null);
 
   const DELAY_BETWEEN_MESSAGES_MS = 4000;
 
@@ -188,43 +190,33 @@ export default function ConversationScreen() {
     );
   };
 
-  const playAudio = async (audioUrl: string) => {
-    try {
-      setIsAudioPlaying(true);
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: audioUrl },
-        { shouldPlay: true }
-      );
-      
-      // Wait for audio to finish
-      await new Promise<void>((resolve) => {
-        const statusUpdateHandler = (status: any) => {
-          if (status.isLoaded) {
-            if (status.didJustFinish || !status.isPlaying) {
-              sound.unloadAsync();
-              setIsAudioPlaying(false);
-              resolve();
-            }
-          }
-        };
-        
-        sound.setOnPlaybackStatusUpdate(statusUpdateHandler);
-        
-        // Fallback timeout to prevent infinite waiting (30 seconds max)
-        setTimeout(() => {
-          sound.unloadAsync();
-          setIsAudioPlaying(false);
-          resolve();
-        }, 30000);
-      });
-    } catch {
-      setIsAudioPlaying(false);
+  const stopCurrentSound = useCallback(async () => {
+    if (currentSoundRef.current) {
+      try {
+        await currentSoundRef.current.stopAsync();
+      } catch {
+        // ignore
+      }
+      try {
+        await currentSoundRef.current.unloadAsync();
+      } catch {
+        // ignore
+      }
+      currentSoundRef.current = null;
     }
-  };
+  }, []);
+
 
   const { data: testData, isLoading: isLoadingTest } = useTestFullUser(
     topicId ? String(topicId) : null
   );
+
+  useEffect(() => {
+    return () => {
+      // Ensure any playing audio is stopped when leaving the screen
+      void stopCurrentSound();
+    };
+  }, [stopCurrentSound]);
 
   useEffect(() => {
     if (topicId && testData) {
@@ -258,6 +250,45 @@ export default function ConversationScreen() {
   }, [isLoadingTest]);
 
   const startSequence = useCallback(async () => {
+    const playAudio = async (audioUrl: string) => {
+      try {
+        setIsAudioPlaying(true);
+
+        // Stop any currently playing sound before starting a new one
+        await stopCurrentSound();
+
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: audioUrl },
+          { shouldPlay: true }
+        );
+        currentSoundRef.current = sound;
+
+        // Wait for audio to finish
+        await new Promise<void>((resolve) => {
+          const statusUpdateHandler = async (status: any) => {
+            if (status.isLoaded) {
+              if (status.didJustFinish || !status.isPlaying) {
+                await stopCurrentSound();
+                setIsAudioPlaying(false);
+                resolve();
+              }
+            }
+          };
+
+          sound.setOnPlaybackStatusUpdate(statusUpdateHandler);
+
+          // Fallback timeout to prevent infinite waiting (30 seconds max)
+          setTimeout(async () => {
+            await stopCurrentSound();
+            setIsAudioPlaying(false);
+            resolve();
+          }, 30000);
+        });
+      } catch {
+        setIsAudioPlaying(false);
+      }
+    };
+
     if (!queuedQuestions?.length) return;
     setIsSequencing(true);
     setMessages([]);
@@ -303,7 +334,7 @@ export default function ConversationScreen() {
       }
     }
     setIsSequencing(false);
-  }, [queuedQuestions, DELAY_BETWEEN_MESSAGES_MS]);
+  }, [queuedQuestions, DELAY_BETWEEN_MESSAGES_MS, stopCurrentSound]);
 
   useEffect(() => {
     if (countdown <= 0 || isSequencing) return;
@@ -912,6 +943,7 @@ export default function ConversationScreen() {
 
           <View>
             <VoiceRecorder
+              key={recorderKey}
               onRecordingComplete={(uri: string, _duration: number) => {
                 handleRecordingComplete(uri, _duration);
               }}
@@ -950,9 +982,17 @@ export default function ConversationScreen() {
             {awaitingUser && !isRecording && !isSubmitting ? (
               <View style={{ alignItems: "center", marginTop: 8 }}>
                 <TouchableOpacity
-                  onPress={() =>
-                    advanceWaitRef.current && advanceWaitRef.current()
-                  }
+                  onPress={() => {
+                    if (advanceWaitRef.current) {
+                      advanceWaitRef.current();
+                    }
+                    // Reset recorder state to clear previous voice UI
+                    setRecorderKey((k) => k + 1);
+                    // Xóa feedback/text cũ ở dưới
+                    setFeedbackText(undefined);
+                    setFeedbackWords([]);
+                    setNextUserPrompt(undefined);
+                  }}
                   style={{
                     paddingVertical: 10,
                     paddingHorizontal: 16,

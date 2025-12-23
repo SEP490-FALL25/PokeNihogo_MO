@@ -473,7 +473,6 @@ export default function DictionaryScreen() {
 
   // Handle blur search input
   const handleBlurSearch = useCallback(() => {
-    setTimeout(() => setIsFocused(false), 200);
   }, []);
 
   // Handle focus search input
@@ -505,11 +504,6 @@ export default function DictionaryScreen() {
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
       (e) => {
         setKeyboardHeight(e.endCoordinates.height);
-        // Auto-hide dropdown when keyboard appears to avoid overlap
-        if (isFocused) {
-          setIsFocused(false);
-          searchInputRef.current?.blur();
-        }
       }
     );
     const keyboardWillHideListener = Keyboard.addListener(
@@ -645,24 +639,6 @@ export default function DictionaryScreen() {
             </View>
           </View>
 
-          {/* JLPT Section */}
-          <View className="mb-6">
-            <Text className="text-lg font-semibold text-gray-900 mb-3">
-              JLPT
-            </Text>
-            <View className="flex-row flex-wrap">
-              {JLPT_LEVELS.map((level) => (
-                <TouchableOpacity
-                  key={level}
-                  className="bg-gray-100 rounded-full px-4 py-2 mr-2 mb-2"
-                  activeOpacity={0.7}
-                >
-                  <Text className="text-base text-gray-900">{level}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
           {/* Empty State when no history */}
           {searchHistory.length === 0 && (
             <View className="items-center justify-center py-12">
@@ -704,7 +680,8 @@ export default function DictionaryScreen() {
           style={[
             styles.dropdownWrapper,
             {
-              top: searchBarY + 4,
+              // Tạo khoảng cách rõ ràng hơn giữa ô tìm kiếm và dropdown
+              top: searchBarY + (Platform.OS === "ios" ? 70 : 40),
               maxHeight: dropdownMaxHeight,
             },
           ]}
