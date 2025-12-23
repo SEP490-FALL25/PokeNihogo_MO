@@ -1,12 +1,12 @@
 import React from 'react';
 import {
-    Modal,
-    StyleSheet,
-    Text,
-    TextStyle,
-    TouchableOpacity,
-    View,
-    ViewStyle,
+  Modal,
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from 'react-native';
 
 /**
@@ -49,6 +49,8 @@ export interface ConfirmModalProps {
   messageStyle?: TextStyle;
   /** Animation type for modal appearance */
   animationType?: 'fade' | 'slide' | 'none';
+  /** Direction of buttons */
+  buttonDirection?: 'row' | 'column';
 }
 
 /**
@@ -79,21 +81,22 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   titleStyle,
   messageStyle,
   animationType = 'fade',
+  buttonDirection = 'row',
 }) => {
   const defaultButtons: ConfirmModalButton[] = buttons.length
     ? buttons
     : [
-        {
-          label: 'Hủy',
-          onPress: onRequestClose || (() => {}),
-          variant: 'secondary',
-        },
-        {
-          label: 'Xác nhận',
-          onPress: onRequestClose || (() => {}),
-          variant: 'primary',
-        },
-      ];
+      {
+        label: 'Hủy',
+        onPress: onRequestClose || (() => { }),
+        variant: 'secondary',
+      },
+      {
+        label: 'Xác nhận',
+        onPress: onRequestClose || (() => { }),
+        variant: 'primary',
+      },
+    ];
 
   const getButtonStyle = (
     variant: ConfirmModalButton['variant'] = 'primary'
@@ -131,18 +134,19 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       <View style={[styles.overlay, { backgroundColor: `rgba(0, 0, 0, ${overlayOpacity})` }]}>
         <View style={[styles.content, contentStyle]}>
           <Text style={[styles.title, titleStyle]}>{title}</Text>
-          
+
           {message && (
             <Text style={[styles.message, messageStyle]}>{message}</Text>
           )}
 
-          <View style={styles.buttons}>
+          <View style={[styles.buttons, { flexDirection: buttonDirection }]}>
             {defaultButtons.map((button, index) => (
               <TouchableOpacity
                 key={index}
                 style={[
                   ...getButtonStyle(button.variant),
                   button.disabled && styles.buttonDisabled,
+                  buttonDirection === 'column' && { width: '100%', flex: 0 },
                 ]}
                 onPress={button.onPress}
                 activeOpacity={0.8}
@@ -173,7 +177,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     width: '85%',
-    maxWidth: 400,},
+    maxWidth: 400,
+  },
   title: {
     fontSize: 22,
     fontWeight: '700',

@@ -291,7 +291,7 @@ export default function QuizScreen() {
       setElapsedSeconds(0);
       setIsTimerPaused(false);
       setUnansweredQuestionIds([]);
-      
+
       // If we're navigating to a new exercise (from handleStartNewExercise),
       // allow navigation temporarily to prevent exit modal
       if (isNavigatingToNewExerciseRef.current) {
@@ -302,7 +302,7 @@ export default function QuizScreen() {
           setAllowNavigate(false);
         }, 500);
       }
-      
+
       previousExerciseAttemptIdRef.current = exerciseAttemptId;
     }
   }, [exerciseAttemptId]);
@@ -422,11 +422,17 @@ export default function QuizScreen() {
         time: totalTimeSpent,
       },
       {
+        onSettled: () => {
+          // Always invalidate relevant queries to ensure data consistency
+          queryClient.invalidateQueries({ queryKey: ["wallet-user"] });
+          queryClient.invalidateQueries({ queryKey: ["user-profile"] });
+          queryClient.invalidateQueries({ queryKey: ["user-exercise-attempt-latest"] });
+          queryClient.invalidateQueries({ queryKey: ["user-lessons-infinite"] });
+        },
         onSuccess: (response) => {
           // Allow navigation when submitting successfully (normal flow)
           setAllowNavigate(true);
           // Navigate to result screen with response data
-          queryClient.invalidateQueries({ queryKey: ["wallet-user"] });
           if (response.data) {
             // Pass data as JSON string in params
             router.replace({
@@ -606,7 +612,7 @@ export default function QuizScreen() {
       // Reset loading state immediately to show loading screen
       setIsLoading(true);
       setShowResumeModal(false);
-      
+
       const [, createResponse] = await Promise.all([
         continueAndAbandonExerciseAsync({
           exerciseAttemptId: currentExerciseAttemptId.toString(),
@@ -617,17 +623,17 @@ export default function QuizScreen() {
 
       if (createResponse?.data?.id) {
         const newExerciseAttemptId = createResponse.data.id.toString();
-        
+
         // Invalidate query cache to ensure fresh data is fetched
         queryClient.invalidateQueries({
           queryKey: ["user-exercise-questions"],
         });
-        
+
         // Set flag to indicate we're navigating to a new exercise
         // This will allow navigation without showing exit modal
         isNavigatingToNewExerciseRef.current = true;
         setAllowNavigate(true);
-        
+
         // Navigate to new exercise - component will reset state via useEffect
         router.replace({
           pathname: ROUTES.QUIZ.QUIZ,
@@ -804,21 +810,9 @@ export default function QuizScreen() {
           "quiz_screen.modals.resume.message",
           "Bạn có bài làm đã lưu trước đó. Bạn muốn tiếp tục bài làm cũ hay làm lại bài mới?"
         )}
-        onRequestClose={() => {}}
+        onRequestClose={() => { }}
+        buttonDirection="column"
         buttons={[
-          {
-            label: t(
-              "quiz_screen.modals.resume.new_attempt",
-              "Làm lại bài mới"
-            ),
-            onPress: handleStartNewExercise,
-            variant: "secondary",
-            disabled: isCreatingNew,
-            loadingText: t(
-              "quiz_screen.modals.resume.creating",
-              "Đang tạo..."
-            ),
-          },
           {
             label: t(
               "quiz_screen.modals.resume.continue",
@@ -830,6 +824,19 @@ export default function QuizScreen() {
             loadingText: t(
               "quiz_screen.modals.resume.loading",
               "Đang tải..."
+            ),
+          },
+          {
+            label: t(
+              "quiz_screen.modals.resume.new_attempt",
+              "Làm lại bài mới"
+            ),
+            onPress: handleStartNewExercise,
+            variant: "secondary",
+            disabled: isCreatingNew,
+            loadingText: t(
+              "quiz_screen.modals.resume.creating",
+              "Đang tạo..."
             ),
           },
         ]}

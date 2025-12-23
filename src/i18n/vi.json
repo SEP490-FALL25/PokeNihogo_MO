@@ -875,6 +875,7 @@
     "time_minutes_seconds": "{{minutes}}m {{seconds}}s",
     "accuracy_title": "Tỉ lệ đúng",
     "view_answers": "Xem đáp án",
+    "message_incomplete": "Bạn đã nộp bài nhưng chưa trả lời đủ câu hỏi",
     "review_forbidden": "Bạn không đủ điều kiện để xem đáp án",
     "review_error_title": "Không thể xem đáp án",
     "review_error_default": "Không thể xem đáp án"
@@ -1669,5 +1670,23 @@
     "end_of_list": "Đã hiển thị tất cả",
     "error_loading_history": "Có lỗi xảy ra khi tải lịch sử",
     "no_history": "Chưa có lịch sử đăng ký"
+  },
+  "notification": {
+    "default_title": "Thông báo mới",
+    "default_message": "Bạn có thông báo mới",
+    "reward_received_title": "Nhận thưởng thành công!",
+    "reward_received_message": "Bạn nhận được: {{parts}}",
+    "and": " và ",
+    "title": "Thông báo",
+    "empty_title": "Chưa có thông báo nào",
+    "empty_subtitle": "Khi bạn học hoặc nhận thưởng, thông báo sẽ xuất hiện tại đây.",
+    "just_now": "Vừa xong",
+    "minutes_ago": "{{count}} phút trước",
+    "hours_ago": "{{count}} giờ trước",
+    "days_ago": "{{count}} ngày trước",
+    "sparkles": "+{{amount}} Sparkles ✨",
+    "exp": "+{{amount}} EXP 📈",
+    "reward_congrats": "Chúc mừng! Bạn nhận được {{parts}}.",
+    "date_locale": "vi-VN"
   }
 }

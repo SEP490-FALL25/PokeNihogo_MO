@@ -239,7 +239,15 @@ export default function QuizResultScreen() {
   const statusMessage = useMemo(() => {
     if (!result)
       return t("quiz_result.not_found_message", "Không tìm thấy kết quả quiz");
-    if (message) return message;
+
+    // Check incomplete first
+    if (result.answeredQuestions < result.totalQuestions) {
+      return t(
+        "quiz_result.message_incomplete",
+        "Bạn đã nộp bài nhưng chưa trả lời đủ câu hỏi"
+      );
+    }
+
     if (result.status === QuizCompletionStatus.FAILED) {
       return t(
         "quiz_result.message_failed",
@@ -252,6 +260,9 @@ export default function QuizResultScreen() {
         "Chúc mừng! Bạn đã trả lời đúng tất cả các câu hỏi!"
       );
     }
+
+    if (message) return message;
+
     return t("quiz_result.message_default", "Bạn đã hoàn thành bài tập");
   }, [message, result, t]);
 
@@ -500,7 +511,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginTop: 10,
     marginBottom: 18,
-    backgroundColor: "rgba(255,255,255,0.92)",},
+    backgroundColor: "rgba(255,255,255,0.92)",
+  },
   tileRow: {
     width: "100%",
     flexDirection: "row",

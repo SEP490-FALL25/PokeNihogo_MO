@@ -1148,6 +1148,7 @@
         "time_minutes_seconds": "{{minutes}}分{{seconds}}秒",
         "accuracy_title": "正答率",
         "view_answers": "解答を確認する",
+        "message_incomplete": "未回答の問題がありますが、提出されました。",
         "review_forbidden": "解答を確認する権限がありません。",
         "review_error_title": "解答を表示できません",
         "review_error_default": "解答を表示できません。"
@@ -1566,5 +1567,23 @@
         "default_title": "データがありません",
         "default_description": "現在表示できるデータはありません",
         "footer_message": "🎮 学習の旅を続けましょう！"
+    },
+    "notification": {
+        "default_title": "新しい通知",
+        "default_message": "新しい通知があります",
+        "reward_received_title": "報酬を受け取りました！",
+        "reward_received_message": "獲得: {{parts}}",
+        "and": "と",
+        "title": "通知",
+        "empty_title": "まだ通知はありません",
+        "empty_subtitle": "学習や報酬を獲得すると、ここに通知が表示されます。",
+        "just_now": "たった今",
+        "minutes_ago": "{{count}}分前",
+        "hours_ago": "{{count}}時間前",
+        "days_ago": "{{count}}日前",
+        "sparkles": "+{{amount}} スパークル ✨",
+        "exp": "+{{amount}} EXP 📈",
+        "reward_congrats": "おめでとうございます！ {{parts}} を獲得しました。",
+        "date_locale": "ja-JP"
     }
 }
