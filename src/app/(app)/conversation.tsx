@@ -107,6 +107,8 @@ export default function ConversationScreen() {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const [feedbackText, setFeedbackText] = useState<string | undefined>();
   const [feedbackWords, setFeedbackWords] = useState<FeedbackWord[]>([]);
+  // Track which message's audio is currently playing
+  const [currentlyPlayingMessageId, setCurrentlyPlayingMessageId] = useState<string | null>(null);
 
   const advanceWaitRef = useRef<(() => void) | null>(null);
   const scaleAnim = useState(new Animated.Value(1))[0];
@@ -927,6 +929,25 @@ export default function ConversationScreen() {
                                 }
                               : undefined
                           }
+                          onPlayStart={() => {
+                            // Set this message as currently playing, which will stop other audio players
+                            setCurrentlyPlayingMessageId(m.id);
+                          }}
+                          onPlayEnd={() => {
+                            // Reset if this was the currently playing message
+                            // Don't reset if it's the special stop-all value
+                            if (
+                              currentlyPlayingMessageId === m.id &&
+                              currentlyPlayingMessageId !== "__STOP_ALL__"
+                            ) {
+                              setCurrentlyPlayingMessageId(null);
+                            }
+                          }}
+                          shouldStop={
+                            currentlyPlayingMessageId === "__STOP_ALL__" ||
+                            (currentlyPlayingMessageId !== null &&
+                              currentlyPlayingMessageId !== m.id)
+                          }
                         />
                       </View>
                     ) : null}
@@ -951,6 +972,12 @@ export default function ConversationScreen() {
                 setIsRecording(true);
                 setFeedbackText(undefined);
                 setFeedbackWords([]);
+                // Stop all currently playing audio when recording starts
+                setCurrentlyPlayingMessageId("__STOP_ALL__");
+                // Reset the stop-all flag after a short delay to allow all audio players to stop
+                setTimeout(() => {
+                  setCurrentlyPlayingMessageId(null);
+                }, 100);
               }}
               onRecordingStop={() => {
                 setIsRecording(false);

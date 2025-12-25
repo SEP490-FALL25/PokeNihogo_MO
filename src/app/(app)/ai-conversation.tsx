@@ -465,6 +465,8 @@ export default function AiConversationScreen() {
   const typingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Track preview audio so we can stop it when leaving the screen
   const previewSoundRef = useRef<Audio.Sound | null>(null);
+  // Track which message's audio is currently playing
+  const [currentlyPlayingMessageId, setCurrentlyPlayingMessageId] = useState<string | null>(null);
 
   const clearTranslationTimer = () => {
     if (translationTimeoutRef.current) {
@@ -814,6 +816,25 @@ export default function AiConversationScreen() {
                       }
                     : undefined
                 }
+                onPlayStart={() => {
+                  // Set this message as currently playing, which will stop other audio players
+                  setCurrentlyPlayingMessageId(item.id);
+                }}
+                onPlayEnd={() => {
+                  // Reset if this was the currently playing message
+                  // Don't reset if it's the special stop-all value
+                  if (
+                    currentlyPlayingMessageId === item.id &&
+                    currentlyPlayingMessageId !== "__STOP_ALL__"
+                  ) {
+                    setCurrentlyPlayingMessageId(null);
+                  }
+                }}
+                shouldStop={
+                  currentlyPlayingMessageId === "__STOP_ALL__" ||
+                  (currentlyPlayingMessageId !== null &&
+                    currentlyPlayingMessageId !== item.id)
+                }
               />
             </View>
           </View>
@@ -825,7 +846,7 @@ export default function AiConversationScreen() {
         </View>
       );
     },
-    [user]
+    [user, currentlyPlayingMessageId]
   );
 
   const keyExtractor = useCallback((item: Message) => item.id, []);
@@ -1862,6 +1883,12 @@ export default function AiConversationScreen() {
               }}
               onRecordingStart={() => {
                 setProcessingStatus(undefined);
+                // Stop all currently playing audio when recording starts
+                setCurrentlyPlayingMessageId("__STOP_ALL__");
+                // Reset the stop-all flag after a short delay to allow all audio players to stop
+                setTimeout(() => {
+                  setCurrentlyPlayingMessageId(null);
+                }, 100);
               }}
               exerciseTitle={isSubmitting ? <AnimatedDots /> : processingStatus}
               showPlayback={false}

@@ -11,11 +11,14 @@ import { Animated, Easing, TouchableOpacity, View } from "react-native";
 // ============================================================================
 interface AudioPlayerProps {
   audioUrl?: string | null;
+  onPlayStart?: () => void;
+  onPlayEnd?: () => void;
   onPlaybackStatusUpdate?: (status: any) => void;
   style?: any;
   buttonStyle?: any;
   disabled?: boolean;
   iconColor?: string;
+  shouldStop?: boolean;
 }
 
 // ============================================================================
@@ -23,11 +26,14 @@ interface AudioPlayerProps {
 // ============================================================================
 export default function AudioPlayer({
   audioUrl,
+  onPlayStart,
+  onPlayEnd,
   onPlaybackStatusUpdate,
   style,
   buttonStyle,
   disabled = false,
   iconColor = "#3b82f6",
+  shouldStop = false,
 }: AudioPlayerProps) {
   // ============================================================================
   // STATE & REFS

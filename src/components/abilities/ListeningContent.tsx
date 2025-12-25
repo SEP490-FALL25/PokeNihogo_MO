@@ -34,34 +34,44 @@ const ListeningCard: React.FC<{
   onPress: () => void;
   onLockedPress: () => void;
 }> = ({ item, onPress, onLockedPress }) => {
+  const { t } = useTranslation();
   const isLocked = item.status === "NOT_STARTED";
+  // LockOverlay chỉ hiển thị khi bài có status INACTIVE và price = 1 (không áp dụng cho price = 0)
+  const shouldShowLockOverlay =
+    item.status === "NOT_STARTED" && item.test?.price === 1;
   const isUnlimited =
     item.limit === 0 && (item.test?.limit === 0 || item.test?.limit == null);
+  const isExhausted = !isUnlimited && item.limit === 0 && item.test?.limit > 0;
+  const isDisabled = isExhausted; // Chỉ disable khi exhausted, không disable khi locked
+  // Chỉ áp dụng locked style khi có LockOverlay (price = 1), không áp dụng cho price = 0
+  const shouldApplyLockedStyle = shouldShowLockOverlay;
+  
   return (
     <TouchableOpacity
       style={[
         styles.card,
         { borderLeftColor: LISTENING_ACCENT },
-        isLocked && styles.lockedCard,
+        shouldApplyLockedStyle && styles.lockedCard,
       ]}
-      onPress={isLocked ? onLockedPress : onPress}
-      activeOpacity={0.8}
+      onPress={isLocked ? onLockedPress : isExhausted ? undefined : onPress}
+      activeOpacity={isExhausted ? 1 : 0.8}
+      disabled={isDisabled}
     >
       <View style={styles.cardHeader}>
         <View
           style={[
             styles.iconContainer,
             { backgroundColor: "#10b981" },
-            isLocked && styles.lockedIconContainer,
+            shouldApplyLockedStyle && styles.lockedIconContainer,
           ]}
         >
-          <HeadphonesIcon size={24} color={isLocked ? "#9ca3af" : "#ffffff"} />
+          <HeadphonesIcon size={24} color={shouldApplyLockedStyle ? "#9ca3af" : "#ffffff"} />
         </View>
         <View style={styles.exerciseInfo}>
           <View style={styles.materialHeaderRow}>
             <ThemedText
               type="subtitle"
-              style={[styles.exerciseTitle, isLocked && styles.lockedText]}
+              style={[styles.exerciseTitle, shouldApplyLockedStyle && styles.lockedText]}
             >
               {item.test?.name}
             </ThemedText>
@@ -76,20 +86,23 @@ const ListeningCard: React.FC<{
 
       <View style={styles.cardFooter}>
         <View style={styles.metaInfo}>
-          {!isLocked &&
-            (isUnlimited ? (
-              <ThemedText style={styles.durationText}>∞</ThemedText>
-            ) : (
-              <ThemedText style={styles.durationText}>
-                {item.limit} / {item.test?.limit}
-              </ThemedText>
-            ))}
+          {(isUnlimited ? (
+            <ThemedText style={styles.durationText}>∞</ThemedText>
+          ) : isExhausted ? (
+            <ThemedText style={[styles.durationText, styles.exhaustedText]}>
+              {t("listening.out_of_attempts", "Đã hết lượt")}
+            </ThemedText>
+          ) : (
+            <ThemedText style={styles.durationText}>
+              {item.limit} / {item.test?.limit}
+            </ThemedText>
+          ))}
         </View>
       </View>
 
-      {isLocked && (
+      {shouldShowLockOverlay && (
         <LockOverlay
-          isVisible={isLocked}
+          isVisible={shouldShowLockOverlay}
           pokemonImageUri="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
           pokemonImageSize={70}
           particlePalette={LISTENING_PARTICLE_PALETTE}
@@ -376,5 +389,9 @@ const styles = StyleSheet.create({
   },
   lockedText: {
     color: "#9ca3af",
+  },
+  exhaustedText: {
+    color: "#ef4444",
+    fontWeight: "600",
   },
 });

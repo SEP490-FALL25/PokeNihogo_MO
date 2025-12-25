@@ -34,26 +34,36 @@ const ReadingCard: React.FC<{
   onPress: () => void;
   onLockedPress: () => void;
 }> = ({ item, onPress, onLockedPress }) => {
+  const { t } = useTranslation();
   const isLocked = item.status === "NOT_STARTED";
+  // LockOverlay chỉ hiển thị khi bài có status INACTIVE và price = 1 (không áp dụng cho price = 0)
+  const shouldShowLockOverlay =
+    item.status === "NOT_STARTED" && item.test?.price === 1;
   const isUnlimited =
     item.limit === 0 && (item.test?.limit === 0 || item.test?.limit == null);
+  const isExhausted = !isUnlimited && item.limit === 0 && item.test?.limit > 0;
+  const isDisabled = isExhausted; // Chỉ disable khi exhausted, không disable khi locked
+  // Chỉ áp dụng locked style khi có LockOverlay (price = 1), không áp dụng cho price = 0
+  const shouldApplyLockedStyle = shouldShowLockOverlay;
+  
   return (
     <TouchableOpacity
       style={[
         styles.card, 
         { borderLeftColor: READING_ACCENT },
-        isLocked && styles.lockedCard
+        shouldApplyLockedStyle && styles.lockedCard
       ]}
-      onPress={isLocked ? onLockedPress : onPress}
-      activeOpacity={0.8}
+      onPress={isLocked ? onLockedPress : isExhausted ? undefined : onPress}
+      activeOpacity={isExhausted ? 1 : 0.8}
+      disabled={isDisabled}
     >
       <View style={styles.cardHeader}>
         <View style={[
           styles.iconContainer, 
           { backgroundColor: "#3b82f6" },
-          isLocked && styles.lockedIconContainer
+          shouldApplyLockedStyle && styles.lockedIconContainer
         ]}>
-          <BookOpen size={24} color={isLocked ? "#9ca3af" : "#ffffff"} />
+          <BookOpen size={24} color={shouldApplyLockedStyle ? "#9ca3af" : "#ffffff"} />
         </View>
         <View style={styles.materialInfo}>
           <View style={styles.materialHeaderRow}>
@@ -61,7 +71,7 @@ const ReadingCard: React.FC<{
               type="subtitle" 
               style={[
                 styles.materialTitle,
-                isLocked && styles.lockedText
+                shouldApplyLockedStyle && styles.lockedText
               ]}
             >
               {item.test?.name}
@@ -77,21 +87,24 @@ const ReadingCard: React.FC<{
 
       <View style={styles.cardFooter}>
         <View style={styles.metaInfo}>
-          {!isLocked &&
-            (isUnlimited ? (
-              <ThemedText style={styles.timeText}>∞</ThemedText>
-            ) : (
-              <ThemedText style={styles.timeText}>
-                {item.limit} / {item.test?.limit}
-              </ThemedText>
-            ))}
+          {(isUnlimited ? (
+            <ThemedText style={styles.timeText}>∞</ThemedText>
+          ) : isExhausted ? (
+            <ThemedText style={[styles.timeText, styles.exhaustedText]}>
+              {t("reading.out_of_attempts", "Đã hết lượt")}
+            </ThemedText>
+          ) : (
+            <ThemedText style={styles.timeText}>
+              {item.limit} / {item.test?.limit}
+            </ThemedText>
+          ))}
         </View>
       </View>
 
-      {isLocked && (
+      {shouldShowLockOverlay && (
         <LockOverlay
-          isVisible={isLocked}
-          pokemonImageUri="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png"
+          isVisible={shouldShowLockOverlay}
+          pokemonImageUri="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png"
           pokemonImageSize={70}
           particlePalette={READING_PARTICLE_PALETTE}
         />
@@ -374,6 +387,10 @@ const styles = StyleSheet.create({
   },
   lockedText: {
     color: "#9ca3af",
+  },
+  exhaustedText: {
+    color: "#ef4444",
+    fontWeight: "600",
   },
 });
 
