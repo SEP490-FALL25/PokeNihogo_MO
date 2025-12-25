@@ -75,7 +75,7 @@ const SpeakingCard: React.FC<{
         </View>
       </View>
 
-      <View style={styles.cardFooter}>
+      {/* <View style={styles.cardFooter}>
         <View style={styles.metaInfo}>
           {!isLocked &&
             (isUnlimited ? (
@@ -86,7 +86,7 @@ const SpeakingCard: React.FC<{
               </ThemedText>
             ))}
         </View>
-      </View>
+      </View> */}
 
       {isLocked && (
         <LockOverlay

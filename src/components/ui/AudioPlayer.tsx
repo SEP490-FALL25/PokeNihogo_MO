@@ -16,6 +16,9 @@ interface AudioPlayerProps {
   buttonStyle?: any;
   disabled?: boolean;
   iconColor?: string;
+  onPlayStart?: () => void;
+  onPlayEnd?: () => void;
+  shouldStop?: boolean;
 }
 
 // ============================================================================
@@ -28,6 +31,9 @@ export default function AudioPlayer({
   buttonStyle,
   disabled = false,
   iconColor = "#3b82f6",
+  onPlayStart,
+  onPlayEnd,
+  shouldStop = false,
 }: AudioPlayerProps) {
   // ============================================================================
   // STATE & REFS
@@ -73,6 +79,8 @@ export default function AudioPlayer({
           // Handle audio completion
           if (status.isLoaded && status.didJustFinish) {
             setIsPlaying(false);
+            // Notify parent that playback ended
+            onPlayEnd?.();
             // Cleanup audio for replay capability
             setTimeout(() => {
               newSound.unloadAsync();
@@ -103,6 +111,8 @@ export default function AudioPlayer({
   const playAudio = async () => {
     // If no sound or sound was cleaned up, load and play immediately
     if (!sound) {
+      // Notify parent that we're starting to play (so it can stop other audio)
+      onPlayStart?.();
       await loadAudio(true); // Autoplay after loading
       return;
     }
@@ -111,7 +121,11 @@ export default function AudioPlayer({
       if (isPlaying) {
         await sound.pauseAsync();
         setIsPlaying(false);
+        // Notify parent that playback ended (user paused)
+        onPlayEnd?.();
       } else {
+        // Notify parent that we're starting to play (so it can stop other audio)
+        onPlayStart?.();
         await sound.playAsync();
         setIsPlaying(true);
       }
@@ -119,8 +133,23 @@ export default function AudioPlayer({
       console.error("Error playing audio:", error);
       // Reset state on error
       setIsPlaying(false);
+      onPlayEnd?.();
     }
   };
+
+  /**
+   * Effect to handle external stop request
+   */
+  React.useEffect(() => {
+    if (shouldStop && sound && isPlaying) {
+      sound.pauseAsync().catch((error) => {
+        console.error("Error stopping audio:", error);
+      });
+      setIsPlaying(false);
+      // Notify parent that playback ended (stopped by another audio)
+      onPlayEnd?.();
+    }
+  }, [shouldStop, sound, isPlaying, onPlayEnd]);
 
   /**
    * Animation effect for playing state - creates pulsing animation

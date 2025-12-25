@@ -168,7 +168,8 @@
     "tip_1": "Start with simple texts and gradually increase difficulty",
     "tip_2": "Look up unknown words but try to guess meaning from context first",
     "tip_3": "Read aloud to improve pronunciation and rhythm",
-    "tip_4": "Practice reading different types of texts (news, stories, etc.)"
+    "tip_4": "Practice reading different types of texts (news, stories, etc.)",
+    "out_of_attempts": "Out of attempts"
   },
   "listening": {
     "title": "Listening Practice",
@@ -184,7 +185,8 @@
     "tip_3": "Use subtitles initially, then try without them",
     "tip_4": "Practice with different accents and speaking speeds",
     "controls_title": "Audio Controls",
-    "controls_hint": "Tap any exercise above to start listening practice"
+    "controls_hint": "Tap any exercise above to start listening practice",
+    "out_of_attempts": "Out of attempts"
   },
   "speaking": {
     "title": "Speaking Practice",

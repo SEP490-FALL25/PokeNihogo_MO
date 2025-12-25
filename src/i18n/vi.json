@@ -168,7 +168,8 @@
     "tip_1": "Bắt đầu với văn bản đơn giản và tăng dần độ khó",
     "tip_2": "Tra từ chưa biết nhưng hãy thử đoán nghĩa từ ngữ cảnh trước",
     "tip_3": "Đọc to để cải thiện phát âm và nhịp điệu",
-    "tip_4": "Luyện đọc nhiều loại văn bản khác nhau (tin tức, truyện, v.v.)"
+    "tip_4": "Luyện đọc nhiều loại văn bản khác nhau (tin tức, truyện, v.v.)",
+    "out_of_attempts": "Đã hết lượt"
   },
   "listening": {
     "title": "Luyện Nghe",
@@ -184,7 +185,8 @@
     "tip_3": "Sử dụng phụ đề ban đầu, sau đó thử không có phụ đề",
     "tip_4": "Luyện tập với các giọng nói và tốc độ nói khác nhau",
     "controls_title": "Điều khiển âm thanh",
-    "controls_hint": "Chạm vào bất kỳ bài tập nào ở trên để bắt đầu luyện nghe"
+    "controls_hint": "Chạm vào bất kỳ bài tập nào ở trên để bắt đầu luyện nghe",
+    "out_of_attempts": "Đã hết lượt"
   },
   "speaking": {
     "title": "Luyện Nói",
